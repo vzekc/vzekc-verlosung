@@ -6,4 +6,31 @@ en:
           vzekc_verlosung: "Vzekc Verlosung"
   js:
     vzekc_verlosung:
-      placeholder: placeholder
+      neue_verlosung: "New Lottery"
+      modal:
+        step1_title: "Lottery Details"
+        step2_title: "Add Packets"
+        step3_title: "Review and Create"
+        title_label: "Lottery Title"
+        title_placeholder: "Enter the title for your lottery..."
+        description_label: "Description"
+        description_placeholder: "Describe your lottery and how it works..."
+        packet_label: "Packet"
+        packet_title_label: "Packet Title"
+        packet_title_placeholder: "e.g., Hardware Bundle #1"
+        packet_description_label: "Packet Description"
+        packet_description_placeholder: "Describe what's in this packet..."
+        packet_image_label: "Image URL (optional)"
+        packet_image_placeholder: "https://example.com/image.jpg"
+        add_packet: "Add Another Packet"
+        remove_packet: "Remove Packet"
+        packets_count:
+          one: "1 Packet"
+          other: "%{count} Packets"
+        back: "Back"
+        next: "Next"
+        create: "Create Lottery"
+      ticket:
+        buy: "Buy Ticket"
+        return: "Return Ticket"
+        loading: "Loading..."

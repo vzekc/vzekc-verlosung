@@ -2,3 +2,7 @@ vzekc_verlosung:
   vzekc_verlosung_enabled:
     default: false
     client: true
+  vzekc_verlosung_category_id:
+    default: ''
+    client: true
+    type: category

@@ -1,0 +1,36 @@
+de:
+  admin_js:
+    admin:
+      site_settings:
+        categories:
+          vzekc_verlosung: "Vzekc Verlosung"
+  js:
+    vzekc_verlosung:
+      neue_verlosung: "Neue Verlosung"
+      modal:
+        step1_title: "Verlosungs-Details"
+        step2_title: "Pakete hinzufügen"
+        step3_title: "Überprüfen und erstellen"
+        title_label: "Verlosungs-Titel"
+        title_placeholder: "Geben Sie den Titel für Ihre Verlosung ein..."
+        description_label: "Beschreibung"
+        description_placeholder: "Beschreiben Sie Ihre Verlosung und wie sie funktioniert..."
+        packet_label: "Paket"
+        packet_title_label: "Paket-Titel"
+        packet_title_placeholder: "z.B. Hardware-Paket #1"
+        packet_description_label: "Paket-Beschreibung"
+        packet_description_placeholder: "Beschreiben Sie, was in diesem Paket enthalten ist..."
+        packet_image_label: "Bild-URL (optional)"
+        packet_image_placeholder: "https://beispiel.de/bild.jpg"
+        add_packet: "Weiteres Paket hinzufügen"
+        remove_packet: "Paket entfernen"
+        packets_count:
+          one: "1 Paket"
+          other: "%{count} Pakete"
+        back: "Zurück"
+        next: "Weiter"
+        create: "Verlosung erstellen"
+      ticket:
+        buy: "Los kaufen"
+        return: "Los zurückgeben"
+        loading: "Lädt..."
