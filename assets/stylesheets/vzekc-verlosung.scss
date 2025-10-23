@@ -126,3 +126,131 @@
     }
   }
 }
+
+// Lottery ticket count badge
+.lottery-ticket-count-display {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  margin-left: 0.5em;
+  height: auto;
+  overflow: visible;
+
+  .ticket-count-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25em 0.5em;
+    background: var(--tertiary);
+    color: var(--secondary);
+    border-radius: 12px;
+    font-size: 0.85em;
+    font-weight: 500;
+    cursor: help;
+    position: relative;
+    z-index: 1;
+
+    .d-icon {
+      margin-right: 0.25em;
+      font-size: 0.9em;
+    }
+
+    .count {
+      line-height: 1;
+    }
+  }
+
+  // Wrapper ensures tooltip has zero layout footprint
+  .ticket-users-tooltip-wrapper {
+    position: fixed !important;
+    width: 0 !important;
+    height: 0 !important;
+    overflow: visible !important;
+    pointer-events: none !important;
+  }
+
+  // Tooltip with user list
+  .ticket-users-tooltip {
+    position: fixed;
+    visibility: hidden;
+    opacity: 0;
+    z-index: 10000;
+    min-width: 200px;
+    max-width: 300px;
+    transition: opacity 0.2s, visibility 0.2s;
+    pointer-events: auto;
+
+    // Will be positioned via JavaScript
+    top: auto;
+    left: auto;
+
+    .ticket-users-list {
+      background: var(--secondary);
+      border: 1px solid var(--primary-low-mid);
+      border-radius: 6px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+      padding: 0.75em;
+      max-height: 300px;
+      overflow-y: auto;
+
+      .ticket-user {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        padding: 0.4em;
+        margin-bottom: 0.3em;
+        border-radius: 3px;
+        transition: background 0.2s;
+        white-space: nowrap;
+
+        &:hover {
+          background: var(--primary-very-low);
+        }
+
+        &:last-child {
+          margin-bottom: 0;
+        }
+
+        img.avatar {
+          margin-right: 0.5em;
+          flex-shrink: 0;
+          display: inline-block;
+          vertical-align: middle;
+        }
+
+        .username {
+          font-size: 0.9em;
+          color: var(--primary);
+          display: inline-block;
+          vertical-align: middle;
+        }
+      }
+    }
+
+    // Arrow pointing down
+    &::after {
+      content: "";
+      position: absolute;
+      top: 100%;
+      right: 20px;
+      border: 6px solid transparent;
+      border-top-color: var(--secondary);
+    }
+  }
+
+  // Show tooltip on hover
+  &:hover .ticket-users-tooltip {
+    visibility: visible;
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .ticket-count-badge:hover + .ticket-users-tooltip {
+    visibility: visible;
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .avatar {
+    border-radius: 50%;
+  }
+}

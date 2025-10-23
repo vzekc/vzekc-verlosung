@@ -16,6 +16,7 @@ import { popupAjaxError } from "discourse/lib/ajax-error";
  */
 export default class LotteryTicketButton extends Component {
   @service currentUser;
+  @service appEvents;
   @tracked hasTicket = false;
   @tracked loading = true;
 
@@ -71,6 +72,9 @@ export default class LotteryTicketButton extends Component {
         });
         this.hasTicket = true;
       }
+
+      // Emit event to update ticket count display
+      this.appEvents.trigger("lottery:ticket-changed", this.args.post.id);
     } catch (error) {
       popupAjaxError(error);
     } finally {
@@ -86,12 +90,6 @@ export default class LotteryTicketButton extends Component {
    */
   get shouldShow() {
     const isLotteryPacket = this.args.post?.is_lottery_packet;
-    console.log("LotteryTicketButton shouldShow check:", {
-      hasCurrentUser: !!this.currentUser,
-      postNumber: this.args.post?.post_number,
-      isLotteryPacket,
-      result: this.currentUser && isLotteryPacket
-    });
     // Only show if user is logged in and this is a lottery packet post
     return this.currentUser && isLotteryPacket;
   }
@@ -120,13 +118,14 @@ export default class LotteryTicketButton extends Component {
   }
 
   <template>
-    <DButton
-      @action={{this.toggleTicket}}
-      @label={{this.buttonLabel}}
-      @icon={{this.buttonIcon}}
-      @disabled={{this.loading}}
-      class="btn-primary lottery-ticket-button"
-      style={{if this.shouldShow "" "display: none;"}}
-    />
+    {{#if this.shouldShow}}
+      <DButton
+        @action={{this.toggleTicket}}
+        @label={{this.buttonLabel}}
+        @icon={{this.buttonIcon}}
+        @disabled={{this.loading}}
+        class="btn-primary lottery-ticket-button"
+      />
+    {{/if}}
   </template>
 }
