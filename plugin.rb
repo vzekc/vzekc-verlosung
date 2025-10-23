@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
 # name: vzekc-verlosung
-# about: TODO
+# about: Discourse-Plugin zur Organisation von Hardwareverlosungen
 # meta_topic_id: TODO
 # version: 0.0.1
-# authors: Discourse
-# url: TODO
+# authors: Hans Hübner
+# url: https://github.com/vzekc/vzekc-verlosung
 # required_version: 2.7.0
 
 enabled_site_setting :vzekc_verlosung_enabled
