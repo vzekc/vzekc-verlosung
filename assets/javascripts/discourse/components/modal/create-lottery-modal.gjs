@@ -10,6 +10,7 @@ import DButton from "discourse/components/d-button";
 import { ajax } from "discourse/lib/ajax";
 import { popupAjaxError } from "discourse/lib/ajax-error";
 import i18n from "discourse-common/helpers/i18n";
+import { i18n as i18nFn } from "discourse-i18n";
 
 /**
  * Modal component for creating a new lottery with multiple packets
@@ -69,11 +70,11 @@ export default class CreateLotteryModal extends Component {
   get stepTitle() {
     switch (this.step) {
       case 1:
-        return "vzekc_verlosung.modal.step1_title";
+        return i18nFn("vzekc_verlosung.modal.step1_title");
       case 2:
-        return "vzekc_verlosung.modal.step2_title";
+        return i18nFn("vzekc_verlosung.modal.step2_title");
       case 3:
-        return "vzekc_verlosung.modal.step3_title";
+        return i18nFn("vzekc_verlosung.modal.step3_title");
       default:
         return "";
     }
