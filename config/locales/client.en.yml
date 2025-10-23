@@ -3,7 +3,7 @@ en:
     admin:
       site_settings:
         categories:
-          TODO_plugin_name: "Plugin Name"
+          vzekc_verlosung: "Vzekc Verlosung"
   js:
-    discourse_plugin_name:
+    vzekc_verlosung:
       placeholder: placeholder

@@ -1,4 +1,4 @@
-# **Plugin Name** Plugin
+# **Vzekc Verlosung** Plugin
 
 **Plugin Summary**
 

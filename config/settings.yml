@@ -1,4 +1,4 @@
-TODO_plugin_name:
-  plugin_name_enabled:
+vzekc_verlosung:
+  vzekc_verlosung_enabled:
     default: false
     client: true
