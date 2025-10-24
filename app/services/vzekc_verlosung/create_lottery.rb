@@ -11,8 +11,8 @@ module VzekcVerlosung
   #     description: "Beschreibung der Verlosung",
   #     category_id: 5,
   #     packets: [
-  #       { title: "Packet 1", description: "Inhalt", image_url: "..." },
-  #       { title: "Packet 2", description: "Inhalt", image_url: nil }
+  #       { title: "Packet 1", description: "Inhalt" },
+  #       { title: "Packet 2", description: "Inhalt" }
   #     ]
   #   )
   #
@@ -84,13 +84,9 @@ module VzekcVerlosung
       params.packets.each_with_index do |packet_data, index|
         packet_title = packet_data[:title] || packet_data["title"] || "Packet #{index + 1}"
         packet_description = packet_data[:description] || packet_data["description"] || ""
-        image_url = packet_data[:image_url] || packet_data["image_url"]
 
         # Build the post content
         raw_content = "# #{packet_title}\n\n#{packet_description}"
-        if image_url.present?
-          raw_content += "\n\n![](#{image_url})"
-        end
 
         post_creator =
           PostCreator.new(

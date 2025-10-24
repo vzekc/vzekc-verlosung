@@ -13,8 +13,8 @@ RSpec.describe VzekcVerlosung::LotteriesController do
         description: "Eine tolle Verlosung",
         category_id: category.id,
         packets: [
-          { title: "Packet 1", description: "Inhalt 1", image_url: nil },
-          { title: "Packet 2", description: "Inhalt 2", image_url: "https://example.com/img.jpg" },
+          { title: "Packet 1", description: "Inhalt 1" },
+          { title: "Packet 2", description: "Inhalt 2" },
         ],
       }
     end

@@ -14,7 +14,7 @@ module VzekcVerlosung
     # @param title [String] Title of the main lottery topic
     # @param description [String] Description for the main topic
     # @param category_id [Integer] Category ID where topics should be created
-    # @param packets [Array<Hash>] Array of packet data with title, description, image_url
+    # @param packets [Array<Hash>] Array of packet data with title, description
     #
     # @return [JSON] Success with main_topic data or error
     def create
@@ -71,7 +71,7 @@ module VzekcVerlosung
     private
 
     def create_params
-      params.permit(:title, :description, :category_id, packets: [:title, :description, :image_url])
+      params.permit(:title, :description, :category_id, packets: [:title, :description])
     end
 
     def serialize_topic(topic)

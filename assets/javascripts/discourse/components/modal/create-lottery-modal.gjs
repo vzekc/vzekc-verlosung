@@ -89,7 +89,6 @@ export default class CreateLotteryModal extends Component {
     return {
       title: "",
       description: "",
-      imageUrl: "",
     };
   }
 
@@ -192,7 +191,6 @@ export default class CreateLotteryModal extends Component {
           packets: this.packets.map((p) => ({
             title: p.title,
             description: p.description,
-            image_url: p.imageUrl || null,
           })),
         }),
       });
@@ -303,20 +301,6 @@ export default class CreateLotteryModal extends Component {
                         }}
                         rows="3"
                       ></textarea>
-                    </div>
-
-                    <div class="control-group">
-                      <label>{{i18n
-                          "vzekc_verlosung.modal.packet_image_label"
-                        }}</label>
-                      <input
-                        type="text"
-                        {{on "input" (fn this.updatePacket index "imageUrl")}}
-                        value={{packet.imageUrl}}
-                        placeholder={{i18n
-                          "vzekc_verlosung.modal.packet_image_placeholder"
-                        }}
-                      />
                     </div>
                   </div>
                 {{/each}}
