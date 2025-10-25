@@ -254,3 +254,93 @@
     border-radius: 50%;
   }
 }
+
+// Lottery intro summary
+.lottery-intro-summary {
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
+  padding: 0;
+  background: transparent;
+
+  .lottery-intro-loading {
+    text-align: center;
+    padding: 2em;
+    color: var(--primary-medium);
+
+    .d-icon {
+      font-size: 1.5em;
+    }
+  }
+
+  .lottery-packets-title {
+    margin: 0 0 0.75em 0;
+    font-size: 1.1em;
+    font-weight: 600;
+    color: var(--primary);
+  }
+
+  .lottery-packets-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    border: 1px solid var(--primary-low);
+    border-radius: 6px;
+    background: var(--secondary);
+
+    .lottery-packet-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.75em 1em;
+      border-bottom: 1px solid var(--primary-low);
+      transition: background 0.2s;
+
+      &:hover {
+        background: var(--primary-very-low);
+      }
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      .packet-title {
+        flex: 1;
+        font-weight: 500;
+        color: var(--tertiary);
+        text-decoration: none;
+        transition: color 0.2s;
+
+        &:hover {
+          color: var(--tertiary-hover);
+          text-decoration: underline;
+        }
+
+        &:visited {
+          color: var(--tertiary);
+        }
+      }
+
+      .packet-ticket-count {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.35em 0.75em;
+        background: var(--tertiary-low);
+        color: var(--tertiary);
+        border-radius: 12px;
+        font-size: 0.9em;
+        font-weight: 500;
+        margin-left: 1em;
+
+        .d-icon {
+          margin-right: 0.35em;
+          font-size: 0.9em;
+        }
+
+        .count {
+          line-height: 1;
+          font-weight: 600;
+        }
+      }
+    }
+  }
+}

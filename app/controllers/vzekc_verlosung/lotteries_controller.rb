@@ -68,6 +68,45 @@ module VzekcVerlosung
       render json: { error: e.message }, status: :internal_server_error
     end
 
+    # GET /vzekc_verlosung/lotteries/:topic_id/packets
+    #
+    # Returns list of lottery packets for a topic with ticket counts
+    #
+    # @param topic_id [Integer] Topic ID containing the lottery packets
+    #
+    # @return [JSON] Array of packets with id, title, ticket_count
+    def packets
+      topic = Topic.find_by(id: params[:topic_id])
+      return render_json_error("Topic not found", status: :not_found) unless topic
+
+      # Get all posts in the topic, ordered by post_number
+      all_posts = Post
+        .where(topic_id: topic.id)
+        .order(:post_number)
+
+      # Filter to only lottery packet posts using custom fields
+      packet_posts = all_posts.select do |post|
+        post.custom_fields["is_lottery_packet"] == true
+      end
+
+      packets = packet_posts.map do |post|
+        # Extract title from markdown (first heading)
+        title = extract_title_from_markdown(post.raw) || "Packet ##{post.post_number}"
+
+        # Get ticket count for this packet
+        ticket_count = VzekcVerlosung::LotteryTicket.where(post_id: post.id).count
+
+        {
+          post_id: post.id,
+          post_number: post.post_number,
+          title: title,
+          ticket_count: ticket_count
+        }
+      end
+
+      render json: { packets: packets }
+    end
+
     private
 
     def create_params
@@ -81,6 +120,13 @@ module VzekcVerlosung
         url: topic.url,
         slug: topic.slug,
       }
+    end
+
+    def extract_title_from_markdown(raw)
+      # Extract first heading from markdown (e.g., "# Title")
+      # Match only the first line, not including any content after the newline
+      match = raw.match(/^#\s+(.+)$/)
+      match ? match[1].strip : nil
     end
   end
 end

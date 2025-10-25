@@ -22,11 +22,16 @@ after_initialize do
   # Services and controllers are auto-loaded from app/ directories
   # No manual requires needed
 
-  # Register custom field for lottery packet posts
+  # Register custom fields for lottery posts
   register_post_custom_field_type("is_lottery_packet", :boolean)
+  register_post_custom_field_type("is_lottery_intro", :boolean)
 
-  # Add custom field to post serializer
+  # Add custom fields to post serializer
   add_to_serializer(:post, :is_lottery_packet) do
     object.custom_fields["is_lottery_packet"] == true
+  end
+
+  add_to_serializer(:post, :is_lottery_intro) do
+    object.custom_fields["is_lottery_intro"] == true
   end
 end

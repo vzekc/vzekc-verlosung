@@ -91,6 +91,39 @@ ALWAYS lint any changes you make
 - Migrations: rollback logic, `algorithm: :concurrently` for large tables, deprecate before removing columns
 - Queries: use `explain`, specify columns, strategic indexing, `counter_cache` for counts
 
+## Custom Fields
+**CRITICAL**: Discourse stores custom fields in separate tables, NOT as JSONB columns
+
+### Architecture
+- Custom fields stored in `post_custom_fields`, `topic_custom_fields`, `user_custom_fields`, etc.
+- The `custom_fields` attribute on models is a **virtual accessor** that joins to these tables
+- No `custom_fields` column exists on main tables (`posts`, `topics`, etc.)
+
+### Querying Custom Fields
+```ruby
+# ❌ WRONG - This will cause 500 errors
+Post.where("custom_fields @> ?", { my_field: true }.to_json)
+
+# ✅ CORRECT - Load records first, filter in Ruby
+all_posts = Post.where(topic_id: topic_id)
+filtered = all_posts.select { |post| post.custom_fields["my_field"] == true }
+
+# ✅ ALTERNATIVE - Use joins (more efficient for large datasets)
+Post.joins(:_custom_fields)
+    .where(topic_id: topic_id)
+    .where(post_custom_fields: { name: "my_field", value: "t" })
+```
+
+### Registration & Serialization
+```ruby
+# In plugin.rb after_initialize block
+register_post_custom_field_type("field_name", :boolean)
+
+add_to_serializer(:post, :field_name) do
+  object.custom_fields["field_name"] == true
+end
+```
+
 ## HTTP Response Codes
 - **204 No Content**: Use `head :no_content` for successful operations that don't return data
   - DELETE operations that successfully remove a resource
@@ -108,6 +141,61 @@ ALWAYS lint any changes you make
 - Auth: Guardian classes (`lib/guardian.rb`), POST/PUT/DELETE for state changes, CSRF tokens, `protect_from_forgery`
 - Input: validate client+server, strong parameters, length limits, don't trust client-only validation
 - Authorization: Guardian classes, route+action permissions, scope limiting, `can_see?`/`can_edit?` patterns
+
+## Decorating Posts with Glimmer Components
+
+To add Glimmer components to post content, use `helper.renderGlimmer()` within `api.decorateCookedElement()`. This is the modern Discourse pattern for enhancing posts.
+
+### Pattern (following discourse-footnote plugin)
+```javascript
+// In a .gjs initializer file
+import { apiInitializer } from "discourse/lib/api";
+import MyComponent from "../components/my-component";
+
+export default apiInitializer((api) => {
+  api.decorateCookedElement(
+    (element, helper) => {
+      const post = helper.getModel();
+
+      // Check conditions
+      if (!post || !post.custom_field) {
+        return;
+      }
+
+      // Create container
+      const container = document.createElement("div");
+      container.className = "my-component-container";
+      element.appendChild(container);
+
+      // Render component with data
+      helper.renderGlimmer(container, MyComponent, {
+        post,
+        // other data
+      });
+    },
+    { onlyStream: true }
+  );
+});
+```
+
+### Component receives data via `this.args.data`
+```javascript
+// In component class
+async loadData() {
+  const post = this.args.data.post;
+  // use post data
+}
+
+// In template
+<template>
+  <div>{{@data.post.id}}</div>
+</template>
+```
+
+### References
+- Example: `assets/javascripts/discourse/initializers/lottery-intro-summary.gjs`
+- Discourse footnote plugin: `/Users/hans/Development/vzekc/discourse/plugins/footnote/assets/javascripts/api-initializers/inline-footnotes.gjs`
+- Discourse poll plugin: `/Users/hans/Development/vzekc/discourse/plugins/poll/assets/javascripts/discourse/initializers/extend-for-poll.gjs`
 
 ## Knowledge Sharing
 - ALWAYS persist information for ALL developers (no conversational-only memory)

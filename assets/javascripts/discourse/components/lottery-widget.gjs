@@ -52,12 +52,12 @@ export default class LotteryWidget extends Component {
   }
 
   /**
-   * Load ticket data for this post including user's ticket status and count
+   * Load ticket data for this lottery packet post including user's ticket status and count
    */
   async loadTicketData() {
     try {
       const result = await ajax(
-        `/vzekc-verlosung/tickets/status/${this.args.post.id}`
+        `/vzekc-verlosung/tickets/packet-status/${this.args.post.id}`
       );
       this.hasTicket = result.has_ticket;
       this.ticketCount = result.ticket_count;
@@ -173,9 +173,16 @@ export default class LotteryWidget extends Component {
 
   <template>
     {{#if this.shouldShow}}
+      <DButton
+        @action={{this.toggleTicket}}
+        @label={{this.buttonLabel}}
+        @icon={{this.buttonIcon}}
+        @disabled={{this.loading}}
+        class="btn-primary lottery-ticket-button"
+      />
       {{#unless this.loading}}
         <span
-            class="lottery-ticket-count-display"
+          class="lottery-ticket-count-display"
           {{on "mouseenter" this.showTooltipAction}}
           {{on "mouseleave" this.hideTooltipAction}}
         >
@@ -186,8 +193,8 @@ export default class LotteryWidget extends Component {
         </span>
         {{#if this.ticketCount}}
           <div
-              class="ticket-users-tooltip-wrapper"
-              style="position: fixed; width: 0; height: 0; pointer-events: none;"
+            class="ticket-users-tooltip-wrapper"
+            style="position: fixed; width: 0; height: 0; pointer-events: none;"
           >
             <div class="ticket-users-tooltip" style={{this.tooltipStyle}}>
               <div class="ticket-users-list">
@@ -202,13 +209,6 @@ export default class LotteryWidget extends Component {
           </div>
         {{/if}}
       {{/unless}}
-      <DButton
-        @action={{this.toggleTicket}}
-        @label={{this.buttonLabel}}
-        @icon={{this.buttonIcon}}
-        @disabled={{this.loading}}
-        class="btn-primary lottery-ticket-button"
-      />
     {{/if}}
   </template>
 }

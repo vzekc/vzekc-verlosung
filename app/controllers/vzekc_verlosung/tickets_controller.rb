@@ -16,7 +16,7 @@ module VzekcVerlosung
       ticket = VzekcVerlosung::LotteryTicket.new(post_id: post.id, user_id: current_user.id)
 
       if ticket.save
-        render json: success_json.merge(ticket_status_response(post.id))
+        render json: success_json.merge(ticket_packet_status_response(post.id))
       else
         render json: failed_json.merge(errors: ticket.errors.full_messages), status: :unprocessable_entity
       end
@@ -29,21 +29,21 @@ module VzekcVerlosung
 
       if ticket
         ticket.destroy
-        render json: success_json.merge(ticket_status_response(params[:post_id]))
+        render json: success_json.merge(ticket_packet_status_response(params[:post_id]))
       else
         render json: failed_json.merge(errors: ["Ticket not found"]), status: :not_found
       end
     end
 
-    # GET /vzekc_verlosung/tickets/status/:post_id
-    # Returns whether the current user has a ticket for the post, total count, and list of users
-    def status
-      render json: ticket_status_response(params[:post_id])
+    # GET /vzekc_verlosung/tickets/packet-status/:post_id
+    # Returns whether the current user has a ticket for a lottery packet post, total count, and list of users
+    def packet_status
+      render json: ticket_packet_status_response(params[:post_id])
     end
 
     private
 
-    def ticket_status_response(post_id)
+    def ticket_packet_status_response(post_id)
       has_ticket = VzekcVerlosung::LotteryTicket.exists?(post_id: post_id, user_id: current_user.id)
 
       tickets = VzekcVerlosung::LotteryTicket.where(post_id: post_id).includes(:user)

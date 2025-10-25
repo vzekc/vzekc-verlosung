@@ -18,6 +18,7 @@ module VzekcVerlosung
   #
   class CreateLottery
     include Service::Base
+
     params do
       attribute :title, :string
       attribute :description, :string
@@ -74,6 +75,10 @@ module VzekcVerlosung
       Rails.logger.info "Post errors: #{post_creator.errors.full_messages}" if post_creator.errors.any?
 
       fail!("Failed to create main topic: #{post_creator.errors.full_messages.join(", ")}") unless post&.persisted?
+
+      # Mark the intro post
+      post.custom_fields["is_lottery_intro"] = true
+      post.save_custom_fields
 
       context[:main_topic] = post.topic
     end

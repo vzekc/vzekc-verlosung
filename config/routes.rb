@@ -3,10 +3,11 @@
 VzekcVerlosung::Engine.routes.draw do
   get "/examples" => "examples#index"
   post "/lotteries" => "lotteries#create"
+  get "/lotteries/:topic_id/packets" => "lotteries#packets"
 
   post "/tickets" => "tickets#create"
   delete "/tickets/:post_id" => "tickets#destroy"
-  get "/tickets/status/:post_id" => "tickets#status"
+  get "/tickets/packet-status/:post_id" => "tickets#packet_status"
 end
 
 Discourse::Application.routes.draw { mount ::VzekcVerlosung::Engine, at: "vzekc-verlosung" }
