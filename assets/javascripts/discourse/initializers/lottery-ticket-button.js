@@ -1,10 +1,8 @@
 import { apiInitializer } from "discourse/lib/api";
-import LotteryTicketButton from "../components/lottery-ticket-button";
-import LotteryTicketCount from "../components/lottery-ticket-count";
+import LotteryWidget from "../components/lottery-widget";
 
-export default apiInitializer("1.14.0", (api) => {
+export default apiInitializer((api) => {
   api.registerValueTransformer("post-menu-buttons", ({ value: dag }) => {
-    dag.add("lottery-ticket", LotteryTicketButton, { before: "share" });
-    dag.add("lottery-ticket-count", LotteryTicketCount, { after: "lottery-ticket" });
+    dag.add("lottery-widget", LotteryWidget, { before: "share" });
   });
 });

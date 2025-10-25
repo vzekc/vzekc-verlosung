@@ -10,6 +10,8 @@
 
 enabled_site_setting :vzekc_verlosung_enabled
 
+register_asset "stylesheets/vzekc-verlosung.scss"
+
 module ::VzekcVerlosung
   PLUGIN_NAME = "vzekc-verlosung"
 end

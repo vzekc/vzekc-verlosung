@@ -139,10 +139,10 @@
   .ticket-count-badge {
     display: inline-flex;
     align-items: center;
-    padding: 0.25em 0.5em;
+    padding: 0.9em;
     background: var(--tertiary);
     color: var(--secondary);
-    border-radius: 12px;
+    border-radius: 10px;
     font-size: 0.85em;
     font-weight: 500;
     cursor: help;
@@ -187,7 +187,7 @@
       background: var(--secondary);
       border: 1px solid var(--primary-low-mid);
       border-radius: 6px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+      box-shadow: 0 2px 8px rgb(0, 0, 0, 0.15);
       padding: 0.75em;
       max-height: 300px;
       overflow-y: auto;
