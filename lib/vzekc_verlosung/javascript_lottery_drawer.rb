@@ -21,12 +21,12 @@ module VzekcVerlosung
         load_lottery_code(context)
         setup_crypto_polyfill(context)
 
-        # Pass input data to JavaScript
-        context.attach("rubyInput", input.to_json)
+        # Pass input data as JSON string, not attached function
+        input_json = input.to_json
 
         # Execute drawing
         result_json = context.eval(<<~JS)
-          const input = JSON.parse(rubyInput);
+          const input = #{input_json};
           const lottery = new Lottery(input);
           lottery.initializeSync();
           const result = lottery.drawSync();
