@@ -176,7 +176,9 @@
     z-index: 10000;
     min-width: 200px;
     max-width: 300px;
-    transition: opacity 0.2s, visibility 0.2s;
+    transition:
+      opacity 0.2s,
+      visibility 0.2s;
     pointer-events: auto;
 
     // Will be positioned via JavaScript
@@ -269,6 +271,31 @@
 
     .d-icon {
       font-size: 1.5em;
+    }
+  }
+
+  .lottery-draft-notice {
+    background: var(--highlight-bg);
+    border: 1px solid var(--highlight);
+    border-radius: 6px;
+    padding: 1em;
+    margin-bottom: 1.5em;
+
+    .draft-message {
+      display: flex;
+      align-items: center;
+      margin-bottom: 1em;
+      color: var(--primary);
+      font-weight: 500;
+
+      .d-icon {
+        margin-right: 0.5em;
+        color: var(--highlight);
+      }
+    }
+
+    .lottery-publish-button {
+      width: 100%;
     }
   }
 

@@ -80,6 +80,10 @@ module VzekcVerlosung
       post.custom_fields["is_lottery_intro"] = true
       post.save_custom_fields
 
+      # Mark topic as draft
+      post.topic.custom_fields["lottery_draft"] = true
+      post.topic.save_custom_fields
+
       context[:main_topic] = post.topic
     end
 

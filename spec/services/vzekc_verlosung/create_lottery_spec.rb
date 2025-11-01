@@ -34,6 +34,19 @@ RSpec.describe VzekcVerlosung::CreateLottery do
         expect(result.main_topic.title).to eq("Hardware Verlosung Januar 2025")
       end
 
+      it "marks the main topic as a draft" do
+        result = described_class.call(**valid_params)
+
+        expect(result.main_topic.custom_fields["lottery_draft"]).to eq(true)
+      end
+
+      it "marks the intro post with is_lottery_intro" do
+        result = described_class.call(**valid_params)
+
+        intro_post = result.main_topic.first_post
+        expect(intro_post.custom_fields["is_lottery_intro"]).to eq(true)
+      end
+
       it "creates packet topics in the same category" do
         result = described_class.call(**valid_params)
 

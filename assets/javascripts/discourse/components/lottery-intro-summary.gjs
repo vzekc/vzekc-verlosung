@@ -1,10 +1,13 @@
 import Component from "@glimmer/component";
 import { tracked } from "@glimmer/tracking";
+import { action } from "@ember/object";
 import { service } from "@ember/service";
+import DButton from "discourse/components/d-button";
 import icon from "discourse/helpers/d-icon";
 import { ajax } from "discourse/lib/ajax";
 import { popupAjaxError } from "discourse/lib/ajax-error";
 import { bind } from "discourse/lib/decorators";
+import { i18n } from "discourse-i18n";
 
 /**
  * Component to display lottery packet summary on lottery intro posts
@@ -20,6 +23,7 @@ export default class LotteryIntroSummary extends Component {
 
   @tracked packets = [];
   @tracked loading = true;
+  @tracked publishing = false;
 
   constructor() {
     super(...arguments);
@@ -57,6 +61,65 @@ export default class LotteryIntroSummary extends Component {
     }
   }
 
+  /**
+   * Get the topic object
+   *
+   * @returns {Object} the topic object
+   */
+  get topic() {
+    return this.args.data.post.topic;
+  }
+
+  /**
+   * Check if this lottery is a draft
+   *
+   * @returns {Boolean} true if the lottery is in draft state
+   */
+  get isDraft() {
+    return this.topic?.lottery_draft === true;
+  }
+
+  /**
+   * Check if current user can publish this lottery
+   *
+   * @returns {Boolean} true if user can publish
+   */
+  get canPublish() {
+    if (!this.currentUser) {
+      return false;
+    }
+    if (this.currentUser.staff) {
+      return true;
+    }
+    return this.args.data.post.user_id === this.currentUser.id;
+  }
+
+  /**
+   * Publish the lottery (remove draft status)
+   */
+  @action
+  async publishLottery() {
+    if (this.publishing) {
+      return;
+    }
+
+    this.publishing = true;
+    try {
+      await ajax(
+        `/vzekc-verlosung/lotteries/${this.args.data.post.topic_id}/publish`,
+        {
+          type: "PUT",
+        }
+      );
+      // Reload the page to show the published state
+      window.location.reload();
+    } catch (error) {
+      popupAjaxError(error);
+    } finally {
+      this.publishing = false;
+    }
+  }
+
   <template>
     <div class="lottery-intro-summary">
       {{#if this.loading}}
@@ -64,8 +127,28 @@ export default class LotteryIntroSummary extends Component {
           {{icon "spinner" class="fa-spin"}}
         </div>
       {{else}}
+        {{#if this.isDraft}}
+          {{#if this.canPublish}}
+            <div class="lottery-draft-notice">
+              <div class="draft-message">
+                {{icon "lock"}}
+                <span>{{i18n "vzekc_verlosung.draft.notice"}}</span>
+              </div>
+              <DButton
+                @action={{this.publishLottery}}
+                @translatedLabel={{i18n "vzekc_verlosung.draft.publish_button"}}
+                @icon="paper-plane"
+                @disabled={{this.publishing}}
+                class="btn-primary lottery-publish-button"
+              />
+            </div>
+          {{/if}}
+        {{/if}}
+
         {{#if this.packets.length}}
-          <h3 class="lottery-packets-title">Pakete</h3>
+          <h3 class="lottery-packets-title">{{i18n
+              "vzekc_verlosung.packets_title"
+            }}</h3>
           <ul class="lottery-packets-list">
             {{#each this.packets as |packet|}}
               <li class="lottery-packet-item">

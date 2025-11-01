@@ -30,3 +30,7 @@ de:
         buy: "Los kaufen"
         return: "Los zurückgeben"
         loading: "Lädt..."
+      draft:
+        notice: "Diese Verlosung ist noch ein Entwurf und nur für dich sichtbar."
+        publish_button: "Verlosung veröffentlichen"
+      packets_title: "Pakete"

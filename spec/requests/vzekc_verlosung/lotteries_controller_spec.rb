@@ -74,4 +74,91 @@ RSpec.describe VzekcVerlosung::LotteriesController do
       end
     end
   end
+
+  describe "#publish" do
+    fab!(:other_user) { Fabricate(:user) }
+    fab!(:admin) { Fabricate(:admin) }
+    let!(:lottery_result) do
+      VzekcVerlosung::CreateLottery.call(
+        params: {
+          title: "Test Lottery",
+          description: "Test description",
+          category_id: category.id,
+          packets: [{ title: "Packet 1", description: "Content" }],
+        },
+        user: user,
+        guardian: Guardian.new(user),
+      )
+    end
+    let(:topic) { lottery_result.main_topic }
+
+    context "when user is the topic owner" do
+      it "publishes the lottery" do
+        expect(topic.custom_fields["lottery_draft"]).to eq(true)
+
+        put "/vzekc-verlosung/lotteries/#{topic.id}/publish.json"
+
+        expect(response.status).to eq(204)
+        topic.reload
+        expect(topic.custom_fields["lottery_draft"]).to be_nil
+      end
+    end
+
+    context "when user is staff" do
+      before { sign_in(admin) }
+
+      it "allows staff to publish" do
+        put "/vzekc-verlosung/lotteries/#{topic.id}/publish.json"
+
+        expect(response.status).to eq(204)
+        topic.reload
+        expect(topic.custom_fields["lottery_draft"]).to be_nil
+      end
+    end
+
+    context "when user is not the owner" do
+      before { sign_in(other_user) }
+
+      it "returns forbidden" do
+        put "/vzekc-verlosung/lotteries/#{topic.id}/publish.json"
+
+        expect(response.status).to eq(403)
+        topic.reload
+        expect(topic.custom_fields["lottery_draft"]).to eq(true)
+      end
+    end
+
+    context "when topic is already published" do
+      before do
+        topic.custom_fields.delete("lottery_draft")
+        topic.save_custom_fields
+      end
+
+      it "returns error" do
+        put "/vzekc-verlosung/lotteries/#{topic.id}/publish.json"
+
+        expect(response.status).to eq(422)
+        json = response.parsed_body
+        expect(json["errors"]).to include("This lottery is already published")
+      end
+    end
+
+    context "when topic does not exist" do
+      it "returns not found" do
+        put "/vzekc-verlosung/lotteries/999999/publish.json"
+
+        expect(response.status).to eq(404)
+      end
+    end
+
+    context "when user is not logged in" do
+      before { sign_out }
+
+      it "returns forbidden" do
+        put "/vzekc-verlosung/lotteries/#{topic.id}/publish.json"
+
+        expect(response.status).to eq(403)
+      end
+    end
+  end
 end

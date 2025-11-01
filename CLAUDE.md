@@ -69,9 +69,36 @@ Exmaple filters JavaScript tests:
   Filter string is: "Unit | Model | user: staff"
 
 # Linting
-bin/lint path/to/file path/to/another/file
-bin/lint --fix path/to/file path/to/another/file
-bin/lint --fix --recent # Lint all recently changed files
+
+**IMPORTANT for Plugin Development:**
+- Linting commands MUST be run from the Discourse root directory (`/Users/hans/Development/vzekc/discourse`)
+- Plugin file paths must be relative to Discourse root (e.g., `plugins/vzekc-verlosung/...`)
+- DO NOT run linting from the plugin directory - there is no `bin/lint` there
+
+```bash
+# From Discourse root directory
+cd /Users/hans/Development/vzekc/discourse
+
+# Lint plugin files (use full relative paths)
+bin/lint plugins/vzekc-verlosung/path/to/file plugins/vzekc-verlosung/path/to/another/file
+
+# Auto-fix linting issues
+bin/lint --fix plugins/vzekc-verlosung/path/to/file
+
+# Lint recently changed files (works for core, may not detect plugin changes)
+bin/lint --fix --recent
+
+# If Ruby linting fails due to bundle issues, use syntax check as fallback
+ruby -c plugins/vzekc-verlosung/path/to/file.rb
+```
+
+**Example for this plugin:**
+```bash
+cd /Users/hans/Development/vzekc/discourse
+bin/lint --fix \
+  plugins/vzekc-verlosung/plugin.rb \
+  plugins/vzekc-verlosung/app/controllers/vzekc_verlosung/lotteries_controller.rb \
+  plugins/vzekc-verlosung/assets/javascripts/discourse/components/my-component.gjs
 ```
 
 ALWAYS lint any changes you make
@@ -123,6 +150,40 @@ add_to_serializer(:post, :field_name) do
   object.custom_fields["field_name"] == true
 end
 ```
+
+### Preloading Custom Fields (CRITICAL for Topic Lists)
+**IMPORTANT**: When adding custom fields to `topic_list_item` serializer, you MUST follow this 3-step pattern to prevent N+1 queries:
+
+```ruby
+# Step 1: Register the custom field type
+register_topic_custom_field_type("my_field", :boolean)
+
+# Step 2: Preload for topic lists to prevent N+1 errors
+add_preloaded_topic_list_custom_field("my_field")
+
+# Step 3: Add helper method to Topic class (CRITICAL - don't skip this!)
+add_to_class(:topic, :my_field) do
+  custom_fields["my_field"] == true
+end
+
+# Step 4: Add to serializer - call the helper method, NOT custom_fields directly
+add_to_serializer(:topic_list_item, :my_field) do
+  object.my_field  # ← Calls the helper method, not custom_fields
+end
+```
+
+**CRITICAL**: Never access `object.custom_fields["my_field"]` directly in the serializer. Always use a helper method. Even with preloading, direct access will trigger:
+```
+HasCustomFields::NotPreloadedError: Attempted to access the non preloaded custom field 'my_field' on the 'Topic' class.
+```
+
+**How it works**:
+1. `add_preloaded_topic_list_custom_field` registers the field in `TopicList.preloaded_custom_fields`
+2. When `TopicList#load_topics` runs, it calls `Topic.preload_custom_fields(@topics, preloaded_custom_fields)`
+3. The helper method can safely access `custom_fields[key]` because the field is now preloaded
+4. The serializer calls the helper method instead of accessing `custom_fields` directly
+
+**Pattern Source**: See `/Users/hans/Development/vzekc/discourse/plugins/discourse-calendar/plugin.rb` lines 229-244 for a production example.
 
 ## HTTP Response Codes
 - **204 No Content**: Use `head :no_content` for successful operations that don't return data

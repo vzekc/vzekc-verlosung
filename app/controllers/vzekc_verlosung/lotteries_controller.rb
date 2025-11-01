@@ -107,6 +107,34 @@ module VzekcVerlosung
       render json: { packets: packets }
     end
 
+    # PUT /vzekc_verlosung/lotteries/:topic_id/publish
+    #
+    # Publishes a lottery draft topic, making it visible to all users
+    #
+    # @param topic_id [Integer] Topic ID to publish
+    #
+    # @return [JSON] Success or error
+    def publish
+      topic = Topic.find_by(id: params[:topic_id])
+      return render_json_error("Topic not found", status: :not_found) unless topic
+
+      # Check if user can publish (must be topic owner or staff)
+      unless guardian.is_staff? || topic.user_id == current_user.id
+        return render_json_error("You don't have permission to publish this lottery", status: :forbidden)
+      end
+
+      # Check if it's actually a draft
+      unless topic.custom_fields["lottery_draft"] == true
+        return render_json_error("This lottery is already published", status: :unprocessable_entity)
+      end
+
+      # Remove draft flag
+      topic.custom_fields.delete("lottery_draft")
+      topic.save_custom_fields
+
+      head :no_content
+    end
+
     private
 
     def create_params

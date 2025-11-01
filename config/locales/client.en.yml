@@ -30,3 +30,7 @@ en:
         buy: "Buy Ticket"
         return: "Return Ticket"
         loading: "Loading..."
+      draft:
+        notice: "This lottery is still a draft and only visible to you."
+        publish_button: "Publish Lottery"
+      packets_title: "Packets"

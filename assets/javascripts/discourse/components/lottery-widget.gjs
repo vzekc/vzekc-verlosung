@@ -41,7 +41,9 @@ export default class LotteryWidget extends Component {
 
   willDestroy() {
     super.willDestroy(...arguments);
-    this.appEvents.off("lottery:ticket-changed", this, this.onTicketChanged);
+    if (this.shouldShow) {
+      this.appEvents.off("lottery:ticket-changed", this, this.onTicketChanged);
+    }
   }
 
   @bind
