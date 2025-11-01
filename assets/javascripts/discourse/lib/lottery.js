@@ -1,4 +1,4 @@
-import { SeededRandom } from "./prng.js";
+import { SeededRandom } from "./prng";
 
 export class Lottery {
   constructor(input) {
