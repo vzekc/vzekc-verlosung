@@ -217,9 +217,8 @@ export default class LotteryIntroSummary extends Component {
    */
   @action
   async drawWinners() {
-    const DrawLotteryModal = (
-      await import("../components/modal/draw-lottery-modal")
-    ).default;
+    const DrawLotteryModal = (await import("./modal/draw-lottery-modal"))
+      .default;
 
     this.modal.show(DrawLotteryModal, {
       model: {
