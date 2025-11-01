@@ -126,12 +126,25 @@ export default class LotteryWidget extends Component {
 
   /**
    * Check if this widget should be shown
-   * Only show on lottery packet posts for logged-in users
+   * Only show on lottery packet posts for logged-in users, and only if lottery hasn't ended
    *
    * @type {boolean}
    */
   get shouldShow() {
-    return this.currentUser && this.args.post?.is_lottery_packet;
+    if (!this.currentUser || !this.args.post?.is_lottery_packet) {
+      return false;
+    }
+
+    // Hide if lottery has ended
+    const topic = this.args.post.topic;
+    if (topic?.lottery_ends_at) {
+      const endsAt = new Date(topic.lottery_ends_at);
+      if (endsAt <= new Date()) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   /**

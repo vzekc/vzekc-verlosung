@@ -13,6 +13,12 @@ module VzekcVerlosung
       post = Post.find_by(id: params[:post_id])
       return render_json_error("Post not found", status: :not_found) unless post
 
+      # Check if lottery has ended
+      topic = post.topic
+      if topic.lottery_ends_at && topic.lottery_ends_at <= Time.zone.now
+        return render_json_error("Lottery has ended", status: :unprocessable_entity)
+      end
+
       ticket = VzekcVerlosung::LotteryTicket.new(post_id: post.id, user_id: current_user.id)
 
       if ticket.save
@@ -26,13 +32,19 @@ module VzekcVerlosung
     # Removes the lottery ticket for the current user and post
     def destroy
       ticket = VzekcVerlosung::LotteryTicket.find_by(post_id: params[:post_id], user_id: current_user.id)
+      return render_json_error("Ticket not found", status: :not_found) unless ticket
 
-      if ticket
-        ticket.destroy
-        render json: success_json.merge(ticket_packet_status_response(params[:post_id]))
-      else
-        render json: failed_json.merge(errors: ["Ticket not found"]), status: :not_found
+      # Check if lottery has ended
+      post = Post.find_by(id: params[:post_id])
+      if post
+        topic = post.topic
+        if topic.lottery_ends_at && topic.lottery_ends_at <= Time.zone.now
+          return render_json_error("Lottery has ended", status: :unprocessable_entity)
+        end
       end
+
+      ticket.destroy
+      render json: success_json.merge(ticket_packet_status_response(params[:post_id]))
     end
 
     # GET /vzekc_verlosung/tickets/packet-status/:post_id
