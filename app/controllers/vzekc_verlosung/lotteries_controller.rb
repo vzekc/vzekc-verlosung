@@ -100,7 +100,8 @@ module VzekcVerlosung
           post_id: post.id,
           post_number: post.post_number,
           title: title,
-          ticket_count: ticket_count
+          ticket_count: ticket_count,
+          winner: post.custom_fields["lottery_winner"]
         }
       end
 

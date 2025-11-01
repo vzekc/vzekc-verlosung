@@ -299,10 +299,20 @@ export default class LotteryIntroSummary extends Component {
                   href="#post_{{packet.post_number}}"
                   class="packet-title"
                 >{{packet.title}}</a>
-                <span class="packet-ticket-count">
-                  {{icon "gift"}}
-                  <span class="count">{{packet.ticket_count}}</span>
-                </span>
+                {{#if packet.winner}}
+                  <span class="packet-winner">
+                    {{icon "trophy"}}
+                    <span class="winner-label">{{i18n
+                        "vzekc_verlosung.ticket.winner"
+                      }}</span>
+                    <span class="winner-name">{{packet.winner}}</span>
+                  </span>
+                {{else}}
+                  <span class="packet-ticket-count">
+                    {{icon "gift"}}
+                    <span class="count">{{packet.ticket_count}}</span>
+                  </span>
+                {{/if}}
               </li>
             {{/each}}
           </ul>
