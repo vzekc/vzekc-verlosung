@@ -131,17 +131,12 @@
 .lottery-winner-display {
   display: inline-flex;
   align-items: center;
-  padding: 0.5em 0.75em 0.5em 0.5em;
+  padding: 0.5em 0.75em;
   background: var(--success-low);
   border: 1px solid var(--success);
   border-radius: 6px;
   font-weight: 500;
   color: var(--primary);
-
-  .d-icon {
-    margin-right: 0.35em;
-    color: var(--success);
-  }
 
   .winner-label {
     margin-right: 0.35em;
@@ -472,19 +467,13 @@
       .packet-winner {
         display: inline-flex;
         align-items: center;
-        padding: 0.35em 0.75em 0.35em 0.5em;
+        padding: 0.35em 0.75em;
         background: var(--success-low);
         border: 1px solid var(--success);
         border-radius: 12px;
         font-size: 0.9em;
         font-weight: 500;
         margin-left: 1em;
-
-        .d-icon {
-          margin-right: 0.35em;
-          font-size: 0.9em;
-          color: var(--success);
-        }
 
         .winner-label {
           margin-right: 0.35em;

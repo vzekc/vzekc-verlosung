@@ -226,7 +226,6 @@ export default class LotteryWidget extends Component {
         />
       {{else if this.winner}}
         <div class="lottery-winner-display">
-          {{icon "trophy"}}
           <span class="winner-label">{{i18n
               "vzekc_verlosung.ticket.winner"
             }}</span>
