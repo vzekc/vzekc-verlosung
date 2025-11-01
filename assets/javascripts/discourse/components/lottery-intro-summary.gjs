@@ -208,7 +208,6 @@ export default class LotteryIntroSummary extends Component {
       window.location.reload();
     } catch (error) {
       popupAjaxError(error);
-    } finally {
       this.publishing = false;
     }
   }
@@ -244,6 +243,7 @@ export default class LotteryIntroSummary extends Component {
                 @translatedLabel={{this.publishButtonLabel}}
                 @icon={{this.publishButtonIcon}}
                 @disabled={{this.publishing}}
+                @isLoading={{this.publishing}}
                 class="btn-primary lottery-publish-button"
               />
             </div>
