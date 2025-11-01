@@ -131,7 +131,7 @@
 .lottery-winner-display {
   display: inline-flex;
   align-items: center;
-  padding: 0.5em 0.75em;
+  padding: 0.5em 0.75em 0.5em 0.5em;
   background: var(--success-low);
   border: 1px solid var(--success);
   border-radius: 6px;
@@ -472,7 +472,7 @@
       .packet-winner {
         display: inline-flex;
         align-items: center;
-        padding: 0.35em 0.75em;
+        padding: 0.35em 0.75em 0.35em 0.5em;
         background: var(--success-low);
         border: 1px solid var(--success);
         border-radius: 12px;
