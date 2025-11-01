@@ -10,6 +10,7 @@ import icon from "discourse/helpers/d-icon";
 import { ajax } from "discourse/lib/ajax";
 import { popupAjaxError } from "discourse/lib/ajax-error";
 import { bind } from "discourse/lib/decorators";
+import { i18n } from "discourse-i18n";
 
 /**
  * Lottery widget component combining ticket button and count display
@@ -226,7 +227,9 @@ export default class LotteryWidget extends Component {
       {{else if this.winner}}
         <div class="lottery-winner-display">
           {{icon "trophy"}}
-          <span class="winner-label">Winner:</span>
+          <span class="winner-label">{{i18n
+              "vzekc_verlosung.ticket.winner"
+            }}</span>
           <span class="winner-name">{{this.winner}}</span>
         </div>
       {{/if}}

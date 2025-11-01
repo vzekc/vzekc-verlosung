@@ -31,6 +31,7 @@ de:
         buy: "Los kaufen"
         return: "Los zurückgeben"
         loading: "Lädt..."
+        winner: "Gewinner:"
       draft:
         notice: "Diese Verlosung ist noch ein Entwurf und nur für dich sichtbar."
         publish_button: "Verlosung veröffentlichen"
