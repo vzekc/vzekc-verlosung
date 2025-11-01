@@ -271,37 +271,14 @@ export default class CreateLotteryModal extends Component {
                         />
                       {{/if}}
                     </div>
-
-                    <div class="control-group">
-                      <label>{{i18n
-                          "vzekc_verlosung.modal.packet_title_label"
-                        }}</label>
-                      <input
+                    <input
                         type="text"
-                        {{on "input" (fn this.updatePacket index "title")}}
+                      {{on "input" (fn this.updatePacket index "title")}}
                         value={{packet.title}}
                         placeholder={{i18n
-                          "vzekc_verlosung.modal.packet_title_placeholder"
-                        }}
-                      />
-                    </div>
-
-                    <div class="control-group">
-                      <label>{{i18n
-                          "vzekc_verlosung.modal.packet_description_label"
-                        }}</label>
-                      <textarea
-                        {{on
-                          "input"
-                          (fn this.updatePacket index "description")
-                        }}
-                        value={{packet.description}}
-                        placeholder={{i18n
-                          "vzekc_verlosung.modal.packet_description_placeholder"
-                        }}
-                        rows="3"
-                      ></textarea>
-                    </div>
+                        "vzekc_verlosung.modal.packet_title_placeholder"
+                    }}
+                    />
                   </div>
                 {{/each}}
               </div>

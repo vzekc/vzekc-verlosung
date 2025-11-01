@@ -88,10 +88,9 @@ module VzekcVerlosung
 
       params.packets.each_with_index do |packet_data, index|
         packet_title = packet_data[:title] || packet_data["title"] || "Packet #{index + 1}"
-        packet_description = packet_data[:description] || packet_data["description"] || ""
 
         # Build the post content
-        raw_content = "# #{packet_title}\n\n#{packet_description}"
+        raw_content = "# #{packet_title}\n\n"
 
         post_creator =
           PostCreator.new(
