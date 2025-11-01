@@ -8,6 +8,7 @@ import { ajax } from "discourse/lib/ajax";
 import { popupAjaxError } from "discourse/lib/ajax-error";
 import { bind } from "discourse/lib/decorators";
 import { i18n } from "discourse-i18n";
+import DrawLotteryModal from "./modal/draw-lottery-modal";
 
 /**
  * Component to display lottery packet summary on lottery intro posts
@@ -216,10 +217,7 @@ export default class LotteryIntroSummary extends Component {
    * Open the drawing modal to draw winners
    */
   @action
-  async drawWinners() {
-    const DrawLotteryModal = (await import("./modal/draw-lottery-modal"))
-      .default;
-
+  drawWinners() {
     this.modal.show(DrawLotteryModal, {
       model: {
         topicId: this.args.data.post.topic_id,
