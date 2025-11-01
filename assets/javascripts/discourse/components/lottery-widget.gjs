@@ -126,25 +126,52 @@ export default class LotteryWidget extends Component {
 
   /**
    * Check if this widget should be shown
-   * Only show on lottery packet posts for logged-in users, and only if lottery hasn't ended
+   * Only show on lottery packet posts for logged-in users
    *
    * @type {boolean}
    */
   get shouldShow() {
-    if (!this.currentUser || !this.args.post?.is_lottery_packet) {
-      return false;
-    }
+    return this.currentUser && this.args.post?.is_lottery_packet;
+  }
 
-    // Hide if lottery has ended
-    const topic = this.args.post.topic;
+  /**
+   * Check if user can buy or return tickets
+   * Returns false if lottery has ended
+   *
+   * @type {boolean}
+   */
+  get canBuyOrReturn() {
+    const topic = this.args.post?.topic;
     if (topic?.lottery_ends_at) {
       const endsAt = new Date(topic.lottery_ends_at);
       if (endsAt <= new Date()) {
         return false;
       }
     }
-
     return true;
+  }
+
+  /**
+   * Check if lottery has ended
+   *
+   * @type {boolean}
+   */
+  get hasEnded() {
+    const topic = this.args.post?.topic;
+    if (topic?.lottery_ends_at) {
+      const endsAt = new Date(topic.lottery_ends_at);
+      return endsAt <= new Date();
+    }
+    return false;
+  }
+
+  /**
+   * Get the winner username for this packet
+   *
+   * @type {string|null}
+   */
+  get winner() {
+    return this.args.post?.lottery_winner;
   }
 
   /**
@@ -188,13 +215,21 @@ export default class LotteryWidget extends Component {
 
   <template>
     {{#if this.shouldShow}}
-      <DButton
-        @action={{this.toggleTicket}}
-        @label={{this.buttonLabel}}
-        @icon={{this.buttonIcon}}
-        @disabled={{this.loading}}
-        class="btn-primary lottery-ticket-button"
-      />
+      {{#if this.canBuyOrReturn}}
+        <DButton
+          @action={{this.toggleTicket}}
+          @label={{this.buttonLabel}}
+          @icon={{this.buttonIcon}}
+          @disabled={{this.loading}}
+          class="btn-primary lottery-ticket-button"
+        />
+      {{else if this.winner}}
+        <div class="lottery-winner-display">
+          {{icon "trophy"}}
+          <span class="winner-label">Winner:</span>
+          <span class="winner-name">{{this.winner}}</span>
+        </div>
+      {{/if}}
       {{#unless this.loading}}
         <span
           class="lottery-ticket-count-display"

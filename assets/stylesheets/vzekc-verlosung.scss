@@ -127,6 +127,33 @@
   }
 }
 
+// Lottery winner display
+.lottery-winner-display {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5em 1em;
+  background: var(--success-low);
+  border: 1px solid var(--success);
+  border-radius: 6px;
+  font-weight: 500;
+  color: var(--primary);
+
+  .d-icon {
+    margin-right: 0.5em;
+    color: var(--success);
+  }
+
+  .winner-label {
+    margin-right: 0.5em;
+    color: var(--primary-medium);
+  }
+
+  .winner-name {
+    font-weight: 600;
+    color: var(--success);
+  }
+}
+
 // Lottery ticket count badge
 .lottery-ticket-count-display {
   position: relative;
