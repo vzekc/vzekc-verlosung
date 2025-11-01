@@ -26,6 +26,7 @@ en:
         back: "Back"
         next: "Next"
         create: "Create Lottery"
+        creating: "Creating..."
       ticket:
         buy: "Buy Ticket"
         return: "Return Ticket"
@@ -33,4 +34,12 @@ en:
       draft:
         notice: "This lottery is still a draft and only visible to you."
         publish_button: "Publish Lottery"
+        publishing: "Publishing..."
+      state:
+        active: "Active Lottery"
+        finished: "This lottery has ended"
+        ended: "Ended"
+        time_remaining_days: "%{days} days and %{hours} hours remaining"
+        time_remaining_hours: "%{hours} hours and %{minutes} minutes remaining"
+        time_remaining_minutes: "%{minutes} minutes remaining"
       packets_title: "Packets"

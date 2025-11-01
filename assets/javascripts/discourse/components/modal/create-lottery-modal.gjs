@@ -1,16 +1,15 @@
 import Component from "@glimmer/component";
 import { tracked } from "@glimmer/tracking";
-import { action } from "@ember/object";
-import { service } from "@ember/service";
 import { fn } from "@ember/helper";
 import { on } from "@ember/modifier";
+import { action } from "@ember/object";
+import { service } from "@ember/service";
 import { eq, gt, lt, not } from "truth-helpers";
-import DModal from "discourse/components/d-modal";
 import DButton from "discourse/components/d-button";
+import DModal from "discourse/components/d-modal";
 import { ajax } from "discourse/lib/ajax";
 import { popupAjaxError } from "discourse/lib/ajax-error";
-import i18n from "discourse-common/helpers/i18n";
-import { i18n as i18nFn } from "discourse-i18n";
+import { i18n, i18n as i18nFn } from "discourse-i18n";
 
 /**
  * Modal component for creating a new lottery with multiple packets
@@ -24,7 +23,6 @@ import { i18n as i18nFn } from "discourse-i18n";
  * 3. Review and confirm
  */
 export default class CreateLotteryModal extends Component {
-  @service siteSettings;
   @service router;
 
   @tracked step = 1;
@@ -150,6 +148,26 @@ export default class CreateLotteryModal extends Component {
   }
 
   /**
+   * Get the submit button label
+   *
+   * @type {string}
+   */
+  get submitLabel() {
+    return this.isSubmitting
+      ? i18nFn("vzekc_verlosung.modal.creating")
+      : i18nFn("vzekc_verlosung.modal.create");
+  }
+
+  /**
+   * Get the submit button icon
+   *
+   * @type {string}
+   */
+  get submitIcon() {
+    return this.isSubmitting ? "spinner" : null;
+  }
+
+  /**
    * Go to next step
    */
   @action
@@ -272,12 +290,12 @@ export default class CreateLotteryModal extends Component {
                       {{/if}}
                     </div>
                     <input
-                        type="text"
+                      type="text"
                       {{on "input" (fn this.updatePacket index "title")}}
-                        value={{packet.title}}
-                        placeholder={{i18n
+                      value={{packet.title}}
+                      placeholder={{i18n
                         "vzekc_verlosung.modal.packet_title_placeholder"
-                    }}
+                      }}
                     />
                   </div>
                 {{/each}}
@@ -337,7 +355,8 @@ export default class CreateLotteryModal extends Component {
           {{else}}
             <DButton
               @action={{this.submit}}
-              @label="vzekc_verlosung.modal.create"
+              @translatedLabel={{this.submitLabel}}
+              @icon={{this.submitIcon}}
               @disabled={{this.isSubmitting}}
               class="btn-primary"
             />

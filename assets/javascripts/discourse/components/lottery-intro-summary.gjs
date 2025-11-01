@@ -76,7 +76,64 @@ export default class LotteryIntroSummary extends Component {
    * @returns {Boolean} true if the lottery is in draft state
    */
   get isDraft() {
-    return this.topic?.lottery_draft === true;
+    return this.topic?.lottery_state === "draft";
+  }
+
+  /**
+   * Check if this lottery is active
+   *
+   * @returns {Boolean} true if the lottery is active
+   */
+  get isActive() {
+    return this.topic?.lottery_state === "active";
+  }
+
+  /**
+   * Check if this lottery is finished
+   *
+   * @returns {Boolean} true if the lottery is finished
+   */
+  get isFinished() {
+    return this.topic?.lottery_state === "finished";
+  }
+
+  /**
+   * Get the time remaining until the lottery ends
+   *
+   * @returns {String} formatted time remaining
+   */
+  get timeRemaining() {
+    if (!this.topic?.lottery_ends_at) {
+      return null;
+    }
+
+    const endsAt = new Date(this.topic.lottery_ends_at);
+    const now = new Date();
+    const diff = endsAt - now;
+
+    if (diff <= 0) {
+      return i18n("vzekc_verlosung.state.ended");
+    }
+
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+
+    if (days > 0) {
+      return i18n("vzekc_verlosung.state.time_remaining_days", {
+        days,
+        hours,
+      });
+    } else if (hours > 0) {
+      return i18n("vzekc_verlosung.state.time_remaining_hours", {
+        hours,
+        minutes,
+      });
+    } else {
+      return i18n("vzekc_verlosung.state.time_remaining_minutes", {
+        minutes,
+      });
+    }
   }
 
   /**
@@ -92,6 +149,26 @@ export default class LotteryIntroSummary extends Component {
       return true;
     }
     return this.args.data.post.user_id === this.currentUser.id;
+  }
+
+  /**
+   * Get the publish button label
+   *
+   * @returns {String} the button label
+   */
+  get publishButtonLabel() {
+    return this.publishing
+      ? i18n("vzekc_verlosung.draft.publishing")
+      : i18n("vzekc_verlosung.draft.publish_button");
+  }
+
+  /**
+   * Get the publish button icon
+   *
+   * @returns {String} the button icon
+   */
+  get publishButtonIcon() {
+    return this.publishing ? "spinner" : "paper-plane";
   }
 
   /**
@@ -136,13 +213,36 @@ export default class LotteryIntroSummary extends Component {
               </div>
               <DButton
                 @action={{this.publishLottery}}
-                @translatedLabel={{i18n "vzekc_verlosung.draft.publish_button"}}
-                @icon="paper-plane"
+                @translatedLabel={{this.publishButtonLabel}}
+                @icon={{this.publishButtonIcon}}
                 @disabled={{this.publishing}}
                 class="btn-primary lottery-publish-button"
               />
             </div>
           {{/if}}
+        {{/if}}
+
+        {{#if this.isActive}}
+          {{#if this.timeRemaining}}
+            <div class="lottery-active-notice">
+              <div class="active-message">
+                {{icon "clock"}}
+                <span>{{i18n "vzekc_verlosung.state.active"}}</span>
+              </div>
+              <div class="time-remaining">
+                {{this.timeRemaining}}
+              </div>
+            </div>
+          {{/if}}
+        {{/if}}
+
+        {{#if this.isFinished}}
+          <div class="lottery-finished-notice">
+            <div class="finished-message">
+              {{icon "check-circle"}}
+              <span>{{i18n "vzekc_verlosung.state.finished"}}</span>
+            </div>
+          </div>
         {{/if}}
 
         {{#if this.packets.length}}

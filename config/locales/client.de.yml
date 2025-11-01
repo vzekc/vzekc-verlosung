@@ -26,6 +26,7 @@ de:
         back: "Zurück"
         next: "Weiter"
         create: "Verlosung erstellen"
+        creating: "Erstelle..."
       ticket:
         buy: "Los kaufen"
         return: "Los zurückgeben"
@@ -33,4 +34,12 @@ de:
       draft:
         notice: "Diese Verlosung ist noch ein Entwurf und nur für dich sichtbar."
         publish_button: "Verlosung veröffentlichen"
+        publishing: "Veröffentliche..."
+      state:
+        active: "Aktive Verlosung"
+        finished: "Diese Verlosung ist beendet"
+        ended: "Beendet"
+        time_remaining_days: "Noch %{days} Tage und %{hours} Stunden"
+        time_remaining_hours: "Noch %{hours} Stunden und %{minutes} Minuten"
+        time_remaining_minutes: "Noch %{minutes} Minuten"
       packets_title: "Pakete"

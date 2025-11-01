@@ -94,13 +94,14 @@ RSpec.describe VzekcVerlosung::LotteriesController do
 
     context "when user is the topic owner" do
       it "publishes the lottery" do
-        expect(topic.custom_fields["lottery_draft"]).to eq(true)
+        expect(topic.custom_fields["lottery_state"]).to eq("draft")
 
         put "/vzekc-verlosung/lotteries/#{topic.id}/publish.json"
 
         expect(response.status).to eq(204)
         topic.reload
-        expect(topic.custom_fields["lottery_draft"]).to be_nil
+        expect(topic.custom_fields["lottery_state"]).to eq("active")
+        expect(topic.custom_fields["lottery_ends_at"]).to be_present
       end
     end
 
@@ -112,7 +113,8 @@ RSpec.describe VzekcVerlosung::LotteriesController do
 
         expect(response.status).to eq(204)
         topic.reload
-        expect(topic.custom_fields["lottery_draft"]).to be_nil
+        expect(topic.custom_fields["lottery_state"]).to eq("active")
+        expect(topic.custom_fields["lottery_ends_at"]).to be_present
       end
     end
 
@@ -124,13 +126,13 @@ RSpec.describe VzekcVerlosung::LotteriesController do
 
         expect(response.status).to eq(403)
         topic.reload
-        expect(topic.custom_fields["lottery_draft"]).to eq(true)
+        expect(topic.custom_fields["lottery_state"]).to eq("draft")
       end
     end
 
     context "when topic is already published" do
       before do
-        topic.custom_fields.delete("lottery_draft")
+        topic.custom_fields["lottery_state"] = "active"
         topic.save_custom_fields
       end
 
@@ -139,7 +141,7 @@ RSpec.describe VzekcVerlosung::LotteriesController do
 
         expect(response.status).to eq(422)
         json = response.parsed_body
-        expect(json["errors"]).to include("This lottery is already published")
+        expect(json["errors"]).to include("This lottery is not in draft state")
       end
     end
 

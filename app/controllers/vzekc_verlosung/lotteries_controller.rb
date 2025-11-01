@@ -110,6 +110,7 @@ module VzekcVerlosung
     # PUT /vzekc_verlosung/lotteries/:topic_id/publish
     #
     # Publishes a lottery draft topic, making it visible to all users
+    # Sets the lottery to active state and schedules it to end in 2 weeks
     #
     # @param topic_id [Integer] Topic ID to publish
     #
@@ -124,12 +125,13 @@ module VzekcVerlosung
       end
 
       # Check if it's actually a draft
-      unless topic.custom_fields["lottery_draft"] == true
-        return render_json_error("This lottery is already published", status: :unprocessable_entity)
+      unless topic.custom_fields["lottery_state"] == "draft"
+        return render_json_error("This lottery is not in draft state", status: :unprocessable_entity)
       end
 
-      # Remove draft flag
-      topic.custom_fields.delete("lottery_draft")
+      # Activate lottery and set end time to 2 weeks from now
+      topic.custom_fields["lottery_state"] = "active"
+      topic.custom_fields["lottery_ends_at"] = 2.weeks.from_now
       topic.save_custom_fields
 
       head :no_content

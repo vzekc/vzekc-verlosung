@@ -16,7 +16,7 @@ export default apiInitializer((api) => {
      * @returns {Boolean} whether the topic should be visible in lists
      */
     get isVisible() {
-      const isDraft = this.lottery_draft;
+      const isDraft = this.lottery_state === "draft";
 
       if (!isDraft) {
         return this._super(...arguments);
