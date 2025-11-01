@@ -79,6 +79,9 @@ Exmaple filters JavaScript tests:
 # From Discourse root directory
 cd /Users/hans/Development/vzekc/discourse
 
+# If Ruby linting fails with bundle errors, run bundle install first
+bundle install
+
 # Lint plugin files (use full relative paths)
 bin/lint plugins/vzekc-verlosung/path/to/file plugins/vzekc-verlosung/path/to/another/file
 
@@ -88,7 +91,7 @@ bin/lint --fix plugins/vzekc-verlosung/path/to/file
 # Lint recently changed files (works for core, may not detect plugin changes)
 bin/lint --fix --recent
 
-# If Ruby linting fails due to bundle issues, use syntax check as fallback
+# If Ruby linting still fails after bundle install, use syntax check as fallback
 ruby -c plugins/vzekc-verlosung/path/to/file.rb
 ```
 

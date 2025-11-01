@@ -50,7 +50,7 @@ export default class DrawLotteryModal extends Component {
   }
 
   /**
-   * Perform the drawing using lottery.js
+   * Perform the drawing using lottery.js and submit results
    */
   @action
   async performDrawing() {
@@ -71,9 +71,11 @@ export default class DrawLotteryModal extends Component {
       // Perform the drawing
       this.results = await lottery.draw();
       this.drawn = true;
+
+      // Automatically submit the results
+      await this.submitResults();
     } catch (error) {
       this.error = error.message;
-    } finally {
       this.drawing = false;
     }
   }
@@ -86,9 +88,6 @@ export default class DrawLotteryModal extends Component {
     if (!this.results) {
       return;
     }
-
-    this.drawing = true;
-    this.error = null;
 
     try {
       await ajax(`/vzekc-verlosung/lotteries/${this.args.model.topicId}/draw`, {
@@ -104,9 +103,7 @@ export default class DrawLotteryModal extends Component {
       window.location.reload();
     } catch (error) {
       popupAjaxError(error);
-      this.error = error.jqXHR?.responseJSON?.errors?.[0] || error.message;
-    } finally {
-      this.drawing = false;
+      throw error;
     }
   }
 
@@ -128,23 +125,10 @@ export default class DrawLotteryModal extends Component {
               {{icon "exclamation-triangle"}}
               <p>{{this.error}}</p>
             </div>
-          {{else if this.drawn}}
-            <div class="draw-results">
-              <div class="results-header">
-                {{icon "trophy"}}
-                <h3>{{i18n "vzekc_verlosung.drawing.winners"}}</h3>
-              </div>
-              <ul class="winners-list">
-                {{#each this.results.drawings as |drawing|}}
-                  <li class="winner-item">
-                    <strong>{{drawing.text}}</strong>
-                    <span class="winner-name">{{drawing.winner}}</span>
-                  </li>
-                {{/each}}
-              </ul>
-              <p class="draw-info">
-                {{i18n "vzekc_verlosung.drawing.verification_info"}}
-              </p>
+          {{else if this.drawing}}
+            <div class="draw-loading">
+              {{icon "spinner" class="fa-spin"}}
+              <p>{{i18n "vzekc_verlosung.drawing.loading"}}</p>
             </div>
           {{else}}
             <div class="draw-ready">
@@ -176,26 +160,18 @@ export default class DrawLotteryModal extends Component {
 
       <:footer>
         <div class="modal-footer-buttons">
-          {{#if this.drawn}}
-            <DButton
-              @action={{this.submitResults}}
-              @translatedLabel={{i18n "vzekc_verlosung.drawing.confirm_button"}}
-              @icon="check"
-              @disabled={{this.drawing}}
-              class="btn-primary"
-            />
-          {{else if (and (not this.loading) (not this.error))}}
+          {{#if (and (not this.loading) (not this.error) (not this.drawing))}}
             <DButton
               @action={{this.performDrawing}}
               @translatedLabel={{i18n "vzekc_verlosung.drawing.draw_button"}}
               @icon="dice"
-              @disabled={{this.drawing}}
               class="btn-primary"
             />
           {{/if}}
           <DButton
             @action={{@closeModal}}
             @translatedLabel={{i18n "cancel"}}
+            @disabled={{this.drawing}}
             class="btn-default"
           />
         </div>

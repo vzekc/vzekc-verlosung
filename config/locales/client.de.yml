@@ -32,6 +32,7 @@ de:
         return: "Los zurückgeben"
         loading: "Lädt..."
         winner: "Gewinner:"
+        no_tickets: "Keine Lose beansprucht"
       draft:
         notice: "Diese Verlosung ist noch ein Entwurf und nur für dich sichtbar."
         publish_button: "Verlosung veröffentlichen"
@@ -39,12 +40,16 @@ de:
       state:
         active: "Aktive Verlosung"
         finished: "Diese Verlosung ist beendet"
-        ended: "Beendet"
+        ended: "Losverkauf beendet"
         time_remaining_days: "Noch %{days} Tage und %{hours} Stunden"
         time_remaining_hours: "Noch %{hours} Stunden und %{minutes} Minuten"
         time_remaining_minutes: "Noch %{minutes} Minuten"
+      testing:
+        end_early_button: "Verlosung vorzeitig beenden (TEST)"
+        end_early_confirm: "Bist du sicher, dass du die Verlosung vorzeitig beenden möchtest? Diese Funktion ist nur für Tests gedacht."
+        ending: "Beende..."
       drawing:
-        ready: "Verlosung beendet - bereit zur Auslosung"
+        ready: "Losverkauf beendet - bereit zur Auslosung"
         draw_button: "Gewinner ziehen"
         modal_title: "Gewinner der Verlosung ziehen"
         loading: "Lade Verlosungsdaten..."

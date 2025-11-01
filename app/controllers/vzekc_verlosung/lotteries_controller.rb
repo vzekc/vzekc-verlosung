@@ -43,12 +43,12 @@ module VzekcVerlosung
           contract_errors = result["result.contract.default"][:errors]
           Rails.logger.error "Contract errors: #{contract_errors.full_messages.inspect}"
           errors = contract_errors.full_messages
-        # Check for step errors (like create_main_topic)
+          # Check for step errors (like create_main_topic)
         elsif result["result.step.create_main_topic"]&.failure?
           step_error = result["result.step.create_main_topic"][:error]
           Rails.logger.error "Step error: #{step_error}"
           errors = [step_error]
-        # Check for packet creation errors
+          # Check for packet creation errors
         elsif result["result.step.create_packet_topics"]&.failure?
           step_error = result["result.step.create_packet_topics"][:error]
           Rails.logger.error "Packet step error: #{step_error}"
@@ -80,30 +80,27 @@ module VzekcVerlosung
       return render_json_error("Topic not found", status: :not_found) unless topic
 
       # Get all posts in the topic, ordered by post_number
-      all_posts = Post
-        .where(topic_id: topic.id)
-        .order(:post_number)
+      all_posts = Post.where(topic_id: topic.id).order(:post_number)
 
       # Filter to only lottery packet posts using custom fields
-      packet_posts = all_posts.select do |post|
-        post.custom_fields["is_lottery_packet"] == true
-      end
+      packet_posts = all_posts.select { |post| post.custom_fields["is_lottery_packet"] == true }
 
-      packets = packet_posts.map do |post|
-        # Extract title from markdown (first heading)
-        title = extract_title_from_markdown(post.raw) || "Packet ##{post.post_number}"
+      packets =
+        packet_posts.map do |post|
+          # Extract title from markdown (first heading)
+          title = extract_title_from_markdown(post.raw) || "Packet ##{post.post_number}"
 
-        # Get ticket count for this packet
-        ticket_count = VzekcVerlosung::LotteryTicket.where(post_id: post.id).count
+          # Get ticket count for this packet
+          ticket_count = VzekcVerlosung::LotteryTicket.where(post_id: post.id).count
 
-        {
-          post_id: post.id,
-          post_number: post.post_number,
-          title: title,
-          ticket_count: ticket_count,
-          winner: post.custom_fields["lottery_winner"]
-        }
-      end
+          {
+            post_id: post.id,
+            post_number: post.post_number,
+            title: title,
+            ticket_count: ticket_count,
+            winner: post.custom_fields["lottery_winner"],
+          }
+        end
 
       render json: { packets: packets }
     end
@@ -122,17 +119,51 @@ module VzekcVerlosung
 
       # Check if user can publish (must be topic owner or staff)
       unless guardian.is_staff? || topic.user_id == current_user.id
-        return render_json_error("You don't have permission to publish this lottery", status: :forbidden)
+        return(
+          render_json_error("You don't have permission to publish this lottery", status: :forbidden)
+        )
       end
 
       # Check if it's actually a draft
       unless topic.custom_fields["lottery_state"] == "draft"
-        return render_json_error("This lottery is not in draft state", status: :unprocessable_entity)
+        return(
+          render_json_error("This lottery is not in draft state", status: :unprocessable_entity)
+        )
       end
 
       # Activate lottery and set end time to 2 weeks from now
       topic.custom_fields["lottery_state"] = "active"
       topic.custom_fields["lottery_ends_at"] = 2.weeks.from_now
+      topic.save_custom_fields
+
+      head :no_content
+    end
+
+    # PUT /vzekc_verlosung/lotteries/:topic_id/end-early
+    #
+    # TESTING ONLY: Ends an active lottery early by setting the end time to now
+    #
+    # @param topic_id [Integer] Topic ID to end early
+    #
+    # @return [JSON] Success or error
+    def end_early
+      topic = Topic.find_by(id: params[:topic_id])
+      return render_json_error("Topic not found", status: :not_found) unless topic
+
+      # Check if user can end early (must be topic owner or staff)
+      unless guardian.is_staff? || topic.user_id == current_user.id
+        return(
+          render_json_error("You don't have permission to end this lottery", status: :forbidden)
+        )
+      end
+
+      # Check if it's actually active
+      unless topic.custom_fields["lottery_state"] == "active"
+        return render_json_error("This lottery is not active", status: :unprocessable_entity)
+      end
+
+      # Set end time to now so lottery becomes drawable
+      topic.custom_fields["lottery_ends_at"] = Time.zone.now
       topic.save_custom_fields
 
       head :no_content
@@ -151,11 +182,14 @@ module VzekcVerlosung
 
       # Check if user can draw (must be topic owner or staff)
       unless guardian.is_staff? || topic.user_id == current_user.id
-        return render_json_error("You don't have permission to draw this lottery", status: :forbidden)
+        return(
+          render_json_error("You don't have permission to draw this lottery", status: :forbidden)
+        )
       end
 
       # Check if lottery has ended and not already drawn
-      if topic.custom_fields["lottery_state"] == "active" && topic.lottery_ends_at && topic.lottery_ends_at > Time.zone.now
+      if topic.custom_fields["lottery_state"] == "active" && topic.lottery_ends_at &&
+           topic.lottery_ends_at > Time.zone.now
         return render_json_error("Lottery has not ended yet", status: :unprocessable_entity)
       end
 
@@ -164,42 +198,34 @@ module VzekcVerlosung
       end
 
       # Get all packet posts
-      packet_posts = Post
-        .where(topic_id: topic.id)
-        .order(:post_number)
-        .select { |post| post.custom_fields["is_lottery_packet"] == true }
+      packet_posts =
+        Post
+          .where(topic_id: topic.id)
+          .order(:post_number)
+          .select { |post| post.custom_fields["is_lottery_packet"] == true }
 
       # Build packets array in the format expected by lottery.js
-      packets = packet_posts.map do |post|
-        title = extract_title_from_markdown(post.raw) || "Packet ##{post.post_number}"
+      packets =
+        packet_posts.map do |post|
+          title = extract_title_from_markdown(post.raw) || "Packet ##{post.post_number}"
 
-        # Get all tickets for this packet
-        tickets = VzekcVerlosung::LotteryTicket.where(post_id: post.id).includes(:user)
+          # Get all tickets for this packet
+          tickets = VzekcVerlosung::LotteryTicket.where(post_id: post.id).includes(:user)
 
-        # Group by user and count tickets
-        participants = tickets.group_by(&:user).map do |user, user_tickets|
-          {
-            name: user.username,
-            tickets: user_tickets.count
-          }
+          # Group by user and count tickets
+          participants =
+            tickets
+              .group_by(&:user)
+              .map { |user, user_tickets| { name: user.username, tickets: user_tickets.count } }
+
+          { id: post.id, title: title, participants: participants }
         end
-
-        {
-          id: post.id,
-          title: title,
-          participants: participants
-        }
-      end
 
       # The timestamp should be when the lottery was published (went active)
       # For now, we'll use when lottery_ends_at was set minus 2 weeks
       published_at = topic.lottery_ends_at ? topic.lottery_ends_at - 2.weeks : topic.created_at
 
-      render json: {
-        title: topic.title,
-        timestamp: published_at.iso8601,
-        packets: packets
-      }
+      render json: { title: topic.title, timestamp: published_at.iso8601, packets: packets }
     end
 
     # POST /vzekc_verlosung/lotteries/:topic_id/draw
@@ -216,7 +242,9 @@ module VzekcVerlosung
 
       # Check if user can draw (must be topic owner or staff)
       unless guardian.is_staff? || topic.user_id == current_user.id
-        return render_json_error("You don't have permission to draw this lottery", status: :forbidden)
+        return(
+          render_json_error("You don't have permission to draw this lottery", status: :forbidden)
+        )
       end
 
       # Check if already drawn
@@ -235,30 +263,35 @@ module VzekcVerlosung
         unless results_match?(client_results, server_results)
           Rails.logger.warn(
             "Lottery drawing verification failed for topic #{topic.id}. " \
-            "Client and server results do not match."
+              "Client and server results do not match.",
           )
-          return render_json_error(
-            "Lottery results verification failed. Please try drawing again.",
-            status: :unprocessable_entity
+          return(
+            render_json_error(
+              "Lottery results verification failed. Please try drawing again.",
+              status: :unprocessable_entity,
+            )
           )
         end
       rescue MiniRacer::ScriptTerminatedError => e
         Rails.logger.error("Lottery drawing timed out for topic #{topic.id}: #{e.message}")
-        return render_json_error(
-          "Lottery drawing timed out. Please try again.",
-          status: :unprocessable_entity
+        return(
+          render_json_error(
+            "Lottery drawing timed out. Please try again.",
+            status: :unprocessable_entity,
+          )
         )
       rescue MiniRacer::V8OutOfMemoryError => e
         Rails.logger.error("Lottery drawing out of memory for topic #{topic.id}: #{e.message}")
-        return render_json_error(
-          "Lottery drawing failed due to memory limit. Please contact support.",
-          status: :unprocessable_entity
+        return(
+          render_json_error(
+            "Lottery drawing failed due to memory limit. Please contact support.",
+            status: :unprocessable_entity,
+          )
         )
       rescue MiniRacer::Error, StandardError => e
         Rails.logger.error("Lottery drawing error for topic #{topic.id}: #{e.message}")
-        return render_json_error(
-          "Lottery drawing failed: #{e.message}",
-          status: :unprocessable_entity
+        return(
+          render_json_error("Lottery drawing failed: #{e.message}", status: :unprocessable_entity)
         )
       end
 
@@ -272,12 +305,13 @@ module VzekcVerlosung
       # Store winner on each packet post
       results["drawings"].each do |drawing|
         # Find the packet post by title
-        packet_post = Post
-          .where(topic_id: topic.id)
-          .find do |post|
-            post.custom_fields["is_lottery_packet"] == true &&
-            extract_title_from_markdown(post.raw) == drawing["text"]
-          end
+        packet_post =
+          Post
+            .where(topic_id: topic.id)
+            .find do |post|
+              post.custom_fields["is_lottery_packet"] == true &&
+                extract_title_from_markdown(post.raw) == drawing["text"]
+            end
 
         if packet_post
           packet_post.custom_fields["lottery_winner"] = drawing["winner"]
@@ -303,7 +337,9 @@ module VzekcVerlosung
       return render_json_error("Lottery has not been drawn yet", status: :not_found) unless results
 
       # Set headers for file download
-      response.headers["Content-Disposition"] = "attachment; filename=\"lottery-#{topic.id}-results.json\""
+      response.headers[
+        "Content-Disposition"
+      ] = "attachment; filename=\"lottery-#{topic.id}-results.json\""
 
       render json: results
     end
@@ -311,51 +347,38 @@ module VzekcVerlosung
     private
 
     def create_params
-      params.permit(:title, :description, :category_id, packets: [:title, :description])
+      params.permit(:title, :description, :category_id, packets: %i[title description])
     end
 
     def serialize_topic(topic)
-      {
-        id: topic.id,
-        title: topic.title,
-        url: topic.url,
-        slug: topic.slug,
-      }
+      { id: topic.id, title: topic.title, url: topic.url, slug: topic.slug }
     end
 
     # Fetches drawing data in the format expected by lottery.js
     # This is similar to drawing_data endpoint but doesn't require permissions
     def fetch_drawing_data_for_verification(topic)
-      packet_posts = Post
-        .where(topic_id: topic.id)
-        .order(:post_number)
-        .select { |post| post.custom_fields["is_lottery_packet"] == true }
+      packet_posts =
+        Post
+          .where(topic_id: topic.id)
+          .order(:post_number)
+          .select { |post| post.custom_fields["is_lottery_packet"] == true }
 
-      packets = packet_posts.map do |post|
-        title = extract_title_from_markdown(post.raw) || "Packet ##{post.post_number}"
-        tickets = VzekcVerlosung::LotteryTicket.where(post_id: post.id).includes(:user)
+      packets =
+        packet_posts.map do |post|
+          title = extract_title_from_markdown(post.raw) || "Packet ##{post.post_number}"
+          tickets = VzekcVerlosung::LotteryTicket.where(post_id: post.id).includes(:user)
 
-        participants = tickets.group_by(&:user).map do |user, user_tickets|
-          {
-            name: user.username,
-            tickets: user_tickets.count
-          }
+          participants =
+            tickets
+              .group_by(&:user)
+              .map { |user, user_tickets| { name: user.username, tickets: user_tickets.count } }
+
+          { id: post.id, title: title, participants: participants }
         end
-
-        {
-          id: post.id,
-          title: title,
-          participants: participants
-        }
-      end
 
       published_at = topic.lottery_ends_at ? topic.lottery_ends_at - 2.weeks : topic.created_at
 
-      {
-        title: topic.title,
-        timestamp: published_at.iso8601,
-        packets: packets
-      }
+      { title: topic.title, timestamp: published_at.iso8601, packets: packets }
     end
 
     # Compares client results with server results

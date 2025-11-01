@@ -12,6 +12,9 @@ enabled_site_setting :vzekc_verlosung_enabled
 
 register_asset "stylesheets/vzekc-verlosung.scss"
 
+register_svg_icon "trophy"
+register_svg_icon "dice"
+
 module ::VzekcVerlosung
   PLUGIN_NAME = "vzekc-verlosung"
 end
@@ -56,75 +59,45 @@ after_initialize do
   add_preloaded_topic_list_custom_field("lottery_ends_at")
 
   # Add helper methods to Topic class to safely access lottery fields
-  add_to_class(:topic, :lottery_state) do
-    custom_fields["lottery_state"]
-  end
+  add_to_class(:topic, :lottery_state) { custom_fields["lottery_state"] }
 
   add_to_class(:topic, :lottery_ends_at) do
     value = custom_fields["lottery_ends_at"]
     value.is_a?(String) ? Time.zone.parse(value) : value
   end
 
-  add_to_class(:topic, :lottery_draft?) do
-    lottery_state == "draft"
-  end
+  add_to_class(:topic, :lottery_draft?) { lottery_state == "draft" }
 
-  add_to_class(:topic, :lottery_active?) do
-    lottery_state == "active"
-  end
+  add_to_class(:topic, :lottery_active?) { lottery_state == "active" }
 
-  add_to_class(:topic, :lottery_finished?) do
-    lottery_state == "finished"
-  end
+  add_to_class(:topic, :lottery_finished?) { lottery_state == "finished" }
 
-  add_to_class(:topic, :lottery_results) do
-    custom_fields["lottery_results"]
-  end
+  add_to_class(:topic, :lottery_results) { custom_fields["lottery_results"] }
 
   add_to_class(:topic, :lottery_drawn_at) do
     value = custom_fields["lottery_drawn_at"]
     value.is_a?(String) ? Time.zone.parse(value) : value
   end
 
-  add_to_class(:topic, :lottery_drawn?) do
-    lottery_results.present?
-  end
+  add_to_class(:topic, :lottery_drawn?) { lottery_results.present? }
 
   # Add custom fields to post serializer
-  add_to_serializer(:post, :is_lottery_packet) do
-    object.custom_fields["is_lottery_packet"] == true
-  end
+  add_to_serializer(:post, :is_lottery_packet) { object.custom_fields["is_lottery_packet"] == true }
 
-  add_to_serializer(:post, :is_lottery_intro) do
-    object.custom_fields["is_lottery_intro"] == true
-  end
+  add_to_serializer(:post, :is_lottery_intro) { object.custom_fields["is_lottery_intro"] == true }
 
-  add_to_serializer(:post, :lottery_winner) do
-    object.custom_fields["lottery_winner"]
-  end
+  add_to_serializer(:post, :lottery_winner) { object.custom_fields["lottery_winner"] }
 
   # Add custom fields to topic serializers (using helper methods)
-  add_to_serializer(:topic_view, :lottery_state) do
-    object.topic.lottery_state
-  end
+  add_to_serializer(:topic_view, :lottery_state) { object.topic.lottery_state }
 
-  add_to_serializer(:topic_view, :lottery_ends_at) do
-    object.topic.lottery_ends_at
-  end
+  add_to_serializer(:topic_view, :lottery_ends_at) { object.topic.lottery_ends_at }
 
-  add_to_serializer(:topic_view, :lottery_results) do
-    object.topic.lottery_results
-  end
+  add_to_serializer(:topic_view, :lottery_results) { object.topic.lottery_results }
 
-  add_to_serializer(:topic_view, :lottery_drawn_at) do
-    object.topic.lottery_drawn_at
-  end
+  add_to_serializer(:topic_view, :lottery_drawn_at) { object.topic.lottery_drawn_at }
 
-  add_to_serializer(:topic_list_item, :lottery_state) do
-    object.lottery_state
-  end
+  add_to_serializer(:topic_list_item, :lottery_state) { object.lottery_state }
 
-  add_to_serializer(:topic_list_item, :lottery_ends_at) do
-    object.lottery_ends_at
-  end
+  add_to_serializer(:topic_list_item, :lottery_ends_at) { object.lottery_ends_at }
 end

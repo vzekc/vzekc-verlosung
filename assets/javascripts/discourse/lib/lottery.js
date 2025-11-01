@@ -70,6 +70,15 @@ export class Lottery {
       throw new Error("Random number generator not initialized");
     }
 
+    // Handle case where no tickets were claimed
+    if (names.length === 0) {
+      return {
+        text,
+        participants: [],
+        winner: null,
+      };
+    }
+
     names.sort();
     const counts = {};
     for (const name of names) {

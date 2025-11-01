@@ -32,6 +32,7 @@ en:
         return: "Return Ticket"
         loading: "Loading..."
         winner: "Winner:"
+        no_tickets: "No tickets claimed"
       draft:
         notice: "This lottery is still a draft and only visible to you."
         publish_button: "Publish Lottery"
@@ -39,12 +40,16 @@ en:
       state:
         active: "Active Lottery"
         finished: "This lottery has ended"
-        ended: "Ended"
+        ended: "Ticket sales ended"
         time_remaining_days: "%{days} days and %{hours} hours remaining"
         time_remaining_hours: "%{hours} hours and %{minutes} minutes remaining"
         time_remaining_minutes: "%{minutes} minutes remaining"
+      testing:
+        end_early_button: "End Lottery Early (TESTING)"
+        end_early_confirm: "Are you sure you want to end the lottery early? This function is for testing only."
+        ending: "Ending..."
       drawing:
-        ready: "Lottery has ended - ready to draw winners"
+        ready: "Ticket sales ended - ready to draw winners"
         draw_button: "Draw Winners"
         modal_title: "Draw Lottery Winners"
         loading: "Loading lottery data..."

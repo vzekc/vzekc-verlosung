@@ -9,6 +9,7 @@ import DButton from "discourse/components/d-button";
 import DModal from "discourse/components/d-modal";
 import { ajax } from "discourse/lib/ajax";
 import { popupAjaxError } from "discourse/lib/ajax-error";
+import autoFocus from "discourse/modifiers/auto-focus";
 import { i18n, i18n as i18nFn } from "discourse-i18n";
 
 /**
@@ -292,6 +293,7 @@ export default class CreateLotteryModal extends Component {
                     <input
                       type="text"
                       {{on "input" (fn this.updatePacket index "title")}}
+                      {{(if (eq index 0) autoFocus)}}
                       value={{packet.title}}
                       placeholder={{i18n
                         "vzekc_verlosung.modal.packet_title_placeholder"

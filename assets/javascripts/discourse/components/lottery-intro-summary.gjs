@@ -2,6 +2,7 @@ import Component from "@glimmer/component";
 import { tracked } from "@glimmer/tracking";
 import { action } from "@ember/object";
 import { service } from "@ember/service";
+import { and, gt } from "truth-helpers";
 import DButton from "discourse/components/d-button";
 import icon from "discourse/helpers/d-icon";
 import { ajax } from "discourse/lib/ajax";
@@ -26,6 +27,8 @@ export default class LotteryIntroSummary extends Component {
   @tracked packets = [];
   @tracked loading = true;
   @tracked publishing = false;
+  @tracked ending = false;
+  @tracked openingDrawModal = false;
 
   constructor() {
     super(...arguments);
@@ -88,6 +91,20 @@ export default class LotteryIntroSummary extends Component {
    */
   get isActive() {
     return this.topic?.lottery_state === "active";
+  }
+
+  /**
+   * Check if lottery is active and still running (not ended yet)
+   *
+   * @returns {Boolean} true if the lottery is active and hasn't ended
+   */
+  get isRunning() {
+    if (!this.isActive || !this.topic?.lottery_ends_at) {
+      return false;
+    }
+    const endsAt = new Date(this.topic.lottery_ends_at);
+    const now = new Date();
+    return endsAt > now;
   }
 
   /**
@@ -217,11 +234,42 @@ export default class LotteryIntroSummary extends Component {
    */
   @action
   drawWinners() {
+    this.openingDrawModal = true;
     this.modal.show(DrawLotteryModal, {
       model: {
         topicId: this.args.data.post.topic_id,
       },
     });
+  }
+
+  /**
+   * End the lottery early (for testing purposes)
+   */
+  @action
+  async endEarly() {
+    if (this.ending) {
+      return;
+    }
+
+    // eslint-disable-next-line no-alert
+    if (!confirm(i18n("vzekc_verlosung.testing.end_early_confirm"))) {
+      return;
+    }
+
+    this.ending = true;
+    try {
+      await ajax(
+        `/vzekc-verlosung/lotteries/${this.args.data.post.topic_id}/end-early`,
+        {
+          type: "PUT",
+        }
+      );
+      // Reload the page to show the ended state
+      window.location.reload();
+    } catch (error) {
+      popupAjaxError(error);
+      this.ending = false;
+    }
   }
 
   <template>
@@ -260,6 +308,20 @@ export default class LotteryIntroSummary extends Component {
               <div class="time-remaining">
                 {{this.timeRemaining}}
               </div>
+              {{#if (and this.isRunning this.canPublish)}}
+                <DButton
+                  @action={{this.endEarly}}
+                  @translatedLabel={{if
+                    this.ending
+                    (i18n "vzekc_verlosung.testing.ending")
+                    (i18n "vzekc_verlosung.testing.end_early_button")
+                  }}
+                  @icon={{if this.ending "spinner" "fast-forward"}}
+                  @disabled={{this.ending}}
+                  @isLoading={{this.ending}}
+                  class="btn-danger btn-small lottery-end-early-button"
+                />
+              {{/if}}
             </div>
           {{/if}}
         {{/if}}
@@ -273,7 +335,9 @@ export default class LotteryIntroSummary extends Component {
             <DButton
               @action={{this.drawWinners}}
               @translatedLabel={{i18n "vzekc_verlosung.drawing.draw_button"}}
-              @icon="dice"
+              @icon={{if this.openingDrawModal "spinner" "dice"}}
+              @disabled={{this.openingDrawModal}}
+              @isLoading={{this.openingDrawModal}}
               class="btn-primary lottery-draw-button"
             />
           </div>
@@ -310,13 +374,19 @@ export default class LotteryIntroSummary extends Component {
                   href="#post_{{packet.post_number}}"
                   class="packet-title"
                 >{{packet.title}}</a>
-                {{#if packet.winner}}
-                  <span class="packet-winner">
-                    <span class="winner-label">{{i18n
-                        "vzekc_verlosung.ticket.winner"
-                      }}</span>
-                    <span class="winner-name">{{packet.winner}}</span>
-                  </span>
+                {{#if this.isFinished}}
+                  {{#if (and packet.winner (gt packet.winner.length 0))}}
+                    <span class="packet-winner">
+                      <span class="winner-label">{{i18n
+                          "vzekc_verlosung.ticket.winner"
+                        }}</span>
+                      <span class="winner-name">{{packet.winner}}</span>
+                    </span>
+                  {{else}}
+                    <span class="packet-no-tickets">
+                      {{i18n "vzekc_verlosung.ticket.no_tickets"}}
+                    </span>
+                  {{/if}}
                 {{else}}
                   <span class="packet-ticket-count">
                     {{icon "gift"}}

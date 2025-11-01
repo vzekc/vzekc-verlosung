@@ -167,6 +167,16 @@ export default class LotteryWidget extends Component {
   }
 
   /**
+   * Check if lottery has been drawn
+   *
+   * @type {boolean}
+   */
+  get isDrawn() {
+    const topic = this.args.post?.topic;
+    return topic?.lottery_results != null;
+  }
+
+  /**
    * Get the winner username for this packet
    *
    * @type {string|null}
@@ -224,13 +234,21 @@ export default class LotteryWidget extends Component {
           @disabled={{this.loading}}
           class="btn-primary lottery-ticket-button"
         />
-      {{else if this.winner}}
-        <div class="lottery-winner-display">
-          <span class="winner-label">{{i18n
-              "vzekc_verlosung.ticket.winner"
-            }}</span>
-          <span class="winner-name">{{this.winner}}</span>
-        </div>
+      {{else if this.isDrawn}}
+        {{#if this.winner}}
+          <div class="lottery-winner-display">
+            <span class="winner-label">{{i18n
+                "vzekc_verlosung.ticket.winner"
+              }}</span>
+            <span class="winner-name">{{this.winner}}</span>
+          </div>
+        {{else}}
+          <DButton
+            @translatedLabel={{i18n "vzekc_verlosung.ticket.no_tickets"}}
+            @disabled={{true}}
+            class="btn-default lottery-no-tickets-button"
+          />
+        {{/if}}
       {{/if}}
       {{#unless this.loading}}
         <span
