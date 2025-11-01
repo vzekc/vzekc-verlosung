@@ -251,6 +251,26 @@ module VzekcVerlosung
       head :no_content
     end
 
+    # GET /vzekc_verlosung/lotteries/:topic_id/results.json
+    #
+    # Downloads the lottery results as a JSON file for verification
+    #
+    # @param topic_id [Integer] Topic ID
+    #
+    # @return [JSON] The lottery results with all drawing data
+    def results
+      topic = Topic.find_by(id: params[:topic_id])
+      return render_json_error("Topic not found", status: :not_found) unless topic
+
+      results = topic.custom_fields["lottery_results"]
+      return render_json_error("Lottery has not been drawn yet", status: :not_found) unless results
+
+      # Set headers for file download
+      response.headers["Content-Disposition"] = "attachment; filename=\"lottery-#{topic.id}-results.json\""
+
+      render json: results
+    end
+
     private
 
     def create_params

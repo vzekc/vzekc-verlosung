@@ -56,4 +56,6 @@ de:
         winners: "Gewinner gezogen!"
         verification_info: "Diese Ergebnisse sind anhand des veröffentlichten Zeitstempels und der Teilnehmerliste überprüfbar. Klicke auf 'Bestätigen und Speichern', um die Ziehung abzuschließen."
         confirm_button: "Bestätigen und Ergebnisse speichern"
+        download_results: "Ergebnisse herunterladen (JSON)"
+        download_results_help: "Lade die Verlosungsergebnisse als JSON-Datei herunter, um die faire Durchführung zu überprüfen. Die Datei enthält den Zeitstempel, alle Teilnehmer, den RNG-Seed und die Ziehungsergebnisse."
       packets_title: "Pakete"

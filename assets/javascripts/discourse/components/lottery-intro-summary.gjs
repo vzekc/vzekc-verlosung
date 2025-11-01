@@ -285,6 +285,17 @@ export default class LotteryIntroSummary extends Component {
               {{icon "check-circle"}}
               <span>{{i18n "vzekc_verlosung.state.finished"}}</span>
             </div>
+            <div class="download-results">
+              <a
+                href="/vzekc-verlosung/lotteries/{{this.topic.id}}/results.json"
+                class="btn btn-default"
+                download
+                title={{i18n "vzekc_verlosung.drawing.download_results_help"}}
+              >
+                {{icon "download"}}
+                {{i18n "vzekc_verlosung.drawing.download_results"}}
+              </a>
+            </div>
           </div>
         {{/if}}
 

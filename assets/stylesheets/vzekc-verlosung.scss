@@ -386,10 +386,22 @@
       align-items: center;
       color: var(--primary-medium);
       font-weight: 500;
+      margin-bottom: 1em;
 
       .d-icon {
         margin-right: 0.5em;
         color: var(--primary-medium);
+      }
+    }
+
+    .download-results {
+      display: flex;
+      justify-content: flex-start;
+
+      .btn {
+        .d-icon {
+          margin-right: 0.5em;
+        }
       }
     }
   }

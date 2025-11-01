@@ -56,4 +56,6 @@ en:
         winners: "Winners Drawn!"
         verification_info: "These results are verifiable using the published timestamp and participant list. Click 'Confirm and Save' to finalize the drawing."
         confirm_button: "Confirm and Save Results"
+        download_results: "Download results (JSON)"
+        download_results_help: "Download the lottery results as a JSON file to verify the drawing was fair. The file contains the timestamp, all participants, the RNG seed, and the drawing results."
       packets_title: "Packets"
