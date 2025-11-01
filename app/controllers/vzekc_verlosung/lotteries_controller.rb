@@ -224,9 +224,46 @@ module VzekcVerlosung
         return render_json_error("Lottery has already been drawn", status: :unprocessable_entity)
       end
 
-      results = params.require(:results).permit!.to_h
+      client_results = params.require(:results).permit!.to_h
 
-      # Store results on topic
+      # Verify results by re-running drawing server-side
+      begin
+        drawing_data = fetch_drawing_data_for_verification(topic)
+        server_results = VzekcVerlosung::JavascriptLotteryDrawer.draw(drawing_data)
+
+        # Compare client and server results
+        unless results_match?(client_results, server_results)
+          Rails.logger.warn(
+            "Lottery drawing verification failed for topic #{topic.id}. " \
+            "Client and server results do not match."
+          )
+          return render_json_error(
+            "Lottery results verification failed. Please try drawing again.",
+            status: :unprocessable_entity
+          )
+        end
+      rescue MiniRacer::ScriptTerminatedError => e
+        Rails.logger.error("Lottery drawing timed out for topic #{topic.id}: #{e.message}")
+        return render_json_error(
+          "Lottery drawing timed out. Please try again.",
+          status: :unprocessable_entity
+        )
+      rescue MiniRacer::V8OutOfMemoryError => e
+        Rails.logger.error("Lottery drawing out of memory for topic #{topic.id}: #{e.message}")
+        return render_json_error(
+          "Lottery drawing failed due to memory limit. Please contact support.",
+          status: :unprocessable_entity
+        )
+      rescue MiniRacer::Error, StandardError => e
+        Rails.logger.error("Lottery drawing error for topic #{topic.id}: #{e.message}")
+        return render_json_error(
+          "Lottery drawing failed: #{e.message}",
+          status: :unprocessable_entity
+        )
+      end
+
+      # Store verified results on topic
+      results = server_results # Use server results as source of truth
       topic.custom_fields["lottery_results"] = results
       topic.custom_fields["lottery_drawn_at"] = Time.zone.now
       topic.custom_fields["lottery_state"] = "finished"
@@ -284,6 +321,65 @@ module VzekcVerlosung
         url: topic.url,
         slug: topic.slug,
       }
+    end
+
+    # Fetches drawing data in the format expected by lottery.js
+    # This is similar to drawing_data endpoint but doesn't require permissions
+    def fetch_drawing_data_for_verification(topic)
+      packet_posts = Post
+        .where(topic_id: topic.id)
+        .order(:post_number)
+        .select { |post| post.custom_fields["is_lottery_packet"] == true }
+
+      packets = packet_posts.map do |post|
+        title = extract_title_from_markdown(post.raw) || "Packet ##{post.post_number}"
+        tickets = VzekcVerlosung::LotteryTicket.where(post_id: post.id).includes(:user)
+
+        participants = tickets.group_by(&:user).map do |user, user_tickets|
+          {
+            name: user.username,
+            tickets: user_tickets.count
+          }
+        end
+
+        {
+          id: post.id,
+          title: title,
+          participants: participants
+        }
+      end
+
+      published_at = topic.lottery_ends_at ? topic.lottery_ends_at - 2.weeks : topic.created_at
+
+      {
+        title: topic.title,
+        timestamp: published_at.iso8601,
+        packets: packets
+      }
+    end
+
+    # Compares client results with server results
+    # Results match if they have the same RNG seed and same winners
+    def results_match?(client_results, server_results)
+      return false unless client_results.is_a?(Hash) && server_results.is_a?(Hash)
+
+      # Check RNG seed matches
+      return false unless client_results["rngSeed"] == server_results["rngSeed"]
+
+      # Check drawings match
+      client_drawings = client_results["drawings"] || []
+      server_drawings = server_results["drawings"] || []
+
+      return false unless client_drawings.length == server_drawings.length
+
+      # Compare each drawing
+      client_drawings.each_with_index do |client_drawing, index|
+        server_drawing = server_drawings[index]
+        return false unless client_drawing["text"] == server_drawing["text"]
+        return false unless client_drawing["winner"] == server_drawing["winner"]
+      end
+
+      true
     end
 
     def extract_title_from_markdown(raw)

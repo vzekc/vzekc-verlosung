@@ -58,4 +58,7 @@ de:
         confirm_button: "Bestätigen und Ergebnisse speichern"
         download_results: "Ergebnisse herunterladen (JSON)"
         download_results_help: "Lade die Verlosungsergebnisse als JSON-Datei herunter, um die faire Durchführung zu überprüfen. Die Datei enthält den Zeitstempel, alle Teilnehmer, den RNG-Seed und die Ziehungsergebnisse."
+        verification_failed: "Ergebnisüberprüfung fehlgeschlagen. Die Ziehungsergebnisse konnten vom Server nicht verifiziert werden. Bitte versuche es erneut."
+        verification_timeout: "Zeitüberschreitung bei der Ziehung. Bitte versuche es erneut."
+        verification_error: "Ziehung fehlgeschlagen. Bitte kontaktiere den Support, falls das Problem weiterhin besteht."
       packets_title: "Pakete"

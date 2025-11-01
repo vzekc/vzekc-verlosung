@@ -58,4 +58,7 @@ en:
         confirm_button: "Confirm and Save Results"
         download_results: "Download results (JSON)"
         download_results_help: "Download the lottery results as a JSON file to verify the drawing was fair. The file contains the timestamp, all participants, the RNG seed, and the drawing results."
+        verification_failed: "Results verification failed. The drawing results could not be verified by the server. Please try drawing again."
+        verification_timeout: "Drawing timed out. Please try again."
+        verification_error: "Drawing failed. Please contact support if this persists."
       packets_title: "Packets"
