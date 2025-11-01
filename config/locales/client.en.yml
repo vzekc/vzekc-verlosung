@@ -42,4 +42,17 @@ en:
         time_remaining_days: "%{days} days and %{hours} hours remaining"
         time_remaining_hours: "%{hours} hours and %{minutes} minutes remaining"
         time_remaining_minutes: "%{minutes} minutes remaining"
+      drawing:
+        ready: "Lottery has ended - ready to draw winners"
+        draw_button: "Draw Winners"
+        modal_title: "Draw Lottery Winners"
+        loading: "Loading lottery data..."
+        ready_message: "Click the button below to draw winners. The drawing uses a deterministic random number generator seeded with the lottery start time and all participant names, making it verifiable and tamper-proof."
+        packets_to_draw: "Packets to draw:"
+        participants:
+          one: "participant"
+          other: "participants"
+        winners: "Winners Drawn!"
+        verification_info: "These results are verifiable using the published timestamp and participant list. Click 'Confirm and Save' to finalize the drawing."
+        confirm_button: "Confirm and Save Results"
       packets_title: "Packets"

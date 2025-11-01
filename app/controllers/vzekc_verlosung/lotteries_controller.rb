@@ -137,6 +137,119 @@ module VzekcVerlosung
       head :no_content
     end
 
+    # GET /vzekc_verlosung/lotteries/:topic_id/drawing-data
+    #
+    # Returns data needed for lottery drawing in the format expected by lottery.js
+    #
+    # @param topic_id [Integer] Topic ID to get drawing data for
+    #
+    # @return [JSON] Drawing data including title, timestamp, packets with participants
+    def drawing_data
+      topic = Topic.find_by(id: params[:topic_id])
+      return render_json_error("Topic not found", status: :not_found) unless topic
+
+      # Check if user can draw (must be topic owner or staff)
+      unless guardian.is_staff? || topic.user_id == current_user.id
+        return render_json_error("You don't have permission to draw this lottery", status: :forbidden)
+      end
+
+      # Check if lottery has ended and not already drawn
+      if topic.custom_fields["lottery_state"] == "active" && topic.lottery_ends_at && topic.lottery_ends_at > Time.zone.now
+        return render_json_error("Lottery has not ended yet", status: :unprocessable_entity)
+      end
+
+      if topic.custom_fields["lottery_results"].present?
+        return render_json_error("Lottery has already been drawn", status: :unprocessable_entity)
+      end
+
+      # Get all packet posts
+      packet_posts = Post
+        .where(topic_id: topic.id)
+        .order(:post_number)
+        .select { |post| post.custom_fields["is_lottery_packet"] == true }
+
+      # Build packets array in the format expected by lottery.js
+      packets = packet_posts.map do |post|
+        title = extract_title_from_markdown(post.raw) || "Packet ##{post.post_number}"
+
+        # Get all tickets for this packet
+        tickets = VzekcVerlosung::LotteryTicket.where(post_id: post.id).includes(:user)
+
+        # Group by user and count tickets
+        participants = tickets.group_by(&:user).map do |user, user_tickets|
+          {
+            name: user.username,
+            tickets: user_tickets.count
+          }
+        end
+
+        {
+          id: post.id,
+          title: title,
+          participants: participants
+        }
+      end
+
+      # The timestamp should be when the lottery was published (went active)
+      # For now, we'll use when lottery_ends_at was set minus 2 weeks
+      published_at = topic.lottery_ends_at ? topic.lottery_ends_at - 2.weeks : topic.created_at
+
+      render json: {
+        title: topic.title,
+        timestamp: published_at.iso8601,
+        packets: packets
+      }
+    end
+
+    # POST /vzekc_verlosung/lotteries/:topic_id/draw
+    #
+    # Stores the drawing results and updates lottery state to finished
+    #
+    # @param topic_id [Integer] Topic ID
+    # @param results [Hash] The results from lottery.js draw() method
+    #
+    # @return [JSON] Success or error
+    def draw
+      topic = Topic.find_by(id: params[:topic_id])
+      return render_json_error("Topic not found", status: :not_found) unless topic
+
+      # Check if user can draw (must be topic owner or staff)
+      unless guardian.is_staff? || topic.user_id == current_user.id
+        return render_json_error("You don't have permission to draw this lottery", status: :forbidden)
+      end
+
+      # Check if already drawn
+      if topic.custom_fields["lottery_results"].present?
+        return render_json_error("Lottery has already been drawn", status: :unprocessable_entity)
+      end
+
+      results = params.require(:results).permit!.to_h
+
+      # Store results on topic
+      topic.custom_fields["lottery_results"] = results
+      topic.custom_fields["lottery_drawn_at"] = Time.zone.now
+      topic.custom_fields["lottery_state"] = "finished"
+      topic.save_custom_fields
+
+      # Store winner on each packet post
+      results["drawings"].each do |drawing|
+        # Find the packet post by title
+        packet_post = Post
+          .where(topic_id: topic.id)
+          .find do |post|
+            post.custom_fields["is_lottery_packet"] == true &&
+            extract_title_from_markdown(post.raw) == drawing["text"]
+          end
+
+        if packet_post
+          packet_post.custom_fields["lottery_winner"] = drawing["winner"]
+          packet_post.save_custom_fields
+        end
+      end
+
+      head :no_content
+    end
+
     private
 
     def create_params

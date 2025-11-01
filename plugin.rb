@@ -39,12 +39,17 @@ after_initialize do
   # Register custom fields for lottery posts
   register_post_custom_field_type("is_lottery_packet", :boolean)
   register_post_custom_field_type("is_lottery_intro", :boolean)
+  register_post_custom_field_type("lottery_winner", :string)
 
   # Register custom fields for lottery topics
   # lottery_state: "draft", "active", or "finished"
   register_topic_custom_field_type("lottery_state", :string)
   # lottery_ends_at: DateTime when the lottery ends (set when published)
   register_topic_custom_field_type("lottery_ends_at", :datetime)
+  # lottery_results: JSON containing full drawing results
+  register_topic_custom_field_type("lottery_results", :json)
+  # lottery_drawn_at: DateTime when the drawing was performed
+  register_topic_custom_field_type("lottery_drawn_at", :datetime)
 
   # Preload lottery custom fields for topic lists to prevent N+1 queries
   add_preloaded_topic_list_custom_field("lottery_state")
@@ -72,6 +77,19 @@ after_initialize do
     lottery_state == "finished"
   end
 
+  add_to_class(:topic, :lottery_results) do
+    custom_fields["lottery_results"]
+  end
+
+  add_to_class(:topic, :lottery_drawn_at) do
+    value = custom_fields["lottery_drawn_at"]
+    value.is_a?(String) ? Time.zone.parse(value) : value
+  end
+
+  add_to_class(:topic, :lottery_drawn?) do
+    lottery_results.present?
+  end
+
   # Add custom fields to post serializer
   add_to_serializer(:post, :is_lottery_packet) do
     object.custom_fields["is_lottery_packet"] == true
@@ -81,6 +99,10 @@ after_initialize do
     object.custom_fields["is_lottery_intro"] == true
   end
 
+  add_to_serializer(:post, :lottery_winner) do
+    object.custom_fields["lottery_winner"]
+  end
+
   # Add custom fields to topic serializers (using helper methods)
   add_to_serializer(:topic_view, :lottery_state) do
     object.topic.lottery_state
@@ -88,6 +110,14 @@ after_initialize do
 
   add_to_serializer(:topic_view, :lottery_ends_at) do
     object.topic.lottery_ends_at
+  end
+
+  add_to_serializer(:topic_view, :lottery_results) do
+    object.topic.lottery_results
+  end
+
+  add_to_serializer(:topic_view, :lottery_drawn_at) do
+    object.topic.lottery_drawn_at
   end
 
   add_to_serializer(:topic_list_item, :lottery_state) do

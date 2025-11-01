@@ -42,4 +42,17 @@ de:
         time_remaining_days: "Noch %{days} Tage und %{hours} Stunden"
         time_remaining_hours: "Noch %{hours} Stunden und %{minutes} Minuten"
         time_remaining_minutes: "Noch %{minutes} Minuten"
+      drawing:
+        ready: "Verlosung beendet - bereit zur Auslosung"
+        draw_button: "Gewinner ziehen"
+        modal_title: "Gewinner der Verlosung ziehen"
+        loading: "Lade Verlosungsdaten..."
+        ready_message: "Klicke auf den Button, um die Gewinner zu ziehen. Die Ziehung verwendet einen deterministischen Zufallsgenerator, der mit der Startzeit der Verlosung und allen Teilnehmernamen initialisiert wird. Dadurch ist sie überprüfbar und fälschungssicher."
+        packets_to_draw: "Zu verlosende Pakete:"
+        participants:
+          one: "Teilnehmer"
+          other: "Teilnehmer"
+        winners: "Gewinner gezogen!"
+        verification_info: "Diese Ergebnisse sind anhand des veröffentlichten Zeitstempels und der Teilnehmerliste überprüfbar. Klicke auf 'Bestätigen und Speichern', um die Ziehung abzuschließen."
+        confirm_button: "Bestätigen und Ergebnisse speichern"
       packets_title: "Pakete"

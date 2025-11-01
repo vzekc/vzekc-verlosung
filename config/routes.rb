@@ -5,6 +5,8 @@ VzekcVerlosung::Engine.routes.draw do
   post "/lotteries" => "lotteries#create"
   get "/lotteries/:topic_id/packets" => "lotteries#packets"
   put "/lotteries/:topic_id/publish" => "lotteries#publish"
+  get "/lotteries/:topic_id/drawing-data" => "lotteries#drawing_data"
+  post "/lotteries/:topic_id/draw" => "lotteries#draw"
 
   post "/tickets" => "tickets#create"
   delete "/tickets/:post_id" => "tickets#destroy"

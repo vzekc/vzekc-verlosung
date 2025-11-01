@@ -327,6 +327,31 @@
     }
   }
 
+  .lottery-draw-notice {
+    background: var(--tertiary-low);
+    border: 1px solid var(--tertiary);
+    border-radius: 6px;
+    padding: 1em;
+    margin-bottom: 1.5em;
+
+    .draw-message {
+      display: flex;
+      align-items: center;
+      margin-bottom: 1em;
+      color: var(--primary);
+      font-weight: 500;
+
+      .d-icon {
+        margin-right: 0.5em;
+        color: var(--tertiary);
+      }
+    }
+
+    .lottery-draw-button {
+      width: 100%;
+    }
+  }
+
   .lottery-finished-notice {
     background: var(--primary-very-low);
     border: 1px solid var(--primary-low);

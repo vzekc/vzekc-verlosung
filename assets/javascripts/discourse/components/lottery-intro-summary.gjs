@@ -20,6 +20,7 @@ import { i18n } from "discourse-i18n";
 export default class LotteryIntroSummary extends Component {
   @service currentUser;
   @service appEvents;
+  @service modal;
 
   @tracked packets = [];
   @tracked loading = true;
@@ -95,6 +96,20 @@ export default class LotteryIntroSummary extends Component {
    */
   get isFinished() {
     return this.topic?.lottery_state === "finished";
+  }
+
+  /**
+   * Check if lottery has ended but not been drawn yet
+   *
+   * @returns {Boolean} true if ready to draw
+   */
+  get canDraw() {
+    if (!this.topic || !this.topic.lottery_ends_at) {
+      return false;
+    }
+    const hasEnded = new Date(this.topic.lottery_ends_at) <= new Date();
+    const notDrawn = !this.topic.lottery_results;
+    return hasEnded && notDrawn && this.canPublish;
   }
 
   /**
@@ -197,6 +212,22 @@ export default class LotteryIntroSummary extends Component {
     }
   }
 
+  /**
+   * Open the drawing modal to draw winners
+   */
+  @action
+  async drawWinners() {
+    const DrawLotteryModal = (
+      await import("../components/modal/draw-lottery-modal")
+    ).default;
+
+    this.modal.show(DrawLotteryModal, {
+      model: {
+        topicId: this.args.data.post.topic_id,
+      },
+    });
+  }
+
   <template>
     <div class="lottery-intro-summary">
       {{#if this.loading}}
@@ -234,6 +265,21 @@ export default class LotteryIntroSummary extends Component {
               </div>
             </div>
           {{/if}}
+        {{/if}}
+
+        {{#if this.canDraw}}
+          <div class="lottery-draw-notice">
+            <div class="draw-message">
+              {{icon "trophy"}}
+              <span>{{i18n "vzekc_verlosung.drawing.ready"}}</span>
+            </div>
+            <DButton
+              @action={{this.drawWinners}}
+              @translatedLabel={{i18n "vzekc_verlosung.drawing.draw_button"}}
+              @icon="dice"
+              class="btn-primary lottery-draw-button"
+            />
+          </div>
         {{/if}}
 
         {{#if this.isFinished}}
