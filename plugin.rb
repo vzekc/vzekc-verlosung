@@ -19,6 +19,8 @@ register_svg_icon "ticket"
 register_svg_icon "tag"
 register_svg_icon "tags"
 register_svg_icon "clipboard-list"
+register_svg_icon "bullhorn"
+register_svg_icon "times-circle"
 
 module ::VzekcVerlosung
   PLUGIN_NAME = "vzekc-verlosung"
