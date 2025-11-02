@@ -175,8 +175,8 @@
     display: inline-flex;
     align-items: center;
     padding: 0.6em 0.9em;
-    background: var(--tertiary);
-    color: var(--secondary);
+    background: var(--tertiary) !important;
+    color: var(--secondary) !important;
     border: none;
     border-radius: 10px;
     font-size: 0.85em;
@@ -185,17 +185,20 @@
     transition: background 0.2s;
 
     &:hover {
-      background: var(--tertiary-hover);
+      background: var(--tertiary-hover) !important;
+      color: var(--secondary) !important;
     }
 
     .d-icon {
       margin-right: 0.35em;
       font-size: 0.9em;
+      color: var(--secondary) !important;
     }
 
     .count {
       line-height: 1;
       font-weight: 600;
+      color: var(--secondary) !important;
     }
   }
 }
