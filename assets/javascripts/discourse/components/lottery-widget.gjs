@@ -1,6 +1,5 @@
 import Component from "@glimmer/component";
 import { tracked } from "@glimmer/tracking";
-import { hash } from "@ember/helper";
 import { action } from "@ember/object";
 import { service } from "@ember/service";
 import DButton from "discourse/components/d-button";
@@ -175,12 +174,36 @@ export default class LotteryWidget extends Component {
   }
 
   /**
-   * Get the winner username for this packet
+   * Get the winner for this packet
+   * Returns username string if winner data not loaded as object yet
    *
-   * @type {string|null}
+   * @type {string|Object|null}
    */
   get winner() {
     return this.post?.lottery_winner;
+  }
+
+  /**
+   * Get winner username (handles both string and object)
+   *
+   * @type {string|null}
+   */
+  get winnerUsername() {
+    const winner = this.winner;
+    if (!winner) {
+      return null;
+    }
+    return typeof winner === "string" ? winner : winner.username;
+  }
+
+  /**
+   * Check if winner is a full user object with avatar_template
+   *
+   * @type {boolean}
+   */
+  get hasWinnerObject() {
+    const winner = this.winner;
+    return winner && typeof winner === "object" && winner.avatar_template;
   }
 
   /**
@@ -232,10 +255,22 @@ export default class LotteryWidget extends Component {
                 <span class="winner-label">{{i18n
                     "vzekc_verlosung.ticket.winner"
                   }}</span>
-                <UserLink @username={{this.winner}} class="winner-user-link">
-                  {{avatar (hash username=this.winner) imageSize="small"}}
-                  <span class="winner-name">{{this.winner}}</span>
-                </UserLink>
+                {{#if this.hasWinnerObject}}
+                  <UserLink
+                    @username={{this.winnerUsername}}
+                    class="winner-user-link"
+                  >
+                    {{avatar this.winner imageSize="small"}}
+                    <span class="winner-name">{{this.winnerUsername}}</span>
+                  </UserLink>
+                {{else}}
+                  <UserLink
+                    @username={{this.winnerUsername}}
+                    class="winner-user-link"
+                  >
+                    <span class="winner-name">{{this.winnerUsername}}</span>
+                  </UserLink>
+                {{/if}}
               </div>
               {{#unless this.loading}}
                 <div class="participants-display">
