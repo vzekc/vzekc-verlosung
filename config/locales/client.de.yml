@@ -39,7 +39,7 @@ de:
         no_participants_ended: "Keine Teilnehmer"
         participants: "Teilnehmer:"
       draft:
-        notice: "Diese Verlosung ist noch ein Entwurf und nur für dich sichtbar."
+        notice: "Diese Verlosung ist noch ein Entwurf und noch nicht öffentlich sichtbar."
         publish_button: "Verlosung veröffentlichen"
         publishing: "Veröffentliche..."
       state:
