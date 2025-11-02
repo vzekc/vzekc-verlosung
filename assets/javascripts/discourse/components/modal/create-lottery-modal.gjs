@@ -3,6 +3,7 @@ import { tracked } from "@glimmer/tracking";
 import { fn } from "@ember/helper";
 import { on } from "@ember/modifier";
 import { action } from "@ember/object";
+import { schedule } from "@ember/runloop";
 import { service } from "@ember/service";
 import { eq, gt, lt, not } from "truth-helpers";
 import DButton from "discourse/components/d-button";
@@ -31,6 +32,7 @@ export default class CreateLotteryModal extends Component {
   @tracked description = "";
   @tracked packets = [this.createEmptyPacket()];
   @tracked isSubmitting = false;
+  @tracked lastAddedPacketIndex = 0;
 
   /**
    * Total number of steps in the wizard
@@ -97,6 +99,18 @@ export default class CreateLotteryModal extends Component {
   @action
   addPacket() {
     this.packets = [...this.packets, this.createEmptyPacket()];
+    this.lastAddedPacketIndex = this.packets.length - 1;
+
+    // Focus the newly added packet input after render
+    schedule("afterRender", () => {
+      const inputs = document.querySelectorAll(
+        ".create-lottery-modal .packet-item input[type='text']"
+      );
+      const lastInput = inputs[this.lastAddedPacketIndex];
+      if (lastInput) {
+        lastInput.focus();
+      }
+    });
   }
 
   /**
@@ -169,6 +183,31 @@ export default class CreateLotteryModal extends Component {
   }
 
   /**
+   * Prevent Enter key from submitting forms
+   *
+   * @param {KeyboardEvent} event - Keyboard event
+   */
+  @action
+  handleKeyDown(event) {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      event.stopPropagation();
+      return false;
+    }
+  }
+
+  /**
+   * Prevent form submission
+   *
+   * @param {Event} event - Submit event
+   */
+  @action
+  preventSubmit(event) {
+    event.preventDefault();
+    return false;
+  }
+
+  /**
    * Go to next step
    */
   @action
@@ -238,7 +277,7 @@ export default class CreateLotteryModal extends Component {
       class="create-lottery-modal"
     >
       <:body>
-        <div class="lottery-wizard">
+        <form {{on "submit" this.preventSubmit}} class="lottery-wizard">
           <div class="wizard-progress">
             <span>{{this.step}} / {{this.totalSteps}}</span>
           </div>
@@ -250,6 +289,7 @@ export default class CreateLotteryModal extends Component {
                 <input
                   type="text"
                   {{on "input" (fn this.updateField "title")}}
+                  {{on "keydown" this.handleKeyDown}}
                   value={{this.title}}
                   placeholder={{i18n "vzekc_verlosung.modal.title_placeholder"}}
                   class="lottery-title-input"
@@ -293,7 +333,8 @@ export default class CreateLotteryModal extends Component {
                     <input
                       type="text"
                       {{on "input" (fn this.updatePacket index "title")}}
-                      {{(if (eq index 0) autoFocus)}}
+                      {{on "keydown" this.handleKeyDown}}
+                      {{(if (eq index this.lastAddedPacketIndex) autoFocus)}}
                       value={{packet.title}}
                       placeholder={{i18n
                         "vzekc_verlosung.modal.packet_title_placeholder"
@@ -334,7 +375,7 @@ export default class CreateLotteryModal extends Component {
               </ul>
             </div>
           {{/if}}
-        </div>
+        </form>
       </:body>
 
       <:footer>
