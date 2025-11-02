@@ -166,6 +166,9 @@ module VzekcVerlosung
       topic.custom_fields["lottery_ends_at"] = duration_days.days.from_now
       topic.save_custom_fields
 
+      # Notify all users who have tickets in this lottery
+      notify_lottery_published(topic)
+
       head :no_content
     end
 
@@ -349,6 +352,12 @@ module VzekcVerlosung
         end
       end
 
+      # Notify all participants that winners have been drawn
+      notify_lottery_drawn(topic)
+
+      # Send special notification to winners
+      notify_winners(topic, results)
+
       head :no_content
     end
 
@@ -440,6 +449,81 @@ module VzekcVerlosung
       # Match only the first line, not including any content after the newline
       match = raw.match(/^#\s+(.+)$/)
       match ? match[1].strip : nil
+    end
+
+    # Notify all users with tickets that the lottery has been published
+    def notify_lottery_published(topic)
+      participant_user_ids = get_lottery_participant_user_ids(topic)
+
+      participant_user_ids.each do |user_id|
+        user = User.find_by(id: user_id)
+        next unless user
+
+        Notification.consolidate_or_create!(
+          notification_type: Notification.types[:custom],
+          user_id: user.id,
+          topic_id: topic.id,
+          post_number: 1,
+          data: {
+            topic_title: topic.title,
+            message: "vzekc_verlosung.notifications.lottery_published",
+          }.to_json,
+        )
+      end
+    end
+
+    # Notify all users with tickets that winners have been drawn
+    def notify_lottery_drawn(topic)
+      participant_user_ids = get_lottery_participant_user_ids(topic)
+
+      participant_user_ids.each do |user_id|
+        user = User.find_by(id: user_id)
+        next unless user
+
+        Notification.consolidate_or_create!(
+          notification_type: Notification.types[:custom],
+          user_id: user.id,
+          topic_id: topic.id,
+          post_number: 1,
+          data: {
+            topic_title: topic.title,
+            message: "vzekc_verlosung.notifications.lottery_drawn",
+          }.to_json,
+        )
+      end
+    end
+
+    # Notify winners that they won a packet
+    def notify_winners(topic, results)
+      results["drawings"].each do |drawing|
+        winner_username = drawing["winner"]
+        packet_title = drawing["text"]
+        next unless winner_username
+
+        winner_user = User.find_by(username: winner_username)
+        next unless winner_user
+
+        Notification.consolidate_or_create!(
+          notification_type: Notification.types[:custom],
+          user_id: winner_user.id,
+          topic_id: topic.id,
+          post_number: 1,
+          data: {
+            topic_title: topic.title,
+            packet_title: packet_title,
+            message: "vzekc_verlosung.notifications.lottery_won",
+          }.to_json,
+        )
+      end
+    end
+
+    # Get all unique user IDs who have tickets in this lottery
+    def get_lottery_participant_user_ids(topic)
+      VzekcVerlosung::LotteryTicket
+        .joins(:post)
+        .where(posts: { topic_id: topic.id })
+        .distinct
+        .pluck(:user_id)
     end
   end
 end

@@ -28,6 +28,14 @@ module VzekcVerlosung
       ticket = VzekcVerlosung::LotteryTicket.new(post_id: post.id, user_id: current_user.id)
 
       if ticket.save
+        # Auto-watch the lottery topic so user gets notifications for updates
+        TopicUser.change(
+          current_user.id,
+          topic.id,
+          notification_level: TopicUser.notification_levels[:watching],
+          notifications_reason_id: TopicUser.notification_reasons[:user_interacted],
+        )
+
         render json: success_json.merge(ticket_packet_status_response(post.id))
       else
         render json: failed_json.merge(errors: ticket.errors.full_messages),
