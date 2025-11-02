@@ -10,6 +10,8 @@ de:
         vzekc_verlosung_published: "Verlosung veröffentlicht"
         vzekc_verlosung_drawn: "Gewinner gezogen"
         vzekc_verlosung_won: "Du hast gewonnen!"
+        vzekc_verlosung_ticket_bought: "%{display_username} kaufte Los"
+        vzekc_verlosung_ticket_returned: "%{display_username} zog Los zurück"
     vzekc_verlosung:
       neue_verlosung: "Neue Verlosung"
       notifications:

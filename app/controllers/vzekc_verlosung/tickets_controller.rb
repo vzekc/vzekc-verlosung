@@ -36,6 +36,9 @@ module VzekcVerlosung
           notifications_reason_id: TopicUser.notification_reasons[:user_interacted],
         )
 
+        # Notify the lottery creator that a ticket was bought
+        notify_ticket_bought(topic, post, current_user)
+
         render json: success_json.merge(ticket_packet_status_response(post.id))
       else
         render json: failed_json.merge(errors: ticket.errors.full_messages),
@@ -66,6 +69,12 @@ module VzekcVerlosung
       end
 
       ticket.destroy
+
+      # Notify the lottery creator that a ticket was returned
+      if post
+        notify_ticket_returned(post.topic, post, current_user)
+      end
+
       render json: success_json.merge(ticket_packet_status_response(params[:post_id]))
     end
 
@@ -110,6 +119,48 @@ module VzekcVerlosung
       end
 
       { has_ticket: has_ticket, ticket_count: ticket_count, users: users, winner: winner }
+    end
+
+    # Notify the lottery creator that a ticket was bought
+    def notify_ticket_bought(topic, post, buyer)
+      return if topic.user_id == buyer.id # Don't notify if creator bought their own ticket
+
+      packet_title = extract_title_from_markdown(post.raw) || "Packet ##{post.post_number}"
+
+      Notification.consolidate_or_create!(
+        notification_type: Notification.types[:vzekc_verlosung_ticket_bought],
+        user_id: topic.user_id,
+        topic_id: topic.id,
+        post_number: post.post_number,
+        data: {
+          display_username: buyer.username,
+          packet_title: packet_title,
+        }.to_json,
+      )
+    end
+
+    # Notify the lottery creator that a ticket was returned
+    def notify_ticket_returned(topic, post, returner)
+      return if topic.user_id == returner.id # Don't notify if creator returned their own ticket
+
+      packet_title = extract_title_from_markdown(post.raw) || "Packet ##{post.post_number}"
+
+      Notification.consolidate_or_create!(
+        notification_type: Notification.types[:vzekc_verlosung_ticket_returned],
+        user_id: topic.user_id,
+        topic_id: topic.id,
+        post_number: post.post_number,
+        data: {
+          display_username: returner.username,
+          packet_title: packet_title,
+        }.to_json,
+      )
+    end
+
+    # Extract title from markdown (copied from lotteries_controller)
+    def extract_title_from_markdown(raw)
+      match = raw.match(/^#\s+(.+)$/)
+      match ? match[1].strip : nil
     end
   end
 end
