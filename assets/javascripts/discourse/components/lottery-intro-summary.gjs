@@ -392,6 +392,7 @@ export default class LotteryIntroSummary extends Component {
                   <TicketCountBadge
                     @count={{packet.ticket_count}}
                     @users={{packet.users}}
+                    @packetTitle={{packet.title}}
                   />
                 {{/if}}
               </li>

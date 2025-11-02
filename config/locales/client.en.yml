@@ -33,6 +33,8 @@ en:
         loading: "Loading..."
         winner: "Winner:"
         no_tickets: "No tickets claimed"
+        tickets_bought_for: "Tickets bought for"
+        no_participants: "No participants yet"
       draft:
         notice: "This lottery is still a draft and only visible to you."
         publish_button: "Publish Lottery"

@@ -194,6 +194,21 @@ export default class LotteryWidget extends Component {
     return this.hasTicket ? "xmark" : "gift";
   }
 
+  /**
+   * Extract packet title from post content (first heading)
+   *
+   * @type {string}
+   */
+  get packetTitle() {
+    if (!this.args.post?.cooked) {
+      return "";
+    }
+    const tempDiv = document.createElement("div");
+    tempDiv.innerHTML = this.args.post.cooked;
+    const heading = tempDiv.querySelector("h1, h2, h3");
+    return heading ? heading.textContent.trim() : "";
+  }
+
   <template>
     {{#if this.shouldShow}}
       {{#if this.canBuyOrReturn}}
@@ -221,7 +236,11 @@ export default class LotteryWidget extends Component {
         {{/if}}
       {{/if}}
       {{#unless this.loading}}
-        <TicketCountBadge @count={{this.ticketCount}} @users={{this.users}} />
+        <TicketCountBadge
+          @count={{this.ticketCount}}
+          @users={{this.users}}
+          @packetTitle={{this.packetTitle}}
+        />
       {{/unless}}
     {{/if}}
   </template>
