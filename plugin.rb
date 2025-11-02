@@ -14,6 +14,10 @@ register_asset "stylesheets/vzekc-verlosung.scss"
 
 register_svg_icon "trophy"
 register_svg_icon "dice"
+register_svg_icon "receipt"
+register_svg_icon "ticket"
+register_svg_icon "tag"
+register_svg_icon "clipboard-list"
 
 module ::VzekcVerlosung
   PLUGIN_NAME = "vzekc-verlosung"
