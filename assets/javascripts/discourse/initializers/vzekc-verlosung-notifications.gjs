@@ -67,7 +67,8 @@ export default apiInitializer((api) => {
         }
 
         get label() {
-          const data = JSON.parse(this.notification.data);
+          // this.notification.data is already an object, not a JSON string
+          const data = this.notification.data;
           return i18n("vzekc_verlosung.notifications.lottery_won", {
             packet_title: data.packet_title || "",
             topic_title: this.notification.fancy_title,
