@@ -460,7 +460,7 @@ module VzekcVerlosung
         next unless user
 
         Notification.consolidate_or_create!(
-          notification_type: Notification.types[:custom],
+          notification_type: Notification.types[:vzekc_verlosung_published],
           user_id: user.id,
           topic_id: topic.id,
           post_number: 1,
@@ -481,7 +481,7 @@ module VzekcVerlosung
         next unless user
 
         Notification.consolidate_or_create!(
-          notification_type: Notification.types[:custom],
+          notification_type: Notification.types[:vzekc_verlosung_drawn],
           user_id: user.id,
           topic_id: topic.id,
           post_number: 1,
@@ -504,7 +504,7 @@ module VzekcVerlosung
         next unless winner_user
 
         Notification.consolidate_or_create!(
-          notification_type: Notification.types[:custom],
+          notification_type: Notification.types[:vzekc_verlosung_won],
           user_id: winner_user.id,
           topic_id: topic.id,
           post_number: 1,

@@ -5,8 +5,17 @@ en:
         categories:
           vzekc_verlosung: "Vzekc Verlosung"
   js:
+    notifications:
+      titles:
+        vzekc_verlosung_published: "Lottery Published"
+        vzekc_verlosung_drawn: "Winners Drawn"
+        vzekc_verlosung_won: "You Won!"
     vzekc_verlosung:
       neue_verlosung: "New Lottery"
+      notifications:
+        lottery_published: "The lottery '%{topic_title}' has been published and is now active"
+        lottery_drawn: "Winners have been drawn for the lottery '%{topic_title}'"
+        lottery_won: "Congratulations! You won '%{packet_title}' in the lottery '%{topic_title}'"
       modal:
         title: "Create New Lottery"
         title_label: "Lottery Title"
