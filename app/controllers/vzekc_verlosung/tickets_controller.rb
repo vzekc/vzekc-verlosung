@@ -13,8 +13,14 @@ module VzekcVerlosung
       post = Post.find_by(id: params[:post_id])
       return render_json_error("Post not found", status: :not_found) unless post
 
-      # Check if lottery has ended
       topic = post.topic
+
+      # Check if lottery is active (not draft, not finished)
+      unless topic.lottery_active?
+        return render_json_error("Lottery is not active", status: :unprocessable_entity)
+      end
+
+      # Check if lottery has ended
       if topic.lottery_ends_at && topic.lottery_ends_at <= Time.zone.now
         return render_json_error("Lottery has ended", status: :unprocessable_entity)
       end
@@ -24,20 +30,28 @@ module VzekcVerlosung
       if ticket.save
         render json: success_json.merge(ticket_packet_status_response(post.id))
       else
-        render json: failed_json.merge(errors: ticket.errors.full_messages), status: :unprocessable_entity
+        render json: failed_json.merge(errors: ticket.errors.full_messages),
+               status: :unprocessable_entity
       end
     end
 
     # DELETE /vzekc_verlosung/tickets/:post_id
     # Removes the lottery ticket for the current user and post
     def destroy
-      ticket = VzekcVerlosung::LotteryTicket.find_by(post_id: params[:post_id], user_id: current_user.id)
+      ticket =
+        VzekcVerlosung::LotteryTicket.find_by(post_id: params[:post_id], user_id: current_user.id)
       return render_json_error("Ticket not found", status: :not_found) unless ticket
 
-      # Check if lottery has ended
       post = Post.find_by(id: params[:post_id])
       if post
         topic = post.topic
+
+        # Check if lottery is active (not draft, not finished)
+        unless topic.lottery_active?
+          return render_json_error("Lottery is not active", status: :unprocessable_entity)
+        end
+
+        # Check if lottery has ended
         if topic.lottery_ends_at && topic.lottery_ends_at <= Time.zone.now
           return render_json_error("Lottery has ended", status: :unprocessable_entity)
         end
@@ -61,20 +75,17 @@ module VzekcVerlosung
       tickets = VzekcVerlosung::LotteryTicket.where(post_id: post_id).includes(:user)
       ticket_count = tickets.count
 
-      users = tickets.map do |ticket|
-        {
-          id: ticket.user.id,
-          username: ticket.user.username,
-          name: ticket.user.name,
-          avatar_template: ticket.user.avatar_template
-        }
-      end
+      users =
+        tickets.map do |ticket|
+          {
+            id: ticket.user.id,
+            username: ticket.user.username,
+            name: ticket.user.name,
+            avatar_template: ticket.user.avatar_template,
+          }
+        end
 
-      {
-        has_ticket: has_ticket,
-        ticket_count: ticket_count,
-        users: users
-      }
+      { has_ticket: has_ticket, ticket_count: ticket_count, users: users }
     end
   end
 end

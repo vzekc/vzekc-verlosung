@@ -137,12 +137,19 @@ export default class LotteryWidget extends Component {
 
   /**
    * Check if user can buy or return tickets
-   * Returns false if lottery has ended
+   * Returns false if lottery is not active or has ended
    *
    * @type {boolean}
    */
   get canBuyOrReturn() {
     const topic = this.args.post?.topic;
+
+    // Check if lottery is active (not draft, not finished)
+    if (topic?.lottery_state !== "active") {
+      return false;
+    }
+
+    // Check if lottery has ended
     if (topic?.lottery_ends_at) {
       const endsAt = new Date(topic.lottery_ends_at);
       if (endsAt <= new Date()) {
