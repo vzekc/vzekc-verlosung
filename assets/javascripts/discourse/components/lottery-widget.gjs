@@ -26,6 +26,7 @@ export default class LotteryWidget extends Component {
   @tracked hasTicket = false;
   @tracked ticketCount = 0;
   @tracked users = [];
+  @tracked winnerData = null;
   @tracked loading = true;
 
   constructor() {
@@ -72,6 +73,7 @@ export default class LotteryWidget extends Component {
       this.hasTicket = result.has_ticket;
       this.ticketCount = result.ticket_count;
       this.users = result.users || [];
+      this.winnerData = result.winner || null;
     } catch (error) {
       popupAjaxError(error);
     } finally {
@@ -175,11 +177,16 @@ export default class LotteryWidget extends Component {
 
   /**
    * Get the winner for this packet
-   * Returns username string if winner data not loaded as object yet
+   * Prefers loaded winnerData from API, falls back to post custom field
    *
-   * @type {string|Object|null}
+   * @type {Object|string|null}
    */
   get winner() {
+    // Prefer the winner data loaded from API (includes avatar)
+    if (this.winnerData) {
+      return this.winnerData;
+    }
+    // Fall back to post custom field (just username string)
     return this.post?.lottery_winner;
   }
 

@@ -85,7 +85,23 @@ module VzekcVerlosung
           }
         end
 
-      { has_ticket: has_ticket, ticket_count: ticket_count, users: users }
+      # Get winner user object if winner exists
+      post = Post.find_by(id: post_id)
+      winner_username = post&.custom_fields&.dig("lottery_winner")
+      winner = nil
+      if winner_username.present?
+        winner_user = User.find_by(username: winner_username)
+        if winner_user
+          winner = {
+            id: winner_user.id,
+            username: winner_user.username,
+            name: winner_user.name,
+            avatar_template: winner_user.avatar_template,
+          }
+        end
+      end
+
+      { has_ticket: has_ticket, ticket_count: ticket_count, users: users, winner: winner }
     end
   end
 end
