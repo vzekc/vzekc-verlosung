@@ -175,8 +175,8 @@
     display: inline-flex;
     align-items: center;
     padding: 0.6em 0.9em;
-    background: var(--tertiary) !important;
-    color: var(--secondary) !important;
+    background: var(--d-button-primary-bg-color, var(--tertiary)) !important;
+    color: var(--d-button-primary-text-color, var(--secondary)) !important;
     border: none;
     border-radius: 10px;
     font-size: 0.85em;
@@ -185,20 +185,26 @@
     transition: background 0.2s;
 
     &:hover {
-      background: var(--tertiary-hover) !important;
-      color: var(--secondary) !important;
+      background: var(
+        --d-button-primary-bg-color--hover,
+        var(--tertiary-hover)
+      ) !important;
+      color: var(
+        --d-button-primary-text-color--hover,
+        var(--secondary)
+      ) !important;
     }
 
     .d-icon {
       margin-right: 0.35em;
       font-size: 0.9em;
-      color: var(--secondary) !important;
+      color: var(--d-button-primary-icon-color, var(--secondary)) !important;
     }
 
     .count {
       line-height: 1;
       font-weight: 600;
-      color: var(--secondary) !important;
+      color: var(--d-button-primary-text-color, var(--secondary)) !important;
     }
   }
 }
