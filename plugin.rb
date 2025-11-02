@@ -27,12 +27,13 @@ end
 require_relative "lib/vzekc_verlosung/engine"
 require_relative "lib/vzekc_verlosung/guardian_extensions"
 
-after_initialize do
-  # Register custom notification types for lottery events
-  Notification.types[:vzekc_verlosung_published] = 800
-  Notification.types[:vzekc_verlosung_drawn] = 801
-  Notification.types[:vzekc_verlosung_won] = 802
+# Register notification types before after_initialize
+# This needs to happen early so the Notification.types enum includes our types
+register_notification_type("vzekc_verlosung_published", 800)
+register_notification_type("vzekc_verlosung_drawn", 801)
+register_notification_type("vzekc_verlosung_won", 802)
 
+after_initialize do
   # Extend Guardian with custom permissions
   Guardian.include(VzekcVerlosung::GuardianExtensions)
 
