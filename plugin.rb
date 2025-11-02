@@ -34,8 +34,6 @@ after_initialize do
   Notification.types[:vzekc_verlosung_drawn] = 811
   Notification.types[:vzekc_verlosung_won] = 812
 
-  Rails.logger.info("Vzekc Verlosung: Registered notification types: #{Notification.types[:vzekc_verlosung_published]}, #{Notification.types[:vzekc_verlosung_drawn]}, #{Notification.types[:vzekc_verlosung_won]}")
-
   # Extend Guardian with custom permissions
   Guardian.include(VzekcVerlosung::GuardianExtensions)
 

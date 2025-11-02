@@ -353,22 +353,10 @@ module VzekcVerlosung
       end
 
       # Notify all participants that winners have been drawn
-      begin
-        notify_lottery_drawn(topic)
-      rescue => e
-        Rails.logger.error("Failed to notify lottery drawn: #{e.class} - #{e.message}")
-        Rails.logger.error(e.backtrace.join("\n"))
-        return render_json_error("Failed to send notifications: #{e.message}", status: :unprocessable_entity)
-      end
+      notify_lottery_drawn(topic)
 
       # Send special notification to winners
-      begin
-        notify_winners(topic, results)
-      rescue => e
-        Rails.logger.error("Failed to notify winners: #{e.class} - #{e.message}")
-        Rails.logger.error(e.backtrace.join("\n"))
-        return render_json_error("Failed to send winner notifications: #{e.message}", status: :unprocessable_entity)
-      end
+      notify_winners(topic, results)
 
       head :no_content
     end
@@ -526,11 +514,8 @@ module VzekcVerlosung
 
         post_number = packet_post ? packet_post.post_number : 1
 
-        notification_type = Notification.types[:vzekc_verlosung_won]
-        Rails.logger.info("Creating winner notification with type: #{notification_type.inspect} (available types: #{Notification.types.keys})")
-
         Notification.consolidate_or_create!(
-          notification_type: notification_type,
+          notification_type: Notification.types[:vzekc_verlosung_won],
           user_id: winner_user.id,
           topic_id: topic.id,
           post_number: post_number,
