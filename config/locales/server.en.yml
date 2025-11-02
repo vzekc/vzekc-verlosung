@@ -1,1 +1,5 @@
 en:
+  site_settings:
+    vzekc_verlosung_enabled: "Enable the Vzekc Verlosung plugin"
+    vzekc_verlosung_category_id: "Category for lottery topics"
+    vzekc_verlosung_description_template: "Default template for lottery description (users can edit after creation)"

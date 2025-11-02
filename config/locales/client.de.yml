@@ -8,23 +8,13 @@ de:
     vzekc_verlosung:
       neue_verlosung: "Neue Verlosung"
       modal:
-        step1_title: "Verlosungs-Details"
-        step2_title: "Pakete hinzufügen"
-        step3_title: "Überprüfen und erstellen"
+        title: "Neue Verlosung erstellen"
         title_label: "Verlosungs-Titel"
         title_placeholder: "Gib den Titel für die Verlosung ein..."
-        description_label: "Beschreibung"
-        description_placeholder: "Beschreibe die Gesamtspende und wo sie herkomt..."
-        packet_label: "Paket"
-        packet_title_label: "Paket-Titel"
-        packet_title_placeholder: "z.B. Hardware-Paket #1"
+        packets_label: "Pakete"
+        packet_title_placeholder: "Paket %{number} Titel (z.B. Hardware-Paket)"
         add_packet: "Weiteres Paket hinzufügen"
         remove_packet: "Paket entfernen"
-        packets_count:
-          one: "1 Paket"
-          other: "%{count} Pakete"
-        back: "Zurück"
-        next: "Weiter"
         create: "Verlosung erstellen"
         creating: "Erstelle..."
       ticket:

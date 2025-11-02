@@ -1,0 +1,5 @@
+de:
+  site_settings:
+    vzekc_verlosung_enabled: "Vzekc Verlosung Plugin aktivieren"
+    vzekc_verlosung_category_id: "Kategorie für Verlosungs-Themen"
+    vzekc_verlosung_description_template: "Standard-Vorlage für Verlosungsbeschreibung (Benutzer können nach Erstellung bearbeiten)"

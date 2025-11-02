@@ -4,125 +4,53 @@
 
 .create-lottery-modal {
   .modal-body {
-    min-height: 400px;
+    min-height: 300px;
   }
 
-  .lottery-wizard {
-    .wizard-progress {
-      text-align: center;
+  .lottery-form {
+    .control-group {
       margin-bottom: 1.5em;
-      font-size: 0.9em;
-      color: var(--primary-medium);
-    }
 
-    .wizard-step {
-      .control-group {
-        margin-bottom: 1.5em;
-
-        label {
-          display: block;
-          font-weight: bold;
-          margin-bottom: 0.5em;
-        }
-
-        input[type="text"],
-        textarea {
-          width: 100%;
-          padding: 0.5em;
-          border: 1px solid var(--primary-low-mid);
-          border-radius: 3px;
-
-          &:focus {
-            outline: none;
-            border-color: var(--tertiary);
-          }
-        }
-      }
-    }
-
-    .step-packets {
-      .packets-list {
-        max-height: 400px;
-        overflow-y: auto;
-        margin-bottom: 1em;
-
-        .packet-item {
-          border: 1px solid var(--primary-low-mid);
-          border-radius: 5px;
-          padding: 1em;
-          margin-bottom: 1em;
-          background: var(--primary-very-low);
-
-          .packet-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1em;
-
-            h4 {
-              margin: 0;
-            }
-          }
-
-          .control-group {
-            margin-bottom: 1em;
-
-            &:last-child {
-              margin-bottom: 0;
-            }
-          }
-        }
-      }
-    }
-
-    .step-review {
-      h3 {
-        margin-top: 0;
+      label {
+        display: block;
+        font-weight: bold;
         margin-bottom: 0.5em;
       }
 
-      .lottery-description {
-        color: var(--primary-medium);
-        margin-bottom: 1.5em;
-        white-space: pre-wrap;
-      }
+      input[type="text"],
+      textarea {
+        width: 100%;
+        padding: 0.5em;
+        border: 1px solid var(--primary-low-mid);
+        border-radius: 3px;
 
-      h4 {
-        margin-bottom: 1em;
-      }
-
-      .packet-list {
-        list-style: none;
-        padding: 0;
-
-        li {
-          padding: 0.75em;
-          margin-bottom: 0.5em;
-          background: var(--primary-very-low);
-          border-radius: 3px;
-
-          strong {
-            display: block;
-            margin-bottom: 0.25em;
-          }
-
-          p {
-            margin: 0.5em 0 0 0;
-            color: var(--primary-medium);
-            font-size: 0.9em;
-          }
+        &:focus {
+          outline: none;
+          border-color: var(--tertiary);
         }
       }
     }
-  }
 
-  .modal-footer-buttons {
-    display: flex;
-    justify-content: space-between;
-    width: 100%;
+    .packets-list {
+      margin-bottom: 1em;
 
-    .btn {
-      min-width: 100px;
+      .packet-item {
+        margin-bottom: 0.75em;
+
+        .packet-input-group {
+          display: flex;
+          align-items: center;
+          gap: 0.5em;
+
+          input[type="text"] {
+            flex: 1;
+          }
+
+          .btn {
+            flex-shrink: 0;
+          }
+        }
+      }
     }
   }
 }

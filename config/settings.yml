@@ -6,3 +6,19 @@ vzekc_verlosung:
     default: ''
     client: true
     type: category
+  vzekc_verlosung_description_template:
+    default: |
+      ## Über diese Verlosung
+
+      [Beschreibe die Spende und woher sie stammt]
+
+      ## Übergabe der Pakete
+
+      [Beschreibe die Übergabemöglichkeiten:]
+      - Wo können Pakete abgeholt werden? (z.B. Standort, lokale Treffen, Classic-Computing-Treffen)
+      - Ist Versand möglich? Unter welchen Bedingungen? (z.B. Übernahme Versandkosten, Zusendung von Versandmaterial)
+      - Gibt es eine Frist für die Kontaktaufnahme? (z.B. innerhalb 14 Tagen)
+      - Wie lange können Pakete gelagert werden?
+      - Gibt es Pakete, die nicht versendet werden sollten?
+    type: string
+    textarea: true

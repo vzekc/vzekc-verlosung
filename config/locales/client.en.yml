@@ -8,23 +8,13 @@ en:
     vzekc_verlosung:
       neue_verlosung: "New Lottery"
       modal:
-        step1_title: "Lottery Details"
-        step2_title: "Add Packets"
-        step3_title: "Review and Create"
+        title: "Create New Lottery"
         title_label: "Lottery Title"
         title_placeholder: "Enter the title for your lottery..."
-        description_label: "Description"
-        description_placeholder: "Describe the donation and where it came from..."
-        packet_label: "Packet"
-        packet_title_label: "Packet Title"
-        packet_title_placeholder: "e.g., Hardware Bundle #1"
+        packets_label: "Packets"
+        packet_title_placeholder: "Packet %{number} title (e.g., Hardware Bundle)"
         add_packet: "Add Another Packet"
         remove_packet: "Remove Packet"
-        packets_count:
-          one: "1 Packet"
-          other: "%{count} Packets"
-        back: "Back"
-        next: "Next"
         create: "Create Lottery"
         creating: "Creating..."
       ticket:

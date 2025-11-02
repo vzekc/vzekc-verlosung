@@ -8,11 +8,10 @@ module VzekcVerlosung
   #     user: current_user,
   #     guardian: guardian,
   #     title: "Hardware Verlosung Januar 2025",
-  #     description: "Beschreibung der Verlosung",
   #     category_id: 5,
   #     packets: [
-  #       { title: "Packet 1", description: "Inhalt" },
-  #       { title: "Packet 2", description: "Inhalt" }
+  #       { title: "Packet 1" },
+  #       { title: "Packet 2" }
   #     ]
   #   )
   #
@@ -21,12 +20,10 @@ module VzekcVerlosung
 
     params do
       attribute :title, :string
-      attribute :description, :string
       attribute :category_id, :integer
       attribute :packets, :array
 
       validates :title, presence: true, length: { minimum: 3, maximum: 255 }
-      validates :description, presence: true
       validates :category_id, presence: true
       validates :packets, presence: true, length: { minimum: 1 }
     end
@@ -57,14 +54,16 @@ module VzekcVerlosung
       Rails.logger.info "=== CREATE_MAIN_TOPIC ==="
       Rails.logger.info "User: #{user.id}"
       Rails.logger.info "Title: #{params.title}"
-      Rails.logger.info "Description: #{params.description}"
       Rails.logger.info "Category: #{category.id}"
+
+      # Get the description template from site settings
+      description = SiteSetting.vzekc_verlosung_description_template
 
       post_creator =
         PostCreator.new(
           user,
           title: params.title,
-          raw: params.description,
+          raw: description,
           category: category.id,
           skip_validations: true,
         )
@@ -72,9 +71,13 @@ module VzekcVerlosung
       post = post_creator.create
 
       Rails.logger.info "Post created: #{post.inspect}"
-      Rails.logger.info "Post errors: #{post_creator.errors.full_messages}" if post_creator.errors.any?
+      if post_creator.errors.any?
+        Rails.logger.info "Post errors: #{post_creator.errors.full_messages}"
+      end
 
-      fail!("Failed to create main topic: #{post_creator.errors.full_messages.join(", ")}") unless post&.persisted?
+      unless post&.persisted?
+        fail!("Failed to create main topic: #{post_creator.errors.full_messages.join(", ")}")
+      end
 
       # Mark the intro post
       post.custom_fields["is_lottery_intro"] = true
@@ -97,12 +100,7 @@ module VzekcVerlosung
         raw_content = "# #{packet_title}\n\n"
 
         post_creator =
-          PostCreator.new(
-            user,
-            raw: raw_content,
-            topic_id: main_topic.id,
-            skip_validations: true,
-          )
+          PostCreator.new(user, raw: raw_content, topic_id: main_topic.id, skip_validations: true)
 
         post = post_creator.create
 
@@ -115,6 +113,5 @@ module VzekcVerlosung
         post.save_custom_fields
       end
     end
-
   end
 end
