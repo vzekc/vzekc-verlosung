@@ -90,8 +90,19 @@ module VzekcVerlosung
           # Extract title from markdown (first heading)
           title = extract_title_from_markdown(post.raw) || "Packet ##{post.post_number}"
 
-          # Get ticket count for this packet
-          ticket_count = VzekcVerlosung::LotteryTicket.where(post_id: post.id).count
+          # Get tickets and users for this packet
+          tickets = VzekcVerlosung::LotteryTicket.where(post_id: post.id).includes(:user)
+          ticket_count = tickets.count
+
+          users =
+            tickets.map do |ticket|
+              {
+                id: ticket.user.id,
+                username: ticket.user.username,
+                name: ticket.user.name,
+                avatar_template: ticket.user.avatar_template,
+              }
+            end
 
           {
             post_id: post.id,
@@ -99,6 +110,7 @@ module VzekcVerlosung
             title: title,
             ticket_count: ticket_count,
             winner: post.custom_fields["lottery_winner"],
+            users: users,
           }
         end
 

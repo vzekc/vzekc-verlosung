@@ -1,16 +1,13 @@
 import Component from "@glimmer/component";
 import { tracked } from "@glimmer/tracking";
-import { on } from "@ember/modifier";
 import { action } from "@ember/object";
 import { service } from "@ember/service";
-import { htmlSafe } from "@ember/template";
 import DButton from "discourse/components/d-button";
-import avatar from "discourse/helpers/avatar";
-import icon from "discourse/helpers/d-icon";
 import { ajax } from "discourse/lib/ajax";
 import { popupAjaxError } from "discourse/lib/ajax-error";
 import { bind } from "discourse/lib/decorators";
 import { i18n } from "discourse-i18n";
+import TicketCountBadge from "./ticket-count-badge";
 
 /**
  * Lottery widget component combining ticket button and count display
@@ -28,7 +25,6 @@ export default class LotteryWidget extends Component {
   @tracked ticketCount = 0;
   @tracked users = [];
   @tracked loading = true;
-  @tracked showTooltip = false;
 
   constructor() {
     super(...arguments);
@@ -106,23 +102,6 @@ export default class LotteryWidget extends Component {
     } finally {
       this.loading = false;
     }
-  }
-
-  @action
-  showTooltipAction(event) {
-    const badge = event.currentTarget;
-    const rect = badge.getBoundingClientRect();
-
-    // Position tooltip right-aligned above the badge
-    this.tooltipRight = window.innerWidth - rect.right;
-    this.tooltipTop = rect.top - 10; // 10px above the badge
-
-    this.showTooltip = true;
-  }
-
-  @action
-  hideTooltipAction() {
-    this.showTooltip = false;
   }
 
   /**
@@ -215,22 +194,6 @@ export default class LotteryWidget extends Component {
     return this.hasTicket ? "xmark" : "gift";
   }
 
-  /**
-   * Get the tooltip style for positioning
-   *
-   * @type {string}
-   */
-  get tooltipStyle() {
-    if (!this.showTooltip) {
-      return htmlSafe(
-        "visibility: hidden; opacity: 0; left: auto; right: auto;"
-      );
-    }
-
-    const style = `visibility: visible; opacity: 1; left: auto; right: ${this.tooltipRight}px; top: ${this.tooltipTop}px; transform: translateY(-100%); position: fixed;`;
-    return htmlSafe(style);
-  }
-
   <template>
     {{#if this.shouldShow}}
       {{#if this.canBuyOrReturn}}
@@ -258,33 +221,7 @@ export default class LotteryWidget extends Component {
         {{/if}}
       {{/if}}
       {{#unless this.loading}}
-        <span
-          class="lottery-ticket-count-display"
-          {{on "mouseenter" this.showTooltipAction}}
-          {{on "mouseleave" this.hideTooltipAction}}
-        >
-          <span class="ticket-count-badge">
-            {{icon "gift"}}
-            <span class="count">{{this.ticketCount}}</span>
-          </span>
-        </span>
-        {{#if this.ticketCount}}
-          <div
-            class="ticket-users-tooltip-wrapper"
-            style="position: fixed; width: 0; height: 0; pointer-events: none;"
-          >
-            <div class="ticket-users-tooltip" style={{this.tooltipStyle}}>
-              <div class="ticket-users-list">
-                {{#each this.users as |user|}}
-                  <div class="ticket-user">
-                    {{avatar user imageSize="tiny"}}
-                    <span class="username">{{user.username}}</span>
-                  </div>
-                {{/each}}
-              </div>
-            </div>
-          </div>
-        {{/if}}
+        <TicketCountBadge @count={{this.ticketCount}} @users={{this.users}} />
       {{/unless}}
     {{/if}}
   </template>

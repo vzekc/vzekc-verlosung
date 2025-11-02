@@ -10,6 +10,7 @@ import { popupAjaxError } from "discourse/lib/ajax-error";
 import { bind } from "discourse/lib/decorators";
 import { i18n } from "discourse-i18n";
 import DrawLotteryModal from "./modal/draw-lottery-modal";
+import TicketCountBadge from "./ticket-count-badge";
 
 /**
  * Component to display lottery packet summary on lottery intro posts
@@ -388,10 +389,10 @@ export default class LotteryIntroSummary extends Component {
                     </span>
                   {{/if}}
                 {{else}}
-                  <span class="packet-ticket-count">
-                    {{icon "gift"}}
-                    <span class="count">{{packet.ticket_count}}</span>
-                  </span>
+                  <TicketCountBadge
+                    @count={{packet.ticket_count}}
+                    @users={{packet.users}}
+                  />
                 {{/if}}
               </li>
             {{/each}}
