@@ -17,6 +17,7 @@ register_svg_icon "dice"
 register_svg_icon "receipt"
 register_svg_icon "ticket"
 register_svg_icon "tag"
+register_svg_icon "tags"
 register_svg_icon "clipboard-list"
 
 module ::VzekcVerlosung

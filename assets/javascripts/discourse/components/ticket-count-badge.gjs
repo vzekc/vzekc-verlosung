@@ -80,7 +80,7 @@ export default class TicketCountBadge extends Component {
         class="ticket-count-badge"
         {{on "click" this.toggleParticipants}}
       >
-        {{icon "ticket"}}
+        {{icon "tags"}}
         <span class="count">{{@count}}</span>
       </button>
 
