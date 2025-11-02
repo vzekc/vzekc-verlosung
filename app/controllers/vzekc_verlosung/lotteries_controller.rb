@@ -477,13 +477,14 @@ module VzekcVerlosung
         next unless user
 
         Notification.consolidate_or_create!(
-          notification_type: Notification.types[:vzekc_verlosung_published] || Notification.types[:custom],
+          notification_type: Notification.types[:custom],
           user_id: user.id,
           topic_id: topic.id,
           post_number: 1,
           data: {
             topic_title: topic.title,
             message: "vzekc_verlosung.notifications.lottery_published",
+            notification_type: "vzekc_verlosung_published",
           }.to_json,
         )
       end
@@ -498,13 +499,14 @@ module VzekcVerlosung
         next unless user
 
         Notification.consolidate_or_create!(
-          notification_type: Notification.types[:vzekc_verlosung_drawn] || Notification.types[:custom],
+          notification_type: Notification.types[:custom],
           user_id: user.id,
           topic_id: topic.id,
           post_number: 1,
           data: {
             topic_title: topic.title,
             message: "vzekc_verlosung.notifications.lottery_drawn",
+            notification_type: "vzekc_verlosung_drawn",
           }.to_json,
         )
       end
@@ -521,7 +523,7 @@ module VzekcVerlosung
         next unless winner_user
 
         Notification.consolidate_or_create!(
-          notification_type: Notification.types[:vzekc_verlosung_won] || Notification.types[:custom],
+          notification_type: Notification.types[:custom],
           user_id: winner_user.id,
           topic_id: topic.id,
           post_number: 1,
@@ -529,6 +531,7 @@ module VzekcVerlosung
             topic_title: topic.title,
             packet_title: packet_title,
             message: "vzekc_verlosung.notifications.lottery_won",
+            notification_type: "vzekc_verlosung_won",
           }.to_json,
         )
       end
