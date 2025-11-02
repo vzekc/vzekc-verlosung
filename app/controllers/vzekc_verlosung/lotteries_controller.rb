@@ -526,8 +526,11 @@ module VzekcVerlosung
 
         post_number = packet_post ? packet_post.post_number : 1
 
+        notification_type = Notification.types[:vzekc_verlosung_won]
+        Rails.logger.info("Creating winner notification with type: #{notification_type.inspect} (available types: #{Notification.types.keys})")
+
         Notification.consolidate_or_create!(
-          notification_type: Notification.types[:vzekc_verlosung_won],
+          notification_type: notification_type,
           user_id: winner_user.id,
           topic_id: topic.id,
           post_number: post_number,
