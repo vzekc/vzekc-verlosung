@@ -15,13 +15,13 @@ export default apiInitializer((api) => {
         }
 
         get label() {
-          return i18n("vzekc_verlosung.notifications.lottery_published", {
-            topic_title: this.notification.fancy_title,
-          });
+          return i18n("notifications.titles.vzekc_verlosung_published");
         }
 
         get description() {
-          return "";
+          return i18n("vzekc_verlosung.notifications.lottery_published", {
+            topic_title: this.notification.fancy_title,
+          });
         }
 
         get linkTitle() {
@@ -41,13 +41,13 @@ export default apiInitializer((api) => {
         }
 
         get label() {
-          return i18n("vzekc_verlosung.notifications.lottery_drawn", {
-            topic_title: this.notification.fancy_title,
-          });
+          return i18n("notifications.titles.vzekc_verlosung_drawn");
         }
 
         get description() {
-          return "";
+          return i18n("vzekc_verlosung.notifications.lottery_drawn", {
+            topic_title: this.notification.fancy_title,
+          });
         }
 
         get linkTitle() {
@@ -67,16 +67,16 @@ export default apiInitializer((api) => {
         }
 
         get label() {
+          return i18n("notifications.titles.vzekc_verlosung_won");
+        }
+
+        get description() {
           // this.notification.data is already an object, not a JSON string
           const data = this.notification.data;
           return i18n("vzekc_verlosung.notifications.lottery_won", {
             packet_title: data.packet_title || "",
             topic_title: this.notification.fancy_title,
           });
-        }
-
-        get description() {
-          return "";
         }
 
         get linkTitle() {
