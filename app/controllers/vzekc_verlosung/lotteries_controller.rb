@@ -323,6 +323,7 @@ module VzekcVerlosung
         )
       rescue MiniRacer::Error, StandardError => e
         Rails.logger.error("Lottery drawing error for topic #{topic.id}: #{e.message}")
+        Rails.logger.error(e.backtrace.join("\n"))
         return(
           render_json_error("Lottery drawing failed: #{e.message}", status: :unprocessable_entity)
         )
@@ -353,12 +354,28 @@ module VzekcVerlosung
       end
 
       # Notify all participants that winners have been drawn
-      notify_lottery_drawn(topic)
+      begin
+        notify_lottery_drawn(topic)
+      rescue StandardError => e
+        Rails.logger.error("Error notifying participants for topic #{topic.id}: #{e.message}")
+        Rails.logger.error(e.backtrace.join("\n"))
+        return render_json_error("Drawing succeeded but notification failed: #{e.message}", status: :unprocessable_entity)
+      end
 
       # Send special notification to winners
-      notify_winners(topic, results)
+      begin
+        notify_winners(topic, results)
+      rescue StandardError => e
+        Rails.logger.error("Error notifying winners for topic #{topic.id}: #{e.message}")
+        Rails.logger.error(e.backtrace.join("\n"))
+        return render_json_error("Drawing succeeded but winner notification failed: #{e.message}", status: :unprocessable_entity)
+      end
 
       head :no_content
+    rescue StandardError => e
+      Rails.logger.error("Unexpected error in draw action for topic #{params[:topic_id]}: #{e.message}")
+      Rails.logger.error(e.backtrace.join("\n"))
+      render_json_error("An unexpected error occurred: #{e.message}", status: :unprocessable_entity)
     end
 
     # GET /vzekc_verlosung/lotteries/:topic_id/results.json
