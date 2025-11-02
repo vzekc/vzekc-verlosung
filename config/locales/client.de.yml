@@ -33,8 +33,10 @@ de:
         loading: "Lädt..."
         winner: "Gewinner:"
         no_tickets: "Keine Lose beansprucht"
+        no_winner: "Kein Gewinner (keine Lose wurden gekauft)"
         tickets_bought_for: "Lose gekauft für"
         no_participants: "Noch keine Teilnehmer"
+        participants: "Teilnehmer:"
       draft:
         notice: "Diese Verlosung ist noch ein Entwurf und nur für dich sichtbar."
         publish_button: "Verlosung veröffentlichen"

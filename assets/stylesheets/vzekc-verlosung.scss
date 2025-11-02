@@ -518,3 +518,86 @@
     }
   }
 }
+
+// Lottery packet status (displayed in packet posts)
+.lottery-packet-status {
+  margin: 1.5em 0;
+
+  .lottery-packet-active-notice {
+    background: var(--success-low);
+    border: 1px solid var(--success);
+    border-radius: 6px;
+    padding: 1em;
+
+    .action-section {
+      margin-bottom: 1em;
+
+      .lottery-ticket-button {
+        min-width: 120px;
+      }
+    }
+
+    .participants-display {
+      display: flex;
+      align-items: center;
+      gap: 0.5em;
+      padding-top: 0.75em;
+      border-top: 1px solid var(--success);
+
+      .participants-label {
+        font-weight: 500;
+        color: var(--primary);
+      }
+    }
+  }
+
+  .lottery-packet-winner-notice {
+    background: var(--success-low);
+    border: 1px solid var(--success);
+    border-radius: 6px;
+    padding: 1em;
+
+    .winner-message {
+      margin-bottom: 1em;
+      display: flex;
+      align-items: center;
+      font-size: 1.1em;
+
+      .winner-label {
+        margin-right: 0.5em;
+        color: var(--primary-medium);
+        font-weight: 500;
+      }
+
+      .winner-name {
+        font-weight: 600;
+        color: var(--success);
+      }
+    }
+
+    .participants-display {
+      display: flex;
+      align-items: center;
+      gap: 0.5em;
+      padding-top: 0.75em;
+      border-top: 1px solid var(--success);
+
+      .participants-label {
+        font-weight: 500;
+        color: var(--primary);
+      }
+    }
+  }
+
+  .lottery-packet-no-winner-notice {
+    background: var(--primary-very-low);
+    border: 1px solid var(--primary-low);
+    border-radius: 6px;
+    padding: 1em;
+
+    .no-winner-message {
+      color: var(--primary-medium);
+      font-style: italic;
+    }
+  }
+}

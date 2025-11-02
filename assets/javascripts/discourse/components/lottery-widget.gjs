@@ -15,7 +15,7 @@ import TicketCountBadge from "./ticket-count-badge";
  * @component LotteryWidget
  * Shows a button to buy/return lottery tickets and displays the ticket count with participants
  *
- * @param {Object} args.post - The post object
+ * @param {Object} args.data.post - The post object (passed via renderGlimmer)
  */
 export default class LotteryWidget extends Component {
   @service currentUser;
@@ -43,9 +43,18 @@ export default class LotteryWidget extends Component {
     }
   }
 
+  /**
+   * Get the post object from component args
+   *
+   * @type {Object}
+   */
+  get post() {
+    return this.args.data?.post;
+  }
+
   @bind
   onTicketChanged(postId) {
-    if (postId === this.args.post?.id) {
+    if (postId === this.post?.id) {
       this.loadTicketData();
     }
   }
@@ -56,7 +65,7 @@ export default class LotteryWidget extends Component {
   async loadTicketData() {
     try {
       const result = await ajax(
-        `/vzekc-verlosung/tickets/packet-status/${this.args.post.id}`
+        `/vzekc-verlosung/tickets/packet-status/${this.post.id}`
       );
       this.hasTicket = result.has_ticket;
       this.ticketCount = result.ticket_count;
@@ -82,7 +91,7 @@ export default class LotteryWidget extends Component {
     try {
       if (this.hasTicket) {
         // Return ticket
-        await ajax(`/vzekc-verlosung/tickets/${this.args.post.id}`, {
+        await ajax(`/vzekc-verlosung/tickets/${this.post.id}`, {
           type: "DELETE",
         });
         this.hasTicket = false;
@@ -90,13 +99,13 @@ export default class LotteryWidget extends Component {
         // Buy ticket
         await ajax("/vzekc-verlosung/tickets", {
           type: "POST",
-          data: { post_id: this.args.post.id },
+          data: { post_id: this.post.id },
         });
         this.hasTicket = true;
       }
 
       // Emit event to update ticket count display
-      this.appEvents.trigger("lottery:ticket-changed", this.args.post.id);
+      this.appEvents.trigger("lottery:ticket-changed", this.post.id);
     } catch (error) {
       popupAjaxError(error);
     } finally {
@@ -111,7 +120,7 @@ export default class LotteryWidget extends Component {
    * @type {boolean}
    */
   get shouldShow() {
-    return this.currentUser && this.args.post?.is_lottery_packet;
+    return this.currentUser && this.post?.is_lottery_packet;
   }
 
   /**
@@ -121,7 +130,7 @@ export default class LotteryWidget extends Component {
    * @type {boolean}
    */
   get canBuyOrReturn() {
-    const topic = this.args.post?.topic;
+    const topic = this.post?.topic;
 
     // Check if lottery is active (not draft, not finished)
     if (topic?.lottery_state !== "active") {
@@ -144,7 +153,7 @@ export default class LotteryWidget extends Component {
    * @type {boolean}
    */
   get hasEnded() {
-    const topic = this.args.post?.topic;
+    const topic = this.post?.topic;
     if (topic?.lottery_ends_at) {
       const endsAt = new Date(topic.lottery_ends_at);
       return endsAt <= new Date();
@@ -158,7 +167,7 @@ export default class LotteryWidget extends Component {
    * @type {boolean}
    */
   get isDrawn() {
-    const topic = this.args.post?.topic;
+    const topic = this.post?.topic;
     return topic?.lottery_results != null;
   }
 
@@ -168,7 +177,7 @@ export default class LotteryWidget extends Component {
    * @type {string|null}
    */
   get winner() {
-    return this.args.post?.lottery_winner;
+    return this.post?.lottery_winner;
   }
 
   /**
@@ -200,48 +209,75 @@ export default class LotteryWidget extends Component {
    * @type {string}
    */
   get packetTitle() {
-    if (!this.args.post?.cooked) {
+    if (!this.post?.cooked) {
       return "";
     }
     const tempDiv = document.createElement("div");
-    tempDiv.innerHTML = this.args.post.cooked;
+    tempDiv.innerHTML = this.post.cooked;
     const heading = tempDiv.querySelector("h1, h2, h3");
     return heading ? heading.textContent.trim() : "";
   }
 
   <template>
     {{#if this.shouldShow}}
-      {{#if this.canBuyOrReturn}}
-        <DButton
-          @action={{this.toggleTicket}}
-          @label={{this.buttonLabel}}
-          @icon={{this.buttonIcon}}
-          @disabled={{this.loading}}
-          class="btn-primary"
-        />
-      {{else if this.isDrawn}}
-        {{#if this.winner}}
-          <div class="lottery-winner-display">
-            <span class="winner-label">{{i18n
-                "vzekc_verlosung.ticket.winner"
-              }}</span>
-            <span class="winner-name">{{this.winner}}</span>
+      <div class="lottery-packet-status">
+        {{#if this.isDrawn}}
+          {{! Lottery has been drawn - show winner or no winner message }}
+          {{#if this.winner}}
+            <div class="lottery-packet-winner-notice">
+              <div class="winner-message">
+                <span class="winner-label">{{i18n
+                    "vzekc_verlosung.ticket.winner"
+                  }}</span>
+                <span class="winner-name">{{this.winner}}</span>
+              </div>
+              {{#unless this.loading}}
+                <div class="participants-display">
+                  <span class="participants-label">{{i18n
+                      "vzekc_verlosung.ticket.participants"
+                    }}</span>
+                  <TicketCountBadge
+                    @count={{this.ticketCount}}
+                    @users={{this.users}}
+                    @packetTitle={{this.packetTitle}}
+                  />
+                </div>
+              {{/unless}}
+            </div>
+          {{else}}
+            <div class="lottery-packet-no-winner-notice">
+              <div class="no-winner-message">{{i18n
+                  "vzekc_verlosung.ticket.no_winner"
+                }}</div>
+            </div>
+          {{/if}}
+        {{else if this.canBuyOrReturn}}
+          {{! Lottery is active - show buy/return button }}
+          <div class="lottery-packet-active-notice">
+            <div class="action-section">
+              <DButton
+                @action={{this.toggleTicket}}
+                @label={{this.buttonLabel}}
+                @icon={{this.buttonIcon}}
+                @disabled={{this.loading}}
+                class="btn-primary lottery-ticket-button"
+              />
+            </div>
+            {{#unless this.loading}}
+              <div class="participants-display">
+                <span class="participants-label">{{i18n
+                    "vzekc_verlosung.ticket.participants"
+                  }}</span>
+                <TicketCountBadge
+                  @count={{this.ticketCount}}
+                  @users={{this.users}}
+                  @packetTitle={{this.packetTitle}}
+                />
+              </div>
+            {{/unless}}
           </div>
-        {{else}}
-          <DButton
-            @translatedLabel={{i18n "vzekc_verlosung.ticket.no_tickets"}}
-            @disabled={{true}}
-            class="btn-default lottery-no-tickets-button"
-          />
         {{/if}}
-      {{/if}}
-      {{#unless this.loading}}
-        <TicketCountBadge
-          @count={{this.ticketCount}}
-          @users={{this.users}}
-          @packetTitle={{this.packetTitle}}
-        />
-      {{/unless}}
+      </div>
     {{/if}}
   </template>
 }
