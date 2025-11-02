@@ -3,15 +3,15 @@ import { tracked } from "@glimmer/tracking";
 import { on } from "@ember/modifier";
 import { action } from "@ember/object";
 import { htmlSafe } from "@ember/template";
+import UserLink from "discourse/components/user-link";
 import avatar from "discourse/helpers/avatar";
-import icon from "discourse/helpers/d-icon";
 import { i18n } from "discourse-i18n";
 
 /**
- * Ticket count badge component with clickable participant list
+ * Ticket count badge component with inline avatar display
  *
  * @component TicketCountBadge
- * Displays ticket count and shows participant list on click
+ * Displays ticket participants as inline avatars with overflow indicator
  *
  * @param {number} args.count - Number of tickets
  * @param {Array} args.users - Array of user objects with id, username, name, avatar_template
@@ -23,6 +23,29 @@ export default class TicketCountBadge extends Component {
   @tracked modalLeft = 0;
   @tracked modalBottom = false;
   @tracked modalMaxHeight = 400;
+
+  maxAvatarsToShow = 5;
+
+  /**
+   * Get the list of users to display as avatars
+   *
+   * @type {Array}
+   */
+  get displayedUsers() {
+    const users = this.args.users || [];
+    return users.slice(0, this.maxAvatarsToShow);
+  }
+
+  /**
+   * Get the count of remaining users not shown
+   *
+   * @type {number|null}
+   */
+  get remainingCount() {
+    const users = this.args.users || [];
+    const remaining = users.length - this.maxAvatarsToShow;
+    return remaining > 0 ? remaining : null;
+  }
 
   /**
    * Toggle participant list visibility and position it near the click
@@ -111,15 +134,31 @@ export default class TicketCountBadge extends Component {
   }
 
   <template>
-    <span class="ticket-count-badge-wrapper">
-      <button
-        type="button"
-        class="ticket-count-badge"
-        {{on "click" this.toggleParticipants}}
-      >
-        {{icon "tags"}}
-        <span class="count">{{@count}}</span>
-      </button>
+    <div class="ticket-participants-inline">
+      {{#if @users.length}}
+        {{#each this.displayedUsers as |user|}}
+          <UserLink
+            @username={{user.username}}
+            class="ticket-participant-avatar"
+          >
+            {{avatar user imageSize="small"}}
+          </UserLink>
+        {{/each}}
+
+        {{#if this.remainingCount}}
+          <button
+            type="button"
+            class="ticket-participants-more"
+            {{on "click" this.toggleParticipants}}
+          >
+            +{{this.remainingCount}}
+          </button>
+        {{/if}}
+      {{else}}
+        <span class="no-tickets">{{i18n
+            "vzekc_verlosung.ticket.no_participants"
+          }}</span>
+      {{/if}}
 
       {{#if this.showParticipants}}
         {{! template-lint-disable no-invalid-interactive }}
@@ -137,23 +176,17 @@ export default class TicketCountBadge extends Component {
                 {{@packetTitle}}
               </div>
             {{/if}}
-            {{#if @users.length}}
-              <div class="ticket-users-list">
-                {{#each @users as |user|}}
-                  <div class="ticket-user">
-                    {{avatar user imageSize="tiny"}}
-                    <span class="username">{{user.username}}</span>
-                  </div>
-                {{/each}}
-              </div>
-            {{else}}
-              <div class="no-participants">{{i18n
-                  "vzekc_verlosung.ticket.no_participants"
-                }}</div>
-            {{/if}}
+            <div class="ticket-users-list">
+              {{#each @users as |user|}}
+                <div class="ticket-user">
+                  {{avatar user imageSize="tiny"}}
+                  <span class="username">{{user.username}}</span>
+                </div>
+              {{/each}}
+            </div>
           </div>
         </div>
       {{/if}}
-    </span>
+    </div>
   </template>
 }
