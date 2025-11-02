@@ -239,7 +239,7 @@ export default class LotteryWidget extends Component {
           @label={{this.buttonLabel}}
           @icon={{this.buttonIcon}}
           @disabled={{this.loading}}
-          class="btn-primary lottery-ticket-button"
+          class="btn-primary"
         />
       {{else if this.isDrawn}}
         {{#if this.winner}}
