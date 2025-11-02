@@ -29,6 +29,7 @@ result =
     guardian: Guardian.new(user),
     params: {
       title: "Retro-Hardware Verlosung #{Time.zone.today.strftime("%B %Y")}",
+      duration_days: 14,
       category_id: category_id.to_i,
       packets: [
         { title: "Commodore 64 mit Datasette" },

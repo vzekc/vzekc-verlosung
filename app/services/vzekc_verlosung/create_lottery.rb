@@ -8,6 +8,7 @@ module VzekcVerlosung
   #     user: current_user,
   #     guardian: guardian,
   #     title: "Hardware Verlosung Januar 2025",
+  #     duration_days: 14,
   #     category_id: 5,
   #     packets: [
   #       { title: "Packet 1" },
@@ -20,10 +21,18 @@ module VzekcVerlosung
 
     params do
       attribute :title, :string
+      attribute :duration_days, :integer
       attribute :category_id, :integer
       attribute :packets, :array
 
       validates :title, presence: true, length: { minimum: 3, maximum: 255 }
+      validates :duration_days,
+                presence: true,
+                numericality: {
+                  only_integer: true,
+                  greater_than_or_equal_to: 7,
+                  less_than_or_equal_to: 28,
+                }
       validates :category_id, presence: true
       validates :packets, presence: true, length: { minimum: 1 }
     end
@@ -83,8 +92,9 @@ module VzekcVerlosung
       post.custom_fields["is_lottery_intro"] = true
       post.save_custom_fields
 
-      # Mark topic as draft (lottery will be activated when published)
+      # Mark topic as draft and store duration
       post.topic.custom_fields["lottery_state"] = "draft"
+      post.topic.custom_fields["lottery_duration_days"] = params.duration_days
       post.topic.save_custom_fields
 
       context[:main_topic] = post.topic

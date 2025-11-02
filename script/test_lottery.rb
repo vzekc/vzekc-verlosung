@@ -31,6 +31,7 @@ def create_lottery(username)
       guardian: Guardian.new(user),
       params: {
         title: "Test Verlosung #{Time.zone.now.strftime("%Y-%m-%d %H:%M")}",
+        duration_days: 14,
         category_id: category_id.to_i,
         packets: [
           { title: "Commodore 64 mit Datasette" },

@@ -11,6 +11,8 @@ en:
         title: "Create New Lottery"
         title_label: "Lottery Title"
         title_placeholder: "Enter the title for your lottery..."
+        duration_label: "Duration (in days)"
+        duration_help: "Minimum: 7 days, Maximum: 28 days"
         packets_label: "Packets"
         packet_title_placeholder: "Packet %{number} title (e.g., Hardware Bundle)"
         add_packet: "Add Another Packet"

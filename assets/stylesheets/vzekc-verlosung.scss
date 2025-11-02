@@ -18,6 +18,7 @@
       }
 
       input[type="text"],
+      input[type="number"],
       textarea {
         width: 100%;
         padding: 0.5em;
@@ -28,6 +29,16 @@
           outline: none;
           border-color: var(--tertiary);
         }
+      }
+
+      input[type="number"] {
+        width: 150px;
+      }
+
+      .duration-help {
+        margin-top: 0.5em;
+        font-size: 0.9em;
+        color: var(--primary-medium);
       }
     }
 

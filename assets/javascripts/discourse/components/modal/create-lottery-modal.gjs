@@ -23,6 +23,7 @@ export default class CreateLotteryModal extends Component {
   @service router;
 
   @tracked title = "";
+  @tracked durationDays = 14;
   @tracked packets = [this.createEmptyPacket()];
   @tracked isSubmitting = false;
   @tracked lastAddedPacketIndex = 0;
@@ -35,6 +36,8 @@ export default class CreateLotteryModal extends Component {
   get canSubmit() {
     return (
       this.title.trim().length >= 3 &&
+      this.durationDays >= 7 &&
+      this.durationDays <= 28 &&
       this.packets.length > 0 &&
       this.packets.every((p) => p.title.trim().length > 0)
     );
@@ -108,7 +111,9 @@ export default class CreateLotteryModal extends Component {
    */
   @action
   updateField(field, event) {
-    this[field] = event.target.value;
+    const value = event.target.value;
+    // Convert to number for durationDays field
+    this[field] = field === "durationDays" ? parseInt(value, 10) : value;
   }
 
   /**
@@ -183,6 +188,7 @@ export default class CreateLotteryModal extends Component {
         contentType: "application/json",
         data: JSON.stringify({
           title: this.title,
+          duration_days: this.durationDays,
           category_id: this.args.model.categoryId,
           packets: this.packets.map((p) => ({
             title: p.title,
@@ -226,6 +232,22 @@ export default class CreateLotteryModal extends Component {
               placeholder={{i18n "vzekc_verlosung.modal.title_placeholder"}}
               class="lottery-title-input"
             />
+          </div>
+
+          <div class="control-group">
+            <label>{{i18n "vzekc_verlosung.modal.duration_label"}}</label>
+            <input
+              type="number"
+              {{on "input" (fn this.updateField "durationDays")}}
+              {{on "keydown" this.handleKeyDown}}
+              value={{this.durationDays}}
+              min="7"
+              max="28"
+              class="lottery-duration-input"
+            />
+            <div class="duration-help">
+              {{i18n "vzekc_verlosung.modal.duration_help"}}
+            </div>
           </div>
 
           <div class="control-group">

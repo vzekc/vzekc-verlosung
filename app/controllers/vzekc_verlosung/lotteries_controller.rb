@@ -12,6 +12,7 @@ module VzekcVerlosung
     # Creates a new lottery with main topic and packet topics
     #
     # @param title [String] Title of the main lottery topic
+    # @param duration_days [Integer] Duration in days (7-28)
     # @param category_id [Integer] Category ID where topics should be created
     # @param packets [Array<Hash>] Array of packet data with title
     #
@@ -134,7 +135,7 @@ module VzekcVerlosung
     # PUT /vzekc_verlosung/lotteries/:topic_id/publish
     #
     # Publishes a lottery draft topic, making it visible to all users
-    # Sets the lottery to active state and schedules it to end in 2 weeks
+    # Sets the lottery to active state and schedules it to end based on duration_days
     #
     # @param topic_id [Integer] Topic ID to publish
     #
@@ -157,9 +158,12 @@ module VzekcVerlosung
         )
       end
 
-      # Activate lottery and set end time to 2 weeks from now
+      # Get duration from custom fields (default to 14 days if not set)
+      duration_days = topic.custom_fields["lottery_duration_days"]&.to_i || 14
+
+      # Activate lottery and set end time based on duration
       topic.custom_fields["lottery_state"] = "active"
-      topic.custom_fields["lottery_ends_at"] = 2.weeks.from_now
+      topic.custom_fields["lottery_ends_at"] = duration_days.days.from_now
       topic.save_custom_fields
 
       head :no_content
@@ -373,7 +377,7 @@ module VzekcVerlosung
     private
 
     def create_params
-      params.permit(:title, :category_id, packets: [:title])
+      params.permit(:title, :duration_days, :category_id, packets: [:title])
     end
 
     def serialize_topic(topic)

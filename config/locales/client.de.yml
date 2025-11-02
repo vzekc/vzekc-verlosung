@@ -11,6 +11,8 @@ de:
         title: "Neue Verlosung erstellen"
         title_label: "Verlosungs-Titel"
         title_placeholder: "Gib den Titel für die Verlosung ein..."
+        duration_label: "Dauer (in Tagen)"
+        duration_help: "Minimum: 7 Tage, Maximum: 28 Tage"
         packets_label: "Pakete"
         packet_title_placeholder: "Paket %{number} Titel (z.B. Hardware-Paket)"
         add_packet: "Weiteres Paket hinzufügen"
