@@ -515,13 +515,23 @@ module VzekcVerlosung
         winner_user = User.find_by(username: winner_username)
         next unless winner_user
 
+        # Find the packet post to link to it directly
+        packet_post =
+          Post
+            .where(topic_id: topic.id)
+            .find do |post|
+              post.custom_fields["is_lottery_packet"] == true &&
+                extract_title_from_markdown(post.raw) == packet_title
+            end
+
+        post_number = packet_post ? packet_post.post_number : 1
+
         Notification.consolidate_or_create!(
           notification_type: Notification.types[:vzekc_verlosung_won],
           user_id: winner_user.id,
           topic_id: topic.id,
-          post_number: 1,
+          post_number: post_number,
           data: {
-            topic_title: topic.title,
             packet_title: packet_title,
             message: "vzekc_verlosung.notifications.lottery_won",
           }.to_json,

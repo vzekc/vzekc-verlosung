@@ -73,10 +73,8 @@ export default apiInitializer((api) => {
         get description() {
           // this.notification.data is already an object, not a JSON string
           const data = this.notification.data;
-          return i18n("vzekc_verlosung.notifications.lottery_won", {
-            packet_title: data.packet_title || "",
-            topic_title: this.notification.fancy_title,
-          });
+          // Only show the packet title to keep it short
+          return data.packet_title || "";
         }
 
         get linkTitle() {
