@@ -13,9 +13,9 @@ en:
     vzekc_verlosung:
       neue_verlosung: "New Lottery"
       notifications:
-        lottery_published: "The lottery '%{topic_title}' has been published and is now active"
-        lottery_drawn: "Winners have been drawn for the lottery '%{topic_title}'"
-        lottery_won: "Congratulations! You won '%{packet_title}' in the lottery '%{topic_title}'"
+        lottery_published: "%{topic_title}"
+        lottery_drawn: "%{topic_title}"
+        lottery_won: "%{packet_title}"
       modal:
         title: "Create New Lottery"
         title_label: "Lottery Title"

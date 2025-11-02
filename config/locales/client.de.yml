@@ -13,9 +13,9 @@ de:
     vzekc_verlosung:
       neue_verlosung: "Neue Verlosung"
       notifications:
-        lottery_published: "Die Verlosung '%{topic_title}' wurde veröffentlicht und ist jetzt aktiv"
-        lottery_drawn: "Die Gewinner für die Verlosung '%{topic_title}' wurden gezogen"
-        lottery_won: "Glückwunsch! Du hast '%{packet_title}' in der Verlosung '%{topic_title}' gewonnen"
+        lottery_published: "%{topic_title}"
+        lottery_drawn: "%{topic_title}"
+        lottery_won: "%{packet_title}"
       modal:
         title: "Neue Verlosung erstellen"
         title_label: "Verlosungs-Titel"

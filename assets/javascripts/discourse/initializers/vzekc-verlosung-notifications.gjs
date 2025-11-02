@@ -19,9 +19,7 @@ export default apiInitializer((api) => {
         }
 
         get description() {
-          return i18n("vzekc_verlosung.notifications.lottery_published", {
-            topic_title: this.notification.fancy_title,
-          });
+          return this.notification.fancy_title;
         }
 
         get linkTitle() {
@@ -45,9 +43,7 @@ export default apiInitializer((api) => {
         }
 
         get description() {
-          return i18n("vzekc_verlosung.notifications.lottery_drawn", {
-            topic_title: this.notification.fancy_title,
-          });
+          return this.notification.fancy_title;
         }
 
         get linkTitle() {
@@ -73,7 +69,6 @@ export default apiInitializer((api) => {
         get description() {
           // this.notification.data is already an object, not a JSON string
           const data = this.notification.data;
-          // Only show the packet title to keep it short
           return data.packet_title || "";
         }
 
