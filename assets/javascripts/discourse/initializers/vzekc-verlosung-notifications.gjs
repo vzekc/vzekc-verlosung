@@ -140,4 +140,28 @@ export default apiInitializer((api) => {
       };
     }
   );
+
+  // Register renderer for "did not win" notifications
+  api.registerNotificationTypeRenderer(
+    "vzekc_verlosung_did_not_win",
+    (NotificationTypeBase) => {
+      return class extends NotificationTypeBase {
+        get icon() {
+          return "times-circle";
+        }
+
+        get label() {
+          return i18n("notifications.titles.vzekc_verlosung_did_not_win");
+        }
+
+        get description() {
+          return this.notification.fancy_title;
+        }
+
+        get linkTitle() {
+          return i18n("notifications.titles.vzekc_verlosung_did_not_win");
+        }
+      };
+    }
+  );
 });

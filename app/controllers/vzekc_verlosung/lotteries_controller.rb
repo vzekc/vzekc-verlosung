@@ -358,6 +358,9 @@ module VzekcVerlosung
       # Send special notification to winners
       notify_winners(topic, results)
 
+      # Send notification to participants who didn't win anything
+      notify_non_winners(topic, results)
+
       head :no_content
     end
 
@@ -522,6 +525,33 @@ module VzekcVerlosung
           data: {
             packet_title: packet_title,
             message: "vzekc_verlosung.notifications.lottery_won",
+          }.to_json,
+        )
+      end
+    end
+
+    # Notify participants who didn't win anything
+    def notify_non_winners(topic, results)
+      # Get all winner usernames
+      winner_usernames = results["drawings"].map { |drawing| drawing["winner"] }.compact
+
+      # Get all participants
+      participant_user_ids = get_lottery_participant_user_ids(topic)
+
+      # Notify participants who are not winners
+      participant_user_ids.each do |user_id|
+        user = User.find_by(id: user_id)
+        next unless user
+        next if winner_usernames.include?(user.username)
+
+        Notification.consolidate_or_create!(
+          notification_type: Notification.types[:vzekc_verlosung_did_not_win],
+          user_id: user.id,
+          topic_id: topic.id,
+          post_number: 1,
+          data: {
+            topic_title: topic.title,
+            message: "vzekc_verlosung.notifications.did_not_win",
           }.to_json,
         )
       end
