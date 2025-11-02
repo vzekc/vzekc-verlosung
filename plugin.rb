@@ -28,6 +28,12 @@ require_relative "lib/vzekc_verlosung/engine"
 require_relative "lib/vzekc_verlosung/guardian_extensions"
 
 after_initialize do
+  # Add custom notification types to the Notification.types enum
+  # Since Enum extends Hash, we can add new types directly
+  Notification.types[:vzekc_verlosung_published] = 810
+  Notification.types[:vzekc_verlosung_drawn] = 811
+  Notification.types[:vzekc_verlosung_won] = 812
+
   # Extend Guardian with custom permissions
   Guardian.include(VzekcVerlosung::GuardianExtensions)
 

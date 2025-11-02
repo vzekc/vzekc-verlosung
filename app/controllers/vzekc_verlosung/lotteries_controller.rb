@@ -323,7 +323,6 @@ module VzekcVerlosung
         )
       rescue MiniRacer::Error, StandardError => e
         Rails.logger.error("Lottery drawing error for topic #{topic.id}: #{e.message}")
-        Rails.logger.error(e.backtrace.join("\n"))
         return(
           render_json_error("Lottery drawing failed: #{e.message}", status: :unprocessable_entity)
         )
@@ -354,28 +353,12 @@ module VzekcVerlosung
       end
 
       # Notify all participants that winners have been drawn
-      begin
-        notify_lottery_drawn(topic)
-      rescue StandardError => e
-        Rails.logger.error("Error notifying participants for topic #{topic.id}: #{e.message}")
-        Rails.logger.error(e.backtrace.join("\n"))
-        return render_json_error("Drawing succeeded but notification failed: #{e.message}", status: :unprocessable_entity)
-      end
+      notify_lottery_drawn(topic)
 
       # Send special notification to winners
-      begin
-        notify_winners(topic, results)
-      rescue StandardError => e
-        Rails.logger.error("Error notifying winners for topic #{topic.id}: #{e.message}")
-        Rails.logger.error(e.backtrace.join("\n"))
-        return render_json_error("Drawing succeeded but winner notification failed: #{e.message}", status: :unprocessable_entity)
-      end
+      notify_winners(topic, results)
 
       head :no_content
-    rescue StandardError => e
-      Rails.logger.error("Unexpected error in draw action for topic #{params[:topic_id]}: #{e.message}")
-      Rails.logger.error(e.backtrace.join("\n"))
-      render_json_error("An unexpected error occurred: #{e.message}", status: :unprocessable_entity)
     end
 
     # GET /vzekc_verlosung/lotteries/:topic_id/results.json
@@ -477,14 +460,13 @@ module VzekcVerlosung
         next unless user
 
         Notification.consolidate_or_create!(
-          notification_type: Notification.types[:custom],
+          notification_type: Notification.types[:vzekc_verlosung_published],
           user_id: user.id,
           topic_id: topic.id,
           post_number: 1,
           data: {
             topic_title: topic.title,
             message: "vzekc_verlosung.notifications.lottery_published",
-            notification_type: "vzekc_verlosung_published",
           }.to_json,
         )
       end
@@ -499,14 +481,13 @@ module VzekcVerlosung
         next unless user
 
         Notification.consolidate_or_create!(
-          notification_type: Notification.types[:custom],
+          notification_type: Notification.types[:vzekc_verlosung_drawn],
           user_id: user.id,
           topic_id: topic.id,
           post_number: 1,
           data: {
             topic_title: topic.title,
             message: "vzekc_verlosung.notifications.lottery_drawn",
-            notification_type: "vzekc_verlosung_drawn",
           }.to_json,
         )
       end
@@ -523,7 +504,7 @@ module VzekcVerlosung
         next unless winner_user
 
         Notification.consolidate_or_create!(
-          notification_type: Notification.types[:custom],
+          notification_type: Notification.types[:vzekc_verlosung_won],
           user_id: winner_user.id,
           topic_id: topic.id,
           post_number: 1,
@@ -531,7 +512,6 @@ module VzekcVerlosung
             topic_title: topic.title,
             packet_title: packet_title,
             message: "vzekc_verlosung.notifications.lottery_won",
-            notification_type: "vzekc_verlosung_won",
           }.to_json,
         )
       end
