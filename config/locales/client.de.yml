@@ -36,6 +36,7 @@ de:
         no_winner: "Kein Gewinner (keine Lose wurden gekauft)"
         tickets_bought_for: "Lose gekauft für"
         no_participants: "Noch keine Teilnehmer"
+        no_participants_ended: "Keine Teilnehmer"
         participants: "Teilnehmer:"
       draft:
         notice: "Diese Verlosung ist noch ein Entwurf und nur für dich sichtbar."

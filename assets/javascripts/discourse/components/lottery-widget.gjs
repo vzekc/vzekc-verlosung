@@ -324,6 +324,23 @@ export default class LotteryWidget extends Component {
               </div>
             {{/unless}}
           </div>
+        {{else if this.hasEnded}}
+          {{! Lottery has ended but not drawn yet - show participants only }}
+          <div class="lottery-packet-ended-notice">
+            {{#unless this.loading}}
+              <div class="participants-display">
+                <span class="participants-label">{{i18n
+                    "vzekc_verlosung.ticket.participants"
+                  }}</span>
+                <TicketCountBadge
+                  @count={{this.ticketCount}}
+                  @users={{this.users}}
+                  @packetTitle={{this.packetTitle}}
+                  @hasEnded={{true}}
+                />
+              </div>
+            {{/unless}}
+          </div>
         {{/if}}
       </div>
     {{/if}}

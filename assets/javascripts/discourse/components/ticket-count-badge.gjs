@@ -16,6 +16,7 @@ import { i18n } from "discourse-i18n";
  * @param {number} args.count - Number of tickets
  * @param {Array} args.users - Array of user objects with id, username, name, avatar_template
  * @param {string} args.packetTitle - Optional title of the packet for the header
+ * @param {boolean} args.hasEnded - Whether the lottery has ended (affects empty state message)
  */
 export default class TicketCountBadge extends Component {
   @tracked showParticipants = false;
@@ -156,7 +157,11 @@ export default class TicketCountBadge extends Component {
         {{/if}}
       {{else}}
         <span class="no-tickets">{{i18n
-            "vzekc_verlosung.ticket.no_participants"
+            (if
+              @hasEnded
+              "vzekc_verlosung.ticket.no_participants_ended"
+              "vzekc_verlosung.ticket.no_participants"
+            )
           }}</span>
       {{/if}}
 

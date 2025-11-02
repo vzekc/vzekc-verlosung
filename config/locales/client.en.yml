@@ -36,6 +36,7 @@ en:
         no_winner: "No winner (no tickets were purchased)"
         tickets_bought_for: "Tickets bought for"
         no_participants: "No participants yet"
+        no_participants_ended: "No participants"
         participants: "Participants:"
       draft:
         notice: "This lottery is still a draft and only visible to you."

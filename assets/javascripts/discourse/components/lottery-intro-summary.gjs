@@ -120,6 +120,19 @@ export default class LotteryIntroSummary extends Component {
   }
 
   /**
+   * Check if lottery has ended
+   *
+   * @returns {Boolean} true if the lottery has ended
+   */
+  get hasEnded() {
+    if (!this.topic?.lottery_ends_at) {
+      return false;
+    }
+    const endsAt = new Date(this.topic.lottery_ends_at);
+    return endsAt <= new Date();
+  }
+
+  /**
    * Check if lottery has ended but not been drawn yet
    *
    * @returns {Boolean} true if ready to draw
@@ -236,13 +249,18 @@ export default class LotteryIntroSummary extends Component {
    * Open the drawing modal to draw winners
    */
   @action
-  drawWinners() {
+  async drawWinners() {
     this.openingDrawModal = true;
-    this.modal.show(DrawLotteryModal, {
-      model: {
-        topicId: this.args.data.post.topic_id,
-      },
-    });
+    try {
+      await this.modal.show(DrawLotteryModal, {
+        model: {
+          topicId: this.args.data.post.topic_id,
+        },
+      });
+    } finally {
+      // Reset spinner state when modal closes (whether cancelled or completed)
+      this.openingDrawModal = false;
+    }
   }
 
   /**
@@ -403,6 +421,7 @@ export default class LotteryIntroSummary extends Component {
                     @count={{packet.ticket_count}}
                     @users={{packet.users}}
                     @packetTitle={{packet.title}}
+                    @hasEnded={{this.hasEnded}}
                   />
                 {{/if}}
               </li>
