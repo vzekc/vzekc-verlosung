@@ -380,7 +380,7 @@ export default class LotteryIntroSummary extends Component {
                 {{#if this.isFinished}}
                   {{#if packet.winner}}
                     <span class="packet-winner">
-                      <span class="winner-label">{{i18n
+                      <span class="participants-label">{{i18n
                           "vzekc_verlosung.ticket.winner"
                         }}</span>
                       <UserLink

@@ -505,9 +505,10 @@
         font-weight: 500;
         margin-left: 1em;
 
-        .winner-label {
+        .participants-label {
           margin-right: 0.5em;
-          color: var(--primary-medium);
+          font-weight: 500;
+          color: var(--primary);
         }
 
         .winner-user-link {
@@ -572,16 +573,29 @@
     border-radius: 6px;
     padding: 1em;
 
-    .winner-message {
+    .participants-display {
+      display: flex;
+      align-items: center;
+      gap: 0.5em;
       margin-bottom: 1em;
+
+      .participants-label {
+        font-weight: 500;
+        color: var(--primary);
+      }
+    }
+
+    .winner-message {
       display: flex;
       align-items: center;
       font-size: 1.1em;
+      padding-top: 0.75em;
+      border-top: 1px solid var(--success);
 
-      .winner-label {
+      .participants-label {
         margin-right: 0.5em;
-        color: var(--primary-medium);
         font-weight: 500;
+        color: var(--primary);
       }
 
       .winner-user-link {
@@ -602,19 +616,6 @@
         &:hover .winner-name {
           text-decoration: underline;
         }
-      }
-    }
-
-    .participants-display {
-      display: flex;
-      align-items: center;
-      gap: 0.5em;
-      padding-top: 0.75em;
-      border-top: 1px solid var(--success);
-
-      .participants-label {
-        font-weight: 500;
-        color: var(--primary);
       }
     }
   }

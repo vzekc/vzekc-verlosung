@@ -258,8 +258,20 @@ export default class LotteryWidget extends Component {
           {{! Lottery has been drawn - show winner or no winner message }}
           {{#if this.winner}}
             <div class="lottery-packet-winner-notice">
+              {{#unless this.loading}}
+                <div class="participants-display">
+                  <span class="participants-label">{{i18n
+                      "vzekc_verlosung.ticket.participants"
+                    }}</span>
+                  <TicketCountBadge
+                    @count={{this.ticketCount}}
+                    @users={{this.users}}
+                    @packetTitle={{this.packetTitle}}
+                  />
+                </div>
+              {{/unless}}
               <div class="winner-message">
-                <span class="winner-label">{{i18n
+                <span class="participants-label">{{i18n
                     "vzekc_verlosung.ticket.winner"
                   }}</span>
                 {{#if this.hasWinnerObject}}
@@ -279,18 +291,6 @@ export default class LotteryWidget extends Component {
                   </UserLink>
                 {{/if}}
               </div>
-              {{#unless this.loading}}
-                <div class="participants-display">
-                  <span class="participants-label">{{i18n
-                      "vzekc_verlosung.ticket.participants"
-                    }}</span>
-                  <TicketCountBadge
-                    @count={{this.ticketCount}}
-                    @users={{this.users}}
-                    @packetTitle={{this.packetTitle}}
-                  />
-                </div>
-              {{/unless}}
             </div>
           {{else}}
             <div class="lottery-packet-no-winner-notice">
