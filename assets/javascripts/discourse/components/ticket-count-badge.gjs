@@ -22,6 +22,7 @@ export default class TicketCountBadge extends Component {
   @tracked modalTop = 0;
   @tracked modalLeft = 0;
   @tracked modalBottom = false;
+  @tracked modalMaxHeight = 400;
 
   /**
    * Toggle participant list visibility and position it near the click
@@ -35,20 +36,22 @@ export default class TicketCountBadge extends Component {
       // Calculate position near the button
       const rect = event.currentTarget.getBoundingClientRect();
       const windowHeight = window.innerHeight;
-      const estimatedModalHeight = 400; // Estimated max height of modal
+      const margin = 20; // Margin from screen edges
 
       // Check if there's enough space below the button
-      const spaceBelow = windowHeight - rect.bottom;
-      const spaceAbove = rect.top;
+      const spaceBelow = windowHeight - rect.bottom - margin;
+      const spaceAbove = rect.top - margin;
 
-      if (spaceBelow < estimatedModalHeight && spaceAbove > spaceBelow) {
+      if (spaceBelow < 200 && spaceAbove > spaceBelow) {
         // Position above the button if not enough space below
         this.modalTop = rect.top - 10; // 10px above the button
         this.modalBottom = true;
+        this.modalMaxHeight = Math.max(200, spaceAbove - 10);
       } else {
         // Position below the button (default)
         this.modalTop = rect.bottom + 10; // 10px below the button
         this.modalBottom = false;
+        this.modalMaxHeight = Math.max(200, spaceBelow - 10);
       }
 
       // Ensure modal doesn't overflow off the right side of the screen
@@ -97,12 +100,12 @@ export default class TicketCountBadge extends Component {
     if (this.modalBottom) {
       // Position above the button - use bottom instead of top
       return htmlSafe(
-        `position: fixed; bottom: ${window.innerHeight - this.modalTop}px; left: ${this.modalLeft}px;`
+        `position: fixed; bottom: ${window.innerHeight - this.modalTop}px; left: ${this.modalLeft}px; max-height: ${this.modalMaxHeight}px;`
       );
     } else {
       // Position below the button (default)
       return htmlSafe(
-        `position: fixed; top: ${this.modalTop}px; left: ${this.modalLeft}px;`
+        `position: fixed; top: ${this.modalTop}px; left: ${this.modalLeft}px; max-height: ${this.modalMaxHeight}px;`
       );
     }
   }
