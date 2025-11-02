@@ -1,8 +1,11 @@
 import Component from "@glimmer/component";
 import { tracked } from "@glimmer/tracking";
+import { hash } from "@ember/helper";
 import { action } from "@ember/object";
 import { service } from "@ember/service";
 import DButton from "discourse/components/d-button";
+import UserLink from "discourse/components/user-link";
+import avatar from "discourse/helpers/avatar";
 import { ajax } from "discourse/lib/ajax";
 import { popupAjaxError } from "discourse/lib/ajax-error";
 import { bind } from "discourse/lib/decorators";
@@ -229,7 +232,10 @@ export default class LotteryWidget extends Component {
                 <span class="winner-label">{{i18n
                     "vzekc_verlosung.ticket.winner"
                   }}</span>
-                <span class="winner-name">{{this.winner}}</span>
+                <UserLink @username={{this.winner}} class="winner-user-link">
+                  {{avatar (hash username=this.winner) imageSize="small"}}
+                  <span class="winner-name">{{this.winner}}</span>
+                </UserLink>
               </div>
               {{#unless this.loading}}
                 <div class="participants-display">

@@ -1,9 +1,12 @@
 import Component from "@glimmer/component";
 import { tracked } from "@glimmer/tracking";
+import { hash } from "@ember/helper";
 import { action } from "@ember/object";
 import { service } from "@ember/service";
 import { and, gt } from "truth-helpers";
 import DButton from "discourse/components/d-button";
+import UserLink from "discourse/components/user-link";
+import avatar from "discourse/helpers/avatar";
 import icon from "discourse/helpers/d-icon";
 import { ajax } from "discourse/lib/ajax";
 import { popupAjaxError } from "discourse/lib/ajax-error";
@@ -381,7 +384,16 @@ export default class LotteryIntroSummary extends Component {
                       <span class="winner-label">{{i18n
                           "vzekc_verlosung.ticket.winner"
                         }}</span>
-                      <span class="winner-name">{{packet.winner}}</span>
+                      <UserLink
+                        @username={{packet.winner}}
+                        class="winner-user-link"
+                      >
+                        {{avatar
+                          (hash username=packet.winner)
+                          imageSize="tiny"
+                        }}
+                        <span class="winner-name">{{packet.winner}}</span>
+                      </UserLink>
                     </span>
                   {{else}}
                     <span class="packet-no-tickets">

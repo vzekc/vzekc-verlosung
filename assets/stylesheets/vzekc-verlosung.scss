@@ -506,13 +506,28 @@
         margin-left: 1em;
 
         .winner-label {
-          margin-right: 0.35em;
+          margin-right: 0.5em;
           color: var(--primary-medium);
         }
 
-        .winner-name {
-          font-weight: 600;
-          color: var(--success);
+        .winner-user-link {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.4em;
+
+          .avatar {
+            width: 20px;
+            height: 20px;
+          }
+
+          .winner-name {
+            font-weight: 600;
+            color: var(--success);
+          }
+
+          &:hover .winner-name {
+            text-decoration: underline;
+          }
         }
       }
     }
@@ -569,9 +584,24 @@
         font-weight: 500;
       }
 
-      .winner-name {
-        font-weight: 600;
-        color: var(--success);
+      .winner-user-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5em;
+
+        .avatar {
+          width: 28px;
+          height: 28px;
+        }
+
+        .winner-name {
+          font-weight: 600;
+          color: var(--success);
+        }
+
+        &:hover .winner-name {
+          text-decoration: underline;
+        }
       }
     }
 
