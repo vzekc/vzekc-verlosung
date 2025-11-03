@@ -14,26 +14,26 @@ puts "  Ended reminders enabled: #{SiteSetting.vzekc_verlosung_ended_reminder_en
 puts "  Lottery category: #{SiteSetting.vzekc_verlosung_category_id}"
 puts ""
 
-# Get random users for testing - use members of Vereinsmitglied group
+# Get random users for testing - use members of Vereinsmitglieder group
 puts "=== Creating Test Lotteries ==="
-group = Group.find_by(name: "Vereinsmitglied")
+group = Group.find_by(name: "vereinsmitglieder")
 
 if group
   random_users = group.users.order("RANDOM()").limit(2).to_a
-  puts "Found #{random_users.size} users from 'Vereinsmitglied' group"
+  puts "Found #{random_users.size} users from 'Vereinsmitglieder' group"
 
   if random_users.size < 2
     puts "  WARNING: Only #{random_users.size} user(s) in group, using available user(s)"
     if random_users.size == 1
       random_users = [random_users[0], random_users[0]] # Use same user twice
     elsif random_users.empty?
-      puts "  ERROR: No users found in 'Vereinsmitglied' group"
+      puts "  ERROR: No users found in 'Vereinsmitglieder' group"
       puts "  Falling back to admin users..."
       random_users = User.where(admin: true).limit(2).to_a
     end
   end
 else
-  puts "  WARNING: 'Vereinsmitglied' group not found, using admin users instead"
+  puts "  WARNING: 'Vereinsmitglieder' group not found, using admin users instead"
   random_users = User.where(admin: true).limit(2).to_a
 end
 

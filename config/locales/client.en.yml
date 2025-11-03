@@ -13,6 +13,7 @@ en:
         vzekc_verlosung_ticket_bought: "%{display_username} bought ticket"
         vzekc_verlosung_ticket_returned: "%{display_username} returned ticket"
         vzekc_verlosung_did_not_win: "Unfortunately not won"
+        vzekc_verlosung_ending_tomorrow: "Lottery ending tomorrow"
     vzekc_verlosung:
       neue_verlosung: "New Lottery"
       notifications:

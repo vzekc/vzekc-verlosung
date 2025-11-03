@@ -22,9 +22,18 @@ vzekc_verlosung:
       - Gibt es Pakete, die nicht versendet werden sollten?
     type: string
     textarea: true
+  vzekc_verlosung_reminder_hour:
+    default: 7
+    type: integer
+    min: 0
+    max: 23
+    client: false
   vzekc_verlosung_draft_reminder_enabled:
     default: true
     client: false
   vzekc_verlosung_ended_reminder_enabled:
+    default: true
+    client: false
+  vzekc_verlosung_ending_tomorrow_reminder_enabled:
     default: true
     client: false

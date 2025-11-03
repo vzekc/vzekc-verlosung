@@ -13,6 +13,7 @@ de:
         vzekc_verlosung_ticket_bought: "%{display_username} kaufte Los"
         vzekc_verlosung_ticket_returned: "%{display_username} zog Los zurück"
         vzekc_verlosung_did_not_win: "Leider nichts gewonnen"
+        vzekc_verlosung_ending_tomorrow: "Verlosung endet morgen"
     vzekc_verlosung:
       neue_verlosung: "Neue Verlosung"
       notifications:

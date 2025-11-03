@@ -21,6 +21,7 @@ register_svg_icon "tags"
 register_svg_icon "clipboard-list"
 register_svg_icon "bullhorn"
 register_svg_icon "times-circle"
+register_svg_icon "clock"
 
 module ::VzekcVerlosung
   PLUGIN_NAME = "vzekc-verlosung"
@@ -38,6 +39,7 @@ after_initialize do
   Notification.types[:vzekc_verlosung_ticket_bought] = 813
   Notification.types[:vzekc_verlosung_ticket_returned] = 814
   Notification.types[:vzekc_verlosung_did_not_win] = 815
+  Notification.types[:vzekc_verlosung_ending_tomorrow] = 816
 
   # Extend Guardian with custom permissions
   Guardian.include(VzekcVerlosung::GuardianExtensions)

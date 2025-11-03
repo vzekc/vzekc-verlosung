@@ -164,4 +164,28 @@ export default apiInitializer((api) => {
       };
     }
   );
+
+  // Register renderer for "lottery ending tomorrow" notifications
+  api.registerNotificationTypeRenderer(
+    "vzekc_verlosung_ending_tomorrow",
+    (NotificationTypeBase) => {
+      return class extends NotificationTypeBase {
+        get icon() {
+          return "clock";
+        }
+
+        get label() {
+          return i18n("notifications.titles.vzekc_verlosung_ending_tomorrow");
+        }
+
+        get description() {
+          return this.notification.fancy_title;
+        }
+
+        get linkTitle() {
+          return i18n("notifications.titles.vzekc_verlosung_ending_tomorrow");
+        }
+      };
+    }
+  );
 });
