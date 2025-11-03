@@ -22,3 +22,37 @@ vzekc_verlosung:
       - Gibt es Pakete, die nicht versendet werden sollten?
     type: string
     textarea: true
+  vzekc_verlosung_draft_reminder_enabled:
+    default: true
+    client: false
+  vzekc_verlosung_draft_reminder_subject:
+    default: "Du hast eine unveröffentlichte Verlosung"
+    type: string
+  vzekc_verlosung_draft_reminder_body:
+    default: |
+      Hallo %{username},
+
+      Du hast eine unveröffentlichte Verlosung: **%{topic_title}**
+
+      Die Verlosung wurde am %{created_at} erstellt und wartet darauf, veröffentlicht zu werden.
+
+      [Verlosung öffnen](%{topic_url})
+    type: string
+    textarea: true
+  vzekc_verlosung_ended_reminder_enabled:
+    default: true
+    client: false
+  vzekc_verlosung_ended_reminder_subject:
+    default: "Bitte ziehe die Gewinner für deine Verlosung"
+    type: string
+  vzekc_verlosung_ended_reminder_body:
+    default: |
+      Hallo %{username},
+
+      Deine Verlosung **%{topic_title}** ist beendet und wartet darauf, dass die Gewinner gezogen werden.
+
+      Die Verlosung endete am %{ended_at}.
+
+      [Verlosung öffnen und Gewinner ziehen](%{topic_url})
+    type: string
+    textarea: true

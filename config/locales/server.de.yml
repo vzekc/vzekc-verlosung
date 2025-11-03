@@ -3,6 +3,12 @@ de:
     vzekc_verlosung_enabled: "Vzekc Verlosung Plugin aktivieren"
     vzekc_verlosung_category_id: "Kategorie für Verlosungs-Themen"
     vzekc_verlosung_description_template: "Standard-Vorlage für Verlosungsbeschreibung (Benutzer können nach Erstellung bearbeiten)"
+    vzekc_verlosung_draft_reminder_enabled: "Tägliche Erinnerungsemails für unveröffentlichte Verlosungen senden"
+    vzekc_verlosung_draft_reminder_subject: "Betreff für Erinnerungsemails zu unveröffentlichten Verlosungen"
+    vzekc_verlosung_draft_reminder_body: "Nachrichtenvorlage für Erinnerungsemails zu unveröffentlichten Verlosungen (Variablen: %{username}, %{topic_title}, %{created_at}, %{topic_url})"
+    vzekc_verlosung_ended_reminder_enabled: "Tägliche Erinnerungsemails für beendete Verlosungen senden, die auf Ziehung warten"
+    vzekc_verlosung_ended_reminder_subject: "Betreff für Erinnerungsemails zu beendeten Verlosungen"
+    vzekc_verlosung_ended_reminder_body: "Nachrichtenvorlage für Erinnerungsemails zu beendeten Verlosungen (Variablen: %{username}, %{topic_title}, %{ended_at}, %{topic_url})"
   vzekc_verlosung:
     notifications:
       lottery_published: "Die Verlosung '%{topic_title}' wurde veröffentlicht und ist jetzt aktiv"

@@ -3,6 +3,12 @@ en:
     vzekc_verlosung_enabled: "Enable the Vzekc Verlosung plugin"
     vzekc_verlosung_category_id: "Category for lottery topics"
     vzekc_verlosung_description_template: "Default template for lottery description (users can edit after creation)"
+    vzekc_verlosung_draft_reminder_enabled: "Send daily reminder emails for draft lotteries"
+    vzekc_verlosung_draft_reminder_subject: "Subject for draft lottery reminder emails"
+    vzekc_verlosung_draft_reminder_body: "Body template for draft lottery reminder emails (variables: %{username}, %{topic_title}, %{created_at}, %{topic_url})"
+    vzekc_verlosung_ended_reminder_enabled: "Send daily reminder emails for ended lotteries awaiting drawing"
+    vzekc_verlosung_ended_reminder_subject: "Subject for ended lottery reminder emails"
+    vzekc_verlosung_ended_reminder_body: "Body template for ended lottery reminder emails (variables: %{username}, %{topic_title}, %{ended_at}, %{topic_url})"
   vzekc_verlosung:
     notifications:
       lottery_published: "The lottery '%{topic_title}' has been published and is now active"
