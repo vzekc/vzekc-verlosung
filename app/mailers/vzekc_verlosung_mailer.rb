@@ -15,11 +15,13 @@ class VzekcVerlosungMailer < ActionMailer::Base
         "#{Discourse.base_url}#{topic.relative_url}",
       )
 
+    # Convert markdown to HTML
+    html_body = PrettyText.cook(body)
+
     build_email(
       user.email,
-      template: "vzekc_verlosung_reminder",
-      email_subject: SiteSetting.vzekc_verlosung_draft_reminder_subject,
-      body: body,
+      subject: SiteSetting.vzekc_verlosung_draft_reminder_subject,
+      html_override: html_body,
     )
   end
 
@@ -33,11 +35,13 @@ class VzekcVerlosungMailer < ActionMailer::Base
         "#{Discourse.base_url}#{topic.relative_url}",
       )
 
+    # Convert markdown to HTML
+    html_body = PrettyText.cook(body)
+
     build_email(
       user.email,
-      template: "vzekc_verlosung_reminder",
-      email_subject: SiteSetting.vzekc_verlosung_ended_reminder_subject,
-      body: body,
+      subject: SiteSetting.vzekc_verlosung_ended_reminder_subject,
+      html_override: html_body,
     )
   end
 end
