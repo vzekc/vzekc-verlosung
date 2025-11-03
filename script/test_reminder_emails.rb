@@ -14,21 +14,34 @@ puts "  Ended reminders enabled: #{SiteSetting.vzekc_verlosung_ended_reminder_en
 puts "  Lottery category: #{SiteSetting.vzekc_verlosung_category_id}"
 puts ""
 
-# Get random users for testing - use admin or moderator users who can create topics
+# Get random users for testing - use members of Vereinsmitglied group
 puts "=== Creating Test Lotteries ==="
-random_users = User.where("admin = true OR moderator = true").order("RANDOM()").limit(2).to_a
+group = Group.find_by(name: "Vereinsmitglied")
 
-if random_users.size < 2
-  puts "Not enough admin/moderator users found! Using first available admin..."
-  admin_user = User.where(admin: true).first
-  if admin_user
-    random_users = [admin_user, admin_user] # Use same user twice if needed
-    puts "  Using admin user: #{admin_user.username}"
-  else
-    puts "  ERROR: No admin users found. Cannot create test lotteries in restricted category."
-    puts "  Please run this script as an admin user or adjust category permissions."
-    exit 1
+if group
+  random_users = group.users.order("RANDOM()").limit(2).to_a
+  puts "Found #{random_users.size} users from 'Vereinsmitglied' group"
+
+  if random_users.size < 2
+    puts "  WARNING: Only #{random_users.size} user(s) in group, using available user(s)"
+    if random_users.size == 1
+      random_users = [random_users[0], random_users[0]] # Use same user twice
+    elsif random_users.empty?
+      puts "  ERROR: No users found in 'Vereinsmitglied' group"
+      puts "  Falling back to admin users..."
+      random_users = User.where(admin: true).limit(2).to_a
+    end
   end
+else
+  puts "  WARNING: 'Vereinsmitglied' group not found, using admin users instead"
+  random_users = User.where(admin: true).limit(2).to_a
+end
+
+if random_users.size < 2 && random_users.size == 1
+  random_users = [random_users[0], random_users[0]]
+elsif random_users.empty?
+  puts "  ERROR: No suitable users found. Cannot create test lotteries."
+  exit 1
 end
 
 # Get lottery category
