@@ -25,17 +25,7 @@ module Jobs
         next unless user
 
         # Send reminder email
-        subject = SiteSetting.vzekc_verlosung_draft_reminder_subject
-        body =
-          SiteSetting.vzekc_verlosung_draft_reminder_body.gsub("%{username}", user.username).gsub(
-            "%{topic_title}",
-            topic.title,
-          ).gsub("%{created_at}", topic.created_at.strftime("%d.%m.%Y")).gsub(
-            "%{topic_url}",
-            "#{Discourse.base_url}#{topic.relative_url}",
-          )
-
-        message = UserNotifications.send_mail(user, :custom, subject: subject, body: body)
+        message = VzekcVerlosungMailer.draft_reminder(user, topic)
         Email::Sender.new(message, :vzekc_verlosung_draft_reminder).send
       end
     end
