@@ -13,6 +13,28 @@ de:
       lottery_drawn: "Die Gewinner für die Verlosung '%{topic_title}' wurden gezogen"
       lottery_won: "Glückwunsch! Du hast '%{packet_title}' in der Verlosung '%{topic_title}' gewonnen"
       lottery_ending_tomorrow: "Die Verlosung '%{topic_title}' endet morgen"
+    winner_message:
+      title: "Glückwunsch! Du hast in der Verlosung gewonnen: %{topic_title}"
+      body: |
+        Hallo %{username},
+
+        Glückwunsch! Du hast in der Verlosung **[%{topic_title}](%{topic_url})** gewonnen!
+
+        ## Dein(e) Gewinn(e)
+
+        %{packet_list}
+
+        ## Nächste Schritte
+
+        Bitte schau dir die Verlosungsdetails unten an und melde dich, um das weitere Vorgehen zur Abholung deines Gewinns bzw. deiner Gewinne zu besprechen. Der Hauptbeitrag enthält Informationen über die verfügbaren Optionen.
+
+        ## Verlosungsdetails
+
+        %{main_post_content}
+
+        ---
+
+        [Verlosungsbeitrag vollständig ansehen](%{topic_url})
   vzekc_verlosung_mailer:
     draft_reminder:
       title: "Erinnerung unveröffentlichte Verlosung"

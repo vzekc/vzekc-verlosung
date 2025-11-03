@@ -498,6 +498,9 @@ module VzekcVerlosung
 
     # Notify winners that they won a packet
     def notify_winners(topic, results)
+      # Group drawings by winner to send one message per winner with all packets won
+      winners_packets = Hash.new { |h, k| h[k] = [] }
+
       results["drawings"].each do |drawing|
         winner_username = drawing["winner"]
         packet_title = drawing["text"]
@@ -517,6 +520,7 @@ module VzekcVerlosung
 
         post_number = packet_post ? packet_post.post_number : 1
 
+        # Create in-app notification
         Notification.consolidate_or_create!(
           notification_type: Notification.types[:vzekc_verlosung_won],
           user_id: winner_user.id,
@@ -527,6 +531,18 @@ module VzekcVerlosung
             message: "vzekc_verlosung.notifications.lottery_won",
           }.to_json,
         )
+
+        # Collect packet info for PM
+        winners_packets[winner_user] << {
+          title: packet_title,
+          post_number: post_number,
+          post: packet_post,
+        }
+      end
+
+      # Send personal message to each winner with all their packets
+      winners_packets.each do |winner_user, packets|
+        send_winner_personal_message(topic, winner_user, packets)
       end
     end
 
@@ -564,6 +580,70 @@ module VzekcVerlosung
         .where(posts: { topic_id: topic.id })
         .distinct
         .pluck(:user_id)
+    end
+
+    # Send a personal message to a winner with details about their prize(s)
+    def send_winner_personal_message(topic, winner_user, packets)
+      lottery_creator = topic.user
+
+      # Get the main post content (excluding images)
+      main_post = topic.posts.first
+      main_post_content = strip_images_from_markdown(main_post.raw)
+
+      # Build packet list with links
+      packet_list =
+        packets
+          .map do |packet|
+            packet_url = "#{Discourse.base_url}#{topic.relative_url}/#{packet[:post_number]}"
+            "- [#{packet[:title]}](#{packet_url})"
+          end
+          .join("\n")
+
+      # Build the message in the winner's locale
+      message_title =
+        I18n.with_locale(winner_user.effective_locale) do
+          I18n.t("vzekc_verlosung.winner_message.title", topic_title: topic.title)
+        end
+
+      message_body =
+        I18n.with_locale(winner_user.effective_locale) do
+          I18n.t(
+            "vzekc_verlosung.winner_message.body",
+            username: winner_user.username,
+            topic_title: topic.title,
+            topic_url: "#{Discourse.base_url}#{topic.relative_url}",
+            packet_list: packet_list,
+            main_post_content: main_post_content,
+          )
+        end
+
+      # Create the personal message
+      PostCreator.create!(
+        lottery_creator,
+        title: message_title,
+        raw: message_body,
+        archetype: Archetype.private_message,
+        target_usernames: winner_user.username,
+        skip_validations: false,
+      )
+    rescue => e
+      Rails.logger.error(
+        "Failed to send winner PM for topic #{topic.id} to user #{winner_user.username}: #{e.message}",
+      )
+    end
+
+    # Strip image markdown and HTML from content
+    def strip_images_from_markdown(content)
+      # Remove markdown images: ![alt](url)
+      content = content.gsub(/!\[.*?\]\(.*?\)/, "")
+
+      # Remove HTML img tags
+      content = content.gsub(/<img[^>]*>/, "")
+
+      # Remove standalone image URLs that might be on their own line
+      content = content.gsub(%r{^\s*https?://\S+\.(jpg|jpeg|png|gif|webp)\s*$}i, "")
+
+      content.strip
     end
   end
 end

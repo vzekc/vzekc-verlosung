@@ -13,6 +13,28 @@ en:
       lottery_drawn: "Winners have been drawn for the lottery '%{topic_title}'"
       lottery_won: "Congratulations! You won '%{packet_title}' in the lottery '%{topic_title}'"
       lottery_ending_tomorrow: "The lottery '%{topic_title}' ends tomorrow"
+    winner_message:
+      title: "Congratulations! You won in the lottery: %{topic_title}"
+      body: |
+        Hello %{username},
+
+        Congratulations! You have won in the lottery **[%{topic_title}](%{topic_url})**!
+
+        ## Your Prize(s)
+
+        %{packet_list}
+
+        ## Next Steps
+
+        Please review the lottery details below and get in touch about how to proceed with claiming your prize(s). The main post contains information about the available options.
+
+        ## Lottery Details
+
+        %{main_post_content}
+
+        ---
+
+        [View the full lottery post](%{topic_url})
   vzekc_verlosung_mailer:
     draft_reminder:
       title: "Draft Lottery Reminder"
