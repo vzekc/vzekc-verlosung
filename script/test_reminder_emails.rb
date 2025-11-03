@@ -14,24 +14,20 @@ puts "  Ended reminders enabled: #{SiteSetting.vzekc_verlosung_ended_reminder_en
 puts "  Lottery category: #{SiteSetting.vzekc_verlosung_category_id}"
 puts ""
 
-# Get random users for testing
+# Get random users for testing - use admin or moderator users who can create topics
 puts "=== Creating Test Lotteries ==="
-random_users = User.where(admin: false).order("RANDOM()").limit(2).to_a
+random_users = User.where("admin = true OR moderator = true").order("RANDOM()").limit(2).to_a
 
 if random_users.size < 2
-  puts "Not enough users found! Creating test users..."
-  random_users = []
-  2.times do |i|
-    user =
-      User.create!(
-        username: "lottery_test_user_#{Time.now.to_i}_#{i}",
-        email: "lottery_test_#{Time.now.to_i}_#{i}@example.com",
-        password: SecureRandom.hex(16),
-        active: true,
-        approved: true,
-      )
-    random_users << user
-    puts "  Created user: #{user.username}"
+  puts "Not enough admin/moderator users found! Using first available admin..."
+  admin_user = User.where(admin: true).first
+  if admin_user
+    random_users = [admin_user, admin_user] # Use same user twice if needed
+    puts "  Using admin user: #{admin_user.username}"
+  else
+    puts "  ERROR: No admin users found. Cannot create test lotteries in restricted category."
+    puts "  Please run this script as an admin user or adjust category permissions."
+    exit 1
   end
 end
 

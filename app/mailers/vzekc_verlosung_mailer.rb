@@ -6,7 +6,6 @@ class VzekcVerlosungMailer < ActionMailer::Base
   include Email::BuildEmailHelper
 
   def draft_reminder(user, topic)
-    subject = SiteSetting.vzekc_verlosung_draft_reminder_subject
     body =
       SiteSetting.vzekc_verlosung_draft_reminder_body.gsub("%{username}", user.username).gsub(
         "%{topic_title}",
@@ -16,11 +15,15 @@ class VzekcVerlosungMailer < ActionMailer::Base
         "#{Discourse.base_url}#{topic.relative_url}",
       )
 
-    build_email(user.email, template: "vzekc_verlosung_reminder", subject: subject, body: body)
+    build_email(
+      user.email,
+      template: "vzekc_verlosung_reminder",
+      email_subject: SiteSetting.vzekc_verlosung_draft_reminder_subject,
+      body: body,
+    )
   end
 
   def ended_reminder(user, topic)
-    subject = SiteSetting.vzekc_verlosung_ended_reminder_subject
     body =
       SiteSetting.vzekc_verlosung_ended_reminder_body.gsub("%{username}", user.username).gsub(
         "%{topic_title}",
@@ -30,6 +33,11 @@ class VzekcVerlosungMailer < ActionMailer::Base
         "#{Discourse.base_url}#{topic.relative_url}",
       )
 
-    build_email(user.email, template: "vzekc_verlosung_reminder", subject: subject, body: body)
+    build_email(
+      user.email,
+      template: "vzekc_verlosung_reminder",
+      email_subject: SiteSetting.vzekc_verlosung_ended_reminder_subject,
+      body: body,
+    )
   end
 end
