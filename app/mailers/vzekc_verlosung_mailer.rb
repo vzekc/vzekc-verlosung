@@ -9,6 +9,7 @@ class VzekcVerlosungMailer < ActionMailer::Base
     build_email(
       user.email,
       template: "vzekc_verlosung_mailer.draft_reminder",
+      locale: user.effective_locale,
       username: user.username,
       topic_title: topic.title,
       created_at: topic.created_at.strftime("%d.%m.%Y"),
@@ -20,6 +21,7 @@ class VzekcVerlosungMailer < ActionMailer::Base
     build_email(
       user.email,
       template: "vzekc_verlosung_mailer.ended_reminder",
+      locale: user.effective_locale,
       username: user.username,
       topic_title: topic.title,
       ended_at: topic.lottery_ends_at.strftime("%d.%m.%Y"),
