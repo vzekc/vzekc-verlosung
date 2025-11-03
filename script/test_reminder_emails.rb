@@ -52,12 +52,14 @@ puts "Creating draft lottery for user: #{draft_user.username}"
 
 draft_result =
   VzekcVerlosung::CreateLottery.call(
+    params: {
+      title: "TEST Draft Lottery #{Time.now.to_i}",
+      duration_days: 7,
+      category_id: category.id,
+      packets: [{ title: "Test Packet 1" }, { title: "Test Packet 2" }],
+    },
     user: draft_user,
     guardian: Guardian.new(draft_user),
-    title: "TEST Draft Lottery #{Time.now.to_i}",
-    duration_days: 7,
-    category_id: category.id,
-    packets: [{ title: "Test Packet 1" }, { title: "Test Packet 2" }],
   )
 
 if draft_result.success?
@@ -78,12 +80,14 @@ puts "Creating ended lottery for user: #{ended_user.username}"
 
 ended_result =
   VzekcVerlosung::CreateLottery.call(
+    params: {
+      title: "TEST Ended Lottery #{Time.now.to_i}",
+      duration_days: 7,
+      category_id: category.id,
+      packets: [{ title: "Test Packet A" }, { title: "Test Packet B" }],
+    },
     user: ended_user,
     guardian: Guardian.new(ended_user),
-    title: "TEST Ended Lottery #{Time.now.to_i}",
-    duration_days: 7,
-    category_id: category.id,
-    packets: [{ title: "Test Packet A" }, { title: "Test Packet B" }],
   )
 
 if ended_result.success?
