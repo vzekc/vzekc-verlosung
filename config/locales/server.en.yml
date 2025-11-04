@@ -3,7 +3,7 @@ en:
     vzekc_verlosung_enabled: "Enable the Vzekc Verlosung plugin"
     vzekc_verlosung_category_id: "Category for lottery topics"
     vzekc_verlosung_description_template: "Default template for lottery description (users can edit after creation)"
-    vzekc_verlosung_reminder_hour: "Hour of day (0-23) when reminder notifications and emails are sent"
+    vzekc_verlosung_reminder_hour: "Hour of day (0-23) in server local time when reminder notifications and emails are sent"
     vzekc_verlosung_draft_reminder_enabled: "Send daily reminder emails for draft lotteries"
     vzekc_verlosung_ended_reminder_enabled: "Send daily reminder emails for ended lotteries awaiting drawing"
     vzekc_verlosung_ending_tomorrow_reminder_enabled: "Send daily reminder notifications for lotteries ending tomorrow"

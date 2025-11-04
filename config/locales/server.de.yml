@@ -3,7 +3,7 @@ de:
     vzekc_verlosung_enabled: "Vzekc Verlosung Plugin aktivieren"
     vzekc_verlosung_category_id: "Kategorie für Verlosungs-Themen"
     vzekc_verlosung_description_template: "Standard-Vorlage für Verlosungsbeschreibung (Benutzer können nach Erstellung bearbeiten)"
-    vzekc_verlosung_reminder_hour: "Uhrzeit (0-23), zu der Erinnerungs-Benachrichtigungen und E-Mails versendet werden"
+    vzekc_verlosung_reminder_hour: "Uhrzeit (0-23) in Server-Lokalzeit, zu der Erinnerungs-Benachrichtigungen und E-Mails versendet werden"
     vzekc_verlosung_draft_reminder_enabled: "Tägliche Erinnerungsemails für unveröffentlichte Verlosungen senden"
     vzekc_verlosung_ended_reminder_enabled: "Tägliche Erinnerungsemails für beendete Verlosungen senden, die auf Ziehung warten"
     vzekc_verlosung_ending_tomorrow_reminder_enabled: "Tägliche Erinnerungs-Benachrichtigungen für morgen endende Verlosungen senden"

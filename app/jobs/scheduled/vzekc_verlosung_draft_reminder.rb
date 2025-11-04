@@ -2,11 +2,14 @@
 
 module Jobs
   class VzekcVerlosungDraftReminder < ::Jobs::Scheduled
-    daily at: -> { (SiteSetting.vzekc_verlosung_reminder_hour || 7).hours }
+    every 1.hour
 
     def execute(args)
       return unless SiteSetting.vzekc_verlosung_enabled
       return unless SiteSetting.vzekc_verlosung_draft_reminder_enabled
+
+      # Only run at configured hour (server local time)
+      return unless Time.zone.now.hour == (SiteSetting.vzekc_verlosung_reminder_hour || 7)
 
       # Find all draft lotteries
       draft_topics =

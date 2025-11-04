@@ -2,11 +2,14 @@
 
 module Jobs
   class VzekcVerlosungEndingTomorrowReminder < ::Jobs::Scheduled
-    daily at: -> { (SiteSetting.vzekc_verlosung_reminder_hour || 7).hours }
+    every 1.hour
 
     def execute(args)
       return unless SiteSetting.vzekc_verlosung_enabled
       return unless SiteSetting.vzekc_verlosung_ending_tomorrow_reminder_enabled
+
+      # Only run at configured hour (server local time)
+      return unless Time.zone.now.hour == (SiteSetting.vzekc_verlosung_reminder_hour || 7)
 
       # Tomorrow's date range: tomorrow 00:00:00 to day-after-tomorrow 00:00:00 (exclusive)
       tomorrow_start = Time.zone.now.tomorrow.beginning_of_day
