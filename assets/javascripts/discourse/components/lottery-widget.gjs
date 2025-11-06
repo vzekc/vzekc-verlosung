@@ -22,7 +22,7 @@ import TicketCountBadge from "./ticket-count-badge";
 export default class LotteryWidget extends Component {
   @service currentUser;
   @service appEvents;
-  @service modal;
+  @service dialog;
 
   @tracked hasTicket = false;
   @tracked ticketCount = 0;
@@ -304,15 +304,13 @@ export default class LotteryWidget extends Component {
       return;
     }
 
-    const confirmed = await this.modal.confirm({
-      title: i18n("vzekc_verlosung.collection.confirm_title"),
+    const confirmed = await this.dialog.confirm({
       message: i18n("vzekc_verlosung.collection.confirm_message", {
         winner: this.winnerUsername,
         packet: this.packetTitle,
       }),
-      confirmButtonLabel: i18n("vzekc_verlosung.collection.confirm_button"),
-      confirmButtonClass: "btn-primary",
-      cancelButtonLabel: i18n("cancel"),
+      didConfirm: () => true,
+      didCancel: () => false,
     });
 
     if (!confirmed) {
@@ -333,10 +331,7 @@ export default class LotteryWidget extends Component {
       this.collectedAt = result.collected_at || null;
 
       // Show success message
-      this.modal.alert({
-        title: i18n("vzekc_verlosung.collection.success_title"),
-        message: i18n("vzekc_verlosung.collection.success_message"),
-      });
+      this.dialog.alert(i18n("vzekc_verlosung.collection.success_message"));
     } catch (error) {
       popupAjaxError(error);
     } finally {
