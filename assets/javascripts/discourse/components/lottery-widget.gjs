@@ -412,9 +412,12 @@ export default class LotteryWidget extends Component {
     }
 
     // Get template and replace placeholders
-    const packetTitle = this.packetTitle || `Packet #${this.post.post_number}`;
+    const packetTitle = this.packetTitle || `Paket #${this.post.post_number}`;
     const lotteryTitle = this.post.topic.title;
     const packetUrl = `${window.location.origin}/t/${this.post.topic.slug}/${this.post.topic_id}/${this.post.post_number}`;
+
+    // Compose topic title: "<packet-title> aus <lottery-title>"
+    const topicTitle = `${packetTitle} aus ${lotteryTitle}`;
 
     // Get template from site settings or use default
     let templateText =
@@ -430,7 +433,7 @@ export default class LotteryWidget extends Component {
     this.composer.open({
       action: Composer.CREATE_TOPIC,
       categoryId,
-      title: packetTitle,
+      title: topicTitle,
       reply: template,
       draftKey: `new_topic_erhaltungsbericht_${this.post.id}_${Date.now()}`,
       // These custom fields will be serialized to the topic
