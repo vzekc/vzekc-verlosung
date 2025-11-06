@@ -292,7 +292,11 @@ export default class LotteryWidget extends Component {
       return null;
     }
     const date = new Date(this.collectedAt);
-    return date.toLocaleDateString();
+    return date.toLocaleDateString("de-DE", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
   }
 
   /**

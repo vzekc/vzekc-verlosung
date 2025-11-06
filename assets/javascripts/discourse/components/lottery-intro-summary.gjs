@@ -226,7 +226,11 @@ export default class LotteryIntroSummary extends Component {
       return null;
     }
     const date = new Date(collectedAt);
-    return date.toLocaleDateString();
+    return date.toLocaleDateString("de-DE", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
   }
 
   /**
