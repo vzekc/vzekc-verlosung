@@ -5,6 +5,7 @@ import { service } from "@ember/service";
 import DButton from "discourse/components/d-button";
 import UserLink from "discourse/components/user-link";
 import avatar from "discourse/helpers/avatar";
+import icon from "discourse/helpers/d-icon";
 import { ajax } from "discourse/lib/ajax";
 import { popupAjaxError } from "discourse/lib/ajax-error";
 import { bind } from "discourse/lib/decorators";
@@ -380,6 +381,18 @@ export default class LotteryWidget extends Component {
   }
 
   /**
+   * Get URL to Erhaltungsbericht topic if it exists
+   *
+   * @type {string|null}
+   */
+  get erhaltungsberichtUrl() {
+    if (!this.erhaltungsberichtTopicId) {
+      return null;
+    }
+    return `/t/${this.erhaltungsberichtTopicId}`;
+  }
+
+  /**
    * Create Erhaltungsbericht topic for this packet
    */
   @action
@@ -487,6 +500,20 @@ export default class LotteryWidget extends Component {
                     @disabled={{this.creatingErhaltungsbericht}}
                     class="btn-primary create-erhaltungsbericht-button"
                   />
+                </div>
+              {{/if}}
+              {{! Link to Erhaltungsbericht - visible to everyone }}
+              {{#if this.erhaltungsberichtUrl}}
+                <div class="erhaltungsbericht-link-section">
+                  <a
+                    href={{this.erhaltungsberichtUrl}}
+                    class="erhaltungsbericht-link"
+                  >
+                    {{icon "file-alt"}}
+                    <span>{{i18n
+                        "vzekc_verlosung.erhaltungsbericht.view_link"
+                      }}</span>
+                  </a>
                 </div>
               {{/if}}
             </div>

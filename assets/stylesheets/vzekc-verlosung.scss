@@ -618,6 +618,37 @@
         width: 100%;
       }
     }
+
+    // Erhaltungsbericht link section (visible to all when created)
+    .erhaltungsbericht-link-section {
+      margin-top: 1em;
+      padding-top: 1em;
+      border-top: 1px solid var(--success);
+
+      .erhaltungsbericht-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5em;
+        padding: 0.5em 0.75em;
+        background: var(--tertiary-low);
+        border: 1px solid var(--tertiary);
+        border-radius: 6px;
+        color: var(--tertiary);
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.2s;
+
+        .d-icon {
+          font-size: 1em;
+        }
+
+        &:hover {
+          background: var(--tertiary);
+          color: var(--secondary);
+          text-decoration: none;
+        }
+      }
+    }
   }
 
   .lottery-packet-no-winner-notice {
@@ -629,6 +660,44 @@
     .no-winner-message {
       color: var(--primary-medium);
       font-style: italic;
+    }
+  }
+}
+
+// Erhaltungsbericht packet notice (shown on Erhaltungsbericht topics)
+.erhaltungsbericht-packet-notice {
+  margin-bottom: 1.5em;
+  padding: 1em;
+  background: var(--tertiary-very-low);
+  border: 1px solid var(--tertiary-low);
+  border-radius: 6px;
+
+  .packet-notice-content {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+
+    .d-icon {
+      color: var(--tertiary);
+      font-size: 1.1em;
+      flex-shrink: 0;
+    }
+
+    .packet-notice-text {
+      font-weight: 500;
+      color: var(--primary);
+    }
+
+    .packet-link {
+      font-weight: 600;
+      color: var(--tertiary);
+      text-decoration: none;
+      transition: color 0.2s;
+
+      &:hover {
+        color: var(--tertiary-hover);
+        text-decoration: underline;
+      }
     }
   }
 }

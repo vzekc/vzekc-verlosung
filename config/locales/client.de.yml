@@ -87,3 +87,5 @@ de:
         success_message: "Das Paket wurde als erhalten markiert."
       erhaltungsbericht:
         create_button: "Erhaltungsbericht schreiben"
+        view_link: "Erhaltungsbericht ansehen"
+        packet_notice: "Dies ist ein Erhaltungsbericht für das Paket:"

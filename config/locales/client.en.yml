@@ -87,3 +87,5 @@ en:
         success_message: "The packet has been marked as received."
       erhaltungsbericht:
         create_button: "Write Reception Report"
+        view_link: "View Reception Report"
+        packet_notice: "This is a reception report for the packet:"

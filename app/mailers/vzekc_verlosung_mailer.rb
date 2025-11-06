@@ -42,4 +42,26 @@ class VzekcVerlosungMailer < ActionMailer::Base
       topic_url: "#{Discourse.base_url}#{topic.relative_url}",
     )
   end
+
+  def erhaltungsbericht_reminder(
+    user,
+    lottery_topic,
+    packet_post,
+    packet_title,
+    days_since_collected
+  )
+    packet_url =
+      "#{Discourse.base_url}/t/#{lottery_topic.slug}/#{lottery_topic.id}/#{packet_post.post_number}"
+
+    build_email(
+      user.email,
+      template: "vzekc_verlosung_mailer.erhaltungsbericht_reminder",
+      locale: user.effective_locale,
+      username: user.username,
+      lottery_title: lottery_topic.title,
+      packet_title: packet_title,
+      days_since_collected: days_since_collected,
+      packet_url: packet_url,
+    )
+  end
 end

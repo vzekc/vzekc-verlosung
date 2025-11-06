@@ -75,3 +75,16 @@ en:
         Please mark these packets as received once the winners have collected them.
 
         [Open lottery](%{topic_url})
+    erhaltungsbericht_reminder:
+      title: "Reception Report Reminder"
+      subject_template: "Please write a reception report for '%{packet_title}'"
+      text_body_template: |
+        Hello %{username},
+
+        You received the packet **%{packet_title}** from the lottery **%{lottery_title}** %{days_since_collected} days ago.
+
+        As a winner, you are expected to write a reception report (Erhaltungsbericht) describing what you received.
+
+        Please click the "Write Reception Report" button on the packet post to create your report.
+
+        [Open packet post](%{packet_url})

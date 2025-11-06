@@ -75,3 +75,16 @@ de:
         Bitte markiere diese Pakete als erhalten, sobald die Gewinner sie abgeholt oder empfangen haben haben.
 
         [Verlosung öffnen](%{topic_url})
+    erhaltungsbericht_reminder:
+      title: "Erinnerung Erhaltungsbericht"
+      subject_template: "Bitte schreibe einen Erhaltungsbericht für '%{packet_title}'"
+      text_body_template: |
+        Hallo %{username},
+
+        Du hast das Paket **%{packet_title}** aus der Verlosung **%{lottery_title}** vor %{days_since_collected} Tagen erhalten.
+
+        Als Gewinner bist du verpflichtet, einen Erhaltungsbericht zu schreiben, in dem du beschreibst, was du erhalten hast.
+
+        Bitte klicke auf den Button "Erhaltungsbericht schreiben" beim Paket-Beitrag, um deinen Bericht zu erstellen.
+
+        [Paket-Beitrag öffnen](%{packet_url})
