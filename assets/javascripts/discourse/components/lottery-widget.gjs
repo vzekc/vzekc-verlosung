@@ -419,10 +419,10 @@ export default class LotteryWidget extends Component {
     // Compose topic title: "<packet-title> aus <lottery-title>"
     const topicTitle = `${packetTitle} aus ${lotteryTitle}`;
 
-    // Get template from site settings or use default
+    // Get template from site settings or use default German template
     let templateText =
       this.siteSettings.vzekc_verlosung_erhaltungsbericht_template ||
-      `I received the following packet from the lottery "[LOTTERY_TITLE]":\n\n## What was in the packet?\n\n[Describe what you received]\n\n## Condition and first impressions\n\n[How is the condition? What were your first impressions?]\n\n## Photos\n\n[Add photos here]\n\n## Plans for the hardware\n\n[What do you plan to do with the hardware? Collection, restoration, use?]\n\n---\n\nLink to packet: [PACKET_LINK]`;
+      `Ich habe folgendes Paket aus der Verlosung "[LOTTERY_TITLE]" erhalten:\n\n## Was war im Paket?\n\n[Beschreibe hier, was du erhalten hast]\n\n## Zustand und erste Eindrücke\n\n[Wie ist der Zustand? Was waren deine ersten Eindrücke?]\n\n## Fotos\n\n[Füge hier Fotos hinzu]\n\n## Pläne für die Hardware\n\n[Was hast du mit der Hardware vor? Sammlung, Restaurierung, Nutzung?]\n\n---\n\nLink zum Paket: [PACKET_LINK]`;
 
     const template = templateText
       .replace("[LOTTERY_TITLE]", lotteryTitle)
