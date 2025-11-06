@@ -431,7 +431,6 @@ export default class LotteryWidget extends Component {
       categoryId,
       title: packetTitle,
       reply: template,
-      draftKey: `new_topic_erhaltungsbericht_${this.post.id}`,
       // These custom fields will be serialized to the topic
       vzekc_packet_post_id: this.post.id,
       vzekc_packet_topic_id: this.post.topic_id,
