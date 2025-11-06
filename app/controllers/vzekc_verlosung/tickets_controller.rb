@@ -84,57 +84,6 @@ module VzekcVerlosung
       render json: ticket_packet_status_response(params[:post_id])
     end
 
-    private
-
-    def ticket_packet_status_response(post_or_id, user = nil)
-      user ||= current_user
-      post = post_or_id.is_a?(Post) ? post_or_id : Post.find_by(id: post_or_id)
-      return {} unless post
-
-      has_ticket = VzekcVerlosung::LotteryTicket.exists?(post_id: post.id, user_id: user.id)
-
-      tickets = VzekcVerlosung::LotteryTicket.where(post_id: post.id).includes(:user)
-      ticket_count = tickets.count
-
-      users =
-        tickets.map do |ticket|
-          {
-            id: ticket.user.id,
-            username: ticket.user.username,
-            name: ticket.user.name,
-            avatar_template: ticket.user.avatar_template,
-          }
-        end
-
-      # Get winner user object if winner exists
-      winner_username = post.custom_fields["lottery_winner"]
-      winner = nil
-      if winner_username.present?
-        winner_user = User.find_by(username: winner_username)
-        if winner_user
-          winner = {
-            id: winner_user.id,
-            username: winner_user.username,
-            name: winner_user.name,
-            avatar_template: winner_user.avatar_template,
-          }
-        end
-      end
-
-      response = { has_ticket: has_ticket, ticket_count: ticket_count, users: users, winner: winner }
-
-      # Only include collected_at for lottery owner or staff
-      topic = post.topic
-      if topic && (guardian.is_staff? || topic.user_id == user.id)
-        collected_at = post.custom_fields["packet_collected_at"]
-        if collected_at
-          response[:collected_at] = collected_at.is_a?(String) ? Time.zone.parse(collected_at) : collected_at
-        end
-      end
-
-      response
-    end
-
     # POST /vzekc_verlosung/packets/:post_id/mark-collected
     #
     # Marks a packet as collected by the winner
@@ -198,6 +147,57 @@ module VzekcVerlosung
 
       # Return updated packet status
       render json: ticket_packet_status_response(post, current_user)
+    end
+
+    private
+
+    def ticket_packet_status_response(post_or_id, user = nil)
+      user ||= current_user
+      post = post_or_id.is_a?(Post) ? post_or_id : Post.find_by(id: post_or_id)
+      return {} unless post
+
+      has_ticket = VzekcVerlosung::LotteryTicket.exists?(post_id: post.id, user_id: user.id)
+
+      tickets = VzekcVerlosung::LotteryTicket.where(post_id: post.id).includes(:user)
+      ticket_count = tickets.count
+
+      users =
+        tickets.map do |ticket|
+          {
+            id: ticket.user.id,
+            username: ticket.user.username,
+            name: ticket.user.name,
+            avatar_template: ticket.user.avatar_template,
+          }
+        end
+
+      # Get winner user object if winner exists
+      winner_username = post.custom_fields["lottery_winner"]
+      winner = nil
+      if winner_username.present?
+        winner_user = User.find_by(username: winner_username)
+        if winner_user
+          winner = {
+            id: winner_user.id,
+            username: winner_user.username,
+            name: winner_user.name,
+            avatar_template: winner_user.avatar_template,
+          }
+        end
+      end
+
+      response = { has_ticket: has_ticket, ticket_count: ticket_count, users: users, winner: winner }
+
+      # Only include collected_at for lottery owner or staff
+      topic = post.topic
+      if topic && (guardian.is_staff? || topic.user_id == user.id)
+        collected_at = post.custom_fields["packet_collected_at"]
+        if collected_at
+          response[:collected_at] = collected_at.is_a?(String) ? Time.zone.parse(collected_at) : collected_at
+        end
+      end
+
+      response
     end
 
     # Notify the lottery creator that a ticket was bought
