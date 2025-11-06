@@ -201,6 +201,35 @@ export default class LotteryIntroSummary extends Component {
   }
 
   /**
+   * Check if current user is the lottery owner
+   *
+   * @returns {Boolean} true if user is lottery owner or staff
+   */
+  get isLotteryOwner() {
+    return (
+      this.currentUser &&
+      this.topic &&
+      (this.currentUser.admin ||
+        this.currentUser.staff ||
+        this.topic.user_id === this.currentUser.id)
+    );
+  }
+
+  /**
+   * Format collected date for display
+   *
+   * @param {String|Date} collectedAt - The collection timestamp
+   * @returns {String} formatted date string
+   */
+  formatCollectedDate(collectedAt) {
+    if (!collectedAt) {
+      return null;
+    }
+    const date = new Date(collectedAt);
+    return date.toLocaleDateString();
+  }
+
+  /**
    * Get the publish button label
    *
    * @returns {String} the button label
@@ -410,6 +439,18 @@ export default class LotteryIntroSummary extends Component {
                           class="winner-name"
                         >{{packet.winner.username}}</span>
                       </UserLink>
+                      {{#if this.isLotteryOwner}}
+                        {{#if packet.collected_at}}
+                          <span class="collection-indicator collected">
+                            {{icon "check"}}
+                            <span
+                              class="collection-date"
+                            >{{this.formatCollectedDate
+                                packet.collected_at
+                              }}</span>
+                          </span>
+                        {{/if}}
+                      {{/if}}
                     </span>
                   {{else}}
                     <span class="packet-no-tickets">

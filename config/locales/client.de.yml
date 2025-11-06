@@ -77,3 +77,11 @@ de:
         verification_timeout: "Zeitüberschreitung bei der Ziehung. Bitte versuche es erneut."
         verification_error: "Ziehung fehlgeschlagen. Bitte kontaktiere den Support, falls das Problem weiterhin besteht."
       packets_title: "Pakete"
+      collection:
+        mark_collected: "Als abgeholt markieren"
+        collected_on: "Abgeholt am %{date}"
+        confirm_title: "Abholung bestätigen"
+        confirm_message: "Bist du sicher, dass du das Paket '%{packet}' als von %{winner} abgeholt markieren möchtest?"
+        confirm_button: "Als abgeholt markieren"
+        success_title: "Erfolg"
+        success_message: "Das Paket wurde als abgeholt markiert."

@@ -22,12 +22,15 @@ import TicketCountBadge from "./ticket-count-badge";
 export default class LotteryWidget extends Component {
   @service currentUser;
   @service appEvents;
+  @service modal;
 
   @tracked hasTicket = false;
   @tracked ticketCount = 0;
   @tracked users = [];
   @tracked winnerData = null;
+  @tracked collectedAt = null;
   @tracked loading = true;
+  @tracked markingCollected = false;
 
   constructor() {
     super(...arguments);
@@ -74,6 +77,7 @@ export default class LotteryWidget extends Component {
       this.ticketCount = result.ticket_count;
       this.users = result.users || [];
       this.winnerData = result.winner || null;
+      this.collectedAt = result.collected_at || null;
     } catch (error) {
       popupAjaxError(error);
     } finally {
@@ -251,6 +255,95 @@ export default class LotteryWidget extends Component {
     return heading ? heading.textContent.trim() : "";
   }
 
+  /**
+   * Check if current user is the lottery owner
+   *
+   * @type {boolean}
+   */
+  get isLotteryOwner() {
+    const topic = this.post?.topic;
+    return (
+      this.currentUser &&
+      topic &&
+      (this.currentUser.admin ||
+        this.currentUser.staff ||
+        topic.user_id === this.currentUser.id)
+    );
+  }
+
+  /**
+   * Check if the "Mark as Collected" button should be shown
+   *
+   * @type {boolean}
+   */
+  get canMarkAsCollected() {
+    return (
+      this.isLotteryOwner && this.winner && !this.collectedAt && !this.loading
+    );
+  }
+
+  /**
+   * Format collected date for display
+   *
+   * @type {string|null}
+   */
+  get formattedCollectedDate() {
+    if (!this.collectedAt) {
+      return null;
+    }
+    const date = new Date(this.collectedAt);
+    return date.toLocaleDateString();
+  }
+
+  /**
+   * Mark packet as collected (with confirmation)
+   */
+  @action
+  async markAsCollected() {
+    if (this.markingCollected) {
+      return;
+    }
+
+    const confirmed = await this.modal.confirm({
+      title: i18n("vzekc_verlosung.collection.confirm_title"),
+      message: i18n("vzekc_verlosung.collection.confirm_message", {
+        winner: this.winnerUsername,
+        packet: this.packetTitle,
+      }),
+      confirmButtonLabel: i18n("vzekc_verlosung.collection.confirm_button"),
+      confirmButtonClass: "btn-primary",
+      cancelButtonLabel: i18n("cancel"),
+    });
+
+    if (!confirmed) {
+      return;
+    }
+
+    this.markingCollected = true;
+
+    try {
+      const result = await ajax(
+        `/vzekc-verlosung/packets/${this.post.id}/mark-collected`,
+        {
+          type: "POST",
+        }
+      );
+
+      // Update local state with response
+      this.collectedAt = result.collected_at || null;
+
+      // Show success message
+      this.modal.alert({
+        title: i18n("vzekc_verlosung.collection.success_title"),
+        message: i18n("vzekc_verlosung.collection.success_message"),
+      });
+    } catch (error) {
+      popupAjaxError(error);
+    } finally {
+      this.markingCollected = false;
+    }
+  }
+
   <template>
     {{#if this.shouldShow}}
       <div class="lottery-packet-status">
@@ -291,6 +384,28 @@ export default class LotteryWidget extends Component {
                   </UserLink>
                 {{/if}}
               </div>
+              {{! Collection tracking - only visible to lottery owner }}
+              {{#if this.isLotteryOwner}}
+                <div class="collection-tracking">
+                  {{#if this.collectedAt}}
+                    <div class="collection-status collected">
+                      <span class="collection-icon">✓</span>
+                      <span class="collection-text">{{i18n
+                          "vzekc_verlosung.collection.collected_on"
+                          date=this.formattedCollectedDate
+                        }}</span>
+                    </div>
+                  {{else if this.canMarkAsCollected}}
+                    <DButton
+                      @action={{this.markAsCollected}}
+                      @label="vzekc_verlosung.collection.mark_collected"
+                      @icon="check"
+                      @disabled={{this.markingCollected}}
+                      class="btn-default mark-collected-button"
+                    />
+                  {{/if}}
+                </div>
+              {{/if}}
             </div>
           {{else}}
             <div class="lottery-packet-no-winner-notice">

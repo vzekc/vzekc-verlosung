@@ -77,3 +77,11 @@ en:
         verification_timeout: "Drawing timed out. Please try again."
         verification_error: "Drawing failed. Please contact support if this persists."
       packets_title: "Packets"
+      collection:
+        mark_collected: "Mark as Collected"
+        collected_on: "Collected on %{date}"
+        confirm_title: "Confirm Collection"
+        confirm_message: "Are you sure you want to mark the packet '%{packet}' as collected by %{winner}?"
+        confirm_button: "Mark as Collected"
+        success_title: "Success"
+        success_message: "The packet has been marked as collected."
