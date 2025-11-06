@@ -29,8 +29,10 @@ export default class LotteryWidget extends Component {
   @tracked users = [];
   @tracked winnerData = null;
   @tracked collectedAt = null;
+  @tracked erhaltungsberichtTopicId = null;
   @tracked loading = true;
   @tracked markingCollected = false;
+  @tracked creatingErhaltungsbericht = false;
 
   constructor() {
     super(...arguments);
@@ -78,6 +80,11 @@ export default class LotteryWidget extends Component {
       this.users = result.users || [];
       this.winnerData = result.winner || null;
       this.collectedAt = result.collected_at || null;
+
+      // Also load from post if available
+      if (this.post?.erhaltungsbericht_topic_id) {
+        this.erhaltungsberichtTopicId = this.post.erhaltungsbericht_topic_id;
+      }
     } catch (error) {
       popupAjaxError(error);
     } finally {
@@ -345,6 +352,69 @@ export default class LotteryWidget extends Component {
     }
   }
 
+  /**
+   * Check if current user is the winner of this packet
+   *
+   * @type {boolean}
+   */
+  get isWinner() {
+    return (
+      this.currentUser &&
+      this.winnerUsername &&
+      this.currentUser.username === this.winnerUsername
+    );
+  }
+
+  /**
+   * Check if Erhaltungsbericht button should be shown
+   *
+   * @type {boolean}
+   */
+  get canCreateErhaltungsbericht() {
+    return (
+      this.isWinner &&
+      this.collectedAt &&
+      !this.erhaltungsberichtTopicId &&
+      !this.loading
+    );
+  }
+
+  /**
+   * Create Erhaltungsbericht topic for this packet
+   */
+  @action
+  async createErhaltungsbericht() {
+    if (this.creatingErhaltungsbericht) {
+      return;
+    }
+
+    this.creatingErhaltungsbericht = true;
+
+    try {
+      const result = await ajax(
+        `/vzekc-verlosung/packets/${this.post.id}/create-erhaltungsbericht`,
+        {
+          type: "POST",
+        }
+      );
+
+      // Update local state
+      if (this.post) {
+        this.post.set("erhaltungsbericht_topic_id", result.topic_id);
+        this.erhaltungsberichtTopicId = result.topic_id;
+      }
+
+      // Navigate to the new topic
+      if (result.topic_url) {
+        window.location.href = result.topic_url;
+      }
+    } catch (error) {
+      popupAjaxError(error);
+    } finally {
+      this.creatingErhaltungsbericht = false;
+    }
+  }
+
   <template>
     {{#if this.shouldShow}}
       <div class="lottery-packet-status">
@@ -405,6 +475,18 @@ export default class LotteryWidget extends Component {
                       class="btn-default mark-collected-button"
                     />
                   {{/if}}
+                </div>
+              {{/if}}
+              {{! Erhaltungsbericht button - only visible to winner }}
+              {{#if this.canCreateErhaltungsbericht}}
+                <div class="erhaltungsbericht-section">
+                  <DButton
+                    @action={{this.createErhaltungsbericht}}
+                    @label="vzekc_verlosung.erhaltungsbericht.create_button"
+                    @icon="pencil-alt"
+                    @disabled={{this.creatingErhaltungsbericht}}
+                    class="btn-primary create-erhaltungsbericht-button"
+                  />
                 </div>
               {{/if}}
             </div>

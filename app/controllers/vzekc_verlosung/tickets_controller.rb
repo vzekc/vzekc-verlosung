@@ -149,6 +149,86 @@ module VzekcVerlosung
       render json: ticket_packet_status_response(post, current_user)
     end
 
+    # POST /vzekc_verlosung/packets/:post_id/create-erhaltungsbericht
+    #
+    # Creates an Erhaltungsbericht topic for a collected packet
+    #
+    # @param post_id [Integer] Post ID of the packet
+    #
+    # @return [JSON] Created topic URL
+    def create_erhaltungsbericht
+      post = Post.find_by(id: params[:post_id])
+      return render_json_error("Post not found", status: :not_found) unless post
+
+      # Verify it's a lottery packet
+      unless post.custom_fields["is_lottery_packet"] == true
+        return render_json_error("Not a lottery packet", status: :bad_request)
+      end
+
+      # Check if packet was collected
+      unless post.custom_fields["packet_collected_at"].present?
+        return render_json_error("Packet not yet marked as collected", status: :unprocessable_entity)
+      end
+
+      # Check if user is the winner
+      winner_username = post.custom_fields["lottery_winner"]
+      unless winner_username == current_user.username
+        return render_json_error("Only the winner can create an Erhaltungsbericht", status: :forbidden)
+      end
+
+      # Check if Erhaltungsbericht already exists
+      if post.custom_fields["erhaltungsbericht_topic_id"].present?
+        return render_json_error("Erhaltungsbericht already created", status: :unprocessable_entity)
+      end
+
+      # Get category for Erhaltungsberichte
+      category_id = SiteSetting.vzekc_verlosung_erhaltungsberichte_category_id
+      unless category_id.present? && Category.exists?(id: category_id)
+        return render_json_error("Erhaltungsberichte category not configured", status: :unprocessable_entity)
+      end
+
+      # Extract packet title
+      packet_title = extract_title_from_markdown(post.raw) || "Paket ##{post.post_number}"
+
+      # Get lottery topic title
+      lottery_title = post.topic.title
+
+      # Get template and replace placeholders
+      template = SiteSetting.vzekc_verlosung_erhaltungsbericht_template
+      packet_url = "#{Discourse.base_url}/t/#{post.topic.slug}/#{post.topic_id}/#{post.post_number}"
+      content = template.gsub("[LOTTERY_TITLE]", lottery_title).gsub("[PACKET_LINK]", packet_url)
+
+      # Create the topic
+      begin
+        topic_creator = PostCreator.new(
+          current_user,
+          title: packet_title,
+          raw: content,
+          category: category_id,
+          skip_validations: false,
+        )
+
+        result = topic_creator.create
+
+        if topic_creator.errors.present?
+          return render_json_error(topic_creator.errors.full_messages.join(", "), status: :unprocessable_entity)
+        end
+
+        # Store the reference
+        post.custom_fields["erhaltungsbericht_topic_id"] = result.topic_id
+        post.save_custom_fields
+
+        # Also store reverse reference on the erhaltungsbericht topic
+        result.topic.custom_fields["packet_post_id"] = post.id
+        result.topic.custom_fields["packet_topic_id"] = post.topic_id
+        result.topic.save_custom_fields
+
+        render json: success_json.merge(topic_url: result.topic.relative_url)
+      rescue => e
+        render_json_error("Failed to create Erhaltungsbericht: #{e.message}", status: :internal_server_error)
+      end
+    end
+
     private
 
     def ticket_packet_status_response(post_or_id, user = nil)

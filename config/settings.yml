@@ -6,6 +6,10 @@ vzekc_verlosung:
     default: ''
     client: true
     type: category
+  vzekc_verlosung_erhaltungsberichte_category_id:
+    default: ''
+    client: true
+    type: category
   vzekc_verlosung_description_template:
     default: |
       ## Über diese Verlosung
@@ -41,3 +45,27 @@ vzekc_verlosung:
   vzekc_verlosung_ending_tomorrow_reminder_enabled:
     default: true
     client: false
+  vzekc_verlosung_erhaltungsbericht_template:
+    default: |
+      Ich habe folgendes Paket aus der Verlosung "[LOTTERY_TITLE]" erhalten:
+
+      ## Was war im Paket?
+
+      [Beschreibe hier, was du erhalten hast]
+
+      ## Zustand und erste Eindrücke
+
+      [Wie ist der Zustand? Was waren deine ersten Eindrücke?]
+
+      ## Fotos
+
+      [Füge hier Fotos hinzu]
+
+      ## Pläne für die Hardware
+
+      [Was hast du mit der Hardware vor? Sammlung, Restaurierung, Nutzung?]
+
+      ---
+      Link zum Paket: [PACKET_LINK]
+    type: string
+    textarea: true

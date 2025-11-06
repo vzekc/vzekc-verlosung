@@ -607,6 +607,17 @@
         width: 100%;
       }
     }
+
+    // Erhaltungsbericht section (for winner)
+    .erhaltungsbericht-section {
+      margin-top: 1em;
+      padding-top: 1em;
+      border-top: 1px solid var(--success);
+
+      .create-erhaltungsbericht-button {
+        width: 100%;
+      }
+    }
   }
 
   .lottery-packet-no-winner-notice {

@@ -63,6 +63,7 @@ after_initialize do
   register_post_custom_field_type("is_lottery_intro", :boolean)
   register_post_custom_field_type("lottery_winner", :string)
   register_post_custom_field_type("packet_collected_at", :datetime)
+  register_post_custom_field_type("erhaltungsbericht_topic_id", :integer)
 
   # Register custom fields for lottery topics
   # lottery_state: "draft", "active", or "finished"
@@ -108,19 +109,30 @@ after_initialize do
 
   add_to_serializer(:post, :lottery_winner) { object.custom_fields["lottery_winner"] }
 
-  # Only include collection timestamp for lottery owner
+  # Include collection timestamp for lottery owner and winner
   add_to_serializer(:post, :packet_collected_at) do
     return nil unless object.custom_fields["is_lottery_packet"] == true
 
-    # Only show to lottery owner or staff
+    # Show to lottery owner, staff, or winner
     topic = object.topic
-    return nil unless topic && (scope.is_staff? || topic.user_id == scope.user&.id)
+    winner_username = object.custom_fields["lottery_winner"]
+    is_winner = winner_username.present? && scope.user&.username == winner_username
+    return nil unless topic && (scope.is_staff? || topic.user_id == scope.user&.id || is_winner)
 
     value = object.custom_fields["packet_collected_at"]
     value.is_a?(String) ? Time.zone.parse(value) : value
   end
 
   add_to_serializer(:post, :include_packet_collected_at?) do
+    object.custom_fields["is_lottery_packet"] == true
+  end
+
+  # Include erhaltungsbericht topic ID
+  add_to_serializer(:post, :erhaltungsbericht_topic_id) do
+    object.custom_fields["erhaltungsbericht_topic_id"]&.to_i
+  end
+
+  add_to_serializer(:post, :include_erhaltungsbericht_topic_id?) do
     object.custom_fields["is_lottery_packet"] == true
   end
 

@@ -78,10 +78,12 @@ en:
         verification_error: "Drawing failed. Please contact support if this persists."
       packets_title: "Packets"
       collection:
-        mark_collected: "Mark as Collected"
-        collected_on: "Collected on %{date}"
-        confirm_title: "Confirm Collection"
-        confirm_message: "Are you sure you want to mark the packet '%{packet}' as collected by %{winner}?"
-        confirm_button: "Mark as Collected"
+        mark_collected: "Mark as Received"
+        collected_on: "Received on %{date}"
+        confirm_title: "Confirm Receipt"
+        confirm_message: "Are you sure you want to mark the packet '%{packet}' as received by %{winner}?"
+        confirm_button: "Mark as Received"
         success_title: "Success"
-        success_message: "The packet has been marked as collected."
+        success_message: "The packet has been marked as received."
+      erhaltungsbericht:
+        create_button: "Write Reception Report"
