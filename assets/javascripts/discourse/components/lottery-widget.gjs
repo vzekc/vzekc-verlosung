@@ -415,10 +415,15 @@ export default class LotteryWidget extends Component {
     const packetTitle = this.packetTitle || `Packet #${this.post.post_number}`;
     const lotteryTitle = this.post.topic.title;
     const packetUrl = `${window.location.origin}/t/${this.post.topic.slug}/${this.post.topic_id}/${this.post.post_number}`;
-    const template =
-      this.siteSettings.vzekc_verlosung_erhaltungsbericht_template
-        .replace("[LOTTERY_TITLE]", lotteryTitle)
-        .replace("[PACKET_LINK]", packetUrl);
+
+    // Get template from site settings or use default
+    let templateText =
+      this.siteSettings.vzekc_verlosung_erhaltungsbericht_template ||
+      `I received the following packet from the lottery "[LOTTERY_TITLE]":\n\n## What was in the packet?\n\n[Describe what you received]\n\n## Condition and first impressions\n\n[How is the condition? What were your first impressions?]\n\n## Photos\n\n[Add photos here]\n\n## Plans for the hardware\n\n[What do you plan to do with the hardware? Collection, restoration, use?]\n\n---\n\nLink to packet: [PACKET_LINK]`;
+
+    const template = templateText
+      .replace("[LOTTERY_TITLE]", lotteryTitle)
+      .replace("[PACKET_LINK]", packetUrl);
 
     // Open composer with pre-filled content and packet reference
     this.composer.open({
