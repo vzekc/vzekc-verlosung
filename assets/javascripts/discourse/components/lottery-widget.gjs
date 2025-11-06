@@ -36,12 +36,17 @@ export default class LotteryWidget extends Component {
   @tracked erhaltungsberichtTopicId = null;
   @tracked loading = true;
   @tracked markingCollected = false;
+  @tracked erhaltungsberichtComposerOpen = false;
 
   constructor() {
     super(...arguments);
     if (this.shouldShow) {
       this.loadTicketData();
       this.appEvents.on("lottery:ticket-changed", this, this.onTicketChanged);
+      // Reload data when composer closes (e.g., after creating Erhaltungsbericht)
+      this.appEvents.on("composer:closed", this, this.onComposerClosed);
+      // Reload data when page becomes visible again
+      document.addEventListener("visibilitychange", this.onVisibilityChange);
     } else {
       this.loading = false;
     }
@@ -51,6 +56,26 @@ export default class LotteryWidget extends Component {
     super.willDestroy(...arguments);
     if (this.shouldShow) {
       this.appEvents.off("lottery:ticket-changed", this, this.onTicketChanged);
+      this.appEvents.off("composer:closed", this, this.onComposerClosed);
+      document.removeEventListener("visibilitychange", this.onVisibilityChange);
+    }
+  }
+
+  @bind
+  onComposerClosed() {
+    // Reload page if we opened the Erhaltungsbericht composer
+    if (this.erhaltungsberichtComposerOpen) {
+      this.erhaltungsberichtComposerOpen = false;
+      // Force refresh of the topic to get updated post data
+      window.location.reload();
+    }
+  }
+
+  @bind
+  onVisibilityChange() {
+    // Reload data when page becomes visible (user returns from composer)
+    if (!document.hidden && this.shouldShow) {
+      this.loadTicketData();
     }
   }
 
@@ -84,10 +109,9 @@ export default class LotteryWidget extends Component {
       this.winnerData = result.winner || null;
       this.collectedAt = result.collected_at || null;
 
-      // Also load from post if available
-      if (this.post?.erhaltungsbericht_topic_id) {
-        this.erhaltungsberichtTopicId = this.post.erhaltungsbericht_topic_id;
-      }
+      // Always sync erhaltungsbericht_topic_id from post (will be null if not set or deleted)
+      this.erhaltungsberichtTopicId =
+        this.post?.erhaltungsbericht_topic_id || null;
     } catch (error) {
       popupAjaxError(error);
     } finally {
@@ -440,6 +464,9 @@ export default class LotteryWidget extends Component {
       vzekc_packet_post_id: this.post.id,
       vzekc_packet_topic_id: this.post.topic_id,
     });
+
+    // Track that we opened the Erhaltungsbericht composer
+    this.erhaltungsberichtComposerOpen = true;
   }
 
   <template>
