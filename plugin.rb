@@ -115,9 +115,11 @@ after_initialize do
   add_to_serializer(:post, :lottery_winner) { object.custom_fields["lottery_winner"] }
 
   # Include collection timestamp for lottery owner and winner
-  add_to_serializer(:post, :packet_collected_at) do
-    return nil unless object.custom_fields["is_lottery_packet"] == true
-
+  add_to_serializer(
+    :post,
+    :packet_collected_at,
+    include_condition: -> { object.custom_fields["is_lottery_packet"] == true },
+  ) do
     # Show to lottery owner, staff, or winner
     topic = object.topic
     winner_username = object.custom_fields["lottery_winner"]
@@ -128,21 +130,17 @@ after_initialize do
     value.is_a?(String) ? Time.zone.parse(value) : value
   end
 
-  add_to_serializer(:post, :include_packet_collected_at?) do
-    object.custom_fields["is_lottery_packet"] == true
-  end
-
   # Include erhaltungsbericht topic ID (only if topic still exists)
-  add_to_serializer(:post, :erhaltungsbericht_topic_id) do
+  add_to_serializer(
+    :post,
+    :erhaltungsbericht_topic_id,
+    include_condition: -> { object.custom_fields["is_lottery_packet"] == true },
+  ) do
     topic_id = object.custom_fields["erhaltungsbericht_topic_id"]&.to_i
     return nil unless topic_id
 
     # Check if the topic still exists
     Topic.exists?(id: topic_id) ? topic_id : nil
-  end
-
-  add_to_serializer(:post, :include_erhaltungsbericht_topic_id?) do
-    object.custom_fields["is_lottery_packet"] == true
   end
 
   # Add custom fields to topic serializers (using helper methods)
