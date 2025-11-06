@@ -165,13 +165,22 @@ after_initialize do
     object.topic.custom_fields["packet_topic_id"]&.to_i
   end
 
+  # Whitelist packet reference parameters for topic creation
+  add_permitted_post_create_param(:packet_post_id)
+  add_permitted_post_create_param(:packet_topic_id)
+
   # Register callback to establish bidirectional link when Erhaltungsbericht is created
   on(:topic_created) do |topic, opts, user|
-    # Check if this is an Erhaltungsbericht with packet reference
-    packet_post_id = topic.custom_fields["packet_post_id"]&.to_i
-    packet_topic_id = topic.custom_fields["packet_topic_id"]&.to_i
+    # Check if packet reference data is in opts (from composer)
+    packet_post_id = opts[:packet_post_id]&.to_i
+    packet_topic_id = opts[:packet_topic_id]&.to_i
 
     next if packet_post_id.blank? || packet_topic_id.blank?
+
+    # Save packet reference to topic custom fields
+    topic.custom_fields["packet_post_id"] = packet_post_id
+    topic.custom_fields["packet_topic_id"] = packet_topic_id
+    topic.save_custom_fields
 
     # Find the packet post
     packet_post = Post.find_by(id: packet_post_id, topic_id: packet_topic_id)

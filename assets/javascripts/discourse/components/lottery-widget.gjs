@@ -66,8 +66,10 @@ export default class LotteryWidget extends Component {
     // Reload page if we opened the Erhaltungsbericht composer
     if (this.erhaltungsberichtComposerOpen) {
       this.erhaltungsberichtComposerOpen = false;
-      // Force refresh of the topic to get updated post data
-      window.location.reload();
+      // Wait a moment for backend to process topic creation before reloading
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
     }
   }
 
