@@ -8,7 +8,7 @@ import avatar from "discourse/helpers/avatar";
 import { ajax } from "discourse/lib/ajax";
 import { popupAjaxError } from "discourse/lib/ajax-error";
 import { bind } from "discourse/lib/decorators";
-import { i18n } from "discourse-i18n";
+import I18n, { i18n } from "discourse-i18n";
 import TicketCountBadge from "./ticket-count-badge";
 
 /**
@@ -292,7 +292,9 @@ export default class LotteryWidget extends Component {
       return null;
     }
     const date = new Date(this.collectedAt);
-    return date.toLocaleDateString("de-DE", {
+    // Use user's locale from Discourse
+    const locale = I18n.locale || "en";
+    return date.toLocaleDateString(locale, {
       year: "numeric",
       month: "2-digit",
       day: "2-digit",

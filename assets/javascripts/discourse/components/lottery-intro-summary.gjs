@@ -10,7 +10,7 @@ import icon from "discourse/helpers/d-icon";
 import { ajax } from "discourse/lib/ajax";
 import { popupAjaxError } from "discourse/lib/ajax-error";
 import { bind } from "discourse/lib/decorators";
-import { i18n } from "discourse-i18n";
+import I18n, { i18n } from "discourse-i18n";
 import DrawLotteryModal from "./modal/draw-lottery-modal";
 import TicketCountBadge from "./ticket-count-badge";
 
@@ -226,7 +226,9 @@ export default class LotteryIntroSummary extends Component {
       return null;
     }
     const date = new Date(collectedAt);
-    return date.toLocaleDateString("de-DE", {
+    // Use user's locale from Discourse
+    const locale = I18n.locale || "en";
+    return date.toLocaleDateString(locale, {
       year: "numeric",
       month: "2-digit",
       day: "2-digit",
