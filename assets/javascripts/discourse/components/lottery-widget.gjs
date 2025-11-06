@@ -426,11 +426,13 @@ export default class LotteryWidget extends Component {
       .replace("[PACKET_LINK]", packetUrl);
 
     // Open composer with pre-filled content and packet reference
+    // Use unique draftKey with timestamp to prevent draft conflicts
     this.composer.open({
       action: Composer.CREATE_TOPIC,
       categoryId,
       title: packetTitle,
       reply: template,
+      draftKey: `new_topic_erhaltungsbericht_${this.post.id}_${Date.now()}`,
       // These custom fields will be serialized to the topic
       vzekc_packet_post_id: this.post.id,
       vzekc_packet_topic_id: this.post.topic_id,
