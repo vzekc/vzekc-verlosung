@@ -9,6 +9,7 @@ import icon from "discourse/helpers/d-icon";
 import { ajax } from "discourse/lib/ajax";
 import { popupAjaxError } from "discourse/lib/ajax-error";
 import { bind } from "discourse/lib/decorators";
+import Composer from "discourse/models/composer";
 import I18n, { i18n } from "discourse-i18n";
 import TicketCountBadge from "./ticket-count-badge";
 
@@ -24,6 +25,8 @@ export default class LotteryWidget extends Component {
   @service currentUser;
   @service appEvents;
   @service dialog;
+  @service composer;
+  @service siteSettings;
 
   @tracked hasTicket = false;
   @tracked ticketCount = 0;
@@ -33,7 +36,6 @@ export default class LotteryWidget extends Component {
   @tracked erhaltungsberichtTopicId = null;
   @tracked loading = true;
   @tracked markingCollected = false;
-  @tracked creatingErhaltungsbericht = false;
 
   constructor() {
     super(...arguments);
@@ -394,38 +396,41 @@ export default class LotteryWidget extends Component {
 
   /**
    * Create Erhaltungsbericht topic for this packet
+   * Opens the composer with pre-filled content instead of creating immediately
    */
   @action
-  async createErhaltungsbericht() {
-    if (this.creatingErhaltungsbericht) {
+  createErhaltungsbericht() {
+    // Get category and template
+    const categoryId =
+      this.siteSettings.vzekc_verlosung_erhaltungsberichte_category_id;
+
+    if (!categoryId) {
+      this.dialog.alert(
+        i18n("vzekc_verlosung.erhaltungsbericht.category_not_configured")
+      );
       return;
     }
 
-    this.creatingErhaltungsbericht = true;
+    // Get template and replace placeholders
+    const packetTitle = this.packetTitle || `Packet #${this.post.post_number}`;
+    const lotteryTitle = this.post.topic.title;
+    const packetUrl = `${window.location.origin}/t/${this.post.topic.slug}/${this.post.topic_id}/${this.post.post_number}`;
+    const template =
+      this.siteSettings.vzekc_verlosung_erhaltungsbericht_template
+        .replace("[LOTTERY_TITLE]", lotteryTitle)
+        .replace("[PACKET_LINK]", packetUrl);
 
-    try {
-      const result = await ajax(
-        `/vzekc-verlosung/packets/${this.post.id}/create-erhaltungsbericht`,
-        {
-          type: "POST",
-        }
-      );
-
-      // Update local state
-      if (this.post) {
-        this.post.set("erhaltungsbericht_topic_id", result.topic_id);
-        this.erhaltungsberichtTopicId = result.topic_id;
-      }
-
-      // Navigate to the new topic
-      if (result.topic_url) {
-        window.location.href = result.topic_url;
-      }
-    } catch (error) {
-      popupAjaxError(error);
-    } finally {
-      this.creatingErhaltungsbericht = false;
-    }
+    // Open composer with pre-filled content and packet reference
+    this.composer.open({
+      action: Composer.CREATE_TOPIC,
+      categoryId,
+      title: packetTitle,
+      reply: template,
+      draftKey: `new_topic_erhaltungsbericht_${this.post.id}`,
+      // These custom fields will be serialized to the topic
+      vzekc_packet_post_id: this.post.id,
+      vzekc_packet_topic_id: this.post.topic_id,
+    });
   }
 
   <template>
@@ -497,7 +502,6 @@ export default class LotteryWidget extends Component {
                     @action={{this.createErhaltungsbericht}}
                     @label="vzekc_verlosung.erhaltungsbericht.create_button"
                     @icon="pencil-alt"
-                    @disabled={{this.creatingErhaltungsbericht}}
                     class="btn-primary create-erhaltungsbericht-button"
                   />
                 </div>

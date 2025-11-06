@@ -89,3 +89,4 @@ en:
         create_button: "Write Reception Report"
         view_link: "View Reception Report"
         packet_notice: "This is a reception report for the packet:"
+        category_not_configured: "Reception reports category is not configured. Please contact an administrator."

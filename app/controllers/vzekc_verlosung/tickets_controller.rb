@@ -71,9 +71,7 @@ module VzekcVerlosung
       ticket.destroy
 
       # Notify the lottery creator that a ticket was returned
-      if post
-        notify_ticket_returned(post.topic, post, current_user)
-      end
+      notify_ticket_returned(post.topic, post, current_user) if post
 
       render json: success_json.merge(ticket_packet_status_response(params[:post_id]))
     end
@@ -106,10 +104,7 @@ module VzekcVerlosung
       # Check permissions - only lottery owner or staff
       unless guardian.can_manage_lottery_packets?(topic)
         return(
-          render_json_error(
-            "You don't have permission to manage this lottery",
-            status: :forbidden,
-          )
+          render_json_error("You don't have permission to manage this lottery", status: :forbidden)
         )
       end
 
@@ -125,19 +120,14 @@ module VzekcVerlosung
 
       # Check if there's a winner
       winner_username = post.custom_fields["lottery_winner"]
-      unless winner_username.present?
-        return(
-          render_json_error("No winner for this packet", status: :unprocessable_entity)
-        )
+      if winner_username.blank?
+        return(render_json_error("No winner for this packet", status: :unprocessable_entity))
       end
 
       # Check if already collected
       if post.custom_fields["packet_collected_at"].present?
         return(
-          render_json_error(
-            "Packet already marked as collected",
-            status: :unprocessable_entity,
-          )
+          render_json_error("Packet already marked as collected", status: :unprocessable_entity)
         )
       end
 
@@ -166,25 +156,43 @@ module VzekcVerlosung
       end
 
       # Check if packet was collected
-      unless post.custom_fields["packet_collected_at"].present?
-        return render_json_error("Packet not yet marked as collected", status: :unprocessable_entity)
+      if post.custom_fields["packet_collected_at"].blank?
+        return(
+          render_json_error("Packet not yet marked as collected", status: :unprocessable_entity)
+        )
       end
 
       # Check if user is the winner
       winner_username = post.custom_fields["lottery_winner"]
       unless winner_username == current_user.username
-        return render_json_error("Only the winner can create an Erhaltungsbericht", status: :forbidden)
+        return(
+          render_json_error("Only the winner can create an Erhaltungsbericht", status: :forbidden)
+        )
       end
 
-      # Check if Erhaltungsbericht already exists
-      if post.custom_fields["erhaltungsbericht_topic_id"].present?
-        return render_json_error("Erhaltungsbericht already created", status: :unprocessable_entity)
+      # Check if Erhaltungsbericht already exists (and still exists)
+      erhaltungsbericht_topic_id = post.custom_fields["erhaltungsbericht_topic_id"]
+      if erhaltungsbericht_topic_id.present?
+        if Topic.exists?(id: erhaltungsbericht_topic_id)
+          return(
+            render_json_error("Erhaltungsbericht already created", status: :unprocessable_entity)
+          )
+        else
+          # Topic was deleted, clear the field to allow creating a new one
+          post.custom_fields.delete("erhaltungsbericht_topic_id")
+          post.save_custom_fields
+        end
       end
 
       # Get category for Erhaltungsberichte
       category_id = SiteSetting.vzekc_verlosung_erhaltungsberichte_category_id
       unless category_id.present? && Category.exists?(id: category_id)
-        return render_json_error("Erhaltungsberichte category not configured", status: :unprocessable_entity)
+        return(
+          render_json_error(
+            "Erhaltungsberichte category not configured",
+            status: :unprocessable_entity,
+          )
+        )
       end
 
       # Extract packet title
@@ -200,18 +208,24 @@ module VzekcVerlosung
 
       # Create the topic
       begin
-        topic_creator = PostCreator.new(
-          current_user,
-          title: packet_title,
-          raw: content,
-          category: category_id,
-          skip_validations: false,
-        )
+        topic_creator =
+          PostCreator.new(
+            current_user,
+            title: packet_title,
+            raw: content,
+            category: category_id,
+            skip_validations: false,
+          )
 
         result = topic_creator.create
 
         if topic_creator.errors.present?
-          return render_json_error(topic_creator.errors.full_messages.join(", "), status: :unprocessable_entity)
+          return(
+            render_json_error(
+              topic_creator.errors.full_messages.join(", "),
+              status: :unprocessable_entity,
+            )
+          )
         end
 
         # Store the reference
@@ -225,7 +239,10 @@ module VzekcVerlosung
 
         render json: success_json.merge(topic_url: result.topic.relative_url)
       rescue => e
-        render_json_error("Failed to create Erhaltungsbericht: #{e.message}", status: :internal_server_error)
+        render_json_error(
+          "Failed to create Erhaltungsbericht: #{e.message}",
+          status: :internal_server_error,
+        )
       end
     end
 
@@ -266,14 +283,25 @@ module VzekcVerlosung
         end
       end
 
-      response = { has_ticket: has_ticket, ticket_count: ticket_count, users: users, winner: winner }
+      response = {
+        has_ticket: has_ticket,
+        ticket_count: ticket_count,
+        users: users,
+        winner: winner,
+      }
 
       # Only include collected_at for lottery owner or staff
       topic = post.topic
       if topic && (guardian.is_staff? || topic.user_id == user.id)
         collected_at = post.custom_fields["packet_collected_at"]
         if collected_at
-          response[:collected_at] = collected_at.is_a?(String) ? Time.zone.parse(collected_at) : collected_at
+          response[:collected_at] = (
+            if collected_at.is_a?(String)
+              Time.zone.parse(collected_at)
+            else
+              collected_at
+            end
+          )
         end
       end
 
@@ -291,10 +319,7 @@ module VzekcVerlosung
         user_id: topic.user_id,
         topic_id: topic.id,
         post_number: post.post_number,
-        data: {
-          display_username: buyer.username,
-          packet_title: packet_title,
-        }.to_json,
+        data: { display_username: buyer.username, packet_title: packet_title }.to_json,
       )
     end
 
@@ -309,10 +334,7 @@ module VzekcVerlosung
         user_id: topic.user_id,
         topic_id: topic.id,
         post_number: post.post_number,
-        data: {
-          display_username: returner.username,
-          packet_title: packet_title,
-        }.to_json,
+        data: { display_username: returner.username, packet_title: packet_title }.to_json,
       )
     end
 

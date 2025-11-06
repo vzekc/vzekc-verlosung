@@ -89,3 +89,4 @@ de:
         create_button: "Erhaltungsbericht schreiben"
         view_link: "Erhaltungsbericht ansehen"
         packet_notice: "Dies ist ein Erhaltungsbericht für das Paket:"
+        category_not_configured: "Die Kategorie für Erhaltungsberichte ist nicht konfiguriert. Bitte kontaktiere einen Administrator."

@@ -75,6 +75,10 @@ after_initialize do
   register_topic_custom_field_type("lottery_results", :json)
   # lottery_drawn_at: DateTime when the drawing was performed
   register_topic_custom_field_type("lottery_drawn_at", :datetime)
+  # packet_post_id: Post ID of the packet in the lottery (for Erhaltungsberichte)
+  register_topic_custom_field_type("packet_post_id", :integer)
+  # packet_topic_id: Topic ID of the lottery (for Erhaltungsberichte)
+  register_topic_custom_field_type("packet_topic_id", :integer)
 
   # Preload lottery custom fields for topic lists to prevent N+1 queries
   add_preloaded_topic_list_custom_field("lottery_state")
@@ -128,9 +132,13 @@ after_initialize do
     object.custom_fields["is_lottery_packet"] == true
   end
 
-  # Include erhaltungsbericht topic ID
+  # Include erhaltungsbericht topic ID (only if topic still exists)
   add_to_serializer(:post, :erhaltungsbericht_topic_id) do
-    object.custom_fields["erhaltungsbericht_topic_id"]&.to_i
+    topic_id = object.custom_fields["erhaltungsbericht_topic_id"]&.to_i
+    return nil unless topic_id
+
+    # Check if the topic still exists
+    Topic.exists?(id: topic_id) ? topic_id : nil
   end
 
   add_to_serializer(:post, :include_erhaltungsbericht_topic_id?) do
@@ -149,4 +157,37 @@ after_initialize do
   add_to_serializer(:topic_list_item, :lottery_state) { object.lottery_state }
 
   add_to_serializer(:topic_list_item, :lottery_ends_at) { object.lottery_ends_at }
+
+  # Include packet reference fields for Erhaltungsberichte
+  add_to_serializer(:topic_view, :packet_post_id) do
+    object.topic.custom_fields["packet_post_id"]&.to_i
+  end
+
+  add_to_serializer(:topic_view, :packet_topic_id) do
+    object.topic.custom_fields["packet_topic_id"]&.to_i
+  end
+
+  # Register callback to establish bidirectional link when Erhaltungsbericht is created
+  on(:topic_created) do |topic, opts, user|
+    # Check if this is an Erhaltungsbericht with packet reference
+    packet_post_id = topic.custom_fields["packet_post_id"]&.to_i
+    packet_topic_id = topic.custom_fields["packet_topic_id"]&.to_i
+
+    next if packet_post_id.blank? || packet_topic_id.blank?
+
+    # Find the packet post
+    packet_post = Post.find_by(id: packet_post_id, topic_id: packet_topic_id)
+    next unless packet_post
+
+    # Verify it's a lottery packet
+    next unless packet_post.custom_fields["is_lottery_packet"] == true
+
+    # Verify the user is the winner
+    winner_username = packet_post.custom_fields["lottery_winner"]
+    next unless winner_username == user.username
+
+    # Establish reverse link from packet to Erhaltungsbericht
+    packet_post.custom_fields["erhaltungsbericht_topic_id"] = topic.id
+    packet_post.save_custom_fields
+  end
 end
