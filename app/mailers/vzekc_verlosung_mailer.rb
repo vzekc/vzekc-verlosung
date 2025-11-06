@@ -28,4 +28,18 @@ class VzekcVerlosungMailer < ActionMailer::Base
       topic_url: "#{Discourse.base_url}#{topic.relative_url}",
     )
   end
+
+  def uncollected_reminder(user, topic, uncollected_count, days_since_drawn, packet_list)
+    build_email(
+      user.email,
+      template: "vzekc_verlosung_mailer.uncollected_reminder",
+      locale: user.effective_locale,
+      username: user.username,
+      topic_title: topic.title,
+      uncollected_count: uncollected_count,
+      days_since_drawn: days_since_drawn,
+      packet_list: packet_list,
+      topic_url: "#{Discourse.base_url}#{topic.relative_url}",
+    )
+  end
 end

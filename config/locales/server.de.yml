@@ -58,3 +58,18 @@ de:
         Die Verlosung endete am %{ended_at}.
 
         [Verlosung öffnen und Gewinner ziehen](%{topic_url})
+    uncollected_reminder:
+      title: "Erinnerung nicht abgeholte Pakete"
+      subject_template: "Erinnerung: %{uncollected_count} Paket(e) noch nicht als erhalten markiert"
+      text_body_template: |
+        Hallo %{username},
+
+        Deine Verlosung **%{topic_title}** wurde vor %{days_since_drawn} Tagen gezogen, aber einige Pakete wurden noch nicht als erhalten markiert.
+
+        ## Noch nicht als erhalten markierte Pakete
+
+        %{packet_list}
+
+        Bitte markiere diese Pakete als erhalten, sobald die Gewinner sie abgeholt haben.
+
+        [Verlosung öffnen](%{topic_url})

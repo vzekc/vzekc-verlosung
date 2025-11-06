@@ -58,3 +58,18 @@ en:
         The lottery ended on %{ended_at}.
 
         [Open lottery and draw winners](%{topic_url})
+    uncollected_reminder:
+      title: "Uncollected Packets Reminder"
+      subject_template: "Reminder: %{uncollected_count} packet(s) not yet marked as received"
+      text_body_template: |
+        Hello %{username},
+
+        Your lottery **%{topic_title}** was drawn %{days_since_drawn} days ago, but some packets have not been marked as received yet.
+
+        ## Packets Not Yet Marked as Received
+
+        %{packet_list}
+
+        Please mark these packets as received once the winners have collected them.
+
+        [Open lottery](%{topic_url})

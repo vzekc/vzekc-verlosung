@@ -40,6 +40,7 @@ after_initialize do
   Notification.types[:vzekc_verlosung_ticket_returned] = 814
   Notification.types[:vzekc_verlosung_did_not_win] = 815
   Notification.types[:vzekc_verlosung_ending_tomorrow] = 816
+  Notification.types[:vzekc_verlosung_uncollected_reminder] = 817
 
   # Extend Guardian with custom permissions
   Guardian.include(VzekcVerlosung::GuardianExtensions)
