@@ -13,6 +13,7 @@ VzekcVerlosung::Engine.routes.draw do
   post "/tickets" => "tickets#create"
   delete "/tickets/:post_id" => "tickets#destroy"
   get "/tickets/packet-status/:post_id" => "tickets#packet_status"
+  post "/packets/:post_id/mark-collected" => "tickets#mark_collected"
 end
 
 Discourse::Application.routes.draw { mount ::VzekcVerlosung::Engine, at: "vzekc-verlosung" }

@@ -119,7 +119,7 @@ module VzekcVerlosung
             end
           end
 
-          {
+          packet_data = {
             post_id: post.id,
             post_number: post.post_number,
             title: title,
@@ -127,6 +127,16 @@ module VzekcVerlosung
             winner: winner_obj || winner_username,
             users: users,
           }
+
+          # Only include collected_at for lottery owner or staff
+          if guardian.is_staff? || topic.user_id == current_user&.id
+            collected_at = post.custom_fields["packet_collected_at"]
+            if collected_at
+              packet_data[:collected_at] = collected_at.is_a?(String) ? Time.zone.parse(collected_at) : collected_at
+            end
+          end
+
+          packet_data
         end
 
       render json: { packets: packets }

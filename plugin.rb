@@ -61,6 +61,7 @@ after_initialize do
   register_post_custom_field_type("is_lottery_packet", :boolean)
   register_post_custom_field_type("is_lottery_intro", :boolean)
   register_post_custom_field_type("lottery_winner", :string)
+  register_post_custom_field_type("packet_collected_at", :datetime)
 
   # Register custom fields for lottery topics
   # lottery_state: "draft", "active", or "finished"
@@ -105,6 +106,22 @@ after_initialize do
   add_to_serializer(:post, :is_lottery_intro) { object.custom_fields["is_lottery_intro"] == true }
 
   add_to_serializer(:post, :lottery_winner) { object.custom_fields["lottery_winner"] }
+
+  # Only include collection timestamp for lottery owner
+  add_to_serializer(:post, :packet_collected_at) do
+    return nil unless object.custom_fields["is_lottery_packet"] == true
+
+    # Only show to lottery owner or staff
+    topic = object.topic
+    return nil unless topic && (scope.is_staff? || topic.user_id == scope.user&.id)
+
+    value = object.custom_fields["packet_collected_at"]
+    value.is_a?(String) ? Time.zone.parse(value) : value
+  end
+
+  add_to_serializer(:post, :include_packet_collected_at?) do
+    object.custom_fields["is_lottery_packet"] == true
+  end
 
   # Add custom fields to topic serializers (using helper methods)
   add_to_serializer(:topic_view, :lottery_state) { object.topic.lottery_state }
