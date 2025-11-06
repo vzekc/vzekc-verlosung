@@ -104,7 +104,16 @@ module VzekcVerlosung
       main_topic = context[:main_topic]
 
       params.packets.each_with_index do |packet_data, index|
-        packet_title = packet_data[:title] || packet_data["title"] || "Packet #{index + 1}"
+        packet_number = index + 1
+        user_title = packet_data[:title] || packet_data["title"]
+
+        # Always prefix with "Paket X: " followed by user's title
+        packet_title =
+          if user_title.present?
+            "Paket #{packet_number}: #{user_title}"
+          else
+            "Paket #{packet_number}"
+          end
 
         # Build the post content
         raw_content = "# #{packet_title}\n\n"
