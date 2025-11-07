@@ -44,11 +44,11 @@ Zusätzlich wird im Verlosungsbeitrag selbst angezeigt, wer welches Paket gewonn
 
 ### Paket abholen
 
-Als Gewinner kontaktierst du den Verlosungsersteller, um die Abholung zu vereinbaren. Die Details zur Übergabe findest du im Hauptbeitrag der Verlosung. Sobald du das Paket erhalten hast, markiert der Ersteller es als "Abgeholt".
+Als Gewinner kontaktierst du den Verlosungsersteller, um die Übergabe zu vereinbaren. Die Details zur Übergabe findest du im Hauptbeitrag der Verlosung. Sobald du das Paket erhalten hast, markiert der Ersteller es als "Erhalten".
 
 ### Erhaltungsbericht schreiben
 
-Nach der Abholung bist du verpflichtet, einen Erhaltungsbericht zu schreiben. Du erhältst regelmäßige Erinnerungen per persönlicher Nachricht, bis du den Bericht verfasst hast.
+Nachdem du das Paket erhalten hast, bist du verpflichtet, einen Erhaltungsbericht zu schreiben. Du erhältst regelmäßige Erinnerungen per persönlicher Nachricht, bis du den Bericht verfasst hast.
 
 **[Screenshot: "Erhaltungsbericht schreiben" Button am Paket]**
 
@@ -138,15 +138,15 @@ Beim Klick öffnet sich ein Modal, das die Pakete und deren Teilnehmer anzeigt. 
 
 Nach dem Klick werden die Gewinner automatisch ermittelt, gespeichert und die Seite lädt neu. Der gleiche Prozess mit denselben Eingabedaten führt immer zum gleichen Ergebnis – die Ziehung ist somit nachvollziehbar und manipulationssicher. Alle Gewinner erhalten automatisch eine persönliche Nachricht mit den Details.
 
-### Pakete als abgeholt markieren
+### Pakete als erhalten markieren
 
-Nachdem ein Gewinner sein Paket abgeholt oder per Post erhalten hat, solltest du das Paket als "Abgeholt" markieren. Am Paket-Beitrag erscheint ein Button "Als erhalten markieren".
+Nachdem ein Gewinner sein Paket abgeholt oder per Post erhalten hat, solltest du das Paket als "Erhalten" markieren. Am Paket-Beitrag erscheint ein Button "Als erhalten markieren".
 
 **[Screenshot: "Als erhalten markieren" Button]**
 
-Nach dem Markieren wird ein Abholdatum gespeichert und der Status des Pakets aktualisiert. Dies ist wichtig, da das System basierend auf diesem Datum Erinnerungen für den Erhaltungsbericht verschickt.
+Nach dem Markieren wird das Übergabedatum gespeichert und der Status des Pakets aktualisiert. Dies ist wichtig, da das System basierend auf diesem Datum Erinnerungen für den Erhaltungsbericht verschickt.
 
-**[Screenshot: Paket mit "Abgeholt am" Status]**
+**[Screenshot: Paket mit "Erhalten am" Status]**
 
 ### Erinnerungen
 
@@ -158,7 +158,7 @@ Als Verlosungsersteller erhältst du automatische Erinnerungen per persönlicher
 
 **Verlosung endet morgen**: Einmal pro Tag um die konfigurierte Uhrzeit, wenn die Verlosung am nächsten Tag endet.
 
-**Nicht abgeholte Pakete**: Wöchentlich (alle 7 Tage nach der Ziehung), solange Pakete noch nicht als abgeholt markiert wurden. Die Nachricht listet alle betroffenen Pakete auf.
+**Nicht erhaltene Pakete**: Wöchentlich (alle 7 Tage nach der Ziehung), solange Pakete noch nicht als erhalten markiert wurden. Die Nachricht listet alle betroffenen Pakete auf.
 
 Diese Erinnerungen helfen dir, den Verlosungsprozess zeitnah abzuschließen und sicherzustellen, dass alle Gewinner ihre Pakete erhalten.
 
@@ -182,7 +182,7 @@ Der Gewinner wird durch einen deterministischen Zufallsalgorithmus ermittelt, de
 Ja, das ist ausdrücklich erlaubt. Da der Ziehungsalgorithmus deterministisch ist und auf dem Startzeitpunkt sowie den Teilnehmernamen basiert, kann das Ergebnis nicht manipuliert werden – auch nicht durch den Ersteller selbst. Jeder Teilnehmer hat die gleiche faire Gewinnchance.
 
 **Was passiert, wenn ein Gewinner sein Paket nicht abholt?**
-Der Ersteller erhält wöchentliche Erinnerungen über nicht abgeholte Pakete. Nach einer angemessenen Frist kann entschieden werden, was mit dem Paket geschieht (erneute Verlosung, anderweitige Verwendung).
+Der Ersteller erhält wöchentliche Erinnerungen über nicht erhaltene Pakete. Nach einer angemessenen Frist kann entschieden werden, was mit dem Paket geschieht (erneute Verlosung, anderweitige Verwendung).
 
 **Muss ich wirklich einen Erhaltungsbericht schreiben?**
 Ja, der Erhaltungsbericht ist eine Vereinspflicht. Er dokumentiert, was aus den gespendeten Gegenständen wurde, und motiviert Spender, weitere Hardware zu spenden. Du erhältst wöchentliche Erinnerungen, bis du den Bericht verfasst hast.
