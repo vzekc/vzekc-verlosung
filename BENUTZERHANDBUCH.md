@@ -114,12 +114,10 @@ Beispiel: "Aus der Spende habe ich einen Commodore Amiga 1200 für mich behalten
 
 Beschreibe die Übergabemöglichkeiten mit konkreten Angaben:
 
-**Wo hast du abgeholt?** "Ich habe alle Systeme in [Stadt] abgeholt."
-
 **Abholung:** Gib eine konkrete Adresse mit Postleitzahl an, wo Gewinner die Pakete abholen können (z.B. "Die Pakete können in 50823 Köln-Ehrenfeld abgeholt werden"). Erwähne auch, ob du auf lokalen Treffen bist.
 
 **Versand:** Erkläre, ob Versand möglich ist:
-- Versandkosten trägt IMMER der Gewinner
+- Versandkosten und Versender (DHL/Hermes/DPD etc.)
 - Ob du Verpackungsmaterial hast oder der Gewinner welches zusenden kann
 - Ob schwere Systeme (Monitore, Desktop-Gehäuse) abgeholt werden sollten
 
@@ -127,8 +125,6 @@ Beschreibe die Übergabemöglichkeiten mit konkreten Angaben:
 - Versand: innerhalb von 1-2 Wochen nach Kontaktaufnahme
 - Abholung: innerhalb von 6-12 Wochen nach der Ziehung
 - Was passiert mit nicht abgeholten Paketen? (entweder: "kommen in eine neue Verlosung" oder "behalte ich")
-
-WICHTIG: Gib KEINE Frist für die Kontaktaufnahme an – Gewinner können sich in ihrem eigenen Tempo melden.
 
 **Paket-Beiträge bearbeiten:** Jedes Paket hat einen eigenen Beitrag. Bearbeite jeden Beitrag und füge eine detaillierte Beschreibung hinzu. Liste alle enthaltenen Gegenstände auf, beschreibe deren Zustand und füge aussagekräftige Fotos hinzu. Gute Fotos und genaue Beschreibungen erhöhen das Interesse der Teilnehmer.
 
