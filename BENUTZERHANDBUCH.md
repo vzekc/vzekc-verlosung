@@ -158,7 +158,7 @@ Nach dem Markieren wird ein Abholdatum gespeichert und der Status des Pakets akt
 
 **[Screenshot: Paket mit "Abgeholt am" Status]**
 
-### Erinnerungs-Benachrichtigungen
+### Erinnerungen
 
 Als Verlosungsersteller erhältst du automatische Erinnerungen per persönlicher Nachricht in folgenden Situationen:
 
