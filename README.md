@@ -49,18 +49,37 @@ bin/lint --fix \
 
 ### Creating Demo Lotteries
 
-**Quick Demo Setup** - Create 4 realistic lotteries with varied sources:
+**All-in-One Setup** (recommended) - Creates, populates, and publishes 4 lotteries:
 ```bash
-LOAD_PLUGINS=1 bundle exec rails runner plugins/vzekc-verlosung/script/create_demo_lotteries.rb <username>
+# Random owners from vereinsmitglied group
+LOAD_PLUGINS=1 bundle exec rails runner plugins/vzekc-verlosung/script/setup_full_demo.rb
+
+# Or specify owner for all lotteries
+LOAD_PLUGINS=1 bundle exec rails runner plugins/vzekc-verlosung/script/setup_full_demo.rb hans
 ```
 
-This creates four lotteries:
+This creates four complete lotteries:
 1. **Business Liquidation** - TechnoData GmbH CAD workstations (8 packets)
 2. **Private Collector** - Werner K. home computer collection (10 packets)
 3. **Estate/Inheritance** - Dr. Schmidt IBM PC history (11 packets)
 4. **School Donation** - Heinrich-Hertz-Gymnasium educational hardware (12 packets)
 
-Each includes realistic German descriptions, donation source details, and pickup/shipping info.
+Each includes:
+- Realistic German descriptions with donation source backstory
+- "Behaltene Systeme" section (what donor kept)
+- Pickup and shipping arrangements
+- Random participants with tickets
+- One packet per lottery with NO tickets (for testing)
+- Published and active state
+
+**Just Create (without participants)**:
+```bash
+# Random owners from vereinsmitglied group
+LOAD_PLUGINS=1 bundle exec rails runner plugins/vzekc-verlosung/script/create_demo_lotteries.rb
+
+# Or specify owner
+LOAD_PLUGINS=1 bundle exec rails runner plugins/vzekc-verlosung/script/create_demo_lotteries.rb hans
+```
 
 **Single Test Lottery**:
 ```bash
@@ -94,17 +113,13 @@ The drawing feature requires a lottery to have ended. To test this in developmen
 
 ### 1. Create and Publish a Lottery
 
-**Option A: Use demo script** (recommended):
+**Option A: Use all-in-one script** (recommended):
 ```bash
-# Create 4 realistic lotteries
-LOAD_PLUGINS=1 bundle exec rails runner plugins/vzekc-verlosung/script/create_demo_lotteries.rb hans
-
-# Add participants to first lottery (use topic ID from output)
-LOAD_PLUGINS=1 bundle exec rails runner plugins/vzekc-verlosung/script/test_lottery.rb add_participants <topic_id>
-
-# Publish it
-LOAD_PLUGINS=1 bundle exec rails runner plugins/vzekc-verlosung/script/test_lottery.rb publish <topic_id>
+# Create 4 complete lotteries (with participants, published)
+LOAD_PLUGINS=1 bundle exec rails runner plugins/vzekc-verlosung/script/setup_full_demo.rb
 ```
+
+This creates everything you need in one step. Each lottery has random participants and is already published.
 
 **Option B: Manual via UI**:
 1. Navigate to the lottery category
