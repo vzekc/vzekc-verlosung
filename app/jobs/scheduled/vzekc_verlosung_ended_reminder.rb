@@ -6,7 +6,6 @@ module Jobs
 
     def execute(args)
       return unless SiteSetting.vzekc_verlosung_enabled
-      return unless SiteSetting.vzekc_verlosung_ended_reminder_enabled
 
       # Only run at configured hour (server local time)
       return unless Time.zone.now.hour == (SiteSetting.vzekc_verlosung_reminder_hour || 7)
@@ -27,9 +26,24 @@ module Jobs
           user = topic.user
           next unless user
 
-          # Send reminder email
-          message = VzekcVerlosungMailer.ended_reminder(user, topic)
-          Email::Sender.new(message, :vzekc_verlosung_ended_reminder).send
+          # Send reminder PM
+          PostCreator.create!(
+            Discourse.system_user,
+            title: I18n.t("vzekc_verlosung.reminders.ended.title", locale: user.effective_locale),
+            raw:
+              I18n.t(
+                "vzekc_verlosung.reminders.ended.body",
+                locale: user.effective_locale,
+                username: user.username,
+                topic_title: topic.title,
+                ended_at: topic.lottery_ends_at.strftime("%d.%m.%Y"),
+                topic_url: "#{Discourse.base_url}#{topic.relative_url}",
+              ),
+            archetype: Archetype.private_message,
+            subtype: TopicSubtype.system_message,
+            target_usernames: user.username,
+            skip_validations: true,
+          )
         end
     end
   end

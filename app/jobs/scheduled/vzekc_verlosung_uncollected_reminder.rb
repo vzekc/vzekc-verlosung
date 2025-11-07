@@ -64,22 +64,36 @@ module Jobs
       owner = User.find_by(id: topic.user_id)
       return unless owner
 
-      # Format packet list for email
+      # Format packet list for PM body
       packet_list =
         uncollected_packets
           .map { |p| "- #{p[:title]} (Winner: #{p[:winner]})" }
           .join("\n")
 
-      # Send email notification
-      VzekcVerlosungMailer
-        .uncollected_reminder(
-          owner,
-          topic,
-          uncollected_packets.count,
-          days_since_drawn,
-          packet_list,
-        )
-        .deliver_now
+      # Send reminder PM
+      PostCreator.create!(
+        Discourse.system_user,
+        title:
+          I18n.t(
+            "vzekc_verlosung.reminders.uncollected.title",
+            locale: owner.effective_locale,
+            uncollected_count: uncollected_packets.count,
+          ),
+        raw:
+          I18n.t(
+            "vzekc_verlosung.reminders.uncollected.body",
+            locale: owner.effective_locale,
+            username: owner.username,
+            topic_title: topic.title,
+            days_since_drawn: days_since_drawn,
+            packet_list: packet_list,
+            topic_url: "#{Discourse.base_url}#{topic.relative_url}",
+          ),
+        archetype: Archetype.private_message,
+        subtype: TopicSubtype.system_message,
+        target_usernames: owner.username,
+        skip_validations: true,
+      )
     end
 
     def extract_title_from_markdown(raw)

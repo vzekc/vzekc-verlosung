@@ -5,16 +5,68 @@ en:
     vzekc_verlosung_erhaltungsberichte_category_id: "Category for Erhaltungsberichte (reception reports)"
     vzekc_verlosung_description_template: "Default template for lottery description (users can edit after creation)"
     vzekc_verlosung_erhaltungsbericht_template: "Template for Erhaltungsbericht posts (use [LOTTERY_TITLE] and [PACKET_LINK] as placeholders)"
-    vzekc_verlosung_reminder_hour: "Hour of day (0-23) in server local time when reminder notifications and emails are sent"
-    vzekc_verlosung_draft_reminder_enabled: "Send daily reminder emails for draft lotteries"
-    vzekc_verlosung_ended_reminder_enabled: "Send daily reminder emails for ended lotteries awaiting drawing"
-    vzekc_verlosung_ending_tomorrow_reminder_enabled: "Send daily reminder notifications for lotteries ending tomorrow"
+    vzekc_verlosung_reminder_hour: "Hour of day (0-23) in server local time when reminder notifications are sent"
   vzekc_verlosung:
     notifications:
       lottery_published: "The lottery '%{topic_title}' has been published and is now active"
       lottery_drawn: "Winners have been drawn for the lottery '%{topic_title}'"
       lottery_won: "Congratulations! You won '%{packet_title}' in the lottery '%{topic_title}'"
       lottery_ending_tomorrow: "The lottery '%{topic_title}' ends tomorrow"
+    reminders:
+      draft:
+        title: "You have an unpublished lottery"
+        body: |
+          Hello %{username},
+
+          You have an unpublished lottery: **%{topic_title}**
+
+          The lottery was created on %{created_at} and is waiting to be published.
+
+          [Open lottery](%{topic_url})
+      ended:
+        title: "Please draw the winners for your lottery"
+        body: |
+          Hello %{username},
+
+          Your lottery **%{topic_title}** has ended and is waiting for the winners to be drawn.
+
+          The lottery ended on %{ended_at}.
+
+          [Open lottery and draw winners](%{topic_url})
+      ending_tomorrow:
+        title: "Your lottery ends tomorrow"
+        body: |
+          Hello %{username},
+
+          Your lottery **%{topic_title}** ends tomorrow on %{ending_at}.
+
+          [Open lottery](%{topic_url})
+      uncollected:
+        title: "Reminder: %{uncollected_count} packet(s) not yet marked as received"
+        body: |
+          Hello %{username},
+
+          Your lottery **%{topic_title}** was drawn %{days_since_drawn} days ago, but some packets have not been marked as received yet.
+
+          ## Packets Not Yet Marked as Received
+
+          %{packet_list}
+
+          Please mark these packets as received once the winners have collected them.
+
+          [Open lottery](%{topic_url})
+      erhaltungsbericht:
+        title: "Please write a reception report for '%{packet_title}'"
+        body: |
+          Hello %{username},
+
+          You received the packet **%{packet_title}** from the lottery **%{lottery_title}** %{days_since_collected} days ago.
+
+          As a winner, you are expected to write a reception report (Erhaltungsbericht) describing what you received.
+
+          Please click the "Write Reception Report" button on the packet post to create your report.
+
+          [Open packet post](%{packet_url})
     winner_message:
       title: "Congratulations! You won in the lottery: %{topic_title}"
       body: |
@@ -37,54 +89,3 @@ en:
         ---
 
         [View the full lottery post](%{topic_url})
-  vzekc_verlosung_mailer:
-    draft_reminder:
-      title: "Draft Lottery Reminder"
-      subject_template: "You have an unpublished lottery"
-      text_body_template: |
-        Hello %{username},
-
-        You have an unpublished lottery: **%{topic_title}**
-
-        The lottery was created on %{created_at} and is waiting to be published.
-
-        [Open lottery](%{topic_url})
-    ended_reminder:
-      title: "Ended Lottery Reminder"
-      subject_template: "Please draw the winners for your lottery"
-      text_body_template: |
-        Hello %{username},
-
-        Your lottery **%{topic_title}** has ended and is waiting for the winners to be drawn.
-
-        The lottery ended on %{ended_at}.
-
-        [Open lottery and draw winners](%{topic_url})
-    uncollected_reminder:
-      title: "Uncollected Packets Reminder"
-      subject_template: "Reminder: %{uncollected_count} packet(s) not yet marked as received"
-      text_body_template: |
-        Hello %{username},
-
-        Your lottery **%{topic_title}** was drawn %{days_since_drawn} days ago, but some packets have not been marked as received yet.
-
-        ## Packets Not Yet Marked as Received
-
-        %{packet_list}
-
-        Please mark these packets as received once the winners have collected them.
-
-        [Open lottery](%{topic_url})
-    erhaltungsbericht_reminder:
-      title: "Reception Report Reminder"
-      subject_template: "Please write a reception report for '%{packet_title}'"
-      text_body_template: |
-        Hello %{username},
-
-        You received the packet **%{packet_title}** from the lottery **%{lottery_title}** %{days_since_collected} days ago.
-
-        As a winner, you are expected to write a reception report (Erhaltungsbericht) describing what you received.
-
-        Please click the "Write Reception Report" button on the packet post to create your report.
-
-        [Open packet post](%{packet_url})

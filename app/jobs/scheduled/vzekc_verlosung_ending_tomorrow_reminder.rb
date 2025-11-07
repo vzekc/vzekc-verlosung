@@ -6,7 +6,6 @@ module Jobs
 
     def execute(args)
       return unless SiteSetting.vzekc_verlosung_enabled
-      return unless SiteSetting.vzekc_verlosung_ending_tomorrow_reminder_enabled
 
       # Only run at configured hour (server local time)
       return unless Time.zone.now.hour == (SiteSetting.vzekc_verlosung_reminder_hour || 7)
@@ -30,16 +29,24 @@ module Jobs
           user = topic.user
           next unless user
 
-          # Send notification to lottery creator
-          Notification.create!(
-            notification_type: Notification.types[:vzekc_verlosung_ending_tomorrow],
-            user_id: user.id,
-            topic_id: topic.id,
-            post_number: 1,
-            data: {
-              topic_title: topic.title,
-              message: "vzekc_verlosung.notifications.lottery_ending_tomorrow",
-            }.to_json,
+          # Send reminder PM to lottery creator
+          PostCreator.create!(
+            Discourse.system_user,
+            title:
+              I18n.t("vzekc_verlosung.reminders.ending_tomorrow.title", locale: user.effective_locale),
+            raw:
+              I18n.t(
+                "vzekc_verlosung.reminders.ending_tomorrow.body",
+                locale: user.effective_locale,
+                username: user.username,
+                topic_title: topic.title,
+                ending_at: topic.lottery_ends_at.strftime("%d.%m.%Y"),
+                topic_url: "#{Discourse.base_url}#{topic.relative_url}",
+              ),
+            archetype: Archetype.private_message,
+            subtype: TopicSubtype.system_message,
+            target_usernames: user.username,
+            skip_validations: true,
           )
         end
     end

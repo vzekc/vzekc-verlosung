@@ -13,11 +13,6 @@ SiteSetting.vzekc_verlosung_reminder_hour = current_hour
 
 puts "Settings:"
 puts "  Plugin enabled: #{SiteSetting.vzekc_verlosung_enabled}"
-puts "  Draft reminders enabled: #{SiteSetting.vzekc_verlosung_draft_reminder_enabled}"
-puts "  Ended reminders enabled: #{SiteSetting.vzekc_verlosung_ended_reminder_enabled}"
-puts "  Ending tomorrow reminders enabled: #{SiteSetting.vzekc_verlosung_ending_tomorrow_reminder_enabled}"
-puts "  Uncollected reminders enabled: #{SiteSetting.respond_to?(:vzekc_verlosung_uncollected_reminder_enabled) ? SiteSetting.vzekc_verlosung_uncollected_reminder_enabled : 'N/A (setting not found)'}"
-puts "  Erhaltungsbericht reminders enabled: #{SiteSetting.respond_to?(:vzekc_verlosung_erhaltungsbericht_reminder_enabled) ? SiteSetting.vzekc_verlosung_erhaltungsbericht_reminder_enabled : 'N/A (setting not found)'}"
 puts "  Reminder hour: #{SiteSetting.vzekc_verlosung_reminder_hour} (set to current hour: #{current_hour})"
 puts "  Lottery category: #{SiteSetting.vzekc_verlosung_category_id}"
 puts ""
@@ -397,7 +392,53 @@ rescue StandardError => e
 end
 puts ""
 
-puts "=== Summary ==="
+puts "=== Checking Created PMs ==="
+puts ""
+
+# Count PMs created for each user
+system_user = Discourse.system_user
+
+draft_pms = Topic.where(
+  archetype: Archetype.private_message,
+  user_id: system_user.id
+).joins(:topic_allowed_users).where(topic_allowed_users: { user_id: draft_user.id }).count
+
+ended_pms = Topic.where(
+  archetype: Archetype.private_message,
+  user_id: system_user.id
+).joins(:topic_allowed_users).where(topic_allowed_users: { user_id: ended_user.id }).count
+
+tomorrow_pms = Topic.where(
+  archetype: Archetype.private_message,
+  user_id: system_user.id
+).joins(:topic_allowed_users).where(topic_allowed_users: { user_id: tomorrow_user.id }).count
+
+uncollected_pms = Topic.where(
+  archetype: Archetype.private_message,
+  user_id: system_user.id
+).joins(:topic_allowed_users).where(topic_allowed_users: { user_id: uncollected_user.id }).count
+
+erb_pms = Topic.where(
+  archetype: Archetype.private_message,
+  user_id: system_user.id
+).joins(:topic_allowed_users).where(topic_allowed_users: { user_id: erb_winner.id }).count
+
+puts "PMs created:"
+puts "  1. Draft reminder PM → #{draft_user.username}: #{draft_pms} PM(s)"
+puts "  2. Ended reminder PM → #{ended_user.username}: #{ended_pms} PM(s)"
+puts "  3. Ending tomorrow PM → #{tomorrow_user.username}: #{tomorrow_pms} PM(s)"
+puts "  4. Uncollected reminder PM → #{uncollected_user.username}: #{uncollected_pms} PM(s)"
+puts "  5. Erhaltungsbericht reminder PM → #{erb_winner.username}: #{erb_pms} PM(s)"
+puts ""
+
+total_expected = 5
+total_created = draft_pms + ended_pms + tomorrow_pms + uncollected_pms + erb_pms
+
+if total_created >= total_expected
+  puts "✓ SUCCESS: All #{total_expected} reminder PMs were created!"
+else
+  puts "✗ WARNING: Expected #{total_expected} PMs, but only #{total_created} were created"
+end
 puts ""
 
 # Restore original reminder hour
@@ -407,23 +448,15 @@ puts ""
 
 puts "All reminder jobs have been executed!"
 puts ""
-puts "Check emails at:"
-puts "  1. MailHog UI: http://localhost:8025"
-puts "  2. Discourse Admin: http://127.0.0.1:4200/admin/email/sent"
-puts ""
-puts "Expected emails/notifications:"
-puts "  1. Draft reminder EMAIL → #{draft_user.email}"
-puts "  2. Ended reminder EMAIL → #{ended_user.email}"
-puts "  3. Ending tomorrow NOTIFICATION (not email) → #{tomorrow_user.username}"
-puts "  4. Uncollected reminder EMAIL → #{uncollected_user.email}"
-puts "  5. Erhaltungsbericht reminder EMAIL → #{erb_winner.email}"
-puts ""
-puts "Check notifications for user '#{tomorrow_user.username}' in Discourse UI"
+puts "How to verify:"
+puts "  1. Log in as each user and check their Messages inbox"
+puts "  2. PMs will automatically trigger email notifications (check MailHog or email)"
+puts "  3. Check Discourse Admin: http://127.0.0.1:4200/admin/email/sent"
 puts ""
 puts "Note: Reminder conditions:"
 puts "  - Draft: Any draft lottery found ✓"
 puts "  - Ended: Active lottery that has ended but not drawn ✓"
-puts "  - Ending tomorrow: Creates NOTIFICATION (not email) ✓"
-puts "  - Uncollected: Won packet, days since drawn = multiple of 7 (28 days)"
-puts "  - Erhaltungsbericht: Collected packet, days since collected = multiple of 7 (56 days)"
+puts "  - Ending tomorrow: Active lottery ending tomorrow ✓"
+puts "  - Uncollected: Won packet, days since drawn = multiple of 7 (28 days) ✓"
+puts "  - Erhaltungsbericht: Collected packet, days since collected = multiple of 7 (56 days) ✓"
 puts ""

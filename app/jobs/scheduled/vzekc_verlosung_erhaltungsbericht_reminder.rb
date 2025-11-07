@@ -58,14 +58,33 @@ module Jobs
     def send_erhaltungsbericht_reminder(user, lottery_topic, packet_post, days_since_collected)
       packet_title =
         extract_title_from_markdown(packet_post.raw) || "Paket ##{packet_post.post_number}"
+      packet_url =
+        "#{Discourse.base_url}/t/#{lottery_topic.slug}/#{lottery_topic.id}/#{packet_post.post_number}"
 
-      VzekcVerlosungMailer.erhaltungsbericht_reminder(
-        user,
-        lottery_topic,
-        packet_post,
-        packet_title,
-        days_since_collected,
-      ).deliver_now
+      # Send reminder PM
+      PostCreator.create!(
+        Discourse.system_user,
+        title:
+          I18n.t(
+            "vzekc_verlosung.reminders.erhaltungsbericht.title",
+            locale: user.effective_locale,
+            packet_title: packet_title,
+          ),
+        raw:
+          I18n.t(
+            "vzekc_verlosung.reminders.erhaltungsbericht.body",
+            locale: user.effective_locale,
+            username: user.username,
+            lottery_title: lottery_topic.title,
+            packet_title: packet_title,
+            days_since_collected: days_since_collected,
+            packet_url: packet_url,
+          ),
+        archetype: Archetype.private_message,
+        subtype: TopicSubtype.system_message,
+        target_usernames: user.username,
+        skip_validations: true,
+      )
     end
 
     def extract_title_from_markdown(raw)
