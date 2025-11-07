@@ -22,6 +22,20 @@ puts "  Reminder hour: #{SiteSetting.vzekc_verlosung_reminder_hour} (set to curr
 puts "  Lottery category: #{SiteSetting.vzekc_verlosung_category_id}"
 puts ""
 
+# Clean up old test lotteries first
+puts "=== Cleaning Up Old Test Lotteries ==="
+old_test_topics = Topic.where("title LIKE ?", "TEST %")
+if old_test_topics.any?
+  puts "Found #{old_test_topics.count} old test lotteries, deleting..."
+  old_test_topics.each do |topic|
+    topic.trash!(User.admins.first)
+  end
+  puts "  ✓ Cleaned up old test data"
+else
+  puts "  No old test lotteries found"
+end
+puts ""
+
 # Get users for testing
 puts "=== Getting Test Users ==="
 group = Group.find_by(name: "vereinsmitglieder")
@@ -204,14 +218,32 @@ if uncollected_result.success?
   packet_posts = uncollected_topic.posts.where.not(post_number: 1)
   if packet_posts.any?
     packet_post = packet_posts.first
+    packet_title = "Uncollected Packet"
+
     VzekcVerlosung::LotteryTicket.create!(
       post_id: packet_post.id,
       user_id: winner_user.id
     )
 
+    # Generate lottery results using JavascriptLotteryDrawer
+    drawing_data = {
+      "title" => uncollected_topic.title,
+      "timestamp" => (28.days.ago - 2.weeks).iso8601,  # Timestamp before drawing
+      "packets" => [
+        {
+          "id" => packet_post.id,
+          "title" => packet_title,
+          "participants" => [{ "name" => winner_user.username, "tickets" => 1 }]
+        }
+      ]
+    }
+
+    results = VzekcVerlosung::JavascriptLotteryDrawer.draw(drawing_data)
+
     # Draw lottery and assign winner - use 28 days (multiple of 7)
     uncollected_topic.custom_fields["lottery_state"] = "finished"
     uncollected_topic.custom_fields["lottery_drawn_at"] = 28.days.ago
+    uncollected_topic.custom_fields["lottery_results"] = results
     uncollected_topic.save_custom_fields
 
     packet_post.custom_fields["lottery_winner"] = winner_user.username
@@ -220,6 +252,7 @@ if uncollected_result.success?
 
     puts "  ✓ Created uncollected packet lottery: #{uncollected_topic.title} (id: #{uncollected_topic.id})"
     puts "    Winner: #{winner_user.username}, Won: 28 days ago (multiple of 7), Not collected"
+    puts "    Lottery results: #{results.present? ? 'Set' : 'Missing'}"
   end
 else
   puts "  ✗ Failed to create uncollected lottery: #{uncollected_result.inspect}"
@@ -257,14 +290,32 @@ if erb_result.success?
   packet_posts = erb_topic.posts.where.not(post_number: 1)
   if packet_posts.any?
     packet_post = packet_posts.first
+    packet_title = "Collected Packet"
+
     VzekcVerlosung::LotteryTicket.create!(
       post_id: packet_post.id,
       user_id: erb_winner.id
     )
 
+    # Generate lottery results using JavascriptLotteryDrawer
+    drawing_data = {
+      "title" => erb_topic.title,
+      "timestamp" => (84.days.ago - 2.weeks).iso8601,  # Timestamp before drawing
+      "packets" => [
+        {
+          "id" => packet_post.id,
+          "title" => packet_title,
+          "participants" => [{ "name" => erb_winner.username, "tickets" => 1 }]
+        }
+      ]
+    }
+
+    results = VzekcVerlosung::JavascriptLotteryDrawer.draw(drawing_data)
+
     # Draw lottery and assign winner
     erb_topic.custom_fields["lottery_state"] = "finished"
     erb_topic.custom_fields["lottery_drawn_at"] = 84.days.ago
+    erb_topic.custom_fields["lottery_results"] = results
     erb_topic.save_custom_fields
 
     # Use 56 days (multiple of 7) for collection date
@@ -275,6 +326,7 @@ if erb_result.success?
 
     puts "  ✓ Created Erhaltungsbericht reminder lottery: #{erb_topic.title} (id: #{erb_topic.id})"
     puts "    Winner: #{erb_winner.username}, Collected: 56 days ago (multiple of 7), No Erhaltungsbericht"
+    puts "    Lottery results: #{results.present? ? 'Set' : 'Missing'}"
   end
 else
   puts "  ✗ Failed to create Erhaltungsbericht lottery: #{erb_result.inspect}"
@@ -319,6 +371,9 @@ puts ""
 
 # 4. Uncollected Reminder
 puts "4. Running Uncollected Reminder Job..."
+puts "   Checking for finished lotteries with uncollected packets..."
+finished_count = Topic.where(deleted_at: nil).joins(:_custom_fields).where(topic_custom_fields: { name: "lottery_state", value: "finished" }).count
+puts "   Found #{finished_count} finished lotteries"
 begin
   Jobs::VzekcVerlosungUncollectedReminder.new.execute({})
   puts "   ✓ Uncollected reminder job completed"
@@ -330,6 +385,9 @@ puts ""
 
 # 5. Erhaltungsbericht Reminder
 puts "5. Running Erhaltungsbericht Reminder Job..."
+puts "   Checking for finished lotteries..."
+erhaltungsberichte_cat_id = SiteSetting.vzekc_verlosung_erhaltungsberichte_category_id
+puts "   Erhaltungsberichte category ID: #{erhaltungsberichte_cat_id.blank? ? 'NOT SET' : erhaltungsberichte_cat_id}"
 begin
   Jobs::VzekcVerlosungErhaltungsberichtReminder.new.execute({})
   puts "   ✓ Erhaltungsbericht reminder job completed"
@@ -353,17 +411,19 @@ puts "Check emails at:"
 puts "  1. MailHog UI: http://localhost:8025"
 puts "  2. Discourse Admin: http://127.0.0.1:4200/admin/email/sent"
 puts ""
-puts "Expected emails:"
-puts "  1. Draft reminder → #{draft_user.email}"
-puts "  2. Ended reminder → #{ended_user.email}"
-puts "  3. Ending tomorrow reminder → #{buyer&.email || 'N/A'}"
-puts "  4. Uncollected reminder → #{winner_user.email}"
-puts "  5. Erhaltungsbericht reminder → #{erb_winner.email}"
+puts "Expected emails/notifications:"
+puts "  1. Draft reminder EMAIL → #{draft_user.email}"
+puts "  2. Ended reminder EMAIL → #{ended_user.email}"
+puts "  3. Ending tomorrow NOTIFICATION (not email) → #{tomorrow_user.username}"
+puts "  4. Uncollected reminder EMAIL → #{uncollected_user.email}"
+puts "  5. Erhaltungsbericht reminder EMAIL → #{erb_winner.email}"
 puts ""
-puts "Note: Reminder jobs only send emails if all conditions are met:"
-puts "  - Draft: Any draft lottery found"
-puts "  - Ended: Active lottery that has ended but not drawn"
-puts "  - Ending tomorrow: Active lottery ending in ~24 hours"
-puts "  - Uncollected: Won packet, days since drawn = multiple of 7 (7, 14, 21, 28...)"
-puts "  - Erhaltungsbericht: Collected packet, days since collected = multiple of 7 (7, 14, 21, 56...)"
+puts "Check notifications for user '#{tomorrow_user.username}' in Discourse UI"
+puts ""
+puts "Note: Reminder conditions:"
+puts "  - Draft: Any draft lottery found ✓"
+puts "  - Ended: Active lottery that has ended but not drawn ✓"
+puts "  - Ending tomorrow: Creates NOTIFICATION (not email) ✓"
+puts "  - Uncollected: Won packet, days since drawn = multiple of 7 (28 days)"
+puts "  - Erhaltungsbericht: Collected packet, days since collected = multiple of 7 (56 days)"
 puts ""
