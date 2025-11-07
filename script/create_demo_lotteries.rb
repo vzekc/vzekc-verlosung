@@ -73,9 +73,9 @@ description1 = <<~DESC
 
   ## Übergabe der Pakete
 
-  Ich habe alle Systeme bereits in Köln abgeholt und bei mir zu Hause.
+  Ich habe alle Systeme in Köln abgeholt.
 
-  **Abholung:** Die Pakete können in Köln-Ehrenfeld bei mir abgeholt werden (nach Terminvereinbarung). Ich bin auch regelmäßig bei den Classic Computing Treffen in Düsseldorf und Bonn – dort können Pakete ebenfalls übergeben werden.
+  **Abholung:** Die Pakete können in 50823 Köln-Ehrenfeld abgeholt werden (nach Terminvereinbarung). Ich bin auch regelmäßig bei den Classic Computing Treffen in Düsseldorf und Bonn – dort können Pakete ebenfalls übergeben werden.
 
   **Versand:** Versand ist grundsätzlich möglich:
   - Versandkosten trägt der Gewinner
@@ -97,14 +97,14 @@ result1 =
       duration_days: 14,
       category_id: category_id.to_i,
       packets: [
-        { title: "IBM ThinkPad 600 mit Docking Station" },
-        { title: "Compaq Deskpro EN mit 21\" CRT Monitor" },
-        { title: "Sun Ultra 5 Workstation" },
-        { title: "HP LaserJet 4 Plus Drucker" },
-        { title: "3Com SuperStack Hub und Netzwerkkarten" },
-        { title: "Iomega Zip 250 extern mit Disketten" },
-        { title: "APC Back-UPS Pro 650" },
-        { title: "Logitech Trackballs und Mäuse Sammlung" },
+        { title: "Sun Ultra 10 Creator3D Workstation" },
+        { title: "HP Visualize C3000 Workstation mit 21\" Monitor" },
+        { title: "Silicon Graphics O2 Workstation" },
+        { title: "Intergraph TDZ-2000 GL1 Workstation" },
+        { title: "HP DesignJet 350C Plotter (A1)" },
+        { title: "3Dconnexion SpaceMouse und Grafiktablett Bundle" },
+        { title: "21\" und 24\" CRT Monitore (Sony GDM, NEC MultiSync)" },
+        { title: "SCSI-Festplatten und DAT-Tape Backup System" },
       ],
     },
   )
@@ -139,9 +139,9 @@ description2 = <<~DESC
 
   ## Übergabe der Pakete
 
-  Ich habe alle Systeme bereits bei Werner in Hannover abgeholt und bei mir zu Hause.
+  Ich habe alle Systeme bei Werner in Hannover abgeholt.
 
-  **Abholung:** Die Pakete können bei mir in Stuttgart abgeholt werden (nach Terminvereinbarung).
+  **Abholung:** Die Pakete können in 70173 Stuttgart (Stuttgart-Mitte) abgeholt werden (nach Terminvereinbarung).
 
   **Versand:** Versand ist möglich und wird bevorzugt:
   - Versandkosten trägt der Gewinner
@@ -205,9 +205,9 @@ description3 = <<~DESC
 
   ## Übergabe der Pakete
 
-  Ich habe alle Systeme bereits bei der Familie in Darmstadt abgeholt und bei mir in Frankfurt.
+  Ich habe alle Systeme bei der Familie in Darmstadt abgeholt.
 
-  **Abholung:** Die Pakete können bei mir in Frankfurt am Main abgeholt werden (nach Terminvereinbarung). Ich bin auch oft auf dem Rhein-Main Classic Computing Stammtisch.
+  **Abholung:** Die Pakete können in 60311 Frankfurt am Main (Innenstadt) abgeholt werden (nach Terminvereinbarung). Ich bin auch oft auf dem Rhein-Main Classic Computing Stammtisch.
 
   **Versand:** Versand wird bevorzugt:
   - Versandkosten trägt der Gewinner
@@ -273,9 +273,9 @@ description4 = <<~DESC
 
   ## Übergabe der Pakete
 
-  Ich habe alle Systeme bereits am Gymnasium abgeholt und bei mir zu Hause.
+  Ich habe alle Systeme am Gymnasium abgeholt.
 
-  **Abholung:** Die Pakete können bei mir in München-Laim abgeholt werden. Ich kann flexible Termine anbieten, auch abends und am Wochenende.
+  **Abholung:** Die Pakete können in 80687 München-Laim abgeholt werden. Ich kann flexible Termine anbieten, auch abends und am Wochenende.
 
   **Versand:** Versand ist möglich:
   - Versandkosten trägt der Gewinner
