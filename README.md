@@ -4,7 +4,7 @@ A Discourse plugin for creating and managing lotteries with ticket-based partici
 
 ## Features
 
-- **Lottery Creation**: Multi-step wizard for creating lotteries with multiple packets
+- **Lottery Creation**: Single-step modal for creating lotteries with multiple packets
 - **Ticket System**: Users can buy tickets for individual packets
 - **Draft Mode**: Create lotteries as drafts before publishing
 - **Time-Based State Management**: Automatic state transitions (draft → active → finished)
@@ -142,7 +142,7 @@ This ensures:
 - `VzekcVerlosung::GuardianExtensions` - Permission checks
 
 **Frontend**:
-- `CreateLotteryModal` - Multi-step lottery creation wizard
+- `CreateLotteryModal` - Single-step lottery creation modal
 - `DrawLotteryModal` - Drawing interface
 - `LotteryIntroSummary` - Status display and actions
 - `LotteryWidget` - Ticket buying interface

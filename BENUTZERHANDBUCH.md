@@ -26,7 +26,7 @@ Um an einer Verlosung teilzunehmen, scrollst du zum gewünschten Paket im Beitra
 
 **[Screenshot: Paket-Beitrag mit "Los kaufen" Button]**
 
-Unter jedem Paket findest du einen "Los kaufen" Button sowie die aktuelle Anzahl der verkauften Lose. Du kannst pro Paket genau ein Los kaufen. Die Teilnehmerliste zeigt alle Nutzer, die für dieses Paket ein Los gekauft haben.
+Unter jedem Paket findest du einen "Los kaufen" Button sowie die aktuelle Anzahl der verkauften Lose. Du kannst pro Paket genau ein Los kaufen. Die Teilnehmerliste zeigt alle Nutzer, die für dieses Paket ein Los gekauft haben. Diese Liste ist für alle Mitglieder sichtbar.
 
 **[Screenshot: Teilnehmerliste unter einem Paket]**
 
@@ -71,33 +71,19 @@ Um eine neue Verlosung zu erstellen, klickst du auf den "Neue Verlosung" Button,
 
 **[Screenshot: "Neue Verlosung" Button]**
 
-Ein mehrstufiger Assistent führt dich durch den Erstellungsprozess. Der Assistent erstellt die Grundstruktur der Verlosung im Entwurfsmodus. Anschließend fügst du durch Bearbeiten der einzelnen Beiträge die detaillierten Beschreibungen und Fotos hinzu. Erst wenn alle Details eingegeben sind, veröffentlichst du die Verlosung und machst sie dadurch für alle Mitglieder sichtbar.
+Es öffnet sich ein Formular, in dem du die Grunddaten für die Verlosung eingibst. Das Formular erstellt die Grundstruktur der Verlosung im Entwurfsmodus. Anschließend fügst du durch Bearbeiten der einzelnen Beiträge die detaillierten Beschreibungen und Fotos hinzu. Erst wenn alle Details eingegeben sind, veröffentlichst du die Verlosung und machst sie dadurch für alle Mitglieder sichtbar.
 
-#### Schritt 1: Grundlegende Informationen
+**[Screenshot: Verlosungs-Erstellungsformular]**
 
-**[Screenshot: Verlosungs-Assistent Schritt 1]**
+Im Formular gibst du folgende Informationen ein:
 
-Gib einen aussagekräftigen Titel für die Verlosung ein (z.B. "Spende von Mitglied XY – Retro-Computer und Zubehör"). Wähle die Kategorie und lege die Laufzeit fest. Die Standardlaufzeit beträgt 14 Tage und sollte nur aus wichtigem Grund geändert werden (möglich sind 7-28 Tage).
+**Titel:** Gib einen aussagekräftigen Titel für die Verlosung ein (z.B. "Spende von Mitglied XY – Retro-Computer und Zubehör").
 
-Die Beschreibung sollte enthalten:
-- Woher die Spende stammt
-- Eine allgemeine Beschreibung der Gegenstände
-- Welche Systeme du für dich behalten hast (falls zutreffend)
-- Informationen zur Übergabe (Abholung, Versand, Fristen)
+**Laufzeit:** Lege die Laufzeit fest. Die Standardlaufzeit beträgt 14 Tage und sollte nur aus wichtigem Grund geändert werden (möglich sind 7-28 Tage).
 
-Eine Vorlage für die Beschreibung wird automatisch eingefügt und kann nach Belieben angepasst werden.
+**Pakete:** Füge die einzelnen Pakete hinzu, die verlost werden sollen. Gib für jedes Paket einen aussagekräftigen Titel ein (z.B. "Amiga 500 mit Zubehör" oder "Commodore 64 Bundle"). Du kannst beliebig viele Pakete hinzufügen oder auch welche wieder entfernen.
 
-#### Schritt 2: Pakete definieren
-
-**[Screenshot: Verlosungs-Assistent Schritt 2 - Pakete]**
-
-Füge die einzelnen Pakete hinzu, die verlost werden sollen. Gib für jedes Paket einen aussagekräftigen Titel ein (z.B. "Amiga 500 mit Zubehör" oder "Commodore 64 Bundle"). Du kannst beliebig viele Pakete hinzufügen oder auch welche wieder entfernen, bevor du fortfährst.
-
-#### Schritt 3: Überprüfung und Erstellung
-
-**[Screenshot: Verlosungs-Assistent Schritt 3 - Überprüfung]**
-
-Überprüfe alle eingegebenen Daten. Wenn alles korrekt ist, klicke auf "Verlosung erstellen". Die Verlosung wird als Entwurf angelegt und es werden automatisch Beiträge für die Einleitung und jedes Paket erstellt.
+Wenn alles eingetragen ist, klicke auf "Verlosung erstellen". Die Verlosung wird als Entwurf angelegt und es werden automatisch Beiträge für die Einleitung und jedes Paket erstellt.
 
 ### Details hinzufügen
 
@@ -192,7 +178,7 @@ Der Ersteller erhält wöchentliche Erinnerungen über nicht erhaltene Pakete. N
 Ja, der Erhaltungsbericht ist eine Vereinspflicht. Er dokumentiert, was aus den gespendeten Gegenständen wurde, und motiviert Spender, weitere Hardware zu spenden. Du erhältst wöchentliche Erinnerungen, bis du den Bericht verfasst hast.
 
 **Kann ich eine Verlosung nach der Veröffentlichung noch ändern?**
-Du kannst die Beschreibungen der Beiträge weiterhin bearbeiten, aber keine Pakete mehr hinzufügen oder entfernen. Füge daher alle Pakete bereits beim Erstellen im Assistenten hinzu.
+Du kannst die Beschreibungen der Beiträge weiterhin bearbeiten, aber keine Pakete mehr hinzufügen oder entfernen. Füge daher alle Pakete bereits beim Erstellen hinzu.
 
 **Wie lange läuft eine Verlosung?**
 Die Standardlaufzeit beträgt 14 Tage und sollte nur aus wichtigem Grund geändert werden. Möglich sind Laufzeiten zwischen 7 und 28 Tagen. Die Verlosung endet automatisch zum festgelegten Zeitpunkt.
