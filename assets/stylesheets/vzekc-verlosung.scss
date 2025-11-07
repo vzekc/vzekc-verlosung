@@ -665,39 +665,38 @@
 }
 
 // Erhaltungsbericht packet notice (shown on Erhaltungsbericht topics)
-.erhaltungsbericht-packet-notice {
-  margin-bottom: 1.5em;
-  padding: 1em;
-  background: var(--tertiary-very-low);
-  border: 1px solid var(--tertiary-low);
-  border-radius: 6px;
+.erhaltungsbericht-packet-link-container {
+  margin-top: 1.5em;
+  padding-top: 1em;
+  border-top: 1px solid var(--primary-low);
+}
 
-  .packet-notice-content {
-    display: flex;
-    align-items: center;
-    gap: 0.5em;
+.erhaltungsbericht-packet-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  color: var(--primary-medium);
+  font-size: 0.95em;
 
-    .d-icon {
-      color: var(--tertiary);
-      font-size: 1.1em;
-      flex-shrink: 0;
+  .d-icon {
+    color: var(--tertiary);
+    font-size: 1em;
+    flex-shrink: 0;
+  }
+
+  .packet-link {
+    font-weight: 600;
+    color: var(--tertiary);
+    text-decoration: none;
+    transition: color 0.2s;
+
+    &:hover {
+      color: var(--tertiary-hover);
+      text-decoration: underline;
     }
+  }
 
-    .packet-notice-text {
-      font-weight: 500;
-      color: var(--primary);
-    }
-
-    .packet-link {
-      font-weight: 600;
-      color: var(--tertiary);
-      text-decoration: none;
-      transition: color 0.2s;
-
-      &:hover {
-        color: var(--tertiary-hover);
-        text-decoration: underline;
-      }
-    }
+  strong {
+    color: var(--primary);
   }
 }

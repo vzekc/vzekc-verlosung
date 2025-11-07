@@ -3,7 +3,6 @@ import { tracked } from "@glimmer/tracking";
 import icon from "discourse/helpers/d-icon";
 import { ajax } from "discourse/lib/ajax";
 import { apiInitializer } from "discourse/lib/api";
-import { i18n } from "discourse-i18n";
 
 /**
  * Component to display link to packet post on Erhaltungsbericht topics
@@ -13,6 +12,7 @@ import { i18n } from "discourse-i18n";
 class ErhaltungsberichtPacketLink extends Component {
   @tracked packetUrl = null;
   @tracked packetTitle = null;
+  @tracked lotteryTitle = null;
   @tracked loading = true;
 
   constructor() {
@@ -35,6 +35,7 @@ class ErhaltungsberichtPacketLink extends Component {
 
       if (post && result.slug) {
         this.packetUrl = `/t/${result.slug}/${packetTopicId}/${post.post_number}`;
+        this.lotteryTitle = result.title;
 
         // Extract packet title from post raw
         const titleMatch = post.raw.match(/^#\s+(.+)$/m);
@@ -51,16 +52,15 @@ class ErhaltungsberichtPacketLink extends Component {
   <template>
     {{#unless this.loading}}
       {{#if this.packetUrl}}
-        <div class="erhaltungsbericht-packet-notice">
-          <div class="packet-notice-content">
-            {{icon "box"}}
-            <span class="packet-notice-text">
-              {{i18n "vzekc_verlosung.erhaltungsbericht.packet_notice"}}
-            </span>
-            <a href={{this.packetUrl}} class="packet-link">
-              {{this.packetTitle}}
-            </a>
-          </div>
+        <div class="erhaltungsbericht-packet-link">
+          {{icon "box"}}
+          <span>Erhaltungsbericht für
+            <a
+              href={{this.packetUrl}}
+              class="packet-link"
+            >{{this.packetTitle}}</a>
+            aus
+            <strong>{{this.lotteryTitle}}</strong></span>
         </div>
       {{/if}}
     {{/unless}}
@@ -86,10 +86,19 @@ export default apiInitializer((api) => {
         return;
       }
 
-      // Create container at the top of the post
+      // Remove raw link from template if it exists
+      const linkPattern = /Link zum Paket:\s*https?:\/\/[^\s]+/i;
+      const paragraphs = element.querySelectorAll("p");
+      paragraphs.forEach((p) => {
+        if (linkPattern.test(p.textContent)) {
+          p.remove();
+        }
+      });
+
+      // Create container at the bottom of the post
       const container = document.createElement("div");
       container.className = "erhaltungsbericht-packet-link-container";
-      element.insertBefore(container, element.firstChild);
+      element.appendChild(container);
 
       // Render component
       helper.renderGlimmer(container, ErhaltungsberichtPacketLink, {
