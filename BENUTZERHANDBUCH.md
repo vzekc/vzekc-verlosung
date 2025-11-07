@@ -93,6 +93,43 @@ Nach der Erstellung befindet sich die Verlosung im Entwurfsmodus. Nur du und Adm
 
 ![Entwurf mit Bearbeiten-Buttons](docs/images/09-entwurf-bearbeiten.png)
 
+Der Hauptbeitrag sollte folgende Struktur haben:
+
+**1. Über diese Verlosung**
+
+Beschreibe die Herkunft der Spende:
+- Von wem stammt die Spende? (z.B. Firma, privater Sammler, Nachlass, Schule)
+- Welche Geschichte hat die Spende?
+- Wo und wie hast du die Spende abgeholt?
+
+Beispiel: "Diese Hardware stammt aus der Liquidation der Firma **TechnoData GmbH** aus Köln, die Ende der 1990er Jahre im Bereich CAD-Systeme tätig war. Der ehemalige Geschäftsführer hat uns die komplette Ausstattung gespendet. Ich habe alle Systeme in Köln abgeholt."
+
+**2. Behaltenes System**
+
+Falls du EIN System oder Teil aus der Spende für dich behalten hast, beschreibe es hier. Nur ein System darf behalten werden!
+
+Beispiel: "Aus der Spende habe ich einen Commodore Amiga 1200 für mich behalten – ein System, das ich schon seit meiner Jugend haben wollte."
+
+**3. Übergabe der Pakete**
+
+Beschreibe die Übergabemöglichkeiten mit konkreten Angaben:
+
+**Wo hast du abgeholt?** "Ich habe alle Systeme in [Stadt] abgeholt."
+
+**Abholung:** Gib eine konkrete Adresse mit Postleitzahl an, wo Gewinner die Pakete abholen können (z.B. "Die Pakete können in 50823 Köln-Ehrenfeld abgeholt werden"). Erwähne auch, ob du auf lokalen Treffen bist.
+
+**Versand:** Erkläre, ob Versand möglich ist:
+- Versandkosten trägt IMMER der Gewinner
+- Ob du Verpackungsmaterial hast oder der Gewinner welches zusenden kann
+- Ob schwere Systeme (Monitore, Desktop-Gehäuse) abgeholt werden sollten
+
+**Fristen:** Gib klare Fristen an:
+- Versand: innerhalb von 1-2 Wochen nach Kontaktaufnahme
+- Abholung: innerhalb von 6-12 Wochen nach der Ziehung
+- Was passiert mit nicht abgeholten Paketen? (entweder: "kommen in eine neue Verlosung" oder "behalte ich")
+
+WICHTIG: Gib KEINE Frist für die Kontaktaufnahme an – Gewinner können sich in ihrem eigenen Tempo melden.
+
 **Paket-Beiträge bearbeiten:** Jedes Paket hat einen eigenen Beitrag. Bearbeite jeden Beitrag und füge eine detaillierte Beschreibung hinzu. Liste alle enthaltenen Gegenstände auf, beschreibe deren Zustand und füge aussagekräftige Fotos hinzu. Gute Fotos und genaue Beschreibungen erhöhen das Interesse der Teilnehmer.
 
 ### Verlosung veröffentlichen
@@ -172,7 +209,7 @@ Der Gewinner wird durch einen deterministischen Zufallsalgorithmus ermittelt, de
 Ja, das ist ausdrücklich erlaubt. Da der Ziehungsalgorithmus deterministisch ist und auf dem Startzeitpunkt sowie den Teilnehmernamen basiert, kann das Ergebnis nicht manipuliert werden – auch nicht durch den Ersteller selbst. Jeder Teilnehmer hat die gleiche faire Gewinnchance.
 
 **Was passiert, wenn ein Gewinner sein Paket nicht abholt?**
-Der Ersteller erhält wöchentliche Erinnerungen über nicht erhaltene Pakete. Nach einer angemessenen Frist kann entschieden werden, was mit dem Paket geschieht (erneute Verlosung, anderweitige Verwendung).
+Der Ersteller erhält wöchentliche Erinnerungen über nicht erhaltene Pakete. Was mit nicht abgeholten Paketen passiert, sollte bereits in der Verlosungsbeschreibung angegeben sein. Üblicherweise kommen sie entweder in eine neue Verlosung oder der Organisator behält sie für seine Sammlung.
 
 **Muss ich wirklich einen Erhaltungsbericht schreiben?**
 Ja, der Erhaltungsbericht ist eine Vereinspflicht. Er dokumentiert, was aus den gespendeten Gegenständen wurde, und motiviert Spender, weitere Hardware zu spenden. Du erhältst wöchentliche Erinnerungen, bis du den Bericht verfasst hast.
