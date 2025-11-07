@@ -30,7 +30,7 @@ Unter jedem Paket findest du einen "Los kaufen" Button sowie die aktuelle Anzahl
 
 **[Screenshot: Teilnehmerliste unter einem Paket]**
 
-Nach dem Kauf kannst du das Los über den Button "Los zurückgeben" wieder zurückgeben, bis die Verlosung endet.
+Solange die Verlosung läuft, kannst du das Los über den Button "Los zurückgeben" zurückgeben.
 
 ### Gewinnbenachrichtigung
 
@@ -48,7 +48,7 @@ Antworte auf die Gewinnernachricht des Verlosungserstellers, um die Übergabe zu
 
 ### Erhaltungsbericht schreiben
 
-Nachdem du das Paket erhalten hast, bist du verpflichtet, einen Erhaltungsbericht zu schreiben. Du erhältst regelmäßige Erinnerungen per persönlicher Nachricht, bis du den Bericht verfasst hast.
+Nachdem du das Paket erhalten hast, bist du verpflichtet, einen Erhaltungsbericht zu schreiben. Du erhältst wöchentliche Erinnerungen per persönlicher Nachricht, bis du den Bericht verfasst hast.
 
 **[Screenshot: "Erhaltungsbericht schreiben" Button am Paket]**
 
