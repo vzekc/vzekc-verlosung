@@ -71,7 +71,7 @@ Um eine neue Verlosung zu erstellen, klickst du auf den "Neue Verlosung" Button,
 
 **[Screenshot: "Neue Verlosung" Button]**
 
-Ein mehrstufiger Assistent führt dich durch den Erstellungsprozess:
+Ein mehrstufiger Assistent führt dich durch den Erstellungsprozess. Der Assistent erstellt die Grundstruktur der Verlosung im Entwurfsmodus. Anschließend fügst du durch Bearbeiten der einzelnen Beiträge die detaillierten Beschreibungen und Fotos hinzu. Erst wenn alle Details eingegeben sind, veröffentlichst du die Verlosung und machst sie dadurch für alle Mitglieder sichtbar.
 
 #### Schritt 1: Grundlegende Informationen
 
@@ -87,31 +87,35 @@ Die Beschreibung sollte enthalten:
 
 Eine Vorlage für die Beschreibung wird automatisch eingefügt und kann nach Belieben angepasst werden.
 
-#### Schritt 2: Pakete hinzufügen
+#### Schritt 2: Pakete definieren
 
 **[Screenshot: Verlosungs-Assistent Schritt 2 - Pakete]**
 
-Füge die einzelnen Pakete hinzu, die verlost werden sollen. Jedes Paket braucht einen aussagekräftigen Titel (z.B. "Amiga 500 mit Zubehör" oder "Commodore 64 Bundle").
-
-Für jedes Paket kannst du eine detaillierte Beschreibung mit Fotos hinzufügen. Die Beschreibung sollte alle enthaltenen Gegenstände auflisten und deren Zustand beschreiben. Gute Fotos erhöhen das Interesse der Teilnehmer.
-
-Du kannst beliebig viele Pakete hinzufügen oder auch welche wieder entfernen, bevor du fortfährst.
+Füge die einzelnen Pakete hinzu, die verlost werden sollen. Gib für jedes Paket einen aussagekräftigen Titel ein (z.B. "Amiga 500 mit Zubehör" oder "Commodore 64 Bundle"). Du kannst beliebig viele Pakete hinzufügen oder auch welche wieder entfernen, bevor du fortfährst.
 
 #### Schritt 3: Überprüfung und Erstellung
 
 **[Screenshot: Verlosungs-Assistent Schritt 3 - Überprüfung]**
 
-Überprüfe alle eingegebenen Daten. Wenn alles korrekt ist, klicke auf "Verlosung erstellen". Die Verlosung wird zunächst als Entwurf angelegt.
+Überprüfe alle eingegebenen Daten. Wenn alles korrekt ist, klicke auf "Verlosung erstellen". Die Verlosung wird als Entwurf angelegt und es werden automatisch Beiträge für die Einleitung und jedes Paket erstellt.
+
+### Details hinzufügen
+
+Nach der Erstellung befindet sich die Verlosung im Entwurfsmodus. Nur du und Administratoren können sie sehen. Jetzt fügst du die detaillierten Informationen hinzu:
+
+**Hauptbeitrag bearbeiten:** Ergänze die Beschreibung der Verlosung mit allen wichtigen Informationen zur Herkunft der Spende und zur Übergabe der Pakete.
+
+**[Screenshot: Entwurf mit Bearbeiten-Buttons]**
+
+**Paket-Beiträge bearbeiten:** Jedes Paket hat einen eigenen Beitrag. Bearbeite jeden Beitrag und füge eine detaillierte Beschreibung hinzu. Liste alle enthaltenen Gegenstände auf, beschreibe deren Zustand und füge aussagekräftige Fotos hinzu. Gute Fotos und genaue Beschreibungen erhöhen das Interesse der Teilnehmer.
 
 ### Verlosung veröffentlichen
 
-Nach der Erstellung befindet sich die Verlosung im Entwurfsmodus. Nur du und Administratoren können sie sehen. Das Status-Widget zeigt einen "Verlosung veröffentlichen" Button.
+Sobald du alle Beschreibungen und Fotos hinzugefügt hast, überprüfe noch einmal alle Details. Das Status-Widget zeigt einen "Verlosung veröffentlichen" Button.
 
 **[Screenshot: Entwurfs-Status mit "Veröffentlichen" Button]**
 
-Überprüfe noch einmal alle Details, insbesondere die Paketbeschreibungen und Fotos. Sobald du die Verlosung veröffentlichst, wird sie für alle Mitglieder sichtbar und die Laufzeit beginnt. Das Enddatum wird automatisch berechnet (heute + konfigurierte Laufzeit).
-
-Nach der Veröffentlichung können keine strukturellen Änderungen mehr vorgenommen werden. Du kannst aber weiterhin die Beschreibungen bearbeiten.
+Wenn du die Verlosung veröffentlichst, wird sie für alle Mitglieder sichtbar und die Laufzeit beginnt. Das Enddatum wird automatisch berechnet (heute + konfigurierte Laufzeit). Nach der Veröffentlichung können keine Pakete mehr hinzugefügt oder entfernt werden. Die Beschreibungen kannst du aber weiterhin bearbeiten.
 
 ### Verlosung beobachten
 
@@ -188,7 +192,7 @@ Der Ersteller erhält wöchentliche Erinnerungen über nicht erhaltene Pakete. N
 Ja, der Erhaltungsbericht ist eine Vereinspflicht. Er dokumentiert, was aus den gespendeten Gegenständen wurde, und motiviert Spender, weitere Hardware zu spenden. Du erhältst wöchentliche Erinnerungen, bis du den Bericht verfasst hast.
 
 **Kann ich eine Verlosung nach der Veröffentlichung noch ändern?**
-Du kannst die Beschreibungen bearbeiten, aber keine Pakete hinzufügen oder entfernen. Plane deine Verlosung daher sorgfältig im Entwurfsmodus.
+Du kannst die Beschreibungen der Beiträge weiterhin bearbeiten, aber keine Pakete mehr hinzufügen oder entfernen. Füge daher alle Pakete bereits beim Erstellen im Assistenten hinzu.
 
 **Wie lange läuft eine Verlosung?**
 Die Standardlaufzeit beträgt 14 Tage und sollte nur aus wichtigem Grund geändert werden. Möglich sind Laufzeiten zwischen 7 und 28 Tagen. Die Verlosung endet automatisch zum festgelegten Zeitpunkt.
