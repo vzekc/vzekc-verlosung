@@ -1,9 +1,10 @@
 # frozen_string_literal: true
 
-# Create four realistic demo lotteries with different sources and packet types
-# Usage: LOAD_PLUGINS=1 bundle exec rails runner plugins/vzekc-verlosung/script/create_demo_lotteries.rb [username]
+# Complete demo setup: Creates 4 lotteries with participants and publishes them
+# Usage: LOAD_PLUGINS=1 bundle exec rails runner plugins/vzekc-verlosung/script/setup_full_demo.rb [username]
 #
 # If no username is provided, randomly selects 4 different users from the "vereinsmitglied" group
+# Ensures one packet per lottery has NO tickets for testing purposes
 
 def get_random_vereinsmitglieder(count)
   group = Group.find_by(name: "vereinsmitglied")
@@ -21,6 +22,71 @@ def get_random_vereinsmitglieder(count)
   members.sample(count)
 end
 
+def get_participant_pool
+  # Get users excluding system users and lottery owners
+  User.where("id > 0").where.not(id: [-1, -2]).limit(50).to_a
+end
+
+def add_participants_to_lottery(topic, participant_pool, exclude_one_packet: true)
+  packet_posts =
+    Post
+      .where(topic_id: topic.id)
+      .order(:post_number)
+      .select { |p| p.custom_fields["is_lottery_packet"] == true }
+
+  puts "  Found #{packet_posts.count} packets"
+
+  # Select one random packet to exclude from ticket sales
+  excluded_packet = exclude_one_packet ? packet_posts.sample : nil
+  if excluded_packet
+    excluded_title = excluded_packet.raw.lines.first.to_s.gsub(/^#\s*/, "").strip
+    puts "  ⚠ Excluding packet ##{excluded_packet.post_number} (#{excluded_title}) from ticket sales"
+  end
+
+  ticket_count = 0
+  available_packets = excluded_packet ? packet_posts - [excluded_packet] : packet_posts
+
+  # Each participant buys 1-5 random tickets
+  participant_pool.shuffle.each do |user|
+    num_packets = rand(1..5)
+    selected_packets = available_packets.sample([num_packets, available_packets.length].min)
+
+    selected_packets.each do |packet_post|
+      ticket =
+        VzekcVerlosung::LotteryTicket.find_or_create_by(post_id: packet_post.id, user_id: user.id)
+      ticket_count += 1 if ticket.previously_new_record?
+    end
+  end
+
+  puts "  ✓ Added #{ticket_count} tickets from #{participant_pool.count} participants"
+
+  # Show summary
+  packet_posts.each do |post|
+    tickets = VzekcVerlosung::LotteryTicket.where(post_id: post.id)
+    title = post.raw.lines.first.to_s.gsub(/^#\s*/, "").strip
+    status = post == excluded_packet ? " [NO TICKETS]" : ""
+    puts "    Packet ##{post.post_number}: #{tickets.count} tickets#{status}"
+  end
+
+  puts ""
+end
+
+def publish_lottery(topic)
+  topic.custom_fields["lottery_state"] = "active"
+  topic.custom_fields["lottery_ends_at"] = 2.weeks.from_now
+  topic.save_custom_fields
+  puts "  ✓ Published (ends: #{topic.custom_fields["lottery_ends_at"]})"
+end
+
+# ============================================================================
+# Main Script
+# ============================================================================
+
+puts "=" * 80
+puts "VZEKC VERLOSUNG - FULL DEMO SETUP"
+puts "=" * 80
+puts ""
+
 username = ARGV[0]
 
 if username
@@ -32,31 +98,31 @@ if username
   puts "Using specified user: #{users.first.username} (ID: #{users.first.id}) for all lotteries"
 else
   users = get_random_vereinsmitglieder(4)
-  puts "Selected 4 random users from vereinsmitglied group:"
+  puts "Selected 4 random lottery owners from vereinsmitglied group:"
   users.each_with_index do |user, i|
     puts "  #{i + 1}. #{user.username} (ID: #{user.id})"
   end
-  puts ""
 end
+puts ""
 
 # Get the lottery category
 category_id = SiteSetting.vzekc_verlosung_category_id
-puts "Category ID: #{category_id}"
-
 if category_id.blank?
   puts "✗ vzekc_verlosung_category_id not configured in site settings"
   exit 1
 end
 
-# Get the description template
-template = SiteSetting.vzekc_verlosung_description_template
+# Get participant pool
+participant_pool = get_participant_pool
+puts "Participant pool: #{participant_pool.count} users"
+puts ""
 
 created_lotteries = []
 
 # ============================================================================
 # Lottery 1: Business Liquidation - Office Equipment
 # ============================================================================
-puts "\n" + "=" * 80
+puts "=" * 80
 puts "Creating Lottery 1: IT-Firma Liquidation..."
 puts "=" * 80
 
@@ -109,18 +175,22 @@ result1 =
 
 if result1.success?
   topic1 = result1.main_topic
-  # Update the description
   topic1.first_post.revise(users[0], raw: description1, edit_reason: "Initial description")
+  puts "✓ Created: #{topic1.title} (ID: #{topic1.id})"
+
+  add_participants_to_lottery(topic1, participant_pool, exclude_one_packet: true)
+  publish_lottery(topic1)
+
   created_lotteries << topic1
-  puts "✓ Lottery 1 created: #{topic1.title} (ID: #{topic1.id})"
 else
   puts "✗ Failed to create lottery 1: #{result1.inspect}"
 end
+puts ""
 
 # ============================================================================
 # Lottery 2: Private Collector - Home Computer Collection
 # ============================================================================
-puts "\n" + "=" * 80
+puts "=" * 80
 puts "Creating Lottery 2: Sammler-Nachlass..."
 puts "=" * 80
 
@@ -175,16 +245,21 @@ result2 =
 if result2.success?
   topic2 = result2.main_topic
   topic2.first_post.revise(users[1], raw: description2, edit_reason: "Initial description")
+  puts "✓ Created: #{topic2.title} (ID: #{topic2.id})"
+
+  add_participants_to_lottery(topic2, participant_pool, exclude_one_packet: true)
+  publish_lottery(topic2)
+
   created_lotteries << topic2
-  puts "✓ Lottery 2 created: #{topic2.title} (ID: #{topic2.id})"
 else
   puts "✗ Failed to create lottery 2: #{result2.inspect}"
 end
+puts ""
 
 # ============================================================================
 # Lottery 3: Estate/Inheritance - IBM PC Collection
 # ============================================================================
-puts "\n" + "=" * 80
+puts "=" * 80
 puts "Creating Lottery 3: Nachlass eines PC-Pioniers..."
 puts "=" * 80
 
@@ -241,16 +316,21 @@ result3 =
 if result3.success?
   topic3 = result3.main_topic
   topic3.first_post.revise(users[2], raw: description3, edit_reason: "Initial description")
+  puts "✓ Created: #{topic3.title} (ID: #{topic3.id})"
+
+  add_participants_to_lottery(topic3, participant_pool, exclude_one_packet: true)
+  publish_lottery(topic3)
+
   created_lotteries << topic3
-  puts "✓ Lottery 3 created: #{topic3.title} (ID: #{topic3.id})"
 else
   puts "✗ Failed to create lottery 3: #{result3.inspect}"
 end
+puts ""
 
 # ============================================================================
 # Lottery 4: School Donation - Educational Hardware
 # ============================================================================
-puts "\n" + "=" * 80
+puts "=" * 80
 puts "Creating Lottery 4: Schulspende..."
 puts "=" * 80
 
@@ -309,34 +389,43 @@ result4 =
 if result4.success?
   topic4 = result4.main_topic
   topic4.first_post.revise(users[3], raw: description4, edit_reason: "Initial description")
+  puts "✓ Created: #{topic4.title} (ID: #{topic4.id})"
+
+  add_participants_to_lottery(topic4, participant_pool, exclude_one_packet: true)
+  publish_lottery(topic4)
+
   created_lotteries << topic4
-  puts "✓ Lottery 4 created: #{topic4.title} (ID: #{topic4.id})"
 else
   puts "✗ Failed to create lottery 4: #{result4.inspect}"
 end
+puts ""
 
 # ============================================================================
 # Summary
 # ============================================================================
-puts "\n" + "=" * 80
-puts "SUMMARY"
+puts "=" * 80
+puts "SETUP COMPLETE"
 puts "=" * 80
 puts ""
-puts "Successfully created #{created_lotteries.count} demo lotteries:"
+puts "Successfully created and published #{created_lotteries.count} demo lotteries:"
 puts ""
 
 created_lotteries.each_with_index do |topic, index|
+  packet_count =
+    Post.where(topic_id: topic.id).count { |p| p.custom_fields["is_lottery_packet"] == true }
+  ticket_count = VzekcVerlosung::LotteryTicket.joins(:post).where(posts: { topic_id: topic.id }).count
+
   puts "#{index + 1}. #{topic.title}"
   puts "   Owner: #{topic.user.username}"
-  puts "   Topic ID: #{topic.id}"
+  puts "   Status: Active (ends #{topic.custom_fields["lottery_ends_at"]})"
+  puts "   Packets: #{packet_count} (1 with no tickets)"
+  puts "   Tickets: #{ticket_count}"
   puts "   URL: #{topic.url}"
   puts ""
 end
 
-puts "Next steps:"
-puts "  1. Review and edit descriptions if needed"
-puts "  2. Add detailed packet descriptions (photos, conditions, included items)"
-puts "  3. Add test participants:"
-puts "     LOAD_PLUGINS=1 bundle exec rails runner plugins/vzekc-verlosung/script/add_test_participants.rb <topic_id>"
-puts "  4. Publish the lotteries via UI"
+puts "All lotteries are PUBLISHED and ACTIVE."
+puts "You can now test the drawing feature by ending them early:"
+puts ""
+puts "  LOAD_PLUGINS=1 bundle exec rails runner plugins/vzekc-verlosung/script/test_lottery.rb end_early <topic_id>"
 puts ""
