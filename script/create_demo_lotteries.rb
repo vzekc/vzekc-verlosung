@@ -151,7 +151,7 @@ description2 = <<~DESC
   **Fristen:**
   - Versand innerhalb von 1 Woche nach Kontaktaufnahme
   - Abholung innerhalb von 6 Wochen nach der Ziehung
-  - Nicht abgeholte Pakete bleiben beim ursprünglichen Spender
+  - Nicht abgeholte Pakete behalte ich
 DESC
 
 result2 =
@@ -287,7 +287,7 @@ description4 = <<~DESC
   **Fristen:**
   - Versand innerhalb von 1 Woche nach Kontaktaufnahme
   - Abholung innerhalb von 6 Wochen nach der Ziehung
-  - Nicht abgeholte Pakete bleiben beim ursprünglichen Spender
+  - Nicht abgeholte Pakete behalte ich
 DESC
 
 result4 =

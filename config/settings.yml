@@ -34,7 +34,7 @@ vzekc_verlosung:
       **Fristen:**
       - Versand innerhalb von [1-2] Wochen nach Kontaktaufnahme
       - Abholung innerhalb von [6-12] Wochen nach der Ziehung
-      - Nicht abgeholte Pakete [kommen in eine neue Verlosung / bleiben beim ursprünglichen Spender]
+      - Nicht abgeholte Pakete [kommen in eine neue Verlosung / behalte ich]
     type: string
     textarea: true
   vzekc_verlosung_reminder_hour:
