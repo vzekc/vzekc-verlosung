@@ -45,6 +45,12 @@ vzekc_verlosung:
   vzekc_verlosung_ending_tomorrow_reminder_enabled:
     default: true
     client: false
+  vzekc_verlosung_uncollected_reminder_enabled:
+    default: true
+    client: false
+  vzekc_verlosung_erhaltungsbericht_reminder_enabled:
+    default: true
+    client: false
   vzekc_verlosung_erhaltungsbericht_template:
     default: |
       Ich habe folgendes Paket aus der Verlosung "[LOTTERY_TITLE]" erhalten:
