@@ -355,9 +355,6 @@ export default class LotteryWidget extends Component {
 
       // Update local state with response
       this.collectedAt = result.collected_at || null;
-
-      // Show success message
-      this.dialog.alert(i18n("vzekc_verlosung.collection.success_message"));
     } catch (error) {
       popupAjaxError(error);
     } finally {
