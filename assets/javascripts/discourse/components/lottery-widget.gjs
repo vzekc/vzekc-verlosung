@@ -463,8 +463,9 @@ export default class LotteryWidget extends Component {
       reply: template,
       draftKey: `new_topic_erhaltungsbericht_${this.post.id}_${Date.now()}`,
       // These custom fields will be serialized to the topic
-      vzekc_packet_post_id: this.post.id,
-      vzekc_packet_topic_id: this.post.topic_id,
+      // Keys must match first parameter of serializeToDraft in erhaltungsbericht-composer.js
+      packet_post_id: this.post.id,
+      packet_topic_id: this.post.topic_id,
     });
 
     // Track that we opened the Erhaltungsbericht composer
