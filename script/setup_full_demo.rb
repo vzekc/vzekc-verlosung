@@ -139,7 +139,9 @@ description1 = <<~DESC
 
   ## Übergabe der Pakete
 
-  **Abholung:** Die Pakete können in Köln-Ehrenfeld abgeholt werden (nach Terminvereinbarung). Ich bin auch bei den Classic Computing Treffen in Düsseldorf und Bonn dabei.
+  Ich habe alle Systeme bereits in Köln abgeholt und bei mir zu Hause.
+
+  **Abholung:** Die Pakete können in Köln-Ehrenfeld bei mir abgeholt werden (nach Terminvereinbarung). Ich bin auch regelmäßig bei den Classic Computing Treffen in Düsseldorf und Bonn – dort können Pakete ebenfalls übergeben werden.
 
   **Versand:** Versand ist grundsätzlich möglich:
   - Versandkosten trägt der Gewinner
@@ -207,11 +209,13 @@ description2 = <<~DESC
 
   ## Übergabe der Pakete
 
-  **Abholung:** Die Pakete können in Hannover-Linden abgeholt werden. Werner freut sich über Besuch von interessierten Retro-Fans (bitte Termin vereinbaren).
+  Ich habe alle Systeme bereits bei Werner in Hannover abgeholt und bei mir zu Hause.
+
+  **Abholung:** Die Pakete können bei mir in Stuttgart abgeholt werden (nach Terminvereinbarung).
 
   **Versand:** Versand ist möglich und wird bevorzugt:
   - Versandkosten trägt der Gewinner
-  - Alle Systeme werden mit Originalverpackung oder in geeigneten Kartons verschickt
+  - Alle Systeme können sicher verpackt werden (teilweise mit Originalverpackung)
   - Versicherter Versand via DHL Paket wird empfohlen
 
   **Fristen:**
@@ -276,11 +280,13 @@ description3 = <<~DESC
 
   ## Übergabe der Pakete
 
-  **Abholung:** Die Systeme befinden sich derzeit in Darmstadt bei der Familie. Abholung nach Terminvereinbarung möglich.
+  Ich habe alle Systeme bereits bei der Familie in Darmstadt abgeholt und bei mir in Frankfurt.
+
+  **Abholung:** Die Pakete können bei mir in Frankfurt am Main abgeholt werden (nach Terminvereinbarung). Ich bin auch oft auf dem Rhein-Main Classic Computing Stammtisch.
 
   **Versand:** Versand wird bevorzugt:
   - Versandkosten trägt der Gewinner
-  - Professionelle Verpackung kann arrangiert werden
+  - Systeme können gut verpackt werden
   - Versicherter Versand mit Sendungsverfolgung wird empfohlen
   - Internationale Gewinner willkommen
 
@@ -347,7 +353,9 @@ description4 = <<~DESC
 
   ## Übergabe der Pakete
 
-  **Abholung:** Die Pakete können in München-Schwabing abgeholt werden. Ich wohne in der Nähe der Schule und kann flexible Termine anbieten, auch abends und am Wochenende.
+  Ich habe alle Systeme bereits am Gymnasium abgeholt und bei mir zu Hause.
+
+  **Abholung:** Die Pakete können bei mir in München-Laim abgeholt werden. Ich kann flexible Termine anbieten, auch abends und am Wochenende.
 
   **Versand:** Versand ist möglich:
   - Versandkosten trägt der Gewinner
