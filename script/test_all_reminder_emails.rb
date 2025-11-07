@@ -154,10 +154,9 @@ if tomorrow_result.success?
   packet_posts = tomorrow_topic.posts.where.not(post_number: 1)
   if packet_posts.any?
     packet_post = packet_posts.first
-    VzekcVerlosung::BuyTicket.call(
-      post: packet_post,
-      user: buyer,
-      guardian: Guardian.new(buyer)
+    VzekcVerlosung::LotteryTicket.create!(
+      post_id: packet_post.id,
+      user_id: buyer.id
     )
     puts "  ✓ User #{buyer.username} bought ticket"
   end
@@ -200,10 +199,9 @@ if uncollected_result.success?
   packet_posts = uncollected_topic.posts.where.not(post_number: 1)
   if packet_posts.any?
     packet_post = packet_posts.first
-    VzekcVerlosung::BuyTicket.call(
-      post: packet_post,
-      user: winner_user,
-      guardian: Guardian.new(winner_user)
+    VzekcVerlosung::LotteryTicket.create!(
+      post_id: packet_post.id,
+      user_id: winner_user.id
     )
 
     # Draw lottery and assign winner
@@ -254,10 +252,9 @@ if erb_result.success?
   packet_posts = erb_topic.posts.where.not(post_number: 1)
   if packet_posts.any?
     packet_post = packet_posts.first
-    VzekcVerlosung::BuyTicket.call(
-      post: packet_post,
-      user: erb_winner,
-      guardian: Guardian.new(erb_winner)
+    VzekcVerlosung::LotteryTicket.create!(
+      post_id: packet_post.id,
+      user_id: erb_winner.id
     )
 
     # Draw lottery and assign winner
