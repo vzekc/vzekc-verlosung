@@ -1,0 +1,205 @@
+# Vzekc Verlosung – Benutzerhandbuch
+
+## Was ist das Verlosungs-Plugin?
+
+Das Verlosungs-Plugin ermöglicht es Vereinsmitgliedern, Hardware-Spenden transparent und fair zu verlosen. Jede Verlosung besteht aus mehreren Paketen, für die Teilnehmer Lose kaufen können. Nach Ablauf der Frist werden die Gewinner durch einen nachvollziehbaren, deterministischen Zufallsalgorithmus ermittelt.
+
+---
+
+## Als Teilnehmer
+
+### Verlosungen finden
+
+Aktive Verlosungen werden in der konfigurierten Verlosungs-Kategorie angezeigt. Der Beitragstitel zeigt den Namen der Verlosung, und ein spezielles Widget am Anfang des Beitrags fasst den aktuellen Status zusammen.
+
+**[Screenshot: Verlosungs-Übersicht mit Widget]**
+
+Das Status-Widget zeigt:
+- Den aktuellen Zustand (Aktiv, Beendet, Gewinner gezogen)
+- Die verbleibende Zeit bis zum Ende der Verlosung
+- Wie viele Pakete verlost werden
+- Schaltflächen für verfügbare Aktionen
+
+### Lose kaufen
+
+Um an einer Verlosung teilzunehmen, scrollst du zum gewünschten Paket im Beitrag. Jedes Paket ist als separater Beitrag angelegt und zeigt eine Beschreibung sowie Fotos der enthaltenen Hardware.
+
+**[Screenshot: Paket-Beitrag mit "Los kaufen" Button]**
+
+Unter jedem Paket findest du einen "Los kaufen" Button sowie die aktuelle Anzahl der verkauften Lose. Du kannst beliebig viele Lose für dasselbe Paket kaufen – mehr Lose bedeuten höhere Gewinnchancen. Die Teilnehmerliste zeigt, wer wie viele Lose gekauft hat.
+
+**[Screenshot: Teilnehmerliste unter einem Paket]**
+
+Nach dem Kauf eines Loses ändert sich der Button zu "Weiteres Los kaufen", sodass du weitere Lose erwerben kannst, falls gewünscht.
+
+### Gewinnbenachrichtigung
+
+Wenn die Verlosung endet und die Gewinner gezogen wurden, erhältst du eine persönliche Nachricht, falls du gewonnen hast. Die Nachricht enthält Details zu deinem Gewinn sowie Anweisungen zur Abholung.
+
+**[Screenshot: Gewinner-Benachrichtigung]**
+
+Zusätzlich wird im Verlosungsbeitrag selbst angezeigt, wer welches Paket gewonnen hat. Neben dem Gewinnernamen erscheint ein Avatar.
+
+**[Screenshot: Gewinner-Anzeige bei einem Paket]**
+
+### Paket abholen
+
+Als Gewinner kontaktierst du den Verlosungsersteller, um die Abholung zu vereinbaren. Die Details zur Übergabe findest du im Hauptbeitrag der Verlosung. Sobald du das Paket erhalten hast, markiert der Ersteller es als "Abgeholt".
+
+### Erhaltungsbericht schreiben
+
+Nach der Abholung bist du verpflichtet, einen Erhaltungsbericht zu schreiben. Du erhältst regelmäßige Erinnerungen per persönlicher Nachricht, bis du den Bericht verfasst hast.
+
+**[Screenshot: "Erhaltungsbericht schreiben" Button am Paket]**
+
+Klicke auf den "Erhaltungsbericht schreiben" Button am Paket-Beitrag. Ein vorausgefülltes Formular öffnet sich, in dem du beschreibst:
+- Was im Paket enthalten war
+- Den Zustand der Hardware
+- Deine ersten Eindrücke
+- Fotos der erhaltenen Gegenstände
+- Deine Pläne für die Hardware (Sammlung, Restaurierung, Nutzung)
+
+Der Erhaltungsbericht wird automatisch in der konfigurierten Erhaltungsberichte-Kategorie veröffentlicht und mit dem ursprünglichen Paket verknüpft.
+
+---
+
+## Als Verlosungsersteller
+
+### Verlosung erstellen
+
+Um eine neue Verlosung zu erstellen, klickst du auf den "Neue Verlosung" Button, der in der konfigurierten Verlosungs-Kategorie erscheint.
+
+**[Screenshot: "Neue Verlosung" Button]**
+
+Ein mehrstufiger Assistent führt dich durch den Erstellungsprozess:
+
+#### Schritt 1: Grundlegende Informationen
+
+**[Screenshot: Verlosungs-Assistent Schritt 1]**
+
+Gib einen aussagekräftigen Titel für die Verlosung ein (z.B. "Spende von Mitglied XY – Retro-Computer und Zubehör"). Wähle die Kategorie und lege die Laufzeit fest. Die Standardlaufzeit beträgt 7 Tage, kann aber angepasst werden.
+
+Die Beschreibung sollte enthalten:
+- Woher die Spende stammt
+- Eine allgemeine Beschreibung der Gegenstände
+- Welche Systeme du für dich behalten hast (falls zutreffend)
+- Informationen zur Übergabe (Abholung, Versand, Fristen)
+
+Eine Vorlage für die Beschreibung wird automatisch eingefügt und kann nach Belieben angepasst werden.
+
+#### Schritt 2: Pakete hinzufügen
+
+**[Screenshot: Verlosungs-Assistent Schritt 2 - Pakete]**
+
+Füge die einzelnen Pakete hinzu, die verlost werden sollen. Jedes Paket braucht einen aussagekräftigen Titel (z.B. "Amiga 500 mit Zubehör" oder "Commodore 64 Bundle").
+
+Für jedes Paket kannst du eine detaillierte Beschreibung mit Fotos hinzufügen. Die Beschreibung sollte alle enthaltenen Gegenstände auflisten und deren Zustand beschreiben. Gute Fotos erhöhen das Interesse der Teilnehmer.
+
+Du kannst beliebig viele Pakete hinzufügen oder auch welche wieder entfernen, bevor du fortfährst.
+
+#### Schritt 3: Überprüfung und Erstellung
+
+**[Screenshot: Verlosungs-Assistent Schritt 3 - Überprüfung]**
+
+Überprüfe alle eingegebenen Daten. Wenn alles korrekt ist, klicke auf "Verlosung erstellen". Die Verlosung wird zunächst als Entwurf angelegt.
+
+### Verlosung veröffentlichen
+
+Nach der Erstellung befindet sich die Verlosung im Entwurfsmodus. Nur du und Administratoren können sie sehen. Das Status-Widget zeigt einen "Verlosung veröffentlichen" Button.
+
+**[Screenshot: Entwurfs-Status mit "Veröffentlichen" Button]**
+
+Überprüfe noch einmal alle Details, insbesondere die Paketbeschreibungen und Fotos. Sobald du die Verlosung veröffentlichst, wird sie für alle Mitglieder sichtbar und die Laufzeit beginnt. Das Enddatum wird automatisch berechnet (heute + konfigurierte Laufzeit).
+
+Nach der Veröffentlichung können keine strukturellen Änderungen mehr vorgenommen werden. Du kannst aber weiterhin die Beschreibungen bearbeiten.
+
+### Verlosung beobachten
+
+Während die Verlosung läuft, kannst du jederzeit den aktuellen Stand einsehen. Unter jedem Paket siehst du:
+- Wie viele Lose verkauft wurden
+- Wer teilnimmt und wie viele Lose jeder gekauft hat
+- Die aktuelle Wahrscheinlichkeitsverteilung
+
+**[Screenshot: Aktive Verlosung mit Teilnehmern]**
+
+Das Status-Widget zeigt die verbleibende Zeit bis zum Ende. Du erhältst eine persönliche Nachricht, wenn die Verlosung morgen endet.
+
+### Verlosung vorzeitig beenden
+
+Falls du die Verlosung vor Ablauf der Frist beenden möchtest (z.B. weil genügend Teilnehmer vorhanden sind oder aus anderen Gründen), kannst du auf den "Verlosung jetzt beenden" Button klicken.
+
+**[Screenshot: "Jetzt beenden" Button]**
+
+Das Enddatum wird auf den aktuellen Zeitpunkt gesetzt, und du kannst sofort mit der Ziehung fortfahren.
+
+### Gewinner ziehen
+
+Sobald die Verlosung beendet ist, erscheint ein "Gewinner ziehen" Button im Status-Widget. Nur du als Ersteller und Administratoren können die Ziehung durchführen.
+
+**[Screenshot: "Gewinner ziehen" Button nach Ablauf]**
+
+Beim Klick öffnet sich ein Modal, der den deterministischen Ziehungsprozess startet. Der Algorithmus läuft im Browser und basiert auf:
+- Dem Startzeitpunkt der Verlosung
+- Allen Teilnehmernamen
+- Einem kryptografischen Hash (SHA-512)
+
+**[Screenshot: Ziehungs-Modal mit Ergebnissen]**
+
+Das Modal zeigt für jedes Paket den gezogenen Gewinner an. Der gleiche Prozess mit denselben Eingabedaten führt immer zum gleichen Ergebnis – die Ziehung ist somit nachvollziehbar und manipulationssicher.
+
+Prüfe die Ergebnisse und klicke auf "Bestätigen und Ergebnisse speichern". Die Gewinner werden gespeichert und alle Gewinner erhalten automatisch eine persönliche Nachricht mit den Details.
+
+### Pakete als abgeholt markieren
+
+Nachdem ein Gewinner sein Paket abgeholt oder per Post erhalten hat, solltest du das Paket als "Abgeholt" markieren. Am Paket-Beitrag erscheint ein Button "Als erhalten markieren".
+
+**[Screenshot: "Als erhalten markieren" Button]**
+
+Nach dem Markieren wird ein Abholdatum gespeichert und der Status des Pakets aktualisiert. Dies ist wichtig, da das System basierend auf diesem Datum Erinnerungen für den Erhaltungsbericht verschickt.
+
+**[Screenshot: Paket mit "Abgeholt am" Status]**
+
+### Erinnerungs-Benachrichtigungen
+
+Als Verlosungsersteller erhältst du automatische Erinnerungen per persönlicher Nachricht in folgenden Situationen:
+
+**Unveröffentlichte Verlosung**: Täglich um die konfigurierte Uhrzeit, solange die Verlosung im Entwurfsmodus verbleibt.
+
+**Beendete Verlosung ohne Ziehung**: Täglich um die konfigurierte Uhrzeit, solange die Verlosung beendet ist, aber die Gewinner noch nicht gezogen wurden.
+
+**Verlosung endet morgen**: Einmal pro Tag um die konfigurierte Uhrzeit, wenn die Verlosung am nächsten Tag endet.
+
+**Nicht abgeholte Pakete**: Wöchentlich (alle 7 Tage nach der Ziehung), solange Pakete noch nicht als abgeholt markiert wurden. Die Nachricht listet alle betroffenen Pakete auf.
+
+Diese Erinnerungen helfen dir, den Verlosungsprozess zeitnah abzuschließen und sicherzustellen, dass alle Gewinner ihre Pakete erhalten.
+
+---
+
+## Häufig gestellte Fragen
+
+**Kann ich ein Los wieder zurückgeben?**
+Nein, einmal gekaufte Lose können nicht storniert werden. Überlege dir daher gut, für welche Pakete du Lose kaufst.
+
+**Kann ich Lose für mehrere Pakete kaufen?**
+Ja, du kannst an beliebig vielen Paketen einer Verlosung teilnehmen. Jedes Paket wird unabhängig verlost.
+
+**Kann ich mehrere Lose für dasselbe Paket kaufen?**
+Ja, du kannst beliebig viele Lose für ein Paket erwerben. Mehr Lose erhöhen deine Gewinnchance proportional.
+
+**Wie wird der Gewinner ermittelt?**
+Der Gewinner wird durch einen deterministischen Zufallsalgorithmus ermittelt, der im Browser läuft. Der Seed basiert auf dem Startzeitpunkt und allen Teilnehmernamen. Dadurch ist das Ergebnis nachvollziehbar und kann nicht manipuliert werden.
+
+**Kann ich als Ersteller an meiner eigenen Verlosung teilnehmen?**
+Technisch ja, aber aus Fairnessgründen solltest du das nicht tun.
+
+**Was passiert, wenn ein Gewinner sein Paket nicht abholt?**
+Der Ersteller erhält wöchentliche Erinnerungen über nicht abgeholte Pakete. Nach einer angemessenen Frist kann entschieden werden, was mit dem Paket geschieht (erneute Verlosung, anderweitige Verwendung).
+
+**Muss ich wirklich einen Erhaltungsbericht schreiben?**
+Ja, der Erhaltungsbericht ist eine Vereinspflicht. Er dokumentiert, was aus den gespendeten Gegenständen wurde, und motiviert Spender, weitere Hardware zu spenden. Du erhältst wöchentliche Erinnerungen, bis du den Bericht verfasst hast.
+
+**Kann ich eine Verlosung nach der Veröffentlichung noch ändern?**
+Du kannst die Beschreibungen bearbeiten, aber keine Pakete hinzufügen oder entfernen. Plane deine Verlosung daher sorgfältig im Entwurfsmodus.
+
+**Wie lange läuft eine Verlosung?**
+Die Standardlaufzeit beträgt 7 Tage und kann bei der Erstellung angepasst werden. Nach der Veröffentlichung kann die Verlosung vorzeitig beendet, aber nicht verlängert werden.
