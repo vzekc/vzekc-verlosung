@@ -75,10 +75,10 @@ description1 = <<~DESC
 
   **Abholung:** Die Pakete können in Köln-Ehrenfeld abgeholt werden (nach Terminvereinbarung). Ich bin auch bei den Classic Computing Treffen in Düsseldorf und Bonn dabei.
 
-  **Versand:** Versand ist grundsätzlich möglich. Bitte beachtet:
-  - Bei schweren Systemen (Monitore, Desktop-Gehäuse) müsst ihr die Versandkosten übernehmen
+  **Versand:** Versand ist grundsätzlich möglich:
+  - Versandkosten trägt der Gewinner
   - Gerne könnt ihr mir geeignetes Verpackungsmaterial zusenden
-  - Bei Abholung auf den Treffen entfallen natürlich Versandkosten
+  - Schwere Systeme (Monitore, Desktop-Gehäuse) sollten möglichst abgeholt werden
 
   **Fristen:**
   - Bitte meldet euch innerhalb von 14 Tagen nach der Ziehung bei mir
@@ -140,9 +140,9 @@ description2 = <<~DESC
   **Abholung:** Die Pakete können in Hannover-Linden abgeholt werden. Werner freut sich über Besuch von interessierten Retro-Fans (bitte Termin vereinbaren).
 
   **Versand:** Versand ist möglich und wird bevorzugt:
-  - Werner übernimmt die Versandkosten innerhalb Deutschlands
+  - Versandkosten trägt der Gewinner
   - Alle Systeme werden mit Originalverpackung oder in geeigneten Kartons verschickt
-  - Versicherter Versand via DHL Paket
+  - Versicherter Versand via DHL Paket wird empfohlen
 
   **Fristen:**
   - Kontaktaufnahme innerhalb von 2 Wochen nach der Ziehung
@@ -204,9 +204,9 @@ description3 = <<~DESC
   **Abholung:** Die Systeme befinden sich derzeit in Darmstadt bei der Familie. Abholung nach Terminvereinbarung möglich.
 
   **Versand:** Versand wird bevorzugt:
-  - Die Familie übernimmt die Versandkosten innerhalb der EU
-  - Professionelle Verpackung durch Fachfirma
-  - Versicherter Versand mit Sendungsverfolgung
+  - Versandkosten trägt der Gewinner
+  - Professionelle Verpackung kann arrangiert werden
+  - Versicherter Versand mit Sendungsverfolgung wird empfohlen
   - Internationale Gewinner willkommen
 
   **Fristen:**
@@ -270,10 +270,9 @@ description4 = <<~DESC
   **Abholung:** Die Pakete können in München-Schwabing abgeholt werden. Ich wohne in der Nähe der Schule und kann flexible Termine anbieten, auch abends und am Wochenende.
 
   **Versand:** Versand ist möglich:
-  - Versandkosten müssen von den Gewinnern übernommen werden
-  - Monitore sollten möglichst abgeholt werden (Versand auf eigenes Risiko)
+  - Versandkosten trägt der Gewinner
+  - Monitore sollten möglichst abgeholt werden
   - Kleinere Systeme und Peripherie verschicke ich gerne
-  - Bei Abholung auf Treffen in München/Bayern entfallen Versandkosten
 
   **Fristen:**
   - Kontaktaufnahme innerhalb von 14 Tagen
