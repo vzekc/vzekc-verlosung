@@ -22,7 +22,8 @@ class ErhaltungsberichtPacketLink extends Component {
   }
 
   async loadPacketInfo() {
-    const { packetPostId, packetTopicId } = this.args.data;
+    const { packetPostId, packetTopicId, erhaltungsberichtTitle } =
+      this.args.data;
 
     if (!packetPostId || !packetTopicId) {
       this.loading = false;
@@ -64,11 +65,21 @@ class ErhaltungsberichtPacketLink extends Component {
           }
         }
 
+        // Try extracting from Erhaltungsbericht title (format: "Paket X: name aus lottery")
+        if (!packetTitle && erhaltungsberichtTitle) {
+          const titleMatch = erhaltungsberichtTitle.match(/^(.+?)\s+aus\s+/);
+          if (titleMatch) {
+            packetTitle = titleMatch[1].trim();
+          }
+        }
+
         // Fallback to generic title
         this.packetTitle = packetTitle || `Paket #${post.post_number}`;
       }
-    } catch {
-      // Silently fail if packet info cannot be loaded
+    } catch (error) {
+      // Log error for debugging
+      // eslint-disable-next-line no-console
+      console.error("Failed to load packet info:", error);
     } finally {
       this.loading = false;
     }
@@ -132,6 +143,7 @@ export default apiInitializer((api) => {
       helper.renderGlimmer(container, ErhaltungsberichtPacketLink, {
         packetPostId,
         packetTopicId,
+        erhaltungsberichtTitle: topic.title,
       });
     },
     { onlyStream: true, id: "erhaltungsbericht-packet-link" }
