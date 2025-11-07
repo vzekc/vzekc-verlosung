@@ -171,53 +171,30 @@ after_initialize do
 
   # Register callback to establish bidirectional link when Erhaltungsbericht is created
   on(:topic_created) do |topic, opts, user|
-    # Debug logging
-    Rails.logger.info "=== VzekcVerlosung topic_created callback ==="
-    Rails.logger.info "Topic ID: #{topic.id}, Title: #{topic.title}"
-    Rails.logger.info "User: #{user.username}"
-    Rails.logger.info "Opts keys: #{opts.keys.inspect}"
-    Rails.logger.info "packet_post_id in opts: #{opts[:packet_post_id].inspect}"
-    Rails.logger.info "packet_topic_id in opts: #{opts[:packet_topic_id].inspect}"
-
     # Check if packet reference data is in opts (from composer)
     packet_post_id = opts[:packet_post_id]&.to_i
     packet_topic_id = opts[:packet_topic_id]&.to_i
 
-    if packet_post_id.blank? || packet_topic_id.blank?
-      Rails.logger.info "Exiting early: packet_post_id or packet_topic_id is blank"
-      next
-    end
+    next if packet_post_id.blank? || packet_topic_id.blank?
 
     # Save packet reference to topic custom fields
     topic.custom_fields["packet_post_id"] = packet_post_id
     topic.custom_fields["packet_topic_id"] = packet_topic_id
     topic.save_custom_fields
-    Rails.logger.info "Saved packet reference to topic custom fields"
 
     # Find the packet post
     packet_post = Post.find_by(id: packet_post_id, topic_id: packet_topic_id)
-    unless packet_post
-      Rails.logger.info "Exiting: packet post not found"
-      next
-    end
-    Rails.logger.info "Found packet post #{packet_post.id}"
+    next unless packet_post
 
     # Verify it's a lottery packet
-    unless packet_post.custom_fields["is_lottery_packet"] == true
-      Rails.logger.info "Exiting: post is not a lottery packet"
-      next
-    end
+    next unless packet_post.custom_fields["is_lottery_packet"] == true
 
     # Verify the user is the winner
     winner_username = packet_post.custom_fields["lottery_winner"]
-    unless winner_username == user.username
-      Rails.logger.info "Exiting: user #{user.username} is not the winner (winner is #{winner_username})"
-      next
-    end
+    next unless winner_username == user.username
 
     # Establish reverse link from packet to Erhaltungsbericht
     packet_post.custom_fields["erhaltungsbericht_topic_id"] = topic.id
     packet_post.save_custom_fields
-    Rails.logger.info "Successfully saved erhaltungsbericht_topic_id #{topic.id} to packet post #{packet_post.id}"
   end
 end

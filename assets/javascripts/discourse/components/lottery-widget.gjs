@@ -36,15 +36,12 @@ export default class LotteryWidget extends Component {
   @tracked erhaltungsberichtTopicId = null;
   @tracked loading = true;
   @tracked markingCollected = false;
-  @tracked erhaltungsberichtComposerOpen = false;
 
   constructor() {
     super(...arguments);
     if (this.shouldShow) {
       this.loadTicketData();
       this.appEvents.on("lottery:ticket-changed", this, this.onTicketChanged);
-      // Reload data when composer closes (e.g., after creating Erhaltungsbericht)
-      this.appEvents.on("composer:closed", this, this.onComposerClosed);
       // Reload data when page becomes visible again
       document.addEventListener("visibilitychange", this.onVisibilityChange);
     } else {
@@ -56,20 +53,7 @@ export default class LotteryWidget extends Component {
     super.willDestroy(...arguments);
     if (this.shouldShow) {
       this.appEvents.off("lottery:ticket-changed", this, this.onTicketChanged);
-      this.appEvents.off("composer:closed", this, this.onComposerClosed);
       document.removeEventListener("visibilitychange", this.onVisibilityChange);
-    }
-  }
-
-  @bind
-  onComposerClosed() {
-    // Reload page if we opened the Erhaltungsbericht composer
-    if (this.erhaltungsberichtComposerOpen) {
-      this.erhaltungsberichtComposerOpen = false;
-      // Wait a moment for backend to process topic creation before reloading
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
     }
   }
 
@@ -467,9 +451,6 @@ export default class LotteryWidget extends Component {
       packet_post_id: this.post.id,
       packet_topic_id: this.post.topic_id,
     });
-
-    // Track that we opened the Erhaltungsbericht composer
-    this.erhaltungsberichtComposerOpen = true;
   }
 
   <template>
