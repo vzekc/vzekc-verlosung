@@ -9,7 +9,9 @@ module Jobs
 
       # Find all finished lotteries with drawn results
       Topic
-        .where("custom_fields @> ?", { lottery_state: "finished" }.to_json)
+        .where(deleted_at: nil)
+        .joins(:_custom_fields)
+        .where(topic_custom_fields: { name: "lottery_state", value: "finished" })
         .find_each do |topic|
           next unless topic.custom_fields["lottery_results"].present?
 
