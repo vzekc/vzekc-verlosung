@@ -77,7 +77,7 @@ Ein mehrstufiger Assistent führt dich durch den Erstellungsprozess:
 
 **[Screenshot: Verlosungs-Assistent Schritt 1]**
 
-Gib einen aussagekräftigen Titel für die Verlosung ein (z.B. "Spende von Mitglied XY – Retro-Computer und Zubehör"). Wähle die Kategorie und lege die Laufzeit fest. Die Standardlaufzeit beträgt 7 Tage, kann aber angepasst werden.
+Gib einen aussagekräftigen Titel für die Verlosung ein (z.B. "Spende von Mitglied XY – Retro-Computer und Zubehör"). Wähle die Kategorie und lege die Laufzeit fest. Die Standardlaufzeit beträgt 14 Tage und sollte nur aus wichtigem Grund geändert werden (möglich sind 7-28 Tage).
 
 Die Beschreibung sollte enthalten:
 - Woher die Spende stammt
@@ -191,4 +191,4 @@ Ja, der Erhaltungsbericht ist eine Vereinspflicht. Er dokumentiert, was aus den 
 Du kannst die Beschreibungen bearbeiten, aber keine Pakete hinzufügen oder entfernen. Plane deine Verlosung daher sorgfältig im Entwurfsmodus.
 
 **Wie lange läuft eine Verlosung?**
-Die Standardlaufzeit beträgt 7 Tage und kann bei der Erstellung angepasst werden. Die Verlosung endet automatisch zum festgelegten Zeitpunkt.
+Die Standardlaufzeit beträgt 14 Tage und sollte nur aus wichtigem Grund geändert werden. Möglich sind Laufzeiten zwischen 7 und 28 Tagen. Die Verlosung endet automatisch zum festgelegten Zeitpunkt.
