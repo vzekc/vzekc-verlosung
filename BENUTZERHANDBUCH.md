@@ -26,11 +26,11 @@ Um an einer Verlosung teilzunehmen, scrollst du zum gewünschten Paket im Beitra
 
 **[Screenshot: Paket-Beitrag mit "Los kaufen" Button]**
 
-Unter jedem Paket findest du einen "Los kaufen" Button sowie die aktuelle Anzahl der verkauften Lose. Du kannst beliebig viele Lose für dasselbe Paket kaufen – mehr Lose bedeuten höhere Gewinnchancen. Die Teilnehmerliste zeigt, wer wie viele Lose gekauft hat.
+Unter jedem Paket findest du einen "Los kaufen" Button sowie die aktuelle Anzahl der verkauften Lose. Du kannst pro Paket genau ein Los kaufen. Die Teilnehmerliste zeigt alle Nutzer, die für dieses Paket ein Los gekauft haben.
 
 **[Screenshot: Teilnehmerliste unter einem Paket]**
 
-Nach dem Kauf eines Loses ändert sich der Button zu "Weiteres Los kaufen", sodass du weitere Lose erwerben kannst, falls gewünscht.
+Nach dem Kauf eines Loses ändert sich der Button zu "Los zurückgeben". Falls du deine Teilnahme an diesem Paket widerrufst, kannst du das Los zurückgeben, solange die Verlosung noch läuft.
 
 ### Gewinnbenachrichtigung
 
@@ -117,8 +117,7 @@ Nach der Veröffentlichung können keine strukturellen Änderungen mehr vorgenom
 
 Während die Verlosung läuft, kannst du jederzeit den aktuellen Stand einsehen. Unter jedem Paket siehst du:
 - Wie viele Lose verkauft wurden
-- Wer teilnimmt und wie viele Lose jeder gekauft hat
-- Die aktuelle Wahrscheinlichkeitsverteilung
+- Welche Nutzer teilnehmen
 
 **[Screenshot: Aktive Verlosung mit Teilnehmern]**
 
@@ -178,13 +177,13 @@ Diese Erinnerungen helfen dir, den Verlosungsprozess zeitnah abzuschließen und 
 ## Häufig gestellte Fragen
 
 **Kann ich ein Los wieder zurückgeben?**
-Nein, einmal gekaufte Lose können nicht storniert werden. Überlege dir daher gut, für welche Pakete du Lose kaufst.
+Ja, solange die Verlosung noch läuft, kannst du dein Los jederzeit zurückgeben. Der Button ändert sich nach dem Kauf von "Los kaufen" zu "Los zurückgeben".
 
 **Kann ich Lose für mehrere Pakete kaufen?**
 Ja, du kannst an beliebig vielen Paketen einer Verlosung teilnehmen. Jedes Paket wird unabhängig verlost.
 
 **Kann ich mehrere Lose für dasselbe Paket kaufen?**
-Ja, du kannst beliebig viele Lose für ein Paket erwerben. Mehr Lose erhöhen deine Gewinnchance proportional.
+Nein, pro Paket kannst du genau ein Los kaufen. Alle Teilnehmer haben die gleiche Gewinnchance bei jedem Paket.
 
 **Wie wird der Gewinner ermittelt?**
 Der Gewinner wird durch einen deterministischen Zufallsalgorithmus ermittelt, der im Browser läuft. Der Seed basiert auf dem Startzeitpunkt und allen Teilnehmernamen. Dadurch ist das Ergebnis nachvollziehbar und kann nicht manipuliert werden.
