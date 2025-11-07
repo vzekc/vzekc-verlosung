@@ -12,8 +12,8 @@ import { apiInitializer } from "discourse/lib/api";
 class ErhaltungsberichtPacketLink extends Component {
   @tracked packetUrl = null;
   @tracked lotteryUrl = null;
-  @tracked packetTitle = null;
-  @tracked lotteryTitle = null;
+  @tracked packetTitle = "";
+  @tracked lotteryTitle = "";
   @tracked loading = true;
 
   constructor() {
@@ -22,8 +22,7 @@ class ErhaltungsberichtPacketLink extends Component {
   }
 
   async loadPacketInfo() {
-    const { packetPostId, packetTopicId, erhaltungsberichtTitle } =
-      this.args.data;
+    const { packetPostId, packetTopicId } = this.args.data;
 
     if (!packetPostId || !packetTopicId) {
       this.loading = false;
@@ -40,44 +39,19 @@ class ErhaltungsberichtPacketLink extends Component {
         this.lotteryUrl = `/t/${result.slug}/${packetTopicId}`;
         this.lotteryTitle = result.title;
 
-        // Extract packet title from post raw - try multiple patterns
-        let packetTitle = null;
-
-        // Try heading with #
-        const headingMatch = post.raw.match(/^#\s+(.+)$/m);
-        if (headingMatch) {
-          packetTitle = headingMatch[1].trim();
+        // Extract packet title from cooked HTML (same as lottery-widget)
+        if (post.cooked) {
+          const tempDiv = document.createElement("div");
+          tempDiv.innerHTML = post.cooked;
+          const heading = tempDiv.querySelector("h1, h2, h3");
+          this.packetTitle = heading
+            ? heading.textContent.trim()
+            : `Paket #${post.post_number}`;
+        } else {
+          this.packetTitle = `Paket #${post.post_number}`;
         }
-
-        // Try bold text at start **Paket...**
-        if (!packetTitle) {
-          const boldMatch = post.raw.match(/^\*\*([^*]+)\*\*/m);
-          if (boldMatch) {
-            packetTitle = boldMatch[1].trim();
-          }
-        }
-
-        // Try first line that's not empty
-        if (!packetTitle) {
-          const firstLine = post.raw.split("\n").find((line) => line.trim());
-          if (firstLine && firstLine.length < 100) {
-            packetTitle = firstLine.trim();
-          }
-        }
-
-        // Try extracting from Erhaltungsbericht title (format: "Paket X: name aus lottery")
-        if (!packetTitle && erhaltungsberichtTitle) {
-          const titleMatch = erhaltungsberichtTitle.match(/^(.+?)\s+aus\s+/);
-          if (titleMatch) {
-            packetTitle = titleMatch[1].trim();
-          }
-        }
-
-        // Fallback to generic title
-        this.packetTitle = packetTitle || `Paket #${post.post_number}`;
       }
     } catch (error) {
-      // Log error for debugging
       // eslint-disable-next-line no-console
       console.error("Failed to load packet info:", error);
     } finally {
@@ -143,7 +117,6 @@ export default apiInitializer((api) => {
       helper.renderGlimmer(container, ErhaltungsberichtPacketLink, {
         packetPostId,
         packetTopicId,
-        erhaltungsberichtTitle: topic.title,
       });
     },
     { onlyStream: true, id: "erhaltungsbericht-packet-link" }
