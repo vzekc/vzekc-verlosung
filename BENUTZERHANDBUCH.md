@@ -30,7 +30,7 @@ Unter jedem Paket findest du einen "Los kaufen" Button sowie die aktuelle Anzahl
 
 **[Screenshot: Teilnehmerliste unter einem Paket]**
 
-Nach dem Kauf eines Loses ändert sich der Button zu "Los zurückgeben". Falls du deine Teilnahme an diesem Paket widerrufst, kannst du das Los zurückgeben, solange die Verlosung noch läuft.
+Nach dem Kauf eines Loses ändert sich der Button zu "Los zurückgeben". Solange die Verlosung noch läuft, kannst du das Los jederzeit zurückgeben.
 
 ### Gewinnbenachrichtigung
 
