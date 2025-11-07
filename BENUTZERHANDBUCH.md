@@ -123,14 +123,6 @@ Während die Verlosung läuft, kannst du jederzeit den aktuellen Stand einsehen.
 
 Das Status-Widget zeigt die verbleibende Zeit bis zum Ende. Du erhältst eine persönliche Nachricht, wenn die Verlosung morgen endet.
 
-### Verlosung vorzeitig beenden
-
-Falls du die Verlosung vor Ablauf der Frist beenden möchtest (z.B. weil genügend Teilnehmer vorhanden sind oder aus anderen Gründen), kannst du auf den "Verlosung jetzt beenden" Button klicken.
-
-**[Screenshot: "Jetzt beenden" Button]**
-
-Das Enddatum wird auf den aktuellen Zeitpunkt gesetzt, und du kannst sofort mit der Ziehung fortfahren.
-
 ### Gewinner ziehen
 
 Sobald die Verlosung beendet ist, erscheint ein "Gewinner ziehen" Button im Status-Widget. Nur du als Ersteller und Administratoren können die Ziehung durchführen.
@@ -201,4 +193,4 @@ Ja, der Erhaltungsbericht ist eine Vereinspflicht. Er dokumentiert, was aus den 
 Du kannst die Beschreibungen bearbeiten, aber keine Pakete hinzufügen oder entfernen. Plane deine Verlosung daher sorgfältig im Entwurfsmodus.
 
 **Wie lange läuft eine Verlosung?**
-Die Standardlaufzeit beträgt 7 Tage und kann bei der Erstellung angepasst werden. Nach der Veröffentlichung kann die Verlosung vorzeitig beendet, aber nicht verlängert werden.
+Die Standardlaufzeit beträgt 7 Tage und kann bei der Erstellung angepasst werden. Die Verlosung endet automatisch zum festgelegten Zeitpunkt.
