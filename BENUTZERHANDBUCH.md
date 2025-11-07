@@ -1,8 +1,8 @@
 # Vzekc Verlosung – Benutzerhandbuch
 
-## Was ist das Verlosungs-Plugin?
+## Was ist das Verlosungssystem?
 
-Das Verlosungs-Plugin ermöglicht es Vereinsmitgliedern, Hardware-Spenden transparent und fair zu verlosen. Jede Verlosung besteht aus mehreren Paketen, für die Teilnehmer Lose kaufen können. Nach Ablauf der Frist werden die Gewinner durch einen nachvollziehbaren, deterministischen Zufallsalgorithmus ermittelt.
+Das Verlosungssystem ermöglicht es Vereinsmitgliedern, Hardware-Spenden transparent und fair zu verlosen. Jede Verlosung besteht aus mehreren Paketen, für die Teilnehmer Lose kaufen können. Nach Ablauf der Frist werden die Gewinner durch einen nachvollziehbaren, deterministischen Zufallsalgorithmus ermittelt.
 
 ---
 
