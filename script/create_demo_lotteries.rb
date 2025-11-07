@@ -69,7 +69,7 @@ description1 = <<~DESC
 
   ## Behaltene Systeme
 
-  Für das Vereinsarchiv habe ich die komplette SGI Indigo² Workstation mit allen Handbüchern behalten, da diese ein wichtiges Zeugnis der professionellen 3D-Grafikgeschichte darstellt.
+  Aus der Spende habe ich eine SGI Indigo² Workstation für mich behalten, da ich schon lange nach so einem System suche und es perfekt in meine Sammlung passt.
 
   ## Übergabe der Pakete
 
@@ -127,13 +127,13 @@ puts "=" * 80
 description2 = <<~DESC
   ## Über diese Verlosung
 
-  Diese wunderbare Sammlung stammt von **Werner K.** aus Hannover, einem begeisterten Retro-Computing-Enthusiasten und langjährigen Vereinsmitglied, der aus gesundheitlichen Gründen seine Sammlung verkleinern muss. Werner hat über 30 Jahre lang Heimcomputer gesammelt und möchte nun sicherstellen, dass seine Schätze in gute Hände kommen.
+  Diese wunderbare Sammlung haben wir von **Werner K.** aus Hannover erhalten, einem begeisterten Retro-Computing-Enthusiasten, der aus gesundheitlichen Gründen seine Sammlung verkleinern muss. Werner hat über 30 Jahre lang Heimcomputer gesammelt und freut sich, dass seine Schätze in gute Hände kommen.
 
   Werner war besonders an der Geschichte der 8-Bit-Ära interessiert und hat viele Systeme liebevoll restauriert und dokumentiert. Zu fast allen Geräten gibt es Originalverpackungen und Handbücher.
 
   ## Behaltene Systeme
 
-  Werner behält seine beiden Amiga 3000 Systeme, da diese einen besonderen persönlichen Wert für ihn haben – damit hat er Anfang der 90er Jahre seine Diplomarbeit geschrieben.
+  Aus der Spende habe ich einen Commodore Amiga 1200 für mich behalten – ein System, das ich schon seit meiner Jugend haben wollte.
 
   ## Übergabe der Pakete
 
@@ -191,13 +191,13 @@ puts "=" * 80
 description3 = <<~DESC
   ## Über diese Verlosung
 
-  Diese Sammlung stammt aus dem Nachlass von **Dr. Karl-Heinz Schmidt** (1945-2024), der als einer der ersten deutschen PC-Händler in den 1980er Jahren eine wichtige Rolle bei der Verbreitung der IBM-kompatiblen PCs spielte. Seine Tochter hat uns kontaktiert und möchte die historisch wertvollen Systeme ihres Vaters an Menschen weitergeben, die sie zu schätzen wissen.
+  Diese Sammlung haben wir aus dem Nachlass von **Dr. Karl-Heinz Schmidt** (1945-2024) erhalten, der als einer der ersten deutschen PC-Händler in den 1980er Jahren eine wichtige Rolle bei der Verbreitung der IBM-kompatiblen PCs spielte. Seine Tochter hat uns kontaktiert und wollte die historisch wertvollen Systeme ihres Vaters an Menschen weitergeben, die sie zu schätzen wissen.
 
   Dr. Schmidt hat jedes System sorgfältig dokumentiert, inkl. Kaufbelegen, technischen Daten und handschriftlichen Notizen. Diese Dokumentation wird den jeweiligen Gewinnern mitgegeben – ein einzigartiger Einblick in die frühe PC-Geschichte Deutschlands.
 
   ## Behaltene Systeme
 
-  Ein IBM 5150 Original PC (1981) mit allen Unterlagen bleibt in der Familie und wird dem Computermuseum in Paderborn als Leihgabe zur Verfügung gestellt.
+  Aus der Spende habe ich einen IBM PC AT 5170 für mich behalten – dieses System hat mich schon immer fasziniert und passt perfekt in meine PC-Sammlung.
 
   ## Übergabe der Pakete
 
@@ -257,13 +257,13 @@ puts "=" * 80
 description4 = <<~DESC
   ## Über diese Verlosung
 
-  Diese Hardware wurde uns vom **Heinrich-Hertz-Gymnasium** in München gespendet. Die Schule hat ihren Informatikraum komplett modernisiert und dabei die historische Sammlung aus dem Archiv aufgelöst. Die stellvertretende Schulleiterin, Frau Dr. Müller, hat sich sehr gefreut, dass die Systeme eine zweite Chance bei Enthusiasten bekommen.
+  Diese Hardware haben wir vom **Heinrich-Hertz-Gymnasium** in München erhalten. Die Schule hat ihren Informatikraum komplett modernisiert und dabei die historische Sammlung aus dem Archiv aufgelöst. Die stellvertretende Schulleiterin, Frau Dr. Müller, hat sich sehr gefreut, dass die Systeme eine zweite Chance bei Enthusiasten bekommen.
 
   Diese Geräte wurden von 1990 bis 2005 im Informatikunterricht eingesetzt und haben Generationen von Schülern die ersten Programmiererfahrungen ermöglicht. Einige Systeme tragen noch die originalen Inventaraufkleber der Schule.
 
   ## Behaltene Systeme
 
-  Für eine geplante Ausstellung "30 Jahre Informatikunterricht" wurden zwei Apple II GS Systeme und ein NeXT Cube zurückbehalten.
+  Aus der Spende habe ich einen Apple IIe für mich behalten – mein Traum-Computer aus der Schulzeit, den ich jetzt endlich besitze.
 
   ## Übergabe der Pakete
 
