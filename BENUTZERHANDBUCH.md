@@ -189,7 +189,7 @@ Nein, pro Paket kannst du genau ein Los kaufen. Alle Teilnehmer haben die gleich
 Der Gewinner wird durch einen deterministischen Zufallsalgorithmus ermittelt, der im Browser läuft. Der Seed basiert auf dem Startzeitpunkt und allen Teilnehmernamen. Dadurch ist das Ergebnis nachvollziehbar und kann nicht manipuliert werden.
 
 **Kann ich als Ersteller an meiner eigenen Verlosung teilnehmen?**
-Technisch ja, aber aus Fairnessgründen solltest du das nicht tun.
+Ja, das ist ausdrücklich erlaubt. Da der Ziehungsalgorithmus deterministisch ist und auf dem Startzeitpunkt sowie den Teilnehmernamen basiert, kann das Ergebnis nicht manipuliert werden – auch nicht durch den Ersteller selbst. Jeder Teilnehmer hat die gleiche faire Gewinnchance.
 
 **Was passiert, wenn ein Gewinner sein Paket nicht abholt?**
 Der Ersteller erhält wöchentliche Erinnerungen über nicht abgeholte Pakete. Nach einer angemessenen Frist kann entschieden werden, was mit dem Paket geschieht (erneute Verlosung, anderweitige Verwendung).
