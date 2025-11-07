@@ -1,4 +1,4 @@
-# Vzekc Verlosung – Benutzerhandbuch
+# VzEkC Verlosung – Benutzerhandbuch
 
 ## Was ist das Verlosungssystem?
 
