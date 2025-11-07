@@ -129,16 +129,14 @@ Sobald die Verlosung beendet ist, erscheint ein "Gewinner ziehen" Button im Stat
 
 **[Screenshot: "Gewinner ziehen" Button nach Ablauf]**
 
-Beim Klick öffnet sich ein Modal, der den deterministischen Ziehungsprozess startet. Der Algorithmus läuft im Browser und basiert auf:
+Beim Klick öffnet sich ein Modal, das die Pakete und deren Teilnehmer anzeigt. Klicke auf "Gewinner ziehen", um den deterministischen Ziehungsprozess zu starten. Der Algorithmus läuft im Browser und basiert auf:
 - Dem Startzeitpunkt der Verlosung
 - Allen Teilnehmernamen
 - Einem kryptografischen Hash (SHA-512)
 
-**[Screenshot: Ziehungs-Modal mit Ergebnissen]**
+**[Screenshot: Ziehungs-Modal]**
 
-Das Modal zeigt für jedes Paket den gezogenen Gewinner an. Der gleiche Prozess mit denselben Eingabedaten führt immer zum gleichen Ergebnis – die Ziehung ist somit nachvollziehbar und manipulationssicher.
-
-Prüfe die Ergebnisse und klicke auf "Bestätigen und Ergebnisse speichern". Die Gewinner werden gespeichert und alle Gewinner erhalten automatisch eine persönliche Nachricht mit den Details.
+Nach dem Klick werden die Gewinner automatisch ermittelt, gespeichert und die Seite lädt neu. Der gleiche Prozess mit denselben Eingabedaten führt immer zum gleichen Ergebnis – die Ziehung ist somit nachvollziehbar und manipulationssicher. Alle Gewinner erhalten automatisch eine persönliche Nachricht mit den Details.
 
 ### Pakete als abgeholt markieren
 
