@@ -14,20 +14,27 @@ vzekc_verlosung:
     default: |
       ## Über diese Verlosung
 
-      [Beschreibe die Spende und woher sie stammt]
+      [Beschreibe die Spende: woher sie stammt (z.B. Firma, Sammler, Nachlass, Schule), wer gespendet hat, und wie du sie abgeholt hast. Beispiel: "Diese Hardware stammt aus der Liquidation der Firma **XYZ GmbH** aus Köln. Der ehemalige Geschäftsführer hat uns die komplette Ausstattung gespendet..."]
 
-      ## Behaltene Systeme
+      ## Behaltenes System
 
-      Falls du Systeme oder Teile aus der Spende für dich behalten hast, beschreibe sie hier. Fotos sind ebenfalls willkommen!
+      [Falls du EIN System oder Teil aus der Spende für dich behalten hast, beschreibe es hier. Nur ein System darf behalten werden! Beispiel: "Aus der Spende habe ich einen Commodore Amiga 1200 für mich behalten – ein System, das ich schon seit meiner Jugend haben wollte."]
 
       ## Übergabe der Pakete
 
-      [Beschreibe die Übergabemöglichkeiten:]
-      - Wo können Pakete abgeholt werden? (z.B. Standort, lokale Treffen, Classic-Computing-Treffen)
-      - Ist Versand möglich? Unter welchen Bedingungen? (z.B. Übernahme Versandkosten, Zusendung von Versandmaterial)
-      - Gibt es eine Frist für die Kontaktaufnahme? (z.B. innerhalb 14 Tagen)
-      - Wie lange können Pakete gelagert werden?
-      - Gibt es Pakete, die nicht versendet werden sollten?
+      [Wo hast du die Spende abgeholt?] Ich habe alle Systeme in [Ort] abgeholt.
+
+      **Abholung:** Die Pakete können in [PLZ] [Ort-Stadtteil] abgeholt werden (nach Terminvereinbarung). [Optional: Erwähne lokale Treffen, Classic-Computing-Treffen, etc.]
+
+      **Versand:** Versand ist [möglich/wird bevorzugt/nicht möglich]:
+      - Versandkosten trägt der Gewinner
+      - [Optional: Verpackungsmöglichkeiten, versicherter Versand empfohlen]
+      - [Optional: Schwere Systeme (Monitore, Desktop-Gehäuse) sollten möglichst abgeholt werden]
+
+      **Fristen:**
+      - Versand innerhalb von [1-2] Wochen nach Kontaktaufnahme
+      - Abholung innerhalb von [6-12] Wochen nach der Ziehung
+      - Nicht abgeholte Pakete [kommen in eine neue Verlosung / bleiben beim ursprünglichen Spender]
     type: string
     textarea: true
   vzekc_verlosung_reminder_hour:
@@ -36,6 +43,10 @@ vzekc_verlosung:
     min: 0
     max: 23
     client: false
+  vzekc_verlosung_show_end_early_button:
+    default: false
+    client: true
+    type: boolean
   vzekc_verlosung_erhaltungsbericht_template:
     default: |
       Ich habe folgendes Paket aus der Verlosung "[LOTTERY_TITLE]" erhalten:

@@ -133,7 +133,7 @@ description1 = <<~DESC
 
   Die Systeme wurden professionell gewartet und befinden sich größtenteils in sehr gutem Zustand. Einige Geräte wurden bis 2010 noch produktiv genutzt.
 
-  ## Behaltene Systeme
+  ## Behaltenes System
 
   Aus der Spende habe ich eine SGI Indigo² Workstation für mich behalten, da ich schon lange nach so einem System suche und es perfekt in meine Sammlung passt.
 
@@ -149,9 +149,9 @@ description1 = <<~DESC
   - Schwere Systeme (Monitore, Desktop-Gehäuse) sollten möglichst abgeholt werden
 
   **Fristen:**
-  - Bitte meldet euch innerhalb von 14 Tagen nach der Ziehung bei mir
-  - Die Pakete können bis zu 8 Wochen bei mir gelagert werden
-  - Schwere Monitore sollten möglichst zeitnah abgeholt werden (begrenzte Lagerfläche)
+  - Versand innerhalb von 2 Wochen nach Kontaktaufnahme
+  - Abholung innerhalb von 8 Wochen nach der Ziehung
+  - Nicht abgeholte Pakete kommen in eine neue Verlosung
 DESC
 
 result1 =
@@ -203,7 +203,7 @@ description2 = <<~DESC
 
   Werner war besonders an der Geschichte der 8-Bit-Ära interessiert und hat viele Systeme liebevoll restauriert und dokumentiert. Zu fast allen Geräten gibt es Originalverpackungen und Handbücher.
 
-  ## Behaltene Systeme
+  ## Behaltenes System
 
   Aus der Spende habe ich einen Commodore Amiga 1200 für mich behalten – ein System, das ich schon seit meiner Jugend haben wollte.
 
@@ -219,8 +219,9 @@ description2 = <<~DESC
   - Versicherter Versand via DHL Paket wird empfohlen
 
   **Fristen:**
-  - Kontaktaufnahme innerhalb von 2 Wochen nach der Ziehung
-  - Versand erfolgt innerhalb von 4 Wochen nach Kontaktaufnahme
+  - Versand innerhalb von 1 Woche nach Kontaktaufnahme
+  - Abholung innerhalb von 6 Wochen nach der Ziehung
+  - Nicht abgeholte Pakete bleiben beim ursprünglichen Spender
 DESC
 
 result2 =
@@ -274,7 +275,7 @@ description3 = <<~DESC
 
   Dr. Schmidt hat jedes System sorgfältig dokumentiert, inkl. Kaufbelegen, technischen Daten und handschriftlichen Notizen. Diese Dokumentation wird den jeweiligen Gewinnern mitgegeben – ein einzigartiger Einblick in die frühe PC-Geschichte Deutschlands.
 
-  ## Behaltene Systeme
+  ## Behaltenes System
 
   Aus der Spende habe ich einen IBM PC AT 5170 für mich behalten – dieses System hat mich schon immer fasziniert und passt perfekt in meine PC-Sammlung.
 
@@ -291,8 +292,9 @@ description3 = <<~DESC
   - Internationale Gewinner willkommen
 
   **Fristen:**
-  - Kontaktaufnahme innerhalb von 3 Wochen nach der Ziehung
-  - Die Systeme können bis zu 3 Monate sicher gelagert werden
+  - Versand innerhalb von 2 Wochen nach Kontaktaufnahme
+  - Abholung innerhalb von 12 Wochen nach der Ziehung
+  - Nicht abgeholte Pakete kommen in eine neue Verlosung
 DESC
 
 result3 =
@@ -347,7 +349,7 @@ description4 = <<~DESC
 
   Diese Geräte wurden von 1990 bis 2005 im Informatikunterricht eingesetzt und haben Generationen von Schülern die ersten Programmiererfahrungen ermöglicht. Einige Systeme tragen noch die originalen Inventaraufkleber der Schule.
 
-  ## Behaltene Systeme
+  ## Behaltenes System
 
   Aus der Spende habe ich einen Apple IIe für mich behalten – mein Traum-Computer aus der Schulzeit, den ich jetzt endlich besitze.
 
@@ -363,9 +365,9 @@ description4 = <<~DESC
   - Kleinere Systeme und Peripherie verschicke ich gerne
 
   **Fristen:**
-  - Kontaktaufnahme innerhalb von 14 Tagen
-  - Abholung/Versand innerhalb von 6 Wochen
-  - Nach 6 Wochen gehen nicht abgeholte Pakete an die Warteliste
+  - Versand innerhalb von 1 Woche nach Kontaktaufnahme
+  - Abholung innerhalb von 6 Wochen nach der Ziehung
+  - Nicht abgeholte Pakete bleiben beim ursprünglichen Spender
 DESC
 
 result4 =

@@ -6,6 +6,7 @@ de:
     vzekc_verlosung_description_template: "Standard-Vorlage für Verlosungsbeschreibung (Benutzer können nach Erstellung bearbeiten)"
     vzekc_verlosung_erhaltungsbericht_template: "Vorlage für Erhaltungsbericht-Beiträge (verwende [LOTTERY_TITLE] und [PACKET_LINK] als Platzhalter)"
     vzekc_verlosung_reminder_hour: "Uhrzeit (0-23) in Server-Lokalzeit, zu der Erinnerungs-Benachrichtigungen versendet werden"
+    vzekc_verlosung_show_end_early_button: "'Vorzeitig beenden' Button bei aktiven Verlosungen anzeigen (für Testzwecke)"
   vzekc_verlosung:
     notifications:
       lottery_published: "Die Verlosung '%{topic_title}' wurde veröffentlicht und ist jetzt aktiv"

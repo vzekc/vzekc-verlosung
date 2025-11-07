@@ -26,6 +26,7 @@ export default class LotteryIntroSummary extends Component {
   @service currentUser;
   @service appEvents;
   @service modal;
+  @service siteSettings;
 
   @tracked packets = [];
   @tracked loading = true;
@@ -216,6 +217,15 @@ export default class LotteryIntroSummary extends Component {
   }
 
   /**
+   * Check if end early button should be shown
+   *
+   * @returns {Boolean} true if button should be shown
+   */
+  get showEndEarlyButton() {
+    return this.siteSettings.vzekc_verlosung_show_end_early_button;
+  }
+
+  /**
    * Format collected date for display
    *
    * @param {String|Date} collectedAt - The collection timestamp
@@ -364,7 +374,9 @@ export default class LotteryIntroSummary extends Component {
               <div class="time-remaining">
                 {{this.timeRemaining}}
               </div>
-              {{#if (and this.isRunning this.canPublish)}}
+              {{#if
+                (and this.isRunning this.canPublish this.showEndEarlyButton)
+              }}
                 <DButton
                   @action={{this.endEarly}}
                   @translatedLabel={{if
@@ -372,7 +384,7 @@ export default class LotteryIntroSummary extends Component {
                     (i18n "vzekc_verlosung.testing.ending")
                     (i18n "vzekc_verlosung.testing.end_early_button")
                   }}
-                  @icon={{if this.ending "spinner" "fast-forward"}}
+                  @icon={{if this.ending "spinner" "forward"}}
                   @disabled={{this.ending}}
                   @isLoading={{this.ending}}
                   class="btn-danger btn-small lottery-end-early-button"

@@ -6,6 +6,7 @@ en:
     vzekc_verlosung_description_template: "Default template for lottery description (users can edit after creation)"
     vzekc_verlosung_erhaltungsbericht_template: "Template for Erhaltungsbericht posts (use [LOTTERY_TITLE] and [PACKET_LINK] as placeholders)"
     vzekc_verlosung_reminder_hour: "Hour of day (0-23) in server local time when reminder notifications are sent"
+    vzekc_verlosung_show_end_early_button: "Show 'End Early' button on active lotteries (for testing purposes)"
   vzekc_verlosung:
     notifications:
       lottery_published: "The lottery '%{topic_title}' has been published and is now active"
