@@ -521,7 +521,7 @@ export default class LotteryWidget extends Component {
                   <DButton
                     @action={{this.createErhaltungsbericht}}
                     @label="vzekc_verlosung.erhaltungsbericht.create_button"
-                    @icon="pencil-alt"
+                    @icon="pen"
                     class="btn-primary create-erhaltungsbericht-button"
                   />
                 </div>
@@ -533,7 +533,7 @@ export default class LotteryWidget extends Component {
                     href={{this.erhaltungsberichtUrl}}
                     class="erhaltungsbericht-link"
                   >
-                    {{icon "file-alt"}}
+                    {{icon "file"}}
                     <span>{{i18n
                         "vzekc_verlosung.erhaltungsbericht.view_link"
                       }}</span>

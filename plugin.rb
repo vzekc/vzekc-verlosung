@@ -22,8 +22,8 @@ register_svg_icon "clipboard-list"
 register_svg_icon "bullhorn"
 register_svg_icon "times-circle"
 register_svg_icon "clock"
-register_svg_icon "pencil-alt"
-register_svg_icon "file-alt"
+register_svg_icon "pen"
+register_svg_icon "file"
 
 module ::VzekcVerlosung
   PLUGIN_NAME = "vzekc-verlosung"
