@@ -6,7 +6,11 @@
 puts "=== Testing All Reminder Emails ==="
 puts ""
 
-# Check settings
+# Check and set reminder hour to current hour to ensure reminders run
+current_hour = Time.zone.now.hour
+original_reminder_hour = SiteSetting.vzekc_verlosung_reminder_hour
+SiteSetting.vzekc_verlosung_reminder_hour = current_hour
+
 puts "Settings:"
 puts "  Plugin enabled: #{SiteSetting.vzekc_verlosung_enabled}"
 puts "  Draft reminders enabled: #{SiteSetting.vzekc_verlosung_draft_reminder_enabled}"
@@ -14,6 +18,7 @@ puts "  Ended reminders enabled: #{SiteSetting.vzekc_verlosung_ended_reminder_en
 puts "  Ending tomorrow reminders enabled: #{SiteSetting.vzekc_verlosung_ending_tomorrow_reminder_enabled}"
 puts "  Uncollected reminders enabled: #{SiteSetting.respond_to?(:vzekc_verlosung_uncollected_reminder_enabled) ? SiteSetting.vzekc_verlosung_uncollected_reminder_enabled : 'N/A (setting not found)'}"
 puts "  Erhaltungsbericht reminders enabled: #{SiteSetting.respond_to?(:vzekc_verlosung_erhaltungsbericht_reminder_enabled) ? SiteSetting.vzekc_verlosung_erhaltungsbericht_reminder_enabled : 'N/A (setting not found)'}"
+puts "  Reminder hour: #{SiteSetting.vzekc_verlosung_reminder_hour} (set to current hour: #{current_hour})"
 puts "  Lottery category: #{SiteSetting.vzekc_verlosung_category_id}"
 puts ""
 
@@ -191,7 +196,7 @@ if uncollected_result.success?
   uncollected_topic = uncollected_result[:main_topic]
   # Activate, end, and draw winners
   uncollected_topic.custom_fields["lottery_state"] = "active"
-  uncollected_topic.custom_fields["lottery_ends_at"] = 30.days.ago
+  uncollected_topic.custom_fields["lottery_ends_at"] = 29.days.ago
   uncollected_topic.save_custom_fields
   uncollected_topic.reload
 
@@ -204,9 +209,9 @@ if uncollected_result.success?
       user_id: winner_user.id
     )
 
-    # Draw lottery and assign winner
+    # Draw lottery and assign winner - use 28 days (multiple of 7)
     uncollected_topic.custom_fields["lottery_state"] = "finished"
-    uncollected_topic.custom_fields["lottery_drawn_at"] = 29.days.ago
+    uncollected_topic.custom_fields["lottery_drawn_at"] = 28.days.ago
     uncollected_topic.save_custom_fields
 
     packet_post.custom_fields["lottery_winner"] = winner_user.username
@@ -214,7 +219,7 @@ if uncollected_result.success?
     packet_post.reload
 
     puts "  ✓ Created uncollected packet lottery: #{uncollected_topic.title} (id: #{uncollected_topic.id})"
-    puts "    Winner: #{winner_user.username}, Won: 29 days ago, Not collected"
+    puts "    Winner: #{winner_user.username}, Won: 28 days ago (multiple of 7), Not collected"
   end
 else
   puts "  ✗ Failed to create uncollected lottery: #{uncollected_result.inspect}"
@@ -244,7 +249,7 @@ if erb_result.success?
   erb_topic = erb_result[:main_topic]
   # Activate, end, and draw winners
   erb_topic.custom_fields["lottery_state"] = "active"
-  erb_topic.custom_fields["lottery_ends_at"] = 90.days.ago
+  erb_topic.custom_fields["lottery_ends_at"] = 85.days.ago
   erb_topic.save_custom_fields
   erb_topic.reload
 
@@ -259,16 +264,17 @@ if erb_result.success?
 
     # Draw lottery and assign winner
     erb_topic.custom_fields["lottery_state"] = "finished"
-    erb_topic.custom_fields["lottery_drawn_at"] = 89.days.ago
+    erb_topic.custom_fields["lottery_drawn_at"] = 84.days.ago
     erb_topic.save_custom_fields
 
+    # Use 56 days (multiple of 7) for collection date
     packet_post.custom_fields["lottery_winner"] = erb_winner.username
-    packet_post.custom_fields["packet_collected_at"] = 60.days.ago
+    packet_post.custom_fields["packet_collected_at"] = 56.days.ago
     packet_post.save_custom_fields
     packet_post.reload
 
     puts "  ✓ Created Erhaltungsbericht reminder lottery: #{erb_topic.title} (id: #{erb_topic.id})"
-    puts "    Winner: #{erb_winner.username}, Collected: 60 days ago, No Erhaltungsbericht"
+    puts "    Winner: #{erb_winner.username}, Collected: 56 days ago (multiple of 7), No Erhaltungsbericht"
   end
 else
   puts "  ✗ Failed to create Erhaltungsbericht lottery: #{erb_result.inspect}"
@@ -335,6 +341,12 @@ puts ""
 
 puts "=== Summary ==="
 puts ""
+
+# Restore original reminder hour
+SiteSetting.vzekc_verlosung_reminder_hour = original_reminder_hour
+puts "Restored reminder hour to: #{original_reminder_hour}"
+puts ""
+
 puts "All reminder jobs have been executed!"
 puts ""
 puts "Check emails at:"
@@ -348,5 +360,10 @@ puts "  3. Ending tomorrow reminder → #{buyer&.email || 'N/A'}"
 puts "  4. Uncollected reminder → #{winner_user.email}"
 puts "  5. Erhaltungsbericht reminder → #{erb_winner.email}"
 puts ""
-puts "Note: Some emails may not be sent if the corresponding site setting is disabled."
+puts "Note: Reminder jobs only send emails if all conditions are met:"
+puts "  - Draft: Any draft lottery found"
+puts "  - Ended: Active lottery that has ended but not drawn"
+puts "  - Ending tomorrow: Active lottery ending in ~24 hours"
+puts "  - Uncollected: Won packet, days since drawn = multiple of 7 (7, 14, 21, 28...)"
+puts "  - Erhaltungsbericht: Collected packet, days since collected = multiple of 7 (7, 14, 21, 56...)"
 puts ""
