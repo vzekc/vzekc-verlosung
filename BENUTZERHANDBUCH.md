@@ -34,7 +34,7 @@ Nach dem Kauf eines Loses ändert sich der Button zu "Los zurückgeben". Falls d
 
 ### Gewinnbenachrichtigung
 
-Wenn die Verlosung endet und die Gewinner gezogen wurden, erhältst du eine persönliche Nachricht, falls du gewonnen hast. Die Nachricht enthält Details zu deinem Gewinn sowie Anweisungen zur Abholung.
+Wenn die Verlosung endet und die Gewinner gezogen wurden, erhältst du automatisch eine persönliche Nachricht, falls du gewonnen hast. Die Nachricht enthält Details zu deinem Gewinn sowie Informationen zur Übergabe.
 
 **[Screenshot: Gewinner-Benachrichtigung]**
 
@@ -42,9 +42,9 @@ Zusätzlich wird im Verlosungsbeitrag selbst angezeigt, wer welches Paket gewonn
 
 **[Screenshot: Gewinner-Anzeige bei einem Paket]**
 
-### Paket abholen
+### Abholung oder Versand vereinbaren
 
-Als Gewinner kontaktierst du den Verlosungsersteller, um die Übergabe zu vereinbaren. Die Details zur Übergabe findest du im Hauptbeitrag der Verlosung. Sobald du das Paket erhalten hast, markiert der Ersteller es als "Erhalten".
+Antworte auf die Gewinnernachricht des Verlosungserstellers, um die Übergabe zu vereinbaren. Die Nachricht sowie der Hauptbeitrag der Verlosung enthalten alle wichtigen Informationen zu Abholung, Versand und Fristen. Sobald du das Paket erhalten hast, markiert der Ersteller es als "Erhalten".
 
 ### Erhaltungsbericht schreiben
 
