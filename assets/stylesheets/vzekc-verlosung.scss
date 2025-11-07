@@ -684,7 +684,8 @@
     flex-shrink: 0;
   }
 
-  .packet-link {
+  .packet-link,
+  .lottery-link {
     font-weight: 600;
     color: var(--tertiary);
     text-decoration: none;
@@ -694,9 +695,5 @@
       color: var(--tertiary-hover);
       text-decoration: underline;
     }
-  }
-
-  strong {
-    color: var(--primary);
   }
 }

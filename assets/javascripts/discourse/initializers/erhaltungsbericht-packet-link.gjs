@@ -11,6 +11,7 @@ import { apiInitializer } from "discourse/lib/api";
  */
 class ErhaltungsberichtPacketLink extends Component {
   @tracked packetUrl = null;
+  @tracked lotteryUrl = null;
   @tracked packetTitle = null;
   @tracked lotteryTitle = null;
   @tracked loading = true;
@@ -35,12 +36,36 @@ class ErhaltungsberichtPacketLink extends Component {
 
       if (post && result.slug) {
         this.packetUrl = `/t/${result.slug}/${packetTopicId}/${post.post_number}`;
+        this.lotteryUrl = `/t/${result.slug}/${packetTopicId}`;
         this.lotteryTitle = result.title;
 
-        // Extract packet title from post raw
-        const titleMatch = post.raw.match(/^#\s+(.+)$/m);
-        this.packetTitle =
-          titleMatch?.[1]?.trim() || `Paket #${post.post_number}`;
+        // Extract packet title from post raw - try multiple patterns
+        let packetTitle = null;
+
+        // Try heading with #
+        const headingMatch = post.raw.match(/^#\s+(.+)$/m);
+        if (headingMatch) {
+          packetTitle = headingMatch[1].trim();
+        }
+
+        // Try bold text at start **Paket...**
+        if (!packetTitle) {
+          const boldMatch = post.raw.match(/^\*\*([^*]+)\*\*/m);
+          if (boldMatch) {
+            packetTitle = boldMatch[1].trim();
+          }
+        }
+
+        // Try first line that's not empty
+        if (!packetTitle) {
+          const firstLine = post.raw.split("\n").find((line) => line.trim());
+          if (firstLine && firstLine.length < 100) {
+            packetTitle = firstLine.trim();
+          }
+        }
+
+        // Fallback to generic title
+        this.packetTitle = packetTitle || `Paket #${post.post_number}`;
       }
     } catch {
       // Silently fail if packet info cannot be loaded
@@ -60,7 +85,10 @@ class ErhaltungsberichtPacketLink extends Component {
               class="packet-link"
             >{{this.packetTitle}}</a>
             aus
-            <strong>{{this.lotteryTitle}}</strong></span>
+            <a
+              href={{this.lotteryUrl}}
+              class="lottery-link"
+            >{{this.lotteryTitle}}</a></span>
         </div>
       {{/if}}
     {{/unless}}
