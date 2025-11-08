@@ -290,9 +290,12 @@ module VzekcVerlosung
         winner: winner,
       }
 
-      # Only include collected_at for lottery owner or staff
+      # Include collected_at for lottery owner, staff, or winner
       topic = post.topic
-      if topic && (guardian.is_staff? || topic.user_id == user.id)
+      winner_username = post.custom_fields["lottery_winner"]
+      is_winner = winner_username.present? && user && user.username == winner_username
+
+      if topic && (guardian.is_staff? || topic.user_id == user.id || is_winner)
         collected_at = post.custom_fields["packet_collected_at"]
         if collected_at
           response[:collected_at] = (

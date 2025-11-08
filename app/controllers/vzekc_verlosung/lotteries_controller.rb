@@ -493,16 +493,23 @@ module VzekcVerlosung
         user = User.find_by(id: user_id)
         next unless user
 
-        Notification.consolidate_or_create!(
-          notification_type: Notification.types[:vzekc_verlosung_drawn],
-          user_id: user.id,
-          topic_id: topic.id,
-          post_number: 1,
-          data: {
-            topic_title: topic.title,
-            message: "vzekc_verlosung.notifications.lottery_drawn",
-          }.to_json,
-        )
+        begin
+          Notification.consolidate_or_create!(
+            notification_type: Notification.types[:vzekc_verlosung_drawn],
+            user_id: user.id,
+            topic_id: topic.id,
+            post_number: 1,
+            data: {
+              topic_title: topic.title,
+              message: "vzekc_verlosung.notifications.lottery_drawn",
+            }.to_json,
+          )
+        rescue => e
+          Rails.logger.error(
+            "Failed to create lottery_drawn notification for user #{user_id} (#{user.username}) " \
+              "on topic #{topic.id}: #{e.class}: #{e.message}",
+          )
+        end
       end
     end
 
@@ -531,16 +538,23 @@ module VzekcVerlosung
         post_number = packet_post ? packet_post.post_number : 1
 
         # Create in-app notification
-        Notification.consolidate_or_create!(
-          notification_type: Notification.types[:vzekc_verlosung_won],
-          user_id: winner_user.id,
-          topic_id: topic.id,
-          post_number: post_number,
-          data: {
-            packet_title: packet_title,
-            message: "vzekc_verlosung.notifications.lottery_won",
-          }.to_json,
-        )
+        begin
+          Notification.consolidate_or_create!(
+            notification_type: Notification.types[:vzekc_verlosung_won],
+            user_id: winner_user.id,
+            topic_id: topic.id,
+            post_number: post_number,
+            data: {
+              packet_title: packet_title,
+              message: "vzekc_verlosung.notifications.lottery_won",
+            }.to_json,
+          )
+        rescue => e
+          Rails.logger.error(
+            "Failed to create winner notification for user #{winner_user.id} (#{winner_user.username}) " \
+              "on topic #{topic.id}, packet '#{packet_title}': #{e.class}: #{e.message}",
+          )
+        end
 
         # Collect packet info for PM
         winners_packets[winner_user] << {
@@ -552,7 +566,14 @@ module VzekcVerlosung
 
       # Send personal message to each winner with all their packets
       winners_packets.each do |winner_user, packets|
-        send_winner_personal_message(topic, winner_user, packets)
+        begin
+          send_winner_personal_message(topic, winner_user, packets)
+        rescue => e
+          Rails.logger.error(
+            "Failed to send winner PM for topic #{topic.id} to user #{winner_user.username}: " \
+              "#{e.class}: #{e.message}",
+          )
+        end
       end
     end
 
@@ -570,16 +591,23 @@ module VzekcVerlosung
         next unless user
         next if winner_usernames.include?(user.username)
 
-        Notification.consolidate_or_create!(
-          notification_type: Notification.types[:vzekc_verlosung_did_not_win],
-          user_id: user.id,
-          topic_id: topic.id,
-          post_number: 1,
-          data: {
-            topic_title: topic.title,
-            message: "vzekc_verlosung.notifications.did_not_win",
-          }.to_json,
-        )
+        begin
+          Notification.consolidate_or_create!(
+            notification_type: Notification.types[:vzekc_verlosung_did_not_win],
+            user_id: user.id,
+            topic_id: topic.id,
+            post_number: 1,
+            data: {
+              topic_title: topic.title,
+              message: "vzekc_verlosung.notifications.did_not_win",
+            }.to_json,
+          )
+        rescue => e
+          Rails.logger.error(
+            "Failed to create non-winner notification for user #{user_id} (#{user.username}) " \
+              "on topic #{topic.id}: #{e.class}: #{e.message}",
+          )
+        end
       end
     end
 
@@ -634,7 +662,7 @@ module VzekcVerlosung
         raw: message_body,
         archetype: Archetype.private_message,
         target_usernames: winner_user.username,
-        skip_validations: false,
+        skip_validations: true,
       )
     rescue => e
       Rails.logger.error(
