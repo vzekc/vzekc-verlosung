@@ -1,8 +1,6 @@
-# VzEkC Verlosung – Benutzerhandbuch
+# VzEkC Hardwareverlosung – Benutzerhandbuch
 
-## Was ist das Verlosungssystem?
-
-Das Verlosungssystem ermöglicht es Vereinsmitgliedern, Hardware-Spenden transparent und fair zu verlosen. Jede Verlosung besteht aus mehreren Paketen, für die Teilnehmer Lose kaufen können. Nach Ablauf der Frist werden die Gewinner durch einen nachvollziehbaren, deterministischen Zufallsalgorithmus ermittelt.
+Das Verlosungssystem ermöglicht es Vereinsmitgliedern, Hardware-Spenden transparent und fair zu verlosen. Jede Verlosung besteht aus mehreren Paketen, für die Mitglieder Lose kaufen können. Nach Ablauf der Frist werden die Gewinner durch einen nachvollziehbaren, deterministischen Zufallsalgorithmus ermittelt.
 
 ---
 
@@ -10,25 +8,27 @@ Das Verlosungssystem ermöglicht es Vereinsmitgliedern, Hardware-Spenden transpa
 
 ### Verlosungen finden
 
-Aktive Verlosungen werden in der konfigurierten Verlosungs-Kategorie angezeigt. Der Beitragstitel zeigt den Namen der Verlosung, und ein spezielles Widget am Anfang des Beitrags fasst den aktuellen Status zusammen.
+Aktive Verlosungen werden in der Discourse-Kategorie "Verlosungen" angezeigt. Der Beitragstitel zeigt den Namen der Verlosung.
 
-![Verlosungs-Übersicht mit Widget](docs/images/01-verlosung-uebersicht-widget.png)
+<img src="docs/images/00-verlosung-uebersicht.png" alt="Verlosungs-Übersicht" width="700">
 
-Das Status-Widget zeigt:
-- Den aktuellen Zustand (Aktiv, Beendet, Gewinner gezogen)
-- Die verbleibende Zeit bis zum Ende der Verlosung
-- Wie viele Pakete verlost werden
-- Schaltflächen für verfügbare Aktionen
+Mit Klick auf einen der Beiträge kommt man zum Hauptbeitrag der Verlosung
+
+<img src="docs/images/01-verlosung-hauptbeitrag.png" alt="Verlosungs-Beschreibung" width="699">
+
+Unter dem Text des Hauptbeitrags gibt es eine Statusanzeige mit der verbleibenden Laufzeit sowie eine Liste der Pakete in der Verlosung.
+
+<img src="docs/images/01-verlosung-hauptbeitrag-status.png" alt="Verlosungs-Status" width="700">
 
 ### Lose kaufen
 
 Um an einer Verlosung teilzunehmen, scrollst du zum gewünschten Paket im Beitrag. Jedes Paket ist als separater Beitrag angelegt und zeigt eine Beschreibung sowie Fotos der enthaltenen Hardware.
 
-![Paket-Beitrag mit "Los kaufen" Button](docs/images/02-paket-los-kaufen-button.png)
+<img src="docs/images/02-paket-los-kaufen-button.png" alt="Paket-Beitrag mit &quot;Los kaufen&quot; Button" width="700">
 
 Unter jedem Paket findest du einen "Los kaufen" Button sowie die aktuelle Anzahl der verkauften Lose. Du kannst pro Paket genau ein Los kaufen. Die Teilnehmerliste zeigt alle Nutzer, die für dieses Paket ein Los gekauft haben. Diese Liste ist für alle Mitglieder sichtbar.
 
-![Teilnehmerliste unter einem Paket](docs/images/03-teilnehmerliste.png)
+<img src="docs/images/03-teilnehmerliste.png" alt="Teilnehmerliste unter einem Paket" width="357">
 
 Solange die Verlosung läuft, kannst du das Los über den Button "Los zurückgeben" zurückgeben.
 
@@ -36,11 +36,11 @@ Solange die Verlosung läuft, kannst du das Los über den Button "Los zurückgeb
 
 Wenn die Verlosung endet und die Gewinner gezogen wurden, erhältst du automatisch eine persönliche Nachricht, falls du gewonnen hast. Die Nachricht enthält Details zu deinem Gewinn sowie Informationen zur Übergabe.
 
-![Gewinner-Benachrichtigung](docs/images/04-gewinner-benachrichtigung.png)
+<img src="docs/images/04-gewinner-benachrichtigung.png" alt="Gewinner-Benachrichtigung" width="274">
 
-Zusätzlich wird im Verlosungsbeitrag selbst angezeigt, wer welches Paket gewonnen hat. Neben dem Gewinnernamen erscheint ein Avatar.
+Zusätzlich wird im Verlosungsbeitrag selbst angezeigt, wer welches Paket gewonnen hat.
 
-![Gewinner-Anzeige bei einem Paket](docs/images/05-gewinner-anzeige-paket.png)
+<img src="docs/images/05-gewinner-anzeige-paket.png" alt="Gewinner-Anzeige bei einem Paket" width="642">
 
 ### Abholung oder Versand vereinbaren
 
@@ -50,7 +50,7 @@ Antworte auf die Gewinnernachricht des Verlosungserstellers, um die Übergabe zu
 
 Nachdem du das Paket erhalten hast, bist du verpflichtet, einen Erhaltungsbericht zu schreiben. Du erhältst wöchentliche Erinnerungen per persönlicher Nachricht, bis du den Bericht verfasst hast.
 
-!["Erhaltungsbericht schreiben" Button am Paket](docs/images/06-erhaltungsbericht-button.png)
+<img src="docs/images/06-erhaltungsbericht-button.png" alt="&quot;Erhaltungsbericht schreiben&quot; Button am Paket" width="411">
 
 Klicke auf den "Erhaltungsbericht schreiben" Button am Paket-Beitrag. Ein vorausgefülltes Formular öffnet sich, in dem du beschreibst:
 - Was im Paket enthalten war
@@ -59,7 +59,7 @@ Klicke auf den "Erhaltungsbericht schreiben" Button am Paket-Beitrag. Ein voraus
 - Fotos der erhaltenen Gegenstände
 - Deine Pläne für die Hardware (Sammlung, Restaurierung, Nutzung)
 
-Der Erhaltungsbericht wird automatisch in der konfigurierten Erhaltungsberichte-Kategorie veröffentlicht und mit dem ursprünglichen Paket verknüpft.
+Der Erhaltungsbericht wird automatisch in der "Erhaltungsberichte"-Kategorie veröffentlicht und mit dem ursprünglichen Paket verknüpft.
 
 ---
 
@@ -67,13 +67,13 @@ Der Erhaltungsbericht wird automatisch in der konfigurierten Erhaltungsberichte-
 
 ### Verlosung erstellen
 
-Um eine neue Verlosung zu erstellen, klickst du auf den "Neue Verlosung" Button, der in der konfigurierten Verlosungs-Kategorie erscheint.
+Um eine neue Verlosung zu erstellen, klickst du auf den "Neue Verlosung" Button, der in der "Verlosungen"-Kategorie über den Beiträgen zu finden ist.
 
-!["Neue Verlosung" Button](docs/images/07-neue-verlosung-button.png)
+<img src="docs/images/07-neue-verlosung-button.png" alt="&quot;Neue Verlosung&quot; Button" width="124">
 
 Es öffnet sich ein Formular, in dem du die Grunddaten für die Verlosung eingibst. Das Formular erstellt die Grundstruktur der Verlosung im Entwurfsmodus. Anschließend fügst du durch Bearbeiten der einzelnen Beiträge die detaillierten Beschreibungen und Fotos hinzu. Erst wenn alle Details eingegeben sind, veröffentlichst du die Verlosung und machst sie dadurch für alle Mitglieder sichtbar.
 
-![Verlosungs-Erstellungsformular](docs/images/08-erstellungsformular.png)
+<img src="docs/images/08-erstellungsformular.png" alt="Verlosungs-Erstellungsformular" width="405">
 
 Im Formular gibst du folgende Informationen ein:
 
@@ -91,7 +91,7 @@ Nach der Erstellung befindet sich die Verlosung im Entwurfsmodus. Nur du und Adm
 
 **Hauptbeitrag bearbeiten:** Ergänze die Beschreibung der Verlosung mit allen wichtigen Informationen zur Herkunft der Spende und zur Übergabe der Pakete.
 
-![Entwurf mit Bearbeiten-Buttons](docs/images/09-entwurf-bearbeiten.png)
+<img src="docs/images/09-entwurf-bearbeiten.png" alt="Entwurf mit Bearbeiten-Buttons" width="212">
 
 Der Hauptbeitrag sollte folgende Struktur haben:
 
@@ -132,7 +132,7 @@ Beschreibe die Übergabemöglichkeiten mit konkreten Angaben:
 
 Sobald du alle Beschreibungen und Fotos hinzugefügt hast, überprüfe noch einmal alle Details. Das Status-Widget zeigt einen "Verlosung veröffentlichen" Button.
 
-![Entwurfs-Status mit "Veröffentlichen" Button](docs/images/10-entwurf-veroeffentlichen.png)
+<img src="docs/images/10-entwurf-veroeffentlichen.png" alt="Entwurfs-Status mit &quot;Veröffentlichen&quot; Button" width="365">
 
 Wenn du die Verlosung veröffentlichst, wird sie für alle Mitglieder sichtbar und die Laufzeit beginnt. Das Enddatum wird automatisch berechnet (heute + konfigurierte Laufzeit). Nach der Veröffentlichung können keine Pakete mehr hinzugefügt oder entfernt werden. Die Beschreibungen kannst du aber weiterhin bearbeiten.
 
@@ -142,7 +142,7 @@ Während die Verlosung läuft, kannst du jederzeit den aktuellen Stand einsehen.
 - Wie viele Lose verkauft wurden
 - Welche Nutzer teilnehmen
 
-![Aktive Verlosung mit Teilnehmern](docs/images/11-aktive-verlosung-teilnehmer.png)
+<img src="docs/images/11-aktive-verlosung-teilnehmer.png" alt="Aktive Verlosung mit Teilnehmern" width="373">
 
 Das Status-Widget zeigt die verbleibende Zeit bis zum Ende. Du erhältst eine persönliche Nachricht, wenn die Verlosung morgen endet.
 
@@ -150,26 +150,24 @@ Das Status-Widget zeigt die verbleibende Zeit bis zum Ende. Du erhältst eine pe
 
 Sobald die Verlosung beendet ist, erscheint ein "Gewinner ziehen" Button im Status-Widget. Nur du als Ersteller und Administratoren können die Ziehung durchführen.
 
-!["Gewinner ziehen" Button nach Ablauf](docs/images/12-gewinner-ziehen-button.png)
+<img src="docs/images/12-gewinner-ziehen-button.png" alt="&quot;Gewinner ziehen&quot; Button nach Ablauf" width="361">
 
-Beim Klick öffnet sich ein Modal, das die Pakete und deren Teilnehmer anzeigt. Klicke auf "Gewinner ziehen", um den deterministischen Ziehungsprozess zu starten. Der Algorithmus läuft im Browser und basiert auf:
+Beim Klick öffnet sich ein Bestätigungsfenster. Klicke auf "Gewinner ziehen", um den deterministischen Ziehungsprozess zu starten. Der Algorithmus läuft im Browser und basiert auf:
 - Dem Startzeitpunkt der Verlosung
 - Allen Teilnehmernamen
 - Einem kryptografischen Hash (SHA-512)
 
-![Ziehungs-Modal](docs/images/13-ziehungs-modal.png)
-
-Nach dem Klick werden die Gewinner automatisch ermittelt, gespeichert und die Seite lädt neu. Der gleiche Prozess mit denselben Eingabedaten führt immer zum gleichen Ergebnis – die Ziehung ist somit nachvollziehbar und manipulationssicher. Alle Gewinner erhalten automatisch eine persönliche Nachricht mit den Details.
+Nach dem Klick werden die Gewinner automatisch ermittelt und gespeichert. Der gleiche Prozess mit denselben Eingabedaten führt immer zum gleichen Ergebnis – die Ziehung ist somit nachvollziehbar und manipulationssicher. Alle Gewinner erhalten automatisch eine persönliche Nachricht mit den Details.
 
 ### Pakete als erhalten markieren
 
-Nachdem ein Gewinner sein Paket abgeholt oder per Post erhalten hat, solltest du das Paket als "Erhalten" markieren. Am Paket-Beitrag erscheint ein Button "Als erhalten markieren".
+Nachdem ein Gewinner sein Paket abgeholt oder per Post erhalten hat, markiere das Paket als "Erhalten" über den Button am Paketbeitrag.
 
-!["Als erhalten markieren" Button](docs/images/14-als-erhalten-markieren-button.png)
+<img src="docs/images/14-als-erhalten-markieren-button.png" alt="&quot;Als erhalten markieren&quot; Button" width="361">
 
-Nach dem Markieren wird das Übergabedatum gespeichert und der Status des Pakets aktualisiert. Dies ist wichtig, da das System basierend auf diesem Datum Erinnerungen für den Erhaltungsbericht verschickt.
+Nach dem Markieren wird das Übergabedatum gespeichert und der Status des Pakets aktualisiert. Basierend auf diesem Datum verschickt das System automatisch Erinnerungen an den Gewinner, einen Erhaltungsbericht zu schreiben.
 
-![Paket mit "Erhalten am" Status](docs/images/15-paket-erhalten-status.png)
+<img src="docs/images/15-paket-erhalten-status.png" alt="Paket mit &quot;Erhalten am&quot; Status" width="361">
 
 ### Erinnerungen
 
