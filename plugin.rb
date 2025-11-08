@@ -85,6 +85,7 @@ after_initialize do
   # Preload lottery custom fields for topic lists to prevent N+1 queries
   add_preloaded_topic_list_custom_field("lottery_state")
   add_preloaded_topic_list_custom_field("lottery_ends_at")
+  add_preloaded_topic_list_custom_field("lottery_results")
 
   # Add helper methods to Topic class to safely access lottery fields
   add_to_class(:topic, :lottery_state) { custom_fields["lottery_state"] }
@@ -157,6 +158,8 @@ after_initialize do
   add_to_serializer(:topic_list_item, :lottery_state) { object.lottery_state }
 
   add_to_serializer(:topic_list_item, :lottery_ends_at) { object.lottery_ends_at }
+
+  add_to_serializer(:topic_list_item, :lottery_results) { object.lottery_results }
 
   # Include packet reference fields for Erhaltungsberichte
   add_to_serializer(:topic_view, :packet_post_id) do

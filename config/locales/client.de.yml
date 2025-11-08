@@ -90,3 +90,11 @@ de:
         view_link: "Erhaltungsbericht"
         packet_notice: "Dies ist ein Erhaltungsbericht für das Paket:"
         category_not_configured: "Die Kategorie für Erhaltungsberichte ist nicht konfiguriert. Bitte kontaktiere einen Administrator."
+      status:
+        finished: "Beendet"
+        ready_to_draw: "Ziehung ausstehend"
+        ending_soon: "Endet bald"
+        one_hour_remaining: "Noch 1 Stunde"
+        hours_remaining: "Noch %{count} Stunden"
+        one_day_remaining: "Noch 1 Tag"
+        days_remaining: "Noch %{count} Tage"

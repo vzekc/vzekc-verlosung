@@ -90,3 +90,11 @@ en:
         view_link: "Reception Report"
         packet_notice: "This is a reception report for the packet:"
         category_not_configured: "Reception reports category is not configured. Please contact an administrator."
+      status:
+        finished: "Finished"
+        ready_to_draw: "Ready to draw"
+        ending_soon: "Ending soon"
+        one_hour_remaining: "1 hour left"
+        hours_remaining: "%{count} hours left"
+        one_day_remaining: "1 day left"
+        days_remaining: "%{count} days left"

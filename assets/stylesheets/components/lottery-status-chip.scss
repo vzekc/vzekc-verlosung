@@ -1,0 +1,44 @@
+.lottery-status-chip {
+  display: inline-block;
+  margin-left: 0.5em;
+  vertical-align: middle;
+
+  &__active,
+  &__ready-to-draw,
+  &__finished {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+    padding: 0.2em 0.5em;
+    border-radius: 3px;
+    font-size: 0.85em;
+    font-weight: 500;
+    white-space: nowrap;
+
+    .d-icon {
+      font-size: 0.9em;
+    }
+  }
+
+  &__active {
+    background-color: var(--tertiary-low);
+    color: var(--tertiary);
+    border: 1px solid var(--tertiary-low-or-tertiary-high);
+  }
+
+  &__ready-to-draw {
+    background-color: var(--highlight-low);
+    color: var(--primary);
+    border: 1px solid var(--highlight);
+  }
+
+  &__finished {
+    background-color: var(--success-low);
+    color: var(--success);
+    border: 1px solid var(--success-medium);
+  }
+
+  &__text {
+    line-height: 1;
+  }
+}
