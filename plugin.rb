@@ -58,6 +58,31 @@ after_initialize do
     end
   end
 
+  # Filter draft lotteries from topic lists for non-owners
+  TopicQuery.add_custom_filter(:lottery_state) do |results, topic_query|
+    user = topic_query.user
+
+    # Filter out draft lotteries unless user is staff or owner
+    results =
+      results.where(
+        "topics.id NOT IN (
+        SELECT topic_id FROM topic_custom_fields
+        WHERE name = 'lottery_state' AND value = 'draft'
+        AND topic_id NOT IN (
+          SELECT id FROM topics WHERE user_id = ?
+        )
+      )",
+        user&.id || -1,
+      )
+
+    # Staff can see all drafts
+    if user&.staff?
+      results
+    else
+      results
+    end
+  end
+
   # Services and controllers are auto-loaded from app/ directories
   # No manual requires needed
 
