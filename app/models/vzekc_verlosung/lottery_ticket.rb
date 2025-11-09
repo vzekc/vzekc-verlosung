@@ -11,5 +11,10 @@ module VzekcVerlosung
     validates :post_id, presence: true
     validates :user_id, presence: true
     validates :post_id, uniqueness: { scope: :user_id }
+
+    # Helper to get the associated lottery packet
+    def lottery_packet
+      VzekcVerlosung::LotteryPacket.find_by(post_id: post_id)
+    end
   end
 end

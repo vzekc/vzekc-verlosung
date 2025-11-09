@@ -88,20 +88,21 @@ module VzekcVerlosung
         fail!("Failed to create main topic: #{post_creator.errors.full_messages.join(", ")}")
       end
 
-      # Mark the intro post
-      post.custom_fields["is_lottery_intro"] = true
-      post.save_custom_fields
-
-      # Mark topic as draft and store duration
-      post.topic.custom_fields["lottery_state"] = "draft"
-      post.topic.custom_fields["lottery_duration_days"] = params.duration_days
-      post.topic.save_custom_fields
+      # Create lottery record for this topic
+      lottery =
+        Lottery.create!(
+          topic_id: post.topic_id,
+          state: "draft",
+          duration_days: params.duration_days,
+        )
 
       context[:main_topic] = post.topic
+      context[:lottery] = lottery
     end
 
     def create_packet_posts(user:, params:)
       main_topic = context[:main_topic]
+      lottery = context[:lottery]
 
       params.packets.each_with_index do |packet_data, index|
         packet_number = index + 1
@@ -127,9 +128,8 @@ module VzekcVerlosung
           fail!("Failed to create packet post: #{post_creator.errors.full_messages.join(", ")}")
         end
 
-        # Mark this post as a lottery packet
-        post.custom_fields["is_lottery_packet"] = true
-        post.save_custom_fields
+        # Create lottery packet record
+        LotteryPacket.create!(lottery_id: lottery.id, post_id: post.id, title: packet_title)
       end
     end
   end

@@ -15,16 +15,13 @@ module Jobs
       day_after_tomorrow = tomorrow_start + 1.day
 
       # Find active lotteries ending tomorrow
-      Topic
-        .where(deleted_at: nil)
-        .joins(:_custom_fields)
-        .where(topic_custom_fields: { name: "lottery_state", value: "active" })
-        .each do |topic|
-          # Check if lottery ends tomorrow
-          next unless topic.lottery_ends_at
-          if topic.lottery_ends_at < tomorrow_start || topic.lottery_ends_at >= day_after_tomorrow
-            next
-          end
+      VzekcVerlosung::Lottery
+        .active
+        .where(ends_at: tomorrow_start...day_after_tomorrow)
+        .includes(:topic)
+        .find_each do |lottery|
+          topic = lottery.topic
+          next unless topic
 
           user = topic.user
           next unless user
@@ -33,14 +30,17 @@ module Jobs
           PostCreator.create!(
             Discourse.system_user,
             title:
-              I18n.t("vzekc_verlosung.reminders.ending_tomorrow.title", locale: user.effective_locale),
+              I18n.t(
+                "vzekc_verlosung.reminders.ending_tomorrow.title",
+                locale: user.effective_locale,
+              ),
             raw:
               I18n.t(
                 "vzekc_verlosung.reminders.ending_tomorrow.body",
                 locale: user.effective_locale,
                 username: user.username,
                 topic_title: topic.title,
-                ending_at: topic.lottery_ends_at.strftime("%d.%m.%Y"),
+                ending_at: lottery.ends_at.strftime("%d.%m.%Y"),
                 topic_url: "#{Discourse.base_url}#{topic.relative_url}",
               ),
             archetype: Archetype.private_message,

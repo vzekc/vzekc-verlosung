@@ -72,8 +72,8 @@ after_initialize do
     results =
       results.where(
         "topics.id NOT IN (
-        SELECT topic_id FROM topic_custom_fields
-        WHERE name = 'lottery_state' AND value = 'draft'
+        SELECT topic_id FROM vzekc_verlosung_lotteries
+        WHERE state = 'draft'
         AND topic_id NOT IN (
           SELECT id FROM topics WHERE user_id = ?
         )
@@ -92,113 +92,148 @@ after_initialize do
   # Services and controllers are auto-loaded from app/ directories
   # No manual requires needed
 
-  # Register custom fields for lottery posts
-  register_post_custom_field_type("is_lottery_packet", :boolean)
-  register_post_custom_field_type("is_lottery_intro", :boolean)
-  register_post_custom_field_type("lottery_winner", :string)
-  register_post_custom_field_type("packet_collected_at", :datetime)
-  register_post_custom_field_type("erhaltungsbericht_topic_id", :integer)
+  # Add associations to core Discourse models
+  add_to_class(:topic, :lottery) { @lottery ||= VzekcVerlosung::Lottery.find_by(topic_id: id) }
 
-  # Register custom fields for lottery topics
-  # lottery_state: "draft", "active", or "finished"
-  register_topic_custom_field_type("lottery_state", :string)
-  # lottery_ends_at: DateTime when the lottery ends (set when published)
-  register_topic_custom_field_type("lottery_ends_at", :datetime)
-  # lottery_results: JSON containing full drawing results
-  register_topic_custom_field_type("lottery_results", :json)
-  # lottery_drawn_at: DateTime when the drawing was performed
-  register_topic_custom_field_type("lottery_drawn_at", :datetime)
+  add_to_class(:post, :lottery_packet) do
+    @lottery_packet ||= VzekcVerlosung::LotteryPacket.find_by(post_id: id)
+  end
+
+  # Add hybrid cleanup with DiscourseEvent hooks + foreign keys
+  # Foreign keys handle hard deletes automatically, events allow custom logic
+  on(:post_destroyed) do |post, opts, user|
+    # Optional: Log or handle packet deletion
+    packet = VzekcVerlosung::LotteryPacket.find_by(post_id: post.id)
+    Rails.logger.info("Lottery packet deleted with post #{post.id}: #{packet.title}") if packet
+  end
+
+  on(:topic_destroyed) do |topic, user|
+    # Optional: Log or handle lottery deletion
+    lottery = VzekcVerlosung::Lottery.find_by(topic_id: topic.id)
+    Rails.logger.info("Lottery deleted with topic #{topic.id}, state: #{lottery.state}") if lottery
+  end
+
+  # DEPRECATED: Custom fields registrations (replaced by normalized tables)
+  # Register custom fields still used for Erhaltungsberichte (cross-plugin references)
   # packet_post_id: Post ID of the packet in the lottery (for Erhaltungsberichte)
   register_topic_custom_field_type("packet_post_id", :integer)
   # packet_topic_id: Topic ID of the lottery (for Erhaltungsberichte)
   register_topic_custom_field_type("packet_topic_id", :integer)
 
-  # Preload lottery custom fields for topic lists to prevent N+1 queries
-  add_preloaded_topic_list_custom_field("lottery_state")
-  add_preloaded_topic_list_custom_field("lottery_ends_at")
-  add_preloaded_topic_list_custom_field("lottery_results")
-
   # Add helper methods to Topic class to safely access lottery fields
-  add_to_class(:topic, :lottery_state) { custom_fields["lottery_state"] }
+  add_to_class(:topic, :lottery_state) { lottery&.state }
 
-  add_to_class(:topic, :lottery_ends_at) do
-    value = custom_fields["lottery_ends_at"]
-    value.is_a?(String) ? Time.zone.parse(value) : value
+  add_to_class(:topic, :lottery_ends_at) { lottery&.ends_at }
+
+  add_to_class(:topic, :lottery_draft?) { lottery&.draft? || false }
+
+  add_to_class(:topic, :lottery_active?) { lottery&.active? || false }
+
+  add_to_class(:topic, :lottery_finished?) { lottery&.finished? || false }
+
+  add_to_class(:topic, :lottery_results) { lottery&.results }
+
+  add_to_class(:topic, :lottery_drawn_at) { lottery&.drawn_at }
+
+  add_to_class(:topic, :lottery_drawn?) { lottery&.drawn? || false }
+
+  # Add lottery packet data to post serializer
+  add_to_serializer(:post, :is_lottery_packet) do
+    VzekcVerlosung::LotteryPacket.exists?(post_id: object.id)
   end
 
-  add_to_class(:topic, :lottery_draft?) { lottery_state == "draft" }
-
-  add_to_class(:topic, :lottery_active?) { lottery_state == "active" }
-
-  add_to_class(:topic, :lottery_finished?) { lottery_state == "finished" }
-
-  add_to_class(:topic, :lottery_results) { custom_fields["lottery_results"] }
-
-  add_to_class(:topic, :lottery_drawn_at) do
-    value = custom_fields["lottery_drawn_at"]
-    value.is_a?(String) ? Time.zone.parse(value) : value
+  add_to_serializer(:post, :is_lottery_intro) do
+    # Intro is the first post in a lottery topic
+    lottery = VzekcVerlosung::Lottery.find_by(topic_id: object.topic_id)
+    lottery.present? && object.post_number == 1
   end
 
-  add_to_class(:topic, :lottery_drawn?) { lottery_results.present? }
-
-  # Add custom fields to post serializer
-  add_to_serializer(:post, :is_lottery_packet) { object.custom_fields["is_lottery_packet"] == true }
-
-  add_to_serializer(:post, :is_lottery_intro) { object.custom_fields["is_lottery_intro"] == true }
-
-  add_to_serializer(:post, :lottery_winner) { object.custom_fields["lottery_winner"] }
+  add_to_serializer(:post, :lottery_winner) do
+    packet = VzekcVerlosung::LotteryPacket.find_by(post_id: object.id)
+    packet&.winner&.username
+  end
 
   # Include collection timestamp for lottery owner and winner
   add_to_serializer(
     :post,
     :packet_collected_at,
-    include_condition: -> { object.custom_fields["is_lottery_packet"] == true },
+    include_condition: -> { VzekcVerlosung::LotteryPacket.exists?(post_id: object.id) },
   ) do
+    packet = VzekcVerlosung::LotteryPacket.find_by(post_id: object.id)
+    return nil unless packet
+
     # Show to lottery owner, staff, or winner
     topic = object.topic
-    winner_username = object.custom_fields["lottery_winner"]
-    is_winner = winner_username.present? && scope.user&.username == winner_username
-    return nil unless topic && (scope.is_staff? || topic.user_id == scope.user&.id || is_winner)
+    return nil unless topic
 
-    value = object.custom_fields["packet_collected_at"]
-    value.is_a?(String) ? Time.zone.parse(value) : value
+    is_winner = packet.winner_user_id.present? && scope.user&.id == packet.winner_user_id
+    is_authorized = scope.is_staff? || topic.user_id == scope.user&.id || is_winner
+    return nil unless is_authorized
+
+    packet.collected_at
   end
 
   # Include erhaltungsbericht topic ID (only if topic still exists)
   add_to_serializer(
     :post,
     :erhaltungsbericht_topic_id,
-    include_condition: -> { object.custom_fields["is_lottery_packet"] == true },
+    include_condition: -> { VzekcVerlosung::LotteryPacket.exists?(post_id: object.id) },
   ) do
-    topic_id = object.custom_fields["erhaltungsbericht_topic_id"]&.to_i
+    packet = VzekcVerlosung::LotteryPacket.find_by(post_id: object.id)
+    return nil unless packet
+
+    topic_id = packet.erhaltungsbericht_topic_id
     return nil unless topic_id
 
     # Check if the topic still exists
     Topic.exists?(id: topic_id) ? topic_id : nil
   end
 
-  # Add custom fields to topic serializers (using helper methods)
-  add_to_serializer(:topic_view, :lottery_state) { object.topic.lottery_state }
+  # Add lottery data to topic serializers
+  add_to_serializer(:topic_view, :lottery_state) do
+    lottery = VzekcVerlosung::Lottery.find_by(topic_id: object.topic.id)
+    lottery&.state
+  end
 
-  add_to_serializer(:topic_view, :lottery_ends_at) { object.topic.lottery_ends_at }
+  add_to_serializer(:topic_view, :lottery_ends_at) do
+    lottery = VzekcVerlosung::Lottery.find_by(topic_id: object.topic.id)
+    lottery&.ends_at
+  end
 
-  add_to_serializer(:topic_view, :lottery_results) { object.topic.lottery_results }
+  add_to_serializer(:topic_view, :lottery_results) do
+    lottery = VzekcVerlosung::Lottery.find_by(topic_id: object.topic.id)
+    lottery&.results
+  end
 
-  add_to_serializer(:topic_view, :lottery_drawn_at) { object.topic.lottery_drawn_at }
+  add_to_serializer(:topic_view, :lottery_drawn_at) do
+    lottery = VzekcVerlosung::Lottery.find_by(topic_id: object.topic.id)
+    lottery&.drawn_at
+  end
 
-  add_to_serializer(:topic_list_item, :lottery_state) { object.lottery_state }
+  # Preload lottery association for topic lists to prevent N+1 queries
+  add_class_method(:topic_list, :preloaded_lottery_data) do
+    @preloaded_lottery_data ||=
+      VzekcVerlosung::Lottery.where(topic_id: topics.map(&:id)).index_by(&:topic_id)
+  end
 
-  add_to_serializer(:topic_list_item, :lottery_ends_at) { object.lottery_ends_at }
+  add_to_serializer(:topic_list_item, :lottery_state) { object.lottery&.state }
 
-  add_to_serializer(:topic_list_item, :lottery_results) { object.lottery_results }
+  add_to_serializer(:topic_list_item, :lottery_ends_at) { object.lottery&.ends_at }
+
+  add_to_serializer(:topic_list_item, :lottery_results) { object.lottery&.results }
 
   # Include packet reference fields for Erhaltungsberichte
+  # These store which packet an Erhaltungsbericht is about
   add_to_serializer(:topic_view, :packet_post_id) do
-    object.topic.custom_fields["packet_post_id"]&.to_i
+    # Check if this topic IS an Erhaltungsbericht by looking for a packet that references it
+    packet = VzekcVerlosung::LotteryPacket.find_by(erhaltungsbericht_topic_id: object.topic.id)
+    packet&.post_id
   end
 
   add_to_serializer(:topic_view, :packet_topic_id) do
-    object.topic.custom_fields["packet_topic_id"]&.to_i
+    # Check if this topic IS an Erhaltungsbericht by looking for a packet that references it
+    packet = VzekcVerlosung::LotteryPacket.find_by(erhaltungsbericht_topic_id: object.topic.id)
+    packet&.lottery&.topic_id
   end
 
   # Whitelist packet reference parameters for topic creation
@@ -213,24 +248,22 @@ after_initialize do
 
     next if packet_post_id.blank? || packet_topic_id.blank?
 
-    # Save packet reference to topic custom fields
+    # Save packet reference to topic custom fields (for backward compatibility)
     topic.custom_fields["packet_post_id"] = packet_post_id
     topic.custom_fields["packet_topic_id"] = packet_topic_id
     topic.save_custom_fields
 
-    # Find the packet post
-    packet_post = Post.find_by(id: packet_post_id, topic_id: packet_topic_id)
-    next unless packet_post
+    # Find the lottery packet
+    packet = VzekcVerlosung::LotteryPacket.find_by(post_id: packet_post_id)
+    next unless packet
 
-    # Verify it's a lottery packet
-    next unless packet_post.custom_fields["is_lottery_packet"] == true
+    # Verify the post belongs to the correct topic
+    next unless packet.post.topic_id == packet_topic_id
 
     # Verify the user is the winner
-    winner_username = packet_post.custom_fields["lottery_winner"]
-    next unless winner_username == user.username
+    next unless packet.winner_user_id == user.id
 
     # Establish reverse link from packet to Erhaltungsbericht
-    packet_post.custom_fields["erhaltungsbericht_topic_id"] = topic.id
-    packet_post.save_custom_fields
+    packet.link_report!(topic)
   end
 end

@@ -7,51 +7,39 @@ module Jobs
     def execute(args)
       return unless SiteSetting.vzekc_verlosung_enabled
 
-      # Find all finished lotteries with drawn results
-      Topic
-        .where(deleted_at: nil)
-        .joins(:_custom_fields)
-        .where(topic_custom_fields: { name: "lottery_state", value: "finished" })
-        .find_each do |topic|
-          next unless topic.custom_fields["lottery_results"].present?
+      # Find all finished lotteries with drawn results, grouped by lottery
+      VzekcVerlosung::Lottery
+        .finished
+        .where.not(drawn_at: nil)
+        .includes(:topic)
+        .find_each do |lottery|
+          next if lottery.drawn_at.blank?
 
-          # Check when the lottery was drawn
-          drawn_at = topic.custom_fields["lottery_drawn_at"]
-          next unless drawn_at.present?
-
-          drawn_date = drawn_at.is_a?(String) ? Time.zone.parse(drawn_at) : drawn_at
-          days_since_drawn = (Time.zone.now - drawn_date).to_i / 1.day
+          days_since_drawn = (Time.zone.now - lottery.drawn_at).to_i / 1.day
 
           # Only send reminder every 7 days (on days 7, 14, 21, etc.)
-          next unless (days_since_drawn % 7).zero? && days_since_drawn > 0
+          next if (days_since_drawn % 7).nonzero? || days_since_drawn <= 0
 
-          # Find all packet posts in this lottery
-          packet_posts =
-            Post
-              .where(topic_id: topic.id)
-              .joins(:_custom_fields)
-              .where(post_custom_fields: { name: "is_lottery_packet", value: "t" })
-
-          # Find packets with winners but not marked as collected
-          uncollected_packets = []
-          packet_posts.each do |post|
-            winner = post.custom_fields["lottery_winner"]
-            collected_at = post.custom_fields["packet_collected_at"]
-
-            # Has winner but not collected
-            if winner.present? && collected_at.blank?
-              packet_title = extract_title_from_markdown(post.raw) || "Packet ##{post.post_number}"
-              uncollected_packets << {
-                post_number: post.post_number,
-                title: packet_title,
-                winner: winner,
-              }
-            end
-          end
+          # Find all uncollected packets in this lottery
+          uncollected_packets =
+            lottery
+              .lottery_packets
+              .uncollected
+              .includes(:winner, :post)
+              .map do |packet|
+                post = packet.post
+                packet_title =
+                  extract_title_from_markdown(post.raw) || "Packet ##{post.post_number}"
+                {
+                  post_number: post.post_number,
+                  title: packet_title,
+                  winner: packet.winner.username,
+                }
+              end
 
           # Send reminder if there are uncollected packets
           if uncollected_packets.any?
-            send_uncollected_reminder(topic, uncollected_packets, days_since_drawn)
+            send_uncollected_reminder(lottery.topic, uncollected_packets, days_since_drawn)
           end
         end
     end
@@ -59,16 +47,14 @@ module Jobs
     private
 
     def send_uncollected_reminder(topic, uncollected_packets, days_since_drawn)
-      return unless topic.user_id.present?
+      return if topic.user_id.blank?
 
       owner = User.find_by(id: topic.user_id)
       return unless owner
 
       # Format packet list for PM body
       packet_list =
-        uncollected_packets
-          .map { |p| "- #{p[:title]} (Winner: #{p[:winner]})" }
-          .join("\n")
+        uncollected_packets.map { |p| "- #{p[:title]} (Winner: #{p[:winner]})" }.join("\n")
 
       # Send reminder PM
       PostCreator.create!(

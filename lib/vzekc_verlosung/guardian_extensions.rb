@@ -7,7 +7,8 @@ module VzekcVerlosung
     # @param topic [Topic] the topic to check
     # @return [Boolean] true if user can post, false otherwise
     def can_create_post_in_lottery_draft?(topic)
-      return true unless topic&.custom_fields&.[]("lottery_state") == "draft"
+      lottery = VzekcVerlosung::Lottery.find_by(topic_id: topic&.id)
+      return true unless lottery&.draft?
       return true if is_staff?
       return true if topic.user_id == @user&.id
 

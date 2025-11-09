@@ -1,21 +1,21 @@
 # frozen_string_literal: true
 
 RSpec.describe VzekcVerlosung::LotteriesController do
-  fab!(:user)
+  fab!(:user) { Fabricate(:user, trust_level: TrustLevel[2]) }
   fab!(:category)
 
-  before { sign_in(user) }
+  before do
+    SiteSetting.vzekc_verlosung_enabled = true
+    sign_in(user)
+  end
 
   describe "#create" do
     let(:valid_params) do
       {
         title: "Hardware Verlosung Januar 2025",
-        description: "Eine tolle Verlosung",
         category_id: category.id,
-        packets: [
-          { title: "Packet 1", description: "Inhalt 1" },
-          { title: "Packet 2", description: "Inhalt 2" },
-        ],
+        duration_days: 14,
+        packets: [{ title: "Packet 1" }, { title: "Packet 2" }],
       }
     end
 
@@ -30,9 +30,9 @@ RSpec.describe VzekcVerlosung::LotteriesController do
       end
 
       it "creates topics" do
-        expect {
-          post "/vzekc-verlosung/lotteries.json", params: valid_params
-        }.to change { Topic.count }.by(3)
+        expect { post "/vzekc-verlosung/lotteries.json", params: valid_params }.to change {
+          Topic.count
+        }.by(3)
       end
 
       it "returns main topic details" do
@@ -76,15 +76,15 @@ RSpec.describe VzekcVerlosung::LotteriesController do
   end
 
   describe "#publish" do
-    fab!(:other_user) { Fabricate(:user) }
-    fab!(:admin) { Fabricate(:admin) }
+    fab!(:other_user, :user)
+    fab!(:admin)
     let!(:lottery_result) do
       VzekcVerlosung::CreateLottery.call(
         params: {
           title: "Test Lottery",
-          description: "Test description",
           category_id: category.id,
-          packets: [{ title: "Packet 1", description: "Content" }],
+          duration_days: 14,
+          packets: [{ title: "Packet 1" }],
         },
         user: user,
         guardian: Guardian.new(user),
@@ -165,15 +165,15 @@ RSpec.describe VzekcVerlosung::LotteriesController do
   end
 
   describe "#draw" do
-    fab!(:other_user) { Fabricate(:user) }
-    fab!(:admin) { Fabricate(:admin) }
+    fab!(:other_user, :user)
+    fab!(:admin)
     let!(:lottery_result) do
       VzekcVerlosung::CreateLottery.call(
         params: {
           title: "Test Lottery",
-          description: "Test description",
           category_id: category.id,
-          packets: [{ title: "Hardware Bundle", description: "Content" }],
+          duration_days: 14,
+          packets: [{ title: "Hardware Bundle" }],
         },
         user: user,
         guardian: Guardian.new(user),
@@ -232,7 +232,10 @@ RSpec.describe VzekcVerlosung::LotteriesController do
         tampered_results = valid_results.dup
         tampered_results["rngSeed"] = "fakeseed123"
 
-        post "/vzekc-verlosung/lotteries/#{topic.id}/draw.json", params: { results: tampered_results }
+        post "/vzekc-verlosung/lotteries/#{topic.id}/draw.json",
+             params: {
+               results: tampered_results,
+             }
 
         expect(response.status).to eq(422)
         json = response.parsed_body
@@ -245,7 +248,10 @@ RSpec.describe VzekcVerlosung::LotteriesController do
         tampered_results = valid_results.dup
         tampered_results["drawings"][0]["winner"] = "fake_user"
 
-        post "/vzekc-verlosung/lotteries/#{topic.id}/draw.json", params: { results: tampered_results }
+        post "/vzekc-verlosung/lotteries/#{topic.id}/draw.json",
+             params: {
+               results: tampered_results,
+             }
 
         expect(response.status).to eq(422)
         topic.reload

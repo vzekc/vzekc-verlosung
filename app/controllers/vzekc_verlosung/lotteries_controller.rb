@@ -79,19 +79,20 @@ module VzekcVerlosung
       topic = Topic.find_by(id: params[:topic_id])
       return render_json_error("Topic not found", status: :not_found) unless topic
 
-      # Get all posts in the topic, ordered by post_number
-      all_posts = Post.where(topic_id: topic.id).order(:post_number)
+      lottery = Lottery.find_by(topic_id: topic.id)
+      return render_json_error("Lottery not found", status: :not_found) unless lottery
 
-      # Filter to only lottery packet posts using custom fields
-      packet_posts = all_posts.select { |post| post.custom_fields["is_lottery_packet"] == true }
+      # Get lottery packets with eager loading
+      lottery_packets =
+        lottery
+          .lottery_packets
+          .includes(:post, :winner, lottery_tickets: :user)
+          .order("posts.post_number")
 
       packets =
-        packet_posts.map do |post|
-          # Extract title from markdown (first heading)
-          title = extract_title_from_markdown(post.raw) || "Packet ##{post.post_number}"
-
+        lottery_packets.map do |packet|
           # Get tickets and users for this packet
-          tickets = VzekcVerlosung::LotteryTicket.where(post_id: post.id).includes(:user)
+          tickets = packet.lottery_tickets
           ticket_count = tickets.count
 
           users =
@@ -105,35 +106,28 @@ module VzekcVerlosung
             end
 
           # Get winner user object if winner exists
-          winner_username = post.custom_fields["lottery_winner"]
           winner_obj = nil
-          if winner_username.present?
-            winner_user = User.find_by(username: winner_username)
-            if winner_user
-              winner_obj = {
-                id: winner_user.id,
-                username: winner_user.username,
-                name: winner_user.name,
-                avatar_template: winner_user.avatar_template,
-              }
-            end
+          if packet.winner
+            winner_obj = {
+              id: packet.winner.id,
+              username: packet.winner.username,
+              name: packet.winner.name,
+              avatar_template: packet.winner.avatar_template,
+            }
           end
 
           packet_data = {
-            post_id: post.id,
-            post_number: post.post_number,
-            title: title,
+            post_id: packet.post_id,
+            post_number: packet.post.post_number,
+            title: packet.title,
             ticket_count: ticket_count,
-            winner: winner_obj || winner_username,
+            winner: winner_obj,
             users: users,
           }
 
           # Only include collected_at for lottery owner or staff
           if guardian.is_staff? || topic.user_id == current_user&.id
-            collected_at = post.custom_fields["packet_collected_at"]
-            if collected_at
-              packet_data[:collected_at] = collected_at.is_a?(String) ? Time.zone.parse(collected_at) : collected_at
-            end
+            packet_data[:collected_at] = packet.collected_at if packet.collected_at
           end
 
           packet_data
@@ -154,6 +148,9 @@ module VzekcVerlosung
       topic = Topic.find_by(id: params[:topic_id])
       return render_json_error("Topic not found", status: :not_found) unless topic
 
+      lottery = Lottery.find_by(topic_id: topic.id)
+      return render_json_error("Lottery not found", status: :not_found) unless lottery
+
       # Check if user can publish (must be topic owner or staff)
       unless guardian.is_staff? || topic.user_id == current_user.id
         return(
@@ -162,19 +159,17 @@ module VzekcVerlosung
       end
 
       # Check if it's actually a draft
-      unless topic.custom_fields["lottery_state"] == "draft"
+      unless lottery.draft?
         return(
           render_json_error("This lottery is not in draft state", status: :unprocessable_entity)
         )
       end
 
-      # Get duration from custom fields (default to 14 days if not set)
-      duration_days = topic.custom_fields["lottery_duration_days"]&.to_i || 14
+      # Get duration (default to 14 days if not set)
+      duration_days = lottery.duration_days || 14
 
       # Activate lottery and set end time based on duration
-      topic.custom_fields["lottery_state"] = "active"
-      topic.custom_fields["lottery_ends_at"] = duration_days.days.from_now
-      topic.save_custom_fields
+      lottery.publish!(duration_days.days.from_now)
 
       # Notify all users who have tickets in this lottery
       notify_lottery_published(topic)
@@ -193,6 +188,9 @@ module VzekcVerlosung
       topic = Topic.find_by(id: params[:topic_id])
       return render_json_error("Topic not found", status: :not_found) unless topic
 
+      lottery = Lottery.find_by(topic_id: topic.id)
+      return render_json_error("Lottery not found", status: :not_found) unless lottery
+
       # Check if user can end early (must be topic owner or staff)
       unless guardian.is_staff? || topic.user_id == current_user.id
         return(
@@ -201,13 +199,12 @@ module VzekcVerlosung
       end
 
       # Check if it's actually active
-      unless topic.custom_fields["lottery_state"] == "active"
+      unless lottery.active?
         return render_json_error("This lottery is not active", status: :unprocessable_entity)
       end
 
       # Set end time to now so lottery becomes drawable
-      topic.custom_fields["lottery_ends_at"] = Time.zone.now
-      topic.save_custom_fields
+      lottery.update!(ends_at: Time.zone.now)
 
       head :no_content
     end
@@ -223,6 +220,9 @@ module VzekcVerlosung
       topic = Topic.find_by(id: params[:topic_id])
       return render_json_error("Topic not found", status: :not_found) unless topic
 
+      lottery = Lottery.find_by(topic_id: topic.id)
+      return render_json_error("Lottery not found", status: :not_found) unless lottery
+
       # Check if user can draw (must be topic owner or staff)
       unless guardian.is_staff? || topic.user_id == current_user.id
         return(
@@ -231,29 +231,27 @@ module VzekcVerlosung
       end
 
       # Check if lottery has ended and not already drawn
-      if topic.custom_fields["lottery_state"] == "active" && topic.lottery_ends_at &&
-           topic.lottery_ends_at > Time.zone.now
+      if lottery.active? && lottery.ends_at && lottery.ends_at > Time.zone.now
         return render_json_error("Lottery has not ended yet", status: :unprocessable_entity)
       end
 
-      if topic.custom_fields["lottery_results"].present?
+      if lottery.results.present?
         return render_json_error("Lottery has already been drawn", status: :unprocessable_entity)
       end
 
-      # Get all packet posts
-      packet_posts =
-        Post
-          .where(topic_id: topic.id)
-          .order(:post_number)
-          .select { |post| post.custom_fields["is_lottery_packet"] == true }
+      # Get all lottery packets with tickets
+      lottery_packets =
+        lottery
+          .lottery_packets
+          .joins(:post)
+          .includes(lottery_tickets: :user)
+          .order("posts.post_number")
 
       # Build packets array in the format expected by lottery.js
       packets =
-        packet_posts.map do |post|
-          title = extract_title_from_markdown(post.raw) || "Packet ##{post.post_number}"
-
+        lottery_packets.map do |packet|
           # Get all tickets for this packet
-          tickets = VzekcVerlosung::LotteryTicket.where(post_id: post.id).includes(:user)
+          tickets = packet.lottery_tickets
 
           # Group by user and count tickets
           participants =
@@ -261,12 +259,13 @@ module VzekcVerlosung
               .group_by(&:user)
               .map { |user, user_tickets| { name: user.username, tickets: user_tickets.count } }
 
-          { id: post.id, title: title, participants: participants }
+          { id: packet.post_id, title: packet.title, participants: participants }
         end
 
       # The timestamp should be when the lottery was published (went active)
-      # For now, we'll use when lottery_ends_at was set minus 2 weeks
-      published_at = topic.lottery_ends_at ? topic.lottery_ends_at - 2.weeks : topic.created_at
+      # Use ends_at minus duration as published_at
+      duration_days = lottery.duration_days || 14
+      published_at = lottery.ends_at ? lottery.ends_at - duration_days.days : topic.created_at
 
       render json: { title: topic.title, timestamp: published_at.iso8601, packets: packets }
     end
@@ -283,6 +282,9 @@ module VzekcVerlosung
       topic = Topic.find_by(id: params[:topic_id])
       return render_json_error("Topic not found", status: :not_found) unless topic
 
+      lottery = Lottery.find_by(topic_id: topic.id)
+      return render_json_error("Lottery not found", status: :not_found) unless lottery
+
       # Check if user can draw (must be topic owner or staff)
       unless guardian.is_staff? || topic.user_id == current_user.id
         return(
@@ -291,7 +293,7 @@ module VzekcVerlosung
       end
 
       # Check if already drawn
-      if topic.custom_fields["lottery_results"].present?
+      if lottery.results.present?
         return render_json_error("Lottery has already been drawn", status: :unprocessable_entity)
       end
 
@@ -299,7 +301,7 @@ module VzekcVerlosung
 
       # Verify results by re-running drawing server-side
       begin
-        drawing_data = fetch_drawing_data_for_verification(topic)
+        drawing_data = fetch_drawing_data_for_verification(lottery)
         server_results = VzekcVerlosung::JavascriptLotteryDrawer.draw(drawing_data)
 
         # Compare client and server results
@@ -338,27 +340,23 @@ module VzekcVerlosung
         )
       end
 
-      # Store verified results on topic
+      # Store verified results
       results = server_results # Use server results as source of truth
-      topic.custom_fields["lottery_results"] = results
-      topic.custom_fields["lottery_drawn_at"] = Time.zone.now
-      topic.custom_fields["lottery_state"] = "finished"
-      topic.save_custom_fields
+      drawn_at = Time.zone.now
 
-      # Store winner on each packet post
+      # Update lottery state
+      lottery.finish!
+      lottery.mark_drawn!(results)
+
+      # Store winner on each packet
       results["drawings"].each do |drawing|
-        # Find the packet post by title
-        packet_post =
-          Post
-            .where(topic_id: topic.id)
-            .find do |post|
-              post.custom_fields["is_lottery_packet"] == true &&
-                extract_title_from_markdown(post.raw) == drawing["text"]
-            end
+        # Find the packet by title
+        packet = lottery.lottery_packets.find { |p| p.title == drawing["text"] }
 
-        if packet_post
-          packet_post.custom_fields["lottery_winner"] = drawing["winner"]
-          packet_post.save_custom_fields
+        if packet && drawing["winner"].present?
+          # Find winner user
+          winner_user = User.find_by(username: drawing["winner"])
+          packet.mark_winner!(winner_user, drawn_at) if winner_user
         end
       end
 
@@ -385,15 +383,19 @@ module VzekcVerlosung
       topic = Topic.find_by(id: params[:topic_id])
       return render_json_error("Topic not found", status: :not_found) unless topic
 
-      results = topic.custom_fields["lottery_results"]
-      return render_json_error("Lottery has not been drawn yet", status: :not_found) unless results
+      lottery = Lottery.find_by(topic_id: topic.id)
+      return render_json_error("Lottery not found", status: :not_found) unless lottery
+
+      unless lottery.results
+        return render_json_error("Lottery has not been drawn yet", status: :not_found)
+      end
 
       # Set headers for file download
       response.headers[
         "Content-Disposition"
       ] = "attachment; filename=\"lottery-#{topic.id}-results.json\""
 
-      render json: results
+      render json: lottery.results
     end
 
     private
@@ -408,27 +410,32 @@ module VzekcVerlosung
 
     # Fetches drawing data in the format expected by lottery.js
     # This is similar to drawing_data endpoint but doesn't require permissions
-    def fetch_drawing_data_for_verification(topic)
-      packet_posts =
-        Post
-          .where(topic_id: topic.id)
-          .order(:post_number)
-          .select { |post| post.custom_fields["is_lottery_packet"] == true }
+    def fetch_drawing_data_for_verification(lottery)
+      topic = lottery.topic
+
+      # Get all lottery packets with tickets
+      lottery_packets =
+        lottery
+          .lottery_packets
+          .joins(:post)
+          .includes(lottery_tickets: :user)
+          .order("posts.post_number")
 
       packets =
-        packet_posts.map do |post|
-          title = extract_title_from_markdown(post.raw) || "Packet ##{post.post_number}"
-          tickets = VzekcVerlosung::LotteryTicket.where(post_id: post.id).includes(:user)
+        lottery_packets.map do |packet|
+          tickets = packet.lottery_tickets
 
           participants =
             tickets
               .group_by(&:user)
               .map { |user, user_tickets| { name: user.username, tickets: user_tickets.count } }
 
-          { id: post.id, title: title, participants: participants }
+          { id: packet.post_id, title: packet.title, participants: participants }
         end
 
-      published_at = topic.lottery_ends_at ? topic.lottery_ends_at - 2.weeks : topic.created_at
+      # Calculate published_at from ends_at and duration
+      duration_days = lottery.duration_days || 14
+      published_at = lottery.ends_at ? lottery.ends_at - duration_days.days : topic.created_at
 
       { title: topic.title, timestamp: published_at.iso8601, packets: packets }
     end
@@ -515,6 +522,9 @@ module VzekcVerlosung
 
     # Notify winners that they won a packet
     def notify_winners(topic, results)
+      lottery = Lottery.find_by(topic_id: topic.id)
+      return unless lottery
+
       # Group drawings by winner to send one message per winner with all packets won
       winners_packets = Hash.new { |h, k| h[k] = [] }
 
@@ -526,15 +536,11 @@ module VzekcVerlosung
         winner_user = User.find_by(username: winner_username)
         next unless winner_user
 
-        # Find the packet post to link to it directly
-        packet_post =
-          Post
-            .where(topic_id: topic.id)
-            .find do |post|
-              post.custom_fields["is_lottery_packet"] == true &&
-                extract_title_from_markdown(post.raw) == packet_title
-            end
+        # Find the packet by title
+        lottery_packet = lottery.lottery_packets.find { |p| p.title == packet_title }
+        next unless lottery_packet
 
+        packet_post = lottery_packet.post
         post_number = packet_post ? packet_post.post_number : 1
 
         # Create in-app notification

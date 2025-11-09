@@ -14,14 +14,16 @@ module VzekcVerlosung
       return render_json_error("Post not found", status: :not_found) unless post
 
       topic = post.topic
+      lottery = Lottery.find_by(topic_id: topic.id)
+      return render_json_error("Not a lottery topic", status: :not_found) unless lottery
 
       # Check if lottery is active (not draft, not finished)
-      unless topic.lottery_active?
+      unless lottery.active?
         return render_json_error("Lottery is not active", status: :unprocessable_entity)
       end
 
       # Check if lottery has ended
-      if topic.lottery_ends_at && topic.lottery_ends_at <= Time.zone.now
+      if lottery.ends_at && lottery.ends_at <= Time.zone.now
         return render_json_error("Lottery has ended", status: :unprocessable_entity)
       end
 
@@ -56,15 +58,18 @@ module VzekcVerlosung
       post = Post.find_by(id: params[:post_id])
       if post
         topic = post.topic
+        lottery = Lottery.find_by(topic_id: topic.id)
 
-        # Check if lottery is active (not draft, not finished)
-        unless topic.lottery_active?
-          return render_json_error("Lottery is not active", status: :unprocessable_entity)
-        end
+        if lottery
+          # Check if lottery is active (not draft, not finished)
+          unless lottery.active?
+            return render_json_error("Lottery is not active", status: :unprocessable_entity)
+          end
 
-        # Check if lottery has ended
-        if topic.lottery_ends_at && topic.lottery_ends_at <= Time.zone.now
-          return render_json_error("Lottery has ended", status: :unprocessable_entity)
+          # Check if lottery has ended
+          if lottery.ends_at && lottery.ends_at <= Time.zone.now
+            return render_json_error("Lottery has ended", status: :unprocessable_entity)
+          end
         end
       end
 
@@ -93,13 +98,14 @@ module VzekcVerlosung
       post = Post.find_by(id: params[:post_id])
       return render_json_error("Post not found", status: :not_found) unless post
 
-      # Verify it's a lottery packet
-      unless post.custom_fields["is_lottery_packet"] == true
-        return render_json_error("Not a lottery packet", status: :bad_request)
-      end
+      packet = LotteryPacket.find_by(post_id: post.id)
+      return render_json_error("Not a lottery packet", status: :bad_request) unless packet
 
       topic = post.topic
       return render_json_error("Topic not found", status: :not_found) unless topic
+
+      lottery = packet.lottery
+      return render_json_error("Lottery not found", status: :not_found) unless lottery
 
       # Check permissions - only lottery owner or staff
       unless guardian.can_manage_lottery_packets?(topic)
@@ -109,7 +115,7 @@ module VzekcVerlosung
       end
 
       # Check if lottery is finished and drawn
-      unless topic.lottery_finished? && topic.lottery_drawn?
+      unless lottery.finished? && lottery.drawn?
         return(
           render_json_error(
             "Lottery must be finished and drawn before marking packets as collected",
@@ -119,21 +125,19 @@ module VzekcVerlosung
       end
 
       # Check if there's a winner
-      winner_username = post.custom_fields["lottery_winner"]
-      if winner_username.blank?
+      unless packet.has_winner?
         return(render_json_error("No winner for this packet", status: :unprocessable_entity))
       end
 
       # Check if already collected
-      if post.custom_fields["packet_collected_at"].present?
+      if packet.collected?
         return(
           render_json_error("Packet already marked as collected", status: :unprocessable_entity)
         )
       end
 
       # Mark as collected
-      post.custom_fields["packet_collected_at"] = Time.zone.now
-      post.save_custom_fields
+      packet.mark_collected!
 
       # Return updated packet status
       render json: ticket_packet_status_response(post, current_user)
@@ -150,37 +154,33 @@ module VzekcVerlosung
       post = Post.find_by(id: params[:post_id])
       return render_json_error("Post not found", status: :not_found) unless post
 
-      # Verify it's a lottery packet
-      unless post.custom_fields["is_lottery_packet"] == true
-        return render_json_error("Not a lottery packet", status: :bad_request)
-      end
+      # Find the lottery packet
+      packet = LotteryPacket.find_by(post_id: post.id)
+      return render_json_error("Not a lottery packet", status: :bad_request) unless packet
 
       # Check if packet was collected
-      if post.custom_fields["packet_collected_at"].blank?
+      unless packet.collected?
         return(
           render_json_error("Packet not yet marked as collected", status: :unprocessable_entity)
         )
       end
 
       # Check if user is the winner
-      winner_username = post.custom_fields["lottery_winner"]
-      unless winner_username == current_user.username
+      unless packet.winner_user_id == current_user.id
         return(
           render_json_error("Only the winner can create an Erhaltungsbericht", status: :forbidden)
         )
       end
 
       # Check if Erhaltungsbericht already exists (and still exists)
-      erhaltungsbericht_topic_id = post.custom_fields["erhaltungsbericht_topic_id"]
-      if erhaltungsbericht_topic_id.present?
-        if Topic.exists?(id: erhaltungsbericht_topic_id)
+      if packet.erhaltungsbericht_topic_id.present?
+        if Topic.exists?(id: packet.erhaltungsbericht_topic_id)
           return(
             render_json_error("Erhaltungsbericht already created", status: :unprocessable_entity)
           )
         else
           # Topic was deleted, clear the field to allow creating a new one
-          post.custom_fields.delete("erhaltungsbericht_topic_id")
-          post.save_custom_fields
+          packet.update!(erhaltungsbericht_topic_id: nil)
         end
       end
 
@@ -228,11 +228,10 @@ module VzekcVerlosung
           )
         end
 
-        # Store the reference
-        post.custom_fields["erhaltungsbericht_topic_id"] = result.topic_id
-        post.save_custom_fields
+        # Store the reference on the packet
+        packet.link_report!(result.topic)
 
-        # Also store reverse reference on the erhaltungsbericht topic
+        # Also store reverse reference on the erhaltungsbericht topic (for backward compatibility)
         result.topic.custom_fields["packet_post_id"] = post.id
         result.topic.custom_fields["packet_topic_id"] = post.topic_id
         result.topic.save_custom_fields
@@ -268,19 +267,16 @@ module VzekcVerlosung
           }
         end
 
-      # Get winner user object if winner exists
-      winner_username = post.custom_fields["lottery_winner"]
+      # Get winner from packet
+      packet = LotteryPacket.find_by(post_id: post.id)
       winner = nil
-      if winner_username.present?
-        winner_user = User.find_by(username: winner_username)
-        if winner_user
-          winner = {
-            id: winner_user.id,
-            username: winner_user.username,
-            name: winner_user.name,
-            avatar_template: winner_user.avatar_template,
-          }
-        end
+      if packet&.winner
+        winner = {
+          id: packet.winner.id,
+          username: packet.winner.username,
+          name: packet.winner.name,
+          avatar_template: packet.winner.avatar_template,
+        }
       end
 
       response = {
@@ -292,20 +288,10 @@ module VzekcVerlosung
 
       # Include collected_at for lottery owner, staff, or winner
       topic = post.topic
-      winner_username = post.custom_fields["lottery_winner"]
-      is_winner = winner_username.present? && user && user.username == winner_username
+      is_winner = packet&.winner_user_id.present? && user && user.id == packet.winner_user_id
 
-      if topic && (guardian.is_staff? || topic.user_id == user.id || is_winner)
-        collected_at = post.custom_fields["packet_collected_at"]
-        if collected_at
-          response[:collected_at] = (
-            if collected_at.is_a?(String)
-              Time.zone.parse(collected_at)
-            else
-              collected_at
-            end
-          )
-        end
+      if topic && packet && (guardian.is_staff? || topic.user_id == user.id || is_winner)
+        response[:collected_at] = packet.collected_at if packet.collected_at
       end
 
       response

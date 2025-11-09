@@ -9,47 +9,38 @@ module Jobs
       return if SiteSetting.vzekc_verlosung_erhaltungsberichte_category_id.blank?
 
       # Find all finished lotteries with drawn results
-      Topic
-        .where(deleted_at: nil)
-        .joins(:_custom_fields)
-        .where(topic_custom_fields: { name: "lottery_state", value: "finished" })
-        .find_each do |topic|
-          next if topic.custom_fields["lottery_results"].blank?
-
-          # Find all packet posts in this lottery
-          packet_posts =
-            Post
-              .where(topic_id: topic.id)
-              .joins(:_custom_fields)
-              .where(post_custom_fields: { name: "is_lottery_packet", value: "t" })
-
+      VzekcVerlosung::Lottery
+        .finished
+        .where.not(drawn_at: nil)
+        .includes(:lottery_packets)
+        .find_each do |lottery|
           # Check each packet for missing Erhaltungsberichte
-          packet_posts.each do |post|
-            winner_username = post.custom_fields["lottery_winner"]
-            collected_at = post.custom_fields["packet_collected_at"]
-            erhaltungsbericht_topic_id = post.custom_fields["erhaltungsbericht_topic_id"]
+          lottery
+            .lottery_packets
+            .collected
+            .without_report
+            .includes(:winner, :post, :lottery)
+            .each do |packet|
+              next if packet.collected_at.blank?
 
-            # Skip if no winner or not collected yet
-            next if winner_username.blank? || collected_at.blank?
+              # Calculate days since collection
+              days_since_collected = (Time.zone.now - packet.collected_at).to_i / 1.day
 
-            # Skip if Erhaltungsbericht already created
-            next if erhaltungsbericht_topic_id.present?
+              # Only send reminder every 7 days (on days 7, 14, 21, etc.)
+              next if (days_since_collected % 7).nonzero? || days_since_collected <= 0
 
-            # Calculate days since collection
-            collected_date =
-              collected_at.is_a?(String) ? Time.zone.parse(collected_at) : collected_at
-            days_since_collected = (Time.zone.now - collected_date).to_i / 1.day
+              # Find the winner user
+              winner = packet.winner
+              next unless winner
 
-            # Only send reminder every 7 days (on days 7, 14, 21, etc.)
-            next if (days_since_collected % 7).nonzero? || days_since_collected <= 0
-
-            # Find the winner user
-            winner = User.find_by(username: winner_username)
-            next unless winner
-
-            # Send reminder
-            send_erhaltungsbericht_reminder(winner, topic, post, days_since_collected)
-          end
+              # Send reminder
+              send_erhaltungsbericht_reminder(
+                winner,
+                lottery.topic,
+                packet.post,
+                days_since_collected,
+              )
+            end
         end
     end
 
