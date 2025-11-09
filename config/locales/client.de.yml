@@ -138,8 +138,9 @@ de:
         table:
           packet: "Paket"
           winner: "Gewinner"
-          won_at: "Gewonnen am"
+          won_at: "Gewonnen"
           collected: "Erhalten"
+          bericht: "Bericht"
           erhaltungsbericht: "Bericht"
           bericht_date: "Bericht vom"
         no_packets: "Keine Pakete gefunden"

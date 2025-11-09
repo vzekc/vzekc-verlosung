@@ -141,19 +141,17 @@ export default class LotteryHistoryTable extends Component {
                   {{icon this.sortIcon}}
                 {{/if}}
               </th>
-              <th>{{i18n
-                  "vzekc_verlosung.history.table.erhaltungsbericht"
-                }}</th>
               <th
                 class="sortable"
                 role="button"
                 {{on "click" (fn this.sortBy "bericht_date")}}
               >
-                {{i18n "vzekc_verlosung.history.table.bericht_date"}}
+                {{i18n "vzekc_verlosung.history.table.bericht"}}
                 {{#if this.isBerichtDateSorted}}
                   {{icon this.sortIcon}}
                 {{/if}}
               </th>
+              <th></th>
             </tr>
           </thead>
           <tbody>
@@ -185,21 +183,6 @@ export default class LotteryHistoryTable extends Component {
                     <span class="no-data">-</span>
                   {{/if}}
                 </td>
-                <td class="erhaltungsbericht-cell">
-                  {{#if packet.erhaltungsbericht}}
-                    <a
-                      href={{packet.erhaltungsbericht.url}}
-                      class="erhaltungsbericht-link"
-                    >
-                      {{icon "file-alt"}}
-                      {{i18n "vzekc_verlosung.history.view_report"}}
-                    </a>
-                  {{else}}
-                    <span class="status-no-report">
-                      {{icon "minus"}}
-                    </span>
-                  {{/if}}
-                </td>
                 <td class="bericht-date-cell">
                   {{#if packet.erhaltungsbericht}}
                     {{formatDate
@@ -208,6 +191,16 @@ export default class LotteryHistoryTable extends Component {
                     }}
                   {{else}}
                     <span class="no-data">-</span>
+                  {{/if}}
+                </td>
+                <td class="erhaltungsbericht-cell">
+                  {{#if packet.erhaltungsbericht}}
+                    <a
+                      href={{packet.erhaltungsbericht.url}}
+                      class="erhaltungsbericht-link"
+                    >
+                      {{icon "file-lines"}}
+                    </a>
                   {{/if}}
                 </td>
               </tr>
