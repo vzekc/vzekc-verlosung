@@ -2,6 +2,7 @@
 
 VzekcVerlosung::Engine.routes.draw do
   get "/examples" => "examples#index"
+  get "/history" => "lottery_history#index"
   post "/lotteries" => "lotteries#create"
   get "/lotteries/:topic_id/packets" => "lotteries#packets"
   put "/lotteries/:topic_id/publish" => "lotteries#publish"

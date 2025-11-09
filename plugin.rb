@@ -11,6 +11,7 @@
 enabled_site_setting :vzekc_verlosung_enabled
 
 register_asset "stylesheets/vzekc-verlosung.scss"
+register_asset "stylesheets/lottery-history.scss"
 
 register_svg_icon "trophy"
 register_svg_icon "dice"
@@ -33,6 +34,11 @@ require_relative "lib/vzekc_verlosung/engine"
 require_relative "lib/vzekc_verlosung/guardian_extensions"
 
 after_initialize do
+  # Register the lottery history route as a valid Ember route
+  Discourse::Application.routes.append do
+    get "/lottery-history" => "users#index", :constraints => { format: /(json|html)/ }
+  end
+
   # Add custom notification types to the Notification.types enum
   # Since Enum extends Hash, we can add new types directly
   Notification.types[:vzekc_verlosung_published] = 810

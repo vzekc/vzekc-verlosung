@@ -1,0 +1,211 @@
+// Lottery History Page Styles
+.lottery-history-page {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 1em;
+
+  .lottery-history-header {
+    margin-bottom: 1em;
+
+    h1 {
+      margin: 0;
+      font-size: 1.8em;
+    }
+  }
+}
+
+// Flat Packets Table
+.lottery-history-table-container {
+  background: var(--secondary);
+  border: 1px solid var(--primary-low);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.lottery-history-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--secondary);
+
+  thead {
+    background: var(--primary-low);
+
+    th {
+      padding: 0.75em;
+      text-align: left;
+      font-weight: bold;
+      color: var(--primary-high);
+      border-bottom: 2px solid var(--primary-medium);
+      font-size: 0.95em;
+
+      &.sortable {
+        cursor: pointer;
+        user-select: none;
+
+        &:hover {
+          background: var(--primary-low-mid);
+        }
+
+        .d-icon {
+          margin-left: 0.5em;
+          font-size: 0.85em;
+          opacity: 0.7;
+        }
+      }
+    }
+  }
+
+  tbody {
+    tr {
+      border-bottom: 1px solid var(--primary-low);
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      &:hover {
+        background: var(--primary-very-low);
+      }
+
+      td {
+        padding: 0.75em;
+        vertical-align: top;
+      }
+    }
+  }
+
+  .lottery-title-cell {
+    min-width: 250px;
+
+    a {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 500;
+
+      &:hover {
+        color: var(--tertiary);
+      }
+    }
+
+    .lottery-date {
+      font-size: 0.85em;
+      color: var(--primary-medium);
+      margin-top: 0.25em;
+    }
+
+    .badge-wrapper {
+      display: inline-block;
+      margin-right: 0.5em;
+      vertical-align: middle;
+    }
+  }
+
+  .packet-title-cell {
+    a {
+      color: var(--primary);
+      text-decoration: none;
+
+      &:hover {
+        color: var(--tertiary);
+      }
+    }
+  }
+
+  .winner-cell {
+    .avatar {
+      margin-right: 0.5em;
+      vertical-align: middle;
+    }
+
+    a {
+      color: var(--primary);
+      text-decoration: none;
+
+      &:hover {
+        color: var(--tertiary);
+      }
+    }
+
+    .no-winner {
+      color: var(--primary-medium);
+      font-style: italic;
+    }
+  }
+
+  .collected-cell {
+    .status-collected {
+      color: var(--success);
+
+      .d-icon {
+        margin-right: 0.25em;
+      }
+    }
+
+    .status-not-collected {
+      color: var(--primary-medium);
+
+      .d-icon {
+        margin-right: 0.25em;
+      }
+    }
+  }
+
+  .erhaltungsbericht-cell {
+    .erhaltungsbericht-link {
+      color: var(--tertiary);
+      text-decoration: none;
+
+      &:hover {
+        color: var(--tertiary-high);
+      }
+
+      .d-icon {
+        margin-right: 0.25em;
+      }
+    }
+
+    .status-no-report {
+      color: var(--primary-medium);
+
+      .d-icon {
+        margin-right: 0.25em;
+      }
+    }
+  }
+}
+
+// No packets message
+.no-packets {
+  text-align: center;
+  padding: 3em;
+  color: var(--primary-medium);
+  font-size: 1.1em;
+}
+
+// Link banner above lottery topics
+.lottery-history-link-banner {
+  margin-bottom: 1em;
+  padding: 1em;
+  background: var(--tertiary-low);
+  border-radius: 6px;
+  text-align: center;
+
+  .lottery-history-link-btn {
+    font-size: 1em;
+  }
+}
+
+// Responsive Design
+@media screen and (width <= 768px) {
+  .lottery-history-page {
+    padding: 0.5em;
+  }
+
+  .lottery-history-table-container {
+    overflow-x: auto;
+  }
+
+  .lottery-history-table {
+    min-width: 800px;
+  }
+}
