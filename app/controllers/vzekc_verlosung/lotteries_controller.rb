@@ -401,7 +401,13 @@ module VzekcVerlosung
     private
 
     def create_params
-      params.permit(:title, :duration_days, :category_id, packets: [:title])
+      params.permit(
+        :title,
+        :display_id,
+        :duration_days,
+        :category_id,
+        packets: %i[title erhaltungsbericht_required],
+      )
     end
 
     def serialize_topic(topic)

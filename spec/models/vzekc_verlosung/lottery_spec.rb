@@ -44,6 +44,31 @@ RSpec.describe VzekcVerlosung::Lottery do
         expect(lottery).to be_valid
       end
     end
+
+    context "with display_id" do
+      it { is_expected.to validate_presence_of(:display_id) }
+      it { is_expected.to validate_uniqueness_of(:display_id) }
+
+      it "validates minimum value" do
+        topic = Fabricate(:topic)
+        lottery = Fabricate.build(:lottery, topic: topic, display_id: 400)
+        expect(lottery).not_to be_valid
+        expect(lottery.errors[:display_id]).to be_present
+      end
+
+      it "allows values greater than 400" do
+        topic = Fabricate(:topic)
+        lottery = Fabricate.build(:lottery, topic: topic, display_id: 401)
+        expect(lottery).to be_valid
+      end
+
+      it "validates integer only" do
+        topic = Fabricate(:topic)
+        lottery = Fabricate.build(:lottery, topic: topic, display_id: 450.5)
+        expect(lottery).not_to be_valid
+        expect(lottery.errors[:display_id]).to be_present
+      end
+    end
   end
 
   describe "scopes" do
@@ -67,9 +92,7 @@ RSpec.describe VzekcVerlosung::Lottery do
     describe ".active" do
       it "returns only active lotteries" do
         results =
-          described_class.active.where(
-            id: [active_lottery.id, ready_lottery.id, drawn_lottery.id],
-          )
+          described_class.active.where(id: [active_lottery.id, ready_lottery.id, drawn_lottery.id])
         expect(results).to contain_exactly(active_lottery, ready_lottery, drawn_lottery)
       end
     end
@@ -257,7 +280,7 @@ RSpec.describe VzekcVerlosung::Lottery do
       end
     end
 
-    context "cascade to lottery packets" do
+    context "when cascading to lottery packets" do
       it "deletes associated lottery_packets when lottery is deleted" do
         topic = Fabricate(:topic, user: user, category: category)
         lottery = Fabricate(:lottery, topic: topic)
@@ -300,17 +323,16 @@ RSpec.describe VzekcVerlosung::Lottery do
       user3 = Fabricate(:user)
 
       # User1 buys tickets for both packets
-      Fabricate(:lottery_ticket, post_id: post1.id, user: user1)
-      Fabricate(:lottery_ticket, post_id: post2.id, user: user1)
+      Fabricate(:lottery_ticket, post: post1, user: user1)
+      Fabricate(:lottery_ticket, post: post2, user: user1)
 
       # User2 buys ticket for packet1
-      Fabricate(:lottery_ticket, post_id: post1.id, user: user2)
+      Fabricate(:lottery_ticket, post: post1, user: user2)
 
       # User3 buys ticket for packet2
-      Fabricate(:lottery_ticket, post_id: post2.id, user: user3)
+      Fabricate(:lottery_ticket, post: post2, user: user3)
 
       participants = lottery.participants
-
       expect(participants).to contain_exactly(user1, user2, user3)
     end
   end
@@ -326,9 +348,9 @@ RSpec.describe VzekcVerlosung::Lottery do
       user1 = Fabricate(:user)
       user2 = Fabricate(:user)
 
-      Fabricate(:lottery_ticket, post_id: post1.id, user: user1)
-      Fabricate(:lottery_ticket, post_id: post2.id, user: user1)
-      Fabricate(:lottery_ticket, post_id: post1.id, user: user2)
+      Fabricate(:lottery_ticket, post: post1, user: user1)
+      Fabricate(:lottery_ticket, post: post2, user: user1)
+      Fabricate(:lottery_ticket, post: post1, user: user2)
 
       expect(lottery.participant_count).to eq(2)
     end

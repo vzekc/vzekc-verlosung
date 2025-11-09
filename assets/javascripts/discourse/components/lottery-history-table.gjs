@@ -158,7 +158,20 @@ export default class LotteryHistoryTable extends Component {
             {{#each this.sortedPackets as |packet|}}
               <tr>
                 <td class="packet-title-cell">
-                  <a href={{packet.packet_url}}>{{packet.title}}</a>
+                  <div class="lottery-info">
+                    <a href={{packet.lottery_url}} class="lottery-title-link">
+                      {{i18n "vzekc_verlosung.history.donation_prefix"}}
+                      {{packet.lottery_display_id}}:
+                      {{packet.lottery_title}}
+                    </a>
+                  </div>
+                  <div class="packet-title">
+                    <a href={{packet.packet_url}}>
+                      {{i18n "vzekc_verlosung.history.packet_prefix"}}
+                      {{packet.ordinal}}:
+                      {{packet.title}}
+                    </a>
+                  </div>
                 </td>
                 <td class="winner-cell">
                   {{avatar packet.winner imageSize="tiny"}}
@@ -189,8 +202,15 @@ export default class LotteryHistoryTable extends Component {
                       packet.erhaltungsbericht.created_at
                       format="medium"
                     }}
-                  {{else}}
-                    <span class="no-data">-</span>
+                  {{else if packet.erhaltungsbericht_required}}
+                    <span
+                      class="erhaltungsbericht-pending"
+                      title={{i18n
+                        "vzekc_verlosung.history.waiting_for_bericht"
+                      }}
+                    >
+                      {{icon "clock"}}
+                    </span>
                   {{/if}}
                 </td>
                 <td class="erhaltungsbericht-cell">

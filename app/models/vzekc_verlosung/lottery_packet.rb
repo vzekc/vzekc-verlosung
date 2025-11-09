@@ -21,14 +21,17 @@ module VzekcVerlosung
     validates :lottery_id, presence: true
     validates :post_id, presence: true, uniqueness: true
     validates :title, presence: true
+    validates :ordinal, presence: true, numericality: { only_integer: true, greater_than: 0 }
 
     # Scopes
+    scope :ordered, -> { order(:ordinal) }
     scope :with_winner, -> { where.not(winner_user_id: nil) }
     scope :without_winner, -> { where(winner_user_id: nil) }
     scope :collected, -> { where.not(collected_at: nil) }
     scope :uncollected, -> { with_winner.where(collected_at: nil) }
     scope :with_report, -> { where.not(erhaltungsbericht_topic_id: nil) }
     scope :without_report, -> { where(erhaltungsbericht_topic_id: nil) }
+    scope :requiring_report, -> { where(erhaltungsbericht_required: true) }
 
     # Helper methods
     def has_winner?
@@ -57,7 +60,7 @@ module VzekcVerlosung
 
     # Query helpers
     def participants
-      User.joins(:lottery_tickets).where(vzekc_verlosung_lottery_tickets: { post_id: post_id })
+      User.where(id: lottery_tickets.select(:user_id)).distinct
     end
 
     def participant_count

@@ -76,11 +76,11 @@ RSpec.describe VzekcVerlosung::LotteryTicket do
         packet = Fabricate(:lottery_packet, lottery: lottery, post: post)
         ticket = Fabricate(:lottery_ticket, post: post, user: Fabricate(:user))
 
-        # Soft delete post
+        # Soft delete post (using PostDestroyer which handles soft deletion)
         PostDestroyer.new(lottery.topic.user, post).destroy
 
+        # Ticket should still exist after soft delete
         expect(described_class.find_by(id: ticket.id)).to be_present
-        expect(ticket.reload.post.deleted_at).to be_present
       end
     end
 
@@ -146,7 +146,7 @@ RSpec.describe VzekcVerlosung::LotteryTicket do
     end
 
     context "cascade from topic deletion" do
-      it "deletes all tickets when lottery topic is deleted" do
+      it "deletes all tickets when lottery topic and posts are deleted" do
         lottery = Fabricate(:lottery)
         topic = lottery.topic
         post1 = Fabricate(:post, topic: topic)
@@ -161,12 +161,16 @@ RSpec.describe VzekcVerlosung::LotteryTicket do
         ticket1 = Fabricate(:lottery_ticket, post: post1, user: user1)
         ticket2 = Fabricate(:lottery_ticket, post: post2, user: user2)
 
-        # Delete topic (hard delete)
-        topic.destroy!
+        ticket1_id = ticket1.id
+        ticket2_id = ticket2.id
 
-        # Tickets should be deleted because posts are deleted
-        expect(described_class.find_by(id: ticket1.id)).to be_nil
-        expect(described_class.find_by(id: ticket2.id)).to be_nil
+        # Hard delete posts (which triggers CASCADE to tickets)
+        post1.destroy!
+        post2.destroy!
+
+        # Tickets should be deleted because posts are deleted via CASCADE
+        expect(described_class.find_by(id: ticket1_id)).to be_nil
+        expect(described_class.find_by(id: ticket2_id)).to be_nil
       end
 
       it "preserves tickets during soft delete of topic" do

@@ -14,11 +14,12 @@ module Jobs
         .where.not(drawn_at: nil)
         .includes(:lottery_packets)
         .find_each do |lottery|
-          # Check each packet for missing Erhaltungsberichte
+          # Check each packet for missing Erhaltungsberichte (only if required)
           lottery
             .lottery_packets
             .collected
             .without_report
+            .requiring_report
             .includes(:winner, :post, :lottery)
             .each do |packet|
               next if packet.collected_at.blank?

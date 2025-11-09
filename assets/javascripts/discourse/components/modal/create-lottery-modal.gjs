@@ -23,6 +23,7 @@ export default class CreateLotteryModal extends Component {
   @service router;
 
   @tracked title = "";
+  @tracked displayId = "";
   @tracked durationDays = 14;
   @tracked packets = [this.createEmptyPacket()];
   @tracked isSubmitting = false;
@@ -34,8 +35,11 @@ export default class CreateLotteryModal extends Component {
    * @type {boolean}
    */
   get canSubmit() {
+    const displayIdNum = parseInt(this.displayId, 10);
     return (
       this.title.trim().length >= 3 &&
+      !isNaN(displayIdNum) &&
+      displayIdNum > 400 &&
       this.durationDays >= 7 &&
       this.durationDays <= 28 &&
       this.packets.length > 0 &&
@@ -52,6 +56,7 @@ export default class CreateLotteryModal extends Component {
     return {
       title: "",
       description: "",
+      erhaltungsberichtRequired: true,
     };
   }
 
@@ -96,7 +101,10 @@ export default class CreateLotteryModal extends Component {
    */
   @action
   updatePacket(index, field, event) {
-    const value = event.target.value;
+    const value =
+      event.target.type === "checkbox"
+        ? event.target.checked
+        : event.target.value;
     // Update the field directly for smooth typing
     this.packets[index][field] = value;
     // Trigger reactivity by reassigning the array
@@ -113,7 +121,11 @@ export default class CreateLotteryModal extends Component {
   updateField(field, event) {
     const value = event.target.value;
     // Convert to number for durationDays field
-    this[field] = field === "durationDays" ? parseInt(value, 10) : value;
+    if (field === "durationDays") {
+      this[field] = parseInt(value, 10);
+    } else {
+      this[field] = value;
+    }
   }
 
   /**
@@ -188,10 +200,12 @@ export default class CreateLotteryModal extends Component {
         contentType: "application/json",
         data: JSON.stringify({
           title: this.title,
+          display_id: parseInt(this.displayId, 10),
           duration_days: this.durationDays,
           category_id: this.args.model.categoryId,
           packets: this.packets.map((p) => ({
             title: p.title,
+            erhaltungsbericht_required: p.erhaltungsberichtRequired,
           })),
         }),
       });
@@ -235,6 +249,24 @@ export default class CreateLotteryModal extends Component {
           </div>
 
           <div class="control-group">
+            <label>{{i18n "vzekc_verlosung.modal.display_id_label"}}</label>
+            <input
+              type="number"
+              {{on "input" (fn this.updateField "displayId")}}
+              {{on "keydown" this.handleKeyDown}}
+              value={{this.displayId}}
+              placeholder={{i18n
+                "vzekc_verlosung.modal.display_id_placeholder"
+              }}
+              min="401"
+              class="lottery-display-id-input"
+            />
+            <div class="display-id-help">
+              {{i18n "vzekc_verlosung.modal.display_id_help"}}
+            </div>
+          </div>
+
+          <div class="control-group">
             <label>{{i18n "vzekc_verlosung.modal.duration_label"}}</label>
             <input
               type="number"
@@ -275,6 +307,23 @@ export default class CreateLotteryModal extends Component {
                         class="btn-danger btn-small"
                       />
                     {{/if}}
+                  </div>
+                  <div class="packet-checkbox-group">
+                    <label class="checkbox-label">
+                      <input
+                        type="checkbox"
+                        {{on
+                          "change"
+                          (fn
+                            this.updatePacket index "erhaltungsberichtRequired"
+                          )
+                        }}
+                        checked={{packet.erhaltungsberichtRequired}}
+                      />
+                      {{i18n
+                        "vzekc_verlosung.modal.erhaltungsbericht_required_label"
+                      }}
+                    </label>
                   </div>
                 </div>
               {{/each}}

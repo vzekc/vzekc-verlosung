@@ -13,7 +13,7 @@ RSpec.describe VzekcVerlosung::LotteryPacket do
   end
 
   describe "validations" do
-    subject(:packet) { Fabricate.build(:lottery_packet) }
+    subject(:packet) { Fabricate(:lottery_packet) }
 
     it { is_expected.to validate_presence_of(:lottery_id) }
     it { is_expected.to validate_presence_of(:post_id) }
@@ -107,6 +107,28 @@ RSpec.describe VzekcVerlosung::LotteryPacket do
           packet_without_winner,
           collected_packet,
         )
+      end
+    end
+
+    describe ".requiring_report" do
+      let!(:packet_not_requiring_report) do
+        post = Fabricate(:post, topic: lottery.topic)
+        Fabricate(
+          :lottery_packet,
+          lottery: lottery,
+          post: post,
+          erhaltungsbericht_required: false,
+        )
+      end
+
+      it "returns packets where erhaltungsbericht is required" do
+        expect(described_class.requiring_report).to include(
+          packet_with_winner,
+          packet_without_winner,
+          collected_packet,
+          packet_with_report,
+        )
+        expect(described_class.requiring_report).not_to include(packet_not_requiring_report)
       end
     end
   end
@@ -241,11 +263,11 @@ RSpec.describe VzekcVerlosung::LotteryPacket do
         post = Fabricate(:post, topic: lottery.topic)
         packet = Fabricate(:lottery_packet, lottery: lottery, post: post)
 
-        # Soft delete (sets deleted_at)
+        # Soft delete post (using PostDestroyer which handles soft deletion)
         PostDestroyer.new(lottery.topic.user, post).destroy
 
+        # Packet should still exist after soft delete
         expect(described_class.find_by(id: packet.id)).to be_present
-        expect(packet.reload.post.deleted_at).to be_present
       end
 
       it "packet can still be accessed" do

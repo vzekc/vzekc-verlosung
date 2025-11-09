@@ -13,6 +13,7 @@ RSpec.describe VzekcVerlosung::LotteriesController do
     let(:valid_params) do
       {
         title: "Hardware Verlosung Januar 2025",
+        display_id: 401,
         category_id: category.id,
         duration_days: 14,
         packets: [{ title: "Packet 1" }, { title: "Packet 2" }],
@@ -62,6 +63,26 @@ RSpec.describe VzekcVerlosung::LotteriesController do
 
         expect(response.status).to eq(422)
       end
+
+      it "returns error for missing display_id" do
+        invalid_params = valid_params.except(:display_id)
+        post "/vzekc-verlosung/lotteries.json", params: invalid_params
+
+        expect(response.status).to eq(422)
+        json = response.parsed_body
+        expect(json["success"]).to eq("FAILED")
+        expect(json["errors"]).to be_present
+      end
+
+      it "returns error for display_id <= 400" do
+        invalid_params = valid_params.merge(display_id: 400)
+        post "/vzekc-verlosung/lotteries.json", params: invalid_params
+
+        expect(response.status).to eq(422)
+        json = response.parsed_body
+        expect(json["success"]).to eq("FAILED")
+        expect(json["errors"]).to be_present
+      end
     end
 
     context "when user is not logged in" do
@@ -82,6 +103,7 @@ RSpec.describe VzekcVerlosung::LotteriesController do
       VzekcVerlosung::CreateLottery.call(
         params: {
           title: "Test Lottery",
+          display_id: 402,
           category_id: category.id,
           duration_days: 14,
           packets: [{ title: "Packet 1" }],
@@ -171,6 +193,7 @@ RSpec.describe VzekcVerlosung::LotteriesController do
       VzekcVerlosung::CreateLottery.call(
         params: {
           title: "Test Lottery",
+          display_id: 403,
           category_id: category.id,
           duration_days: 14,
           packets: [{ title: "Hardware Bundle" }],

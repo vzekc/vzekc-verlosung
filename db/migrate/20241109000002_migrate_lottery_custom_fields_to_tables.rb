@@ -21,6 +21,9 @@ class MigrateLotteryCustomFieldsToTables < ActiveRecord::Migration[7.0]
 
     say "Found #{lottery_topic_ids.count} lottery topics to migrate"
 
+    # Generate sequential display_ids starting from 401
+    next_display_id = 401
+
     lottery_topic_ids.each do |topic_id|
       # Check if already migrated
       if DB.query_single(
@@ -71,13 +74,23 @@ class MigrateLotteryCustomFieldsToTables < ActiveRecord::Migration[7.0]
       end
 
       # Insert lottery record
-      DB.exec(<<~SQL, topic_id, state, duration_days, ends_at, drawn_at, results&.to_json)
+      DB.exec(
+        <<~SQL,
           INSERT INTO vzekc_verlosung_lotteries
-            (topic_id, state, duration_days, ends_at, drawn_at, results, created_at, updated_at)
-          VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW())
+            (topic_id, display_id, state, duration_days, ends_at, drawn_at, results, created_at, updated_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
         SQL
+        topic_id,
+        next_display_id,
+        state,
+        duration_days,
+        ends_at,
+        drawn_at,
+        results&.to_json,
+      )
 
       migrated_lotteries += 1
+      next_display_id += 1
 
       # Migrate packets for this lottery
       lottery_id =
@@ -138,12 +151,12 @@ class MigrateLotteryCustomFieldsToTables < ActiveRecord::Migration[7.0]
         # Parse erhaltungsbericht_topic_id
         erhaltungsbericht_topic_id = post_custom_fields["erhaltungsbericht_topic_id"]&.to_i
 
-        # Insert packet record
+        # Insert packet record (erhaltungsbericht_required defaults to true for existing packets)
         DB.exec(
           <<~SQL,
             INSERT INTO vzekc_verlosung_lottery_packets
-              (lottery_id, post_id, title, winner_user_id, won_at, collected_at, erhaltungsbericht_topic_id, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
+              (lottery_id, post_id, title, winner_user_id, won_at, collected_at, erhaltungsbericht_topic_id, erhaltungsbericht_required, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, TRUE, NOW(), NOW())
           SQL
           lottery_id,
           post_id,

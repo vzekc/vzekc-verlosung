@@ -101,12 +101,30 @@
   }
 
   .packet-title-cell {
-    a {
-      color: var(--primary);
-      text-decoration: none;
+    .lottery-info {
+      font-size: 0.85em;
+      color: var(--primary-medium);
+      margin-bottom: 0.25em;
 
-      &:hover {
-        color: var(--tertiary);
+      .lottery-title-link {
+        color: var(--primary-medium);
+        text-decoration: none;
+
+        &:hover {
+          color: var(--tertiary);
+        }
+      }
+    }
+
+    .packet-title {
+      a {
+        color: var(--primary);
+        text-decoration: none;
+        font-weight: 500;
+
+        &:hover {
+          color: var(--tertiary);
+        }
       }
     }
   }
@@ -160,6 +178,15 @@
 
   .bericht-date-cell {
     white-space: nowrap;
+
+    .erhaltungsbericht-pending {
+      color: var(--primary-medium);
+      cursor: help;
+
+      .d-icon {
+        opacity: 0.7;
+      }
+    }
   }
 
   .erhaltungsbericht-cell {

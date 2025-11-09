@@ -21,11 +21,13 @@ module VzekcVerlosung
 
     params do
       attribute :title, :string
+      attribute :display_id, :integer
       attribute :duration_days, :integer
       attribute :category_id, :integer
       attribute :packets, :array
 
       validates :title, presence: true, length: { minimum: 3, maximum: 255 }
+      validates :display_id, presence: true, numericality: { only_integer: true, greater_than: 400 }
       validates :duration_days,
                 presence: true,
                 numericality: {
@@ -92,6 +94,7 @@ module VzekcVerlosung
       lottery =
         Lottery.create!(
           topic_id: post.topic_id,
+          display_id: params.display_id,
           state: "draft",
           duration_days: params.duration_days,
         )
@@ -105,19 +108,27 @@ module VzekcVerlosung
       lottery = context[:lottery]
 
       params.packets.each_with_index do |packet_data, index|
-        packet_number = index + 1
-        user_title = packet_data[:title] || packet_data["title"]
+        packet_ordinal = index + 1
+        packet_title = packet_data[:title] || packet_data["title"]
+        erhaltungsbericht_required =
+          packet_data.key?(:erhaltungsbericht_required) ?
+            packet_data[:erhaltungsbericht_required] :
+            if packet_data.key?("erhaltungsbericht_required")
+              packet_data["erhaltungsbericht_required"]
+            else
+              true
+            end
 
-        # Always prefix with "Paket X: " followed by user's title
-        packet_title =
-          if user_title.present?
-            "Paket #{packet_number}: #{user_title}"
+        # Build the post title with prefix for display
+        display_title =
+          if packet_title.present?
+            "Paket #{packet_ordinal}: #{packet_title}"
           else
-            "Paket #{packet_number}"
+            "Paket #{packet_ordinal}"
           end
 
         # Build the post content
-        raw_content = "# #{packet_title}\n\n"
+        raw_content = "# #{display_title}\n\n"
 
         post_creator =
           PostCreator.new(user, raw: raw_content, topic_id: main_topic.id, skip_validations: true)
@@ -128,8 +139,14 @@ module VzekcVerlosung
           fail!("Failed to create packet post: #{post_creator.errors.full_messages.join(", ")}")
         end
 
-        # Create lottery packet record
-        LotteryPacket.create!(lottery_id: lottery.id, post_id: post.id, title: packet_title)
+        # Create lottery packet record with ordinal and user's title (no prefix)
+        LotteryPacket.create!(
+          lottery_id: lottery.id,
+          post_id: post.id,
+          ordinal: packet_ordinal,
+          title: packet_title.presence || "Paket #{packet_ordinal}",
+          erhaltungsbericht_required: erhaltungsbericht_required,
+        )
       end
     end
   end

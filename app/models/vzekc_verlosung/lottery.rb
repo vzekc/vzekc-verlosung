@@ -21,6 +21,13 @@ module VzekcVerlosung
                 less_than_or_equal_to: 28,
               },
               allow_nil: true
+    validates :display_id,
+              presence: true,
+              uniqueness: true,
+              numericality: {
+                only_integer: true,
+                greater_than: 400,
+              }
 
     # Scopes
     scope :draft, -> { where(state: "draft") }
@@ -61,21 +68,14 @@ module VzekcVerlosung
 
     # Query helpers
     def participants
-      VzekcVerlosung::LotteryTicket
-        .joins(:user)
-        .joins(:post)
-        .joins("INNER JOIN vzekc_verlosung_lottery_packets ON vzekc_verlosung_lottery_packets.post_id = vzekc_verlosung_lottery_tickets.post_id")
-        .where(vzekc_verlosung_lottery_packets: { lottery_id: id })
-        .select("DISTINCT users.*")
-        .map(&:user)
+      post_ids = lottery_packets.pluck(:post_id)
+      user_ids = VzekcVerlosung::LotteryTicket.where(post_id: post_ids).distinct.pluck(:user_id)
+      User.where(id: user_ids)
     end
 
     def participant_count
-      VzekcVerlosung::LotteryTicket
-        .joins("INNER JOIN vzekc_verlosung_lottery_packets ON vzekc_verlosung_lottery_packets.post_id = vzekc_verlosung_lottery_tickets.post_id")
-        .where(vzekc_verlosung_lottery_packets: { lottery_id: id })
-        .select("DISTINCT vzekc_verlosung_lottery_tickets.user_id")
-        .count
+      post_ids = lottery_packets.pluck(:post_id)
+      VzekcVerlosung::LotteryTicket.where(post_id: post_ids).distinct.count(:user_id)
     end
   end
 end

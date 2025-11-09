@@ -22,6 +22,7 @@ RSpec.describe "Lottery Full Lifecycle Integration" do
     post "/vzekc-verlosung/lotteries.json",
          params: {
            title: "Hardware Verlosung Januar 2025",
+           display_id: 401,
            category_id: category.id,
            duration_days: 14,
            packets: [{ title: "GPU Paket" }, { title: "CPU Paket" }, { title: "RAM Paket" }],

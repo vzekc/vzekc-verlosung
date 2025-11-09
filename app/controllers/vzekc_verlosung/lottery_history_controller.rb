@@ -82,10 +82,12 @@ module VzekcVerlosung
         # Packet info
         post_id: post.id,
         post_number: post.post_number,
+        ordinal: packet.ordinal,
         title: packet.title,
         packet_url: "#{topic.relative_url}/#{post.post_number}",
         # Lottery info
         lottery_id: topic.id,
+        lottery_display_id: packet.lottery.display_id,
         lottery_title: topic.title,
         lottery_url: topic.relative_url,
         lottery_created_at: topic.created_at,
@@ -106,6 +108,7 @@ module VzekcVerlosung
         collected_at: packet.collected_at,
         won_at: packet.won_at,
         # Erhaltungsbericht info
+        erhaltungsbericht_required: packet.erhaltungsbericht_required,
         erhaltungsbericht:
           if packet.erhaltungsbericht_topic
             {
