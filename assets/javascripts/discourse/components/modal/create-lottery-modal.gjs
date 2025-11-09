@@ -24,6 +24,7 @@ export default class CreateLotteryModal extends Component {
 
   @tracked title = "";
   @tracked displayId = "";
+  @tracked displayIdError = "";
   @tracked durationDays = 14;
   @tracked packets = [this.createEmptyPacket()];
   @tracked isSubmitting = false;
@@ -126,6 +127,42 @@ export default class CreateLotteryModal extends Component {
     } else {
       this[field] = value;
     }
+    // Clear validation error when user starts typing
+    if (field === "displayId") {
+      this.displayIdError = "";
+    }
+  }
+
+  /**
+   * Validates the display ID field
+   */
+  @action
+  validateDisplayId() {
+    const value = this.displayId.trim();
+
+    if (value === "") {
+      this.displayIdError = i18nFn("vzekc_verlosung.modal.display_id_required");
+      return;
+    }
+
+    const displayIdNum = parseInt(value, 10);
+
+    if (isNaN(displayIdNum)) {
+      this.displayIdError = i18nFn(
+        "vzekc_verlosung.modal.display_id_must_be_number"
+      );
+      return;
+    }
+
+    if (displayIdNum <= 400) {
+      this.displayIdError = i18nFn(
+        "vzekc_verlosung.modal.display_id_must_be_greater_than_400"
+      );
+      return;
+    }
+
+    // Clear error if validation passes
+    this.displayIdError = "";
   }
 
   /**
@@ -253,11 +290,18 @@ export default class CreateLotteryModal extends Component {
             <input
               type="number"
               {{on "input" (fn this.updateField "displayId")}}
+              {{on "blur" this.validateDisplayId}}
               {{on "keydown" this.handleKeyDown}}
               value={{this.displayId}}
               min="401"
-              class="lottery-display-id-input"
+              class="lottery-display-id-input
+                {{if this.displayIdError 'error'}}"
             />
+            {{#if this.displayIdError}}
+              <div class="display-id-error">
+                {{this.displayIdError}}
+              </div>
+            {{/if}}
             <div class="display-id-help">
               {{i18n "vzekc_verlosung.modal.display_id_help"}}
             </div>

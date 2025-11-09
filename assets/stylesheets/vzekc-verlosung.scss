@@ -29,13 +29,29 @@
           outline: none;
           border-color: var(--tertiary);
         }
+
+        &.error {
+          border-color: var(--danger);
+        }
       }
 
       input[type="number"] {
         width: 150px;
       }
 
-      .duration-help {
+      .display-id-error {
+        margin-top: 0.5em;
+        padding: 0.5em;
+        background: var(--danger-low);
+        border: 1px solid var(--danger);
+        border-radius: 3px;
+        font-size: 0.9em;
+        color: var(--danger);
+        font-weight: 500;
+      }
+
+      .duration-help,
+      .display-id-help {
         margin-top: 0.5em;
         font-size: 0.9em;
         color: var(--primary-medium);
