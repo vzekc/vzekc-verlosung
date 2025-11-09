@@ -25,7 +25,6 @@ en:
         title_label: "Lottery Title"
         title_placeholder: "Enter the title for your lottery..."
         display_id_label: "Donation Number"
-        display_id_placeholder: ""
         display_id_help: "This is the donation number from the Woltlab forum"
         duration_label: "Duration (in days)"
         duration_help: "Minimum: 7 days, Maximum: 28 days"

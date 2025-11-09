@@ -255,9 +255,6 @@ export default class CreateLotteryModal extends Component {
               {{on "input" (fn this.updateField "displayId")}}
               {{on "keydown" this.handleKeyDown}}
               value={{this.displayId}}
-              placeholder={{i18n
-                "vzekc_verlosung.modal.display_id_placeholder"
-              }}
               min="401"
               class="lottery-display-id-input"
             />

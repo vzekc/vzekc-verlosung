@@ -25,7 +25,6 @@ de:
         title_label: "Verlosungs-Titel"
         title_placeholder: "Gib den Titel für die Verlosung ein..."
         display_id_label: "Spende Nummer"
-        display_id_placeholder: ""
         display_id_help: "Dies ist die Spendennummer aus dem Woltlab-Forum"
         duration_label: "Dauer (in Tagen)"
         duration_help: "Minimum: 7 Tage, Maximum: 28 Tage"
