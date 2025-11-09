@@ -48,7 +48,7 @@ Antworte auf die Gewinnernachricht des Verlosungserstellers, um die Übergabe zu
 
 ### Erhaltungsbericht schreiben
 
-Nachdem du das Paket erhalten hast, bist du verpflichtet, einen Erhaltungsbericht zu schreiben. Du erhältst wöchentliche Erinnerungen per persönlicher Nachricht, bis du den Bericht verfasst hast.
+Nachdem du das Paket erhalten hast, wird von dir erwartet, einen Erhaltungsbericht zu schreiben. Du erhältst wöchentliche Erinnerungen per persönlicher Nachricht, bis du den Bericht verfasst hast.
 
 <img src="docs/images/06-erhaltungsbericht-button.png" alt="&quot;Erhaltungsbericht schreiben&quot; Button am Paket" width="411">
 
@@ -206,7 +206,7 @@ Ja, das ist ausdrücklich erlaubt. Da der Ziehungsalgorithmus deterministisch is
 Der Ersteller erhält wöchentliche Erinnerungen über nicht erhaltene Pakete. Was mit nicht abgeholten Paketen passiert, sollte bereits in der Verlosungsbeschreibung angegeben sein. Üblicherweise kommen sie entweder in eine neue Verlosung oder der Organisator behält sie für seine Sammlung.
 
 **Muss ich wirklich einen Erhaltungsbericht schreiben?**
-Ja, der Erhaltungsbericht ist eine Vereinspflicht. Er dokumentiert, was aus den gespendeten Gegenständen wurde, und motiviert Spender, weitere Hardware zu spenden. Du erhältst wöchentliche Erinnerungen, bis du den Bericht verfasst hast.
+Ja, der Erhaltungsbericht wird von allen Gewinnern erwartet, da er dokumentiert, was aus den gespendeten Gegenständen wurde. Du erhältst wöchentliche Erinnerungen, bis du den Bericht verfasst hast.
 
 **Kann ich eine Verlosung nach der Veröffentlichung noch ändern?**
 Du kannst die Beschreibungen der Beiträge weiterhin bearbeiten, aber keine Pakete mehr hinzufügen oder entfernen. Füge daher alle Pakete bereits beim Erstellen hinzu.
