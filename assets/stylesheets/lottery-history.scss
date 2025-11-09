@@ -112,6 +112,8 @@
   }
 
   .winner-cell {
+    white-space: nowrap;
+
     .avatar {
       margin-right: 0.5em;
       vertical-align: middle;
@@ -132,7 +134,13 @@
     }
   }
 
+  .won-date-cell {
+    white-space: nowrap;
+  }
+
   .collected-cell {
+    white-space: nowrap;
+
     .status-collected {
       color: var(--success);
 
@@ -150,7 +158,13 @@
     }
   }
 
+  .bericht-date-cell {
+    white-space: nowrap;
+  }
+
   .erhaltungsbericht-cell {
+    white-space: nowrap;
+
     .erhaltungsbericht-link {
       color: var(--tertiary);
       text-decoration: none;
@@ -206,6 +220,27 @@
   }
 
   .lottery-history-table {
-    min-width: 800px;
+    min-width: 600px;
+
+    // Allow columns to wrap on mobile
+    .winner-cell,
+    .won-date-cell,
+    .collected-cell,
+    .bericht-date-cell,
+    .erhaltungsbericht-cell {
+      white-space: normal;
+    }
+
+    // Make title column narrower on mobile
+    .packet-title-cell {
+      min-width: 150px;
+    }
+
+    // Reduce padding on mobile
+    thead th,
+    tbody td {
+      padding: 0.5em 0.4em;
+      font-size: 0.9em;
+    }
   }
 }
