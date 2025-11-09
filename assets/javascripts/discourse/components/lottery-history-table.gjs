@@ -15,7 +15,7 @@ import { i18n } from "discourse-i18n";
  * @param {Array} args.packets - Array of packet objects
  */
 export default class LotteryHistoryTable extends Component {
-  @tracked sortColumn = "won_at";
+  @tracked sortColumn = "packet";
   @tracked sortDirection = "desc";
 
   get sortIcon() {
@@ -50,9 +50,16 @@ export default class LotteryHistoryTable extends Component {
 
       switch (this.sortColumn) {
         case "packet":
-          aVal = a.title?.toLowerCase() || "";
-          bVal = b.title?.toLowerCase() || "";
-          break;
+          // Sort by lottery display_id (respecting direction), then by packet ordinal (always ascending)
+          if (a.lottery_display_id !== b.lottery_display_id) {
+            if (this.sortDirection === "asc") {
+              return a.lottery_display_id - b.lottery_display_id;
+            } else {
+              return b.lottery_display_id - a.lottery_display_id;
+            }
+          }
+          // Within same lottery, sort by ordinal ascending
+          return a.ordinal - b.ordinal;
         case "winner":
           aVal = a.winner?.username?.toLowerCase() || "";
           bVal = b.winner?.username?.toLowerCase() || "";
@@ -91,7 +98,8 @@ export default class LotteryHistoryTable extends Component {
       this.sortDirection = this.sortDirection === "asc" ? "desc" : "asc";
     } else {
       this.sortColumn = column;
-      this.sortDirection = "asc";
+      // Default direction for packet is descending (newest lotteries first)
+      this.sortDirection = column === "packet" ? "desc" : "asc";
     }
   }
 
