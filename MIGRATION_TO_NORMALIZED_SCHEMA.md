@@ -7,6 +7,72 @@ This document summarizes the migration of the vzekc-verlosung plugin from using 
 **Migration Date:** November 2025
 **Status:** ✅ Complete - All core functionality and scheduled jobs migrated
 
+## Production Migration Guide
+
+If you have existing lottery data in production using custom_fields, follow these steps:
+
+### 1. Backup Your Database
+```bash
+# Create a backup before migration
+pg_dump discourse_production > discourse_backup_$(date +%Y%m%d).sql
+```
+
+### 2. Run Migrations
+```bash
+cd /path/to/discourse
+LOAD_PLUGINS=1 bundle exec rake db:migrate
+```
+
+This will run three migrations in order:
+1. **20241109000000**: Create new lottery tables
+2. **20241109000001**: Add foreign keys to lottery_tickets table
+3. **20241109000002**: Migrate existing custom_fields data to tables
+
+### 3. Verify Migration
+
+The data migration (20241109000002) will:
+- Convert all `topic_custom_fields` lottery data to `vzekc_verlosung_lotteries` table
+- Convert all `post_custom_fields` packet data to `vzekc_verlosung_lottery_packets` table
+- Link lottery tickets to the new packet records via foreign keys
+- Preserve all state, timestamps, winners, and results
+- Report how many records were migrated
+
+Check the migration output for any warnings about missing users or invalid data.
+
+### 4. Test the Migration
+
+After migration, verify:
+```bash
+# Check lottery count matches
+LOAD_PLUGINS=1 bundle exec rails console
+> VzekcVerlosung::Lottery.count
+> DB.query_single("SELECT COUNT(DISTINCT topic_id) FROM topic_custom_fields WHERE name = 'lottery_state'").first
+
+# Check packet count matches
+> VzekcVerlosung::LotteryPacket.count
+> DB.query_single("SELECT COUNT(DISTINCT post_id) FROM post_custom_fields WHERE name = 'is_lottery_packet' AND value = 't'").first
+```
+
+### 5. Optional Cleanup
+
+After verifying the migration was successful, you can optionally remove the old custom_fields:
+
+```ruby
+# In Rails console - ONLY after verifying migration succeeded
+DB.exec("DELETE FROM topic_custom_fields WHERE name IN ('lottery_state', 'lottery_ends_at', 'lottery_results', 'lottery_drawn_at', 'lottery_duration_days')")
+DB.exec("DELETE FROM post_custom_fields WHERE name IN ('is_lottery_packet', 'is_lottery_intro', 'lottery_winner', 'packet_collected_at')")
+```
+
+**Note:** Keep `erhaltungsbericht_topic_id` custom_fields as they may be referenced by other systems.
+
+### Migration Safety
+
+The data migration is designed to be:
+- **Idempotent**: Can be run multiple times safely - skips already-migrated records
+- **Non-destructive**: Preserves all custom_fields data
+- **Logged**: Reports what was migrated and any warnings
+- **Reversible**: Rollback will preserve custom_fields (tables can be dropped if needed)
+
 ## Motivation
 
 ### Problems with Custom Fields Approach
