@@ -61,6 +61,8 @@ Klicke auf den "Erhaltungsbericht schreiben" Button am Paket-Beitrag. Ein voraus
 
 Der Erhaltungsbericht wird automatisch in der "Erhaltungsberichte"-Kategorie veröffentlicht und mit dem ursprünglichen Paket verknüpft.
 
+Bei kleineren Paketen mit Zubehörteilen kann die Verpflichtung, einen Erhaltungsbericht zu schreiben, vom Ersteller der Verlosung aufgehoben werden.
+
 ---
 
 ## Als Verlosungsersteller
@@ -79,9 +81,11 @@ Im Formular gibst du folgende Informationen ein:
 
 **Titel:** Gib einen aussagekräftigen Titel für die Verlosung ein (z.B. "Spende von Mitglied XY – Retro-Computer und Zubehör").
 
+**Spende Nummer:** Trage hier die Nummer der Spende ein, die im Woltlab-System für die Abholung verwendet wurde
+
 **Laufzeit:** Lege die Laufzeit fest. Die Standardlaufzeit beträgt 14 Tage und sollte nur aus wichtigem Grund geändert werden (möglich sind 7-28 Tage).
 
-**Pakete:** Füge die einzelnen Pakete hinzu, die verlost werden sollen. Gib für jedes Paket einen aussagekräftigen Titel ein (z.B. "Amiga 500 mit Zubehör" oder "Commodore 64 Bundle"). Du kannst beliebig viele Pakete hinzufügen oder auch welche wieder entfernen.
+**Pakete:** Füge die einzelnen Pakete hinzu, die verlost werden sollen. Gib für jedes Paket einen aussagekräftigen Titel ein (z.B. "Amiga 500 mit Zubehör" oder "Commodore 64 Bundle"). Du kannst beliebig viele Pakete hinzufügen oder auch welche wieder entfernen.  Für jedes Paket kannst Du weiterhin die Verpflichtung des Gewinners, einen Erhaltungsbericht zu schreiben, entfernen.  Das sollte nur bei kleinen Paketen, die aus Zubehörteilen oder Verbrauchsmaterial bestehen, geschehen.
 
 Wenn alles eingetragen ist, klicke auf "Verlosung erstellen". Die Verlosung wird als Entwurf angelegt und es werden automatisch Beiträge für die Einleitung und jedes Paket erstellt.
 
@@ -200,13 +204,13 @@ Nein, pro Paket kannst du genau ein Los kaufen. Alle Teilnehmer haben die gleich
 Der Gewinner wird durch einen deterministischen Zufallsalgorithmus ermittelt, der im Browser läuft. Der Seed basiert auf dem Startzeitpunkt und allen Teilnehmernamen. Dadurch ist das Ergebnis nachvollziehbar und kann nicht manipuliert werden.
 
 **Kann ich als Ersteller an meiner eigenen Verlosung teilnehmen?**
-Ja, das ist ausdrücklich erlaubt. Da der Ziehungsalgorithmus deterministisch ist und auf dem Startzeitpunkt sowie den Teilnehmernamen basiert, kann das Ergebnis nicht manipuliert werden – auch nicht durch den Ersteller selbst. Jeder Teilnehmer hat die gleiche faire Gewinnchance.
+Ja, das ist erlaubt. Da der Ziehungsalgorithmus deterministisch ist und auf dem Startzeitpunkt sowie den Teilnehmernamen basiert, kann das Ergebnis nicht manipuliert werden – auch nicht durch den Ersteller selbst. Jeder Teilnehmer hat die gleiche faire Gewinnchance.
 
 **Was passiert, wenn ein Gewinner sein Paket nicht abholt?**
 Der Ersteller erhält wöchentliche Erinnerungen über nicht erhaltene Pakete. Was mit nicht abgeholten Paketen passiert, sollte bereits in der Verlosungsbeschreibung angegeben sein. Üblicherweise kommen sie entweder in eine neue Verlosung oder der Organisator behält sie für seine Sammlung.
 
 **Muss ich wirklich einen Erhaltungsbericht schreiben?**
-Ja, der Erhaltungsbericht wird von allen Gewinnern erwartet, da er dokumentiert, was aus den gespendeten Gegenständen wurde. Du erhältst wöchentliche Erinnerungen, bis du den Bericht verfasst hast.
+Ja, der Erhaltungsbericht wird von Gewinnern erwartet, da er dokumentiert, was aus den gespendeten Gegenständen wurde. Du erhältst wöchentliche Erinnerungen, bis du den Bericht verfasst hast.  Bei kleinen Paketen, die nur aus Verbrauchsmaterialien oder Zubehörteilen bestehen, kann der Ersteller der Verlosung die Notwendigkeit eines Erfahrungsberichts abschalten.
 
 **Kann ich eine Verlosung nach der Veröffentlichung noch ändern?**
 Du kannst die Beschreibungen der Beiträge weiterhin bearbeiten, aber keine Pakete mehr hinzufügen oder entfernen. Füge daher alle Pakete bereits beim Erstellen hinzu.
