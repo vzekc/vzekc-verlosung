@@ -271,4 +271,42 @@ after_initialize do
     # Establish reverse link from packet to Erhaltungsbericht
     packet.link_report!(topic)
   end
+
+  # Sync erhaltungsbericht template to category whenever it changes
+  on(:site_setting_changed) do |name, old_value, new_value|
+    sync_template =
+      lambda do |template|
+        category_id = SiteSetting.vzekc_verlosung_erhaltungsberichte_category_id
+        next if category_id.blank?
+
+        category = Category.find_by(id: category_id)
+        next unless category
+
+        category.update(topic_template: template)
+        Rails.logger.info("Synced erhaltungsbericht template to category #{category_id}")
+      end
+
+    if name == :vzekc_verlosung_erhaltungsbericht_template
+      sync_template.call(new_value)
+    elsif name == :vzekc_verlosung_erhaltungsberichte_category_id
+      # When category changes, sync current template to new category
+      sync_template.call(SiteSetting.vzekc_verlosung_erhaltungsbericht_template)
+    end
+  end
+
+  # Perform initial sync when plugin loads
+  if SiteSetting.vzekc_verlosung_enabled
+    category_id = SiteSetting.vzekc_verlosung_erhaltungsberichte_category_id
+    template = SiteSetting.vzekc_verlosung_erhaltungsbericht_template
+
+    if category_id.present? && template.present?
+      category = Category.find_by(id: category_id)
+      if category
+        category.update(topic_template: template)
+        Rails.logger.info(
+          "Synced erhaltungsbericht template to category #{category_id} on plugin load",
+        )
+      end
+    end
+  end
 end
