@@ -239,10 +239,11 @@ module VzekcVerlosung
         return render_json_error("Lottery has already been drawn", status: :unprocessable_entity)
       end
 
-      # Get all lottery packets with tickets
+      # Get all lottery packets with tickets (excluding Abholerpaket which is already assigned)
       lottery_packets =
         lottery
           .lottery_packets
+          .where(abholerpaket: false)
           .joins(:post)
           .includes(lottery_tickets: :user)
           .order("posts.post_number")
@@ -406,6 +407,8 @@ module VzekcVerlosung
         :display_id,
         :duration_days,
         :category_id,
+        :has_abholerpaket,
+        :abholerpaket_title,
         packets: %i[title erhaltungsbericht_required],
       )
     end

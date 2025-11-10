@@ -25,6 +25,8 @@ module VzekcVerlosung
       attribute :duration_days, :integer
       attribute :category_id, :integer
       attribute :packets, :array
+      attribute :has_abholerpaket, :boolean
+      attribute :abholerpaket_title, :string
 
       validates :title, presence: true, length: { minimum: 3, maximum: 255 }
       validates :display_id, presence: true, numericality: { only_integer: true, greater_than: 400 }
@@ -107,6 +109,42 @@ module VzekcVerlosung
       main_topic = context[:main_topic]
       lottery = context[:lottery]
 
+      # Create Abholerpaket if requested (defaults to true if not specified)
+      has_abholerpaket = params.has_abholerpaket.nil? ? true : params.has_abholerpaket
+
+      if has_abholerpaket
+        # Use provided title or default to "Abholerpaket"
+        abholerpaket_title = params.abholerpaket_title.presence || "Abholerpaket"
+        display_title = abholerpaket_title
+        raw_content = "# #{display_title}\n\n"
+
+        post_creator =
+          PostCreator.new(user, raw: raw_content, topic_id: main_topic.id, skip_validations: true)
+
+        post = post_creator.create
+
+        unless post&.persisted?
+          fail!(
+            "Failed to create Abholerpaket post: #{post_creator.errors.full_messages.join(", ")}",
+          )
+        end
+
+        # Create lottery packet record for Abholerpaket with ordinal 0
+        # Assign winner to creator and mark as won and collected (since creator already has it)
+        LotteryPacket.create!(
+          lottery_id: lottery.id,
+          post_id: post.id,
+          ordinal: 0,
+          title: abholerpaket_title,
+          erhaltungsbericht_required: true,
+          abholerpaket: true,
+          winner_user_id: user.id,
+          won_at: Time.zone.now,
+          collected_at: Time.zone.now,
+        )
+      end
+
+      # Create user-defined packets starting at ordinal 1
       params.packets.each_with_index do |packet_data, index|
         packet_ordinal = index + 1
         packet_title = packet_data[:title] || packet_data["title"]
@@ -146,6 +184,7 @@ module VzekcVerlosung
           ordinal: packet_ordinal,
           title: packet_title.presence || "Paket #{packet_ordinal}",
           erhaltungsbericht_required: erhaltungsbericht_required,
+          abholerpaket: false,
         )
       end
     end

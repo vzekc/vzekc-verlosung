@@ -142,6 +142,11 @@ after_initialize do
     VzekcVerlosung::LotteryPacket.exists?(post_id: object.id)
   end
 
+  add_to_serializer(:post, :is_abholerpaket) do
+    packet = VzekcVerlosung::LotteryPacket.find_by(post_id: object.id)
+    packet&.abholerpaket == true
+  end
+
   add_to_serializer(:post, :is_lottery_intro) do
     # Intro is the first post in a lottery topic
     lottery = VzekcVerlosung::Lottery.find_by(topic_id: object.topic_id)

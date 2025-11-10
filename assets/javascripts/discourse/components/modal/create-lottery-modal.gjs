@@ -26,6 +26,8 @@ export default class CreateLotteryModal extends Component {
   @tracked displayId = "";
   @tracked displayIdError = "";
   @tracked durationDays = 14;
+  @tracked noAbholerpaket = false;
+  @tracked abholerpaketTitle = "";
   @tracked packets = [this.createEmptyPacket()];
   @tracked isSubmitting = false;
   @tracked lastAddedPacketIndex = 0;
@@ -131,6 +133,16 @@ export default class CreateLotteryModal extends Component {
     if (field === "displayId") {
       this.displayIdError = "";
     }
+  }
+
+  /**
+   * Toggle Abholerpaket exclusion
+   *
+   * @param {Event} event - Change event
+   */
+  @action
+  toggleNoAbholerpaket(event) {
+    this.noAbholerpaket = event.target.checked;
   }
 
   /**
@@ -240,6 +252,8 @@ export default class CreateLotteryModal extends Component {
           display_id: parseInt(this.displayId, 10),
           duration_days: this.durationDays,
           category_id: this.args.model.categoryId,
+          has_abholerpaket: !this.noAbholerpaket,
+          abholerpaket_title: this.abholerpaketTitle,
           packets: this.packets.map((p) => ({
             title: p.title,
             erhaltungsbericht_required: p.erhaltungsberichtRequired,
@@ -323,23 +337,58 @@ export default class CreateLotteryModal extends Component {
             </div>
           </div>
 
+          <div class="control-group abholerpaket-section">
+            <label>{{i18n
+                "vzekc_verlosung.modal.abholerpaket_title_label"
+              }}</label>
+            <div class="packet-input-with-prefix">
+              <span class="packet-number-prefix">Paket 0:</span>
+              <input
+                type="text"
+                {{on "input" (fn this.updateField "abholerpaketTitle")}}
+                {{on "keydown" this.handleKeyDown}}
+                value={{this.abholerpaketTitle}}
+                placeholder={{i18n
+                  "vzekc_verlosung.modal.abholerpaket_title_placeholder"
+                }}
+                class="abholerpaket-title-input"
+                disabled={{this.noAbholerpaket}}
+              />
+            </div>
+            <label class="checkbox-label">
+              <input
+                type="checkbox"
+                {{on "change" this.toggleNoAbholerpaket}}
+                checked={{this.noAbholerpaket}}
+              />
+              {{i18n "vzekc_verlosung.modal.no_abholerpaket_label"}}
+            </label>
+            <div class="abholerpaket-help">
+              {{i18n "vzekc_verlosung.modal.no_abholerpaket_help"}}
+            </div>
+          </div>
+
           <div class="control-group">
             <label>{{i18n "vzekc_verlosung.modal.packets_label"}}</label>
             <div class="packets-list">
               {{#each this.packets as |packet index|}}
                 <div class="packet-item">
                   <div class="packet-input-group">
-                    <input
-                      type="text"
-                      {{on "input" (fn this.updatePacket index "title")}}
-                      {{on "keydown" this.handleKeyDown}}
-                      {{(if (eq index this.lastAddedPacketIndex) autoFocus)}}
-                      value={{packet.title}}
-                      placeholder={{i18n
-                        "vzekc_verlosung.modal.packet_title_placeholder"
-                        number=(this.getPacketNumber index)
-                      }}
-                    />
+                    <div class="packet-input-with-prefix">
+                      <span class="packet-number-prefix">Paket
+                        {{this.getPacketNumber index}}:</span>
+                      <input
+                        type="text"
+                        {{on "input" (fn this.updatePacket index "title")}}
+                        {{on "keydown" this.handleKeyDown}}
+                        {{(if (eq index this.lastAddedPacketIndex) autoFocus)}}
+                        value={{packet.title}}
+                        placeholder={{i18n
+                          "vzekc_verlosung.modal.packet_title_placeholder"
+                          number=(this.getPacketNumber index)
+                        }}
+                      />
+                    </div>
                     {{#if (gt this.packets.length 1)}}
                       <DButton
                         @action={{fn this.removePacket index}}

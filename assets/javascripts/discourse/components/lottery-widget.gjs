@@ -276,6 +276,15 @@ export default class LotteryWidget extends Component {
   }
 
   /**
+   * Check if this is an Abholerpaket
+   *
+   * @type {boolean}
+   */
+  get isAbholerpaket() {
+    return this.post?.is_abholerpaket === true;
+  }
+
+  /**
    * Check if current user is the lottery owner
    *
    * @type {boolean}
@@ -450,6 +459,12 @@ export default class LotteryWidget extends Component {
   <template>
     {{#if this.shouldShow}}
       <div class="lottery-packet-status">
+        {{#if this.isAbholerpaket}}
+          <div class="abholerpaket-badge">
+            {{icon "box"}}
+            <span>Abholerpaket</span>
+          </div>
+        {{/if}}
         {{#if this.isDrawn}}
           {{! Lottery has been drawn - show winner or no winner message }}
           {{#if this.winner}}

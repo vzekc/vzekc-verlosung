@@ -33,6 +33,13 @@
         &.error {
           border-color: var(--danger);
         }
+
+        &:disabled {
+          background-color: var(--primary-very-low);
+          color: var(--primary-medium);
+          cursor: not-allowed;
+          opacity: 0.6;
+        }
       }
 
       input[type="number"] {
@@ -51,10 +58,47 @@
       }
 
       .duration-help,
-      .display-id-help {
+      .display-id-help,
+      .abholerpaket-help {
         margin-top: 0.5em;
         font-size: 0.9em;
         color: var(--primary-medium);
+      }
+
+      .checkbox-label {
+        display: flex;
+        align-items: center;
+        font-weight: normal;
+        cursor: pointer;
+        margin-bottom: 0;
+
+        input[type="checkbox"] {
+          margin-right: 0.5em;
+          cursor: pointer;
+        }
+      }
+
+      &.abholerpaket-section {
+        .packet-input-with-prefix {
+          display: flex;
+          align-items: center;
+          gap: 0.5em;
+          margin-bottom: 0.75em;
+
+          .packet-number-prefix {
+            font-weight: 600;
+            color: var(--primary-medium);
+            white-space: nowrap;
+          }
+
+          input[type="text"] {
+            flex: 1;
+          }
+        }
+
+        .checkbox-label {
+          margin-bottom: 0.5em;
+        }
       }
     }
 
@@ -69,8 +113,21 @@
           align-items: center;
           gap: 0.5em;
 
-          input[type="text"] {
+          .packet-input-with-prefix {
+            display: flex;
+            align-items: center;
+            gap: 0.5em;
             flex: 1;
+
+            .packet-number-prefix {
+              font-weight: 600;
+              color: var(--primary-medium);
+              white-space: nowrap;
+            }
+
+            input[type="text"] {
+              flex: 1;
+            }
           }
 
           .btn {
@@ -520,6 +577,24 @@
 // Lottery packet status (displayed in packet posts)
 .lottery-packet-status {
   margin: 1.5em 0;
+
+  .abholerpaket-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5em;
+    padding: 0.5em 0.75em;
+    margin-bottom: 1em;
+    background: var(--tertiary-low);
+    border: 1px solid var(--tertiary);
+    border-radius: 6px;
+    color: var(--tertiary);
+    font-weight: 600;
+    font-size: 0.95em;
+
+    .d-icon {
+      font-size: 1em;
+    }
+  }
 
   .lottery-packet-active-notice {
     background: var(--success-low);
