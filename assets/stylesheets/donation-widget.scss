@@ -1,0 +1,220 @@
+.donation-widget-container {
+  margin: 20px 0;
+  padding: 15px;
+  border: 2px solid var(--primary-medium);
+  border-radius: 8px;
+  background: var(--primary-very-low);
+
+  .donation-widget {
+    .donation-header {
+      margin-bottom: 15px;
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+
+      .donation-id {
+        font-size: 1.1em;
+      }
+
+      .donation-state {
+        font-size: 1.1em;
+      }
+    }
+
+    .donation-widget-loading {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--primary-medium);
+    }
+
+    .donation-actions {
+      margin: 15px 0;
+    }
+
+    .offer-pickup-button {
+      margin: 10px 0;
+    }
+
+    .donation-user-offer {
+      padding: 15px;
+      background: var(--success-low);
+      border-radius: 5px;
+      margin: 15px 0;
+
+      .user-offer-notice {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--success);
+        font-weight: bold;
+        margin-bottom: 10px;
+      }
+    }
+
+    .donation-assigned-to-user {
+      padding: 15px;
+      background: var(--tertiary-low);
+      border-radius: 5px;
+      margin: 15px 0;
+
+      .assigned-notice {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--tertiary);
+        font-weight: bold;
+        margin-bottom: 10px;
+      }
+    }
+
+    .pickup-offers-list {
+      margin-top: 15px;
+
+      h4 {
+        margin-bottom: 10px;
+        color: var(--primary);
+      }
+
+      .pickup-offer-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 10px;
+        margin: 3px 0;
+        background: var(--primary-very-low);
+        border-radius: 5px;
+
+        .offer-user-line {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+
+          .offer-user-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            cursor: pointer;
+
+            .offer-username {
+              color: var(--primary-high);
+              font-weight: 500;
+            }
+
+            &:hover {
+              .offer-username {
+                color: var(--tertiary);
+                text-decoration: underline;
+              }
+            }
+          }
+
+          .offer-state-badge {
+            color: var(--tertiary);
+            font-size: 0.9em;
+            font-style: italic;
+          }
+        }
+
+        .assign-offer-button {
+          margin-left: auto;
+        }
+      }
+    }
+
+    .no-offers {
+      padding: 15px;
+      text-align: center;
+      color: var(--primary-medium);
+      font-style: italic;
+      background: var(--primary-very-low);
+      border-radius: 5px;
+      margin: 15px 0;
+    }
+
+    .assigned-offer-section {
+      margin-top: 15px;
+
+      h4 {
+        margin-bottom: 10px;
+        color: var(--primary);
+      }
+
+      .assigned-offer-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 12px;
+        background: var(--tertiary-low);
+        border-radius: 5px;
+        border: 2px solid var(--tertiary);
+
+        .offer-user-info {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          text-decoration: none;
+          cursor: pointer;
+
+          .offer-username {
+            color: var(--primary-high);
+            font-weight: 600;
+          }
+
+          &:hover {
+            .offer-username {
+              color: var(--tertiary);
+              text-decoration: underline;
+            }
+          }
+        }
+
+        .offer-state-badge {
+          color: var(--tertiary);
+          font-size: 0.9em;
+          font-style: italic;
+        }
+      }
+    }
+
+    .other-offers-section {
+      margin-top: 15px;
+
+      h4 {
+        margin-bottom: 10px;
+        color: var(--primary);
+        font-size: 0.95em;
+      }
+
+      .other-offer-item {
+        display: flex;
+        align-items: center;
+        padding: 6px 10px;
+        margin: 3px 0;
+        background: var(--primary-very-low);
+        border-radius: 5px;
+
+        .offer-user-info {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          text-decoration: none;
+          cursor: pointer;
+
+          .offer-username {
+            color: var(--primary-high);
+            font-weight: 500;
+          }
+
+          &:hover {
+            .offer-username {
+              color: var(--tertiary);
+              text-decoration: underline;
+            }
+          }
+        }
+      }
+    }
+  }
+}

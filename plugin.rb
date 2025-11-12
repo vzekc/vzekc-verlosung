@@ -12,6 +12,7 @@ enabled_site_setting :vzekc_verlosung_enabled
 
 register_asset "stylesheets/vzekc-verlosung.scss"
 register_asset "stylesheets/lottery-history.scss"
+register_asset "stylesheets/donation-widget.scss"
 
 register_svg_icon "trophy"
 register_svg_icon "dice"
@@ -25,6 +26,11 @@ register_svg_icon "times-circle"
 register_svg_icon "clock"
 register_svg_icon "pen"
 register_svg_icon "file"
+register_svg_icon "gift"
+register_svg_icon "hands-helping"
+register_svg_icon "hand-holding"
+register_svg_icon "hand-point-up"
+register_svg_icon "user-plus"
 
 module ::VzekcVerlosung
   PLUGIN_NAME = "vzekc-verlosung"
@@ -307,6 +313,120 @@ after_initialize do
           "Synced erhaltungsbericht template to category #{category_id} on plugin load",
         )
       end
+    end
+  end
+
+  # ========== DONATION SYSTEM ==========
+
+  # Add associations to core Discourse models
+  add_to_class(:topic, :donation) { @donation ||= VzekcVerlosung::Donation.find_by(topic_id: id) }
+
+  # Add donation data to post serializer
+  add_to_serializer(:post, :is_donation_post) do
+    # Donation post is the first post in a donation topic
+    return false unless object.post_number == 1
+    VzekcVerlosung::Donation.exists?(topic_id: object.topic_id)
+  end
+
+  add_to_serializer(:post, :donation_data, include_condition: -> { object.post_number == 1 }) do
+    donation = VzekcVerlosung::Donation.find_by(topic_id: object.topic_id)
+    next unless donation
+
+    {
+      id: donation.id,
+      state: donation.state,
+      postcode: donation.postcode,
+      creator_user_id: donation.creator_user_id,
+      published_at: donation.published_at,
+    }
+  end
+
+  # Add donation data to topic serializers
+  add_to_serializer(:topic_view, :donation_state) do
+    donation = VzekcVerlosung::Donation.find_by(topic_id: object.topic.id)
+    donation&.state
+  end
+
+  add_to_serializer(:topic_view, :donation_data) do
+    donation = VzekcVerlosung::Donation.find_by(topic_id: object.topic.id)
+    return nil unless donation
+
+    {
+      id: donation.id,
+      state: donation.state,
+      postcode: donation.postcode,
+      creator_user_id: donation.creator_user_id,
+      published_at: donation.published_at,
+    }
+  end
+
+  # Whitelist donation_id parameter for topic creation
+  add_permitted_post_create_param(:donation_id)
+
+  # Hook into topic creation to link donation_id from composer
+  on(:topic_created) do |topic, opts, user|
+    Rails.logger.info(
+      "[VzekcVerlosung] topic_created hook fired: topic=#{topic.id}, user=#{user.username}, opts=#{opts.inspect}",
+    )
+
+    donation_id = opts[:donation_id]&.to_i
+    if donation_id.blank?
+      Rails.logger.info("[VzekcVerlosung] No donation_id found in opts")
+      next
+    end
+
+    # Find the donation
+    donation = VzekcVerlosung::Donation.find_by(id: donation_id)
+    unless donation
+      Rails.logger.warn("[VzekcVerlosung] Donation #{donation_id} not found")
+      next
+    end
+
+    # Verify the user is the creator
+    unless donation.creator_user_id == user.id
+      Rails.logger.warn(
+        "[VzekcVerlosung] User #{user.id} is not creator of donation #{donation_id}",
+      )
+      next
+    end
+
+    # Verify the donation is in draft state
+    unless donation.draft?
+      Rails.logger.warn("[VzekcVerlosung] Donation #{donation_id} is not in draft state")
+      next
+    end
+
+    # Link the topic to the donation
+    donation.update!(topic_id: topic.id)
+
+    # Auto-publish the donation
+    donation.publish!
+
+    Rails.logger.info("Linked donation #{donation.id} to topic #{topic.id} and published")
+  end
+
+  # Filter draft donations from topic lists for non-owners
+  TopicQuery.add_custom_filter(:donation_state) do |results, topic_query|
+    user = topic_query.user
+
+    # Filter out draft donations unless user is staff or owner
+    results =
+      results.where(
+        "topics.id NOT IN (
+        SELECT topic_id FROM vzekc_verlosung_donations
+        WHERE state = 'draft'
+        AND topic_id NOT IN (
+          SELECT id FROM topics WHERE user_id = ?
+        )
+      )",
+        user&.id || -1,
+      )
+
+    # Staff can see all drafts
+    if user&.staff?
+      results
+    else
+      results
     end
   end
 end

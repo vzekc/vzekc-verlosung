@@ -71,3 +71,33 @@ vzekc_verlosung:
       Link zum Paket: [PACKET_LINK]
     type: string
     textarea: true
+  vzekc_verlosung_donation_category_id:
+    default: ''
+    client: true
+    type: category
+  vzekc_verlosung_donation_template:
+    default: |
+      ## Beschreibung der Spende
+
+      [Beschreibe hier die angebotene Hardware - welche Geräte, in welchem Zustand]
+
+      **Hinweis:** Ich erstelle dieses Angebot im Auftrag eines Dritten und vermittle nur den Kontakt.
+
+      ## Standort
+
+      PLZ: [POSTCODE]
+
+      ## Abholung
+
+      [Details zur Abholung: Wann? Bedingungen? Hinweise?]
+
+      ## Versand
+
+      [Ist Versand möglich? Zu welchen Bedingungen?]
+
+      ## Kontakt
+
+      Interessenten können unten auf "Ich möchte abholen" klicken. Ich werde dann den Kontakt zum Spender herstellen.
+    type: string
+    textarea: true
+    client: true

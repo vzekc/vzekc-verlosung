@@ -68,6 +68,16 @@ de:
           Bitte klicke auf den Button "Erhaltungsbericht schreiben" beim Paket-Beitrag, um deinen Bericht zu erstellen.
 
           [Paket-Beitrag öffnen](%{packet_url})
+      donation:
+        title: "Erinnerung: Spendenangebot wartet auf Zuweisung"
+        body: |
+          Hallo %{username},
+
+          Das Spendenangebot **%{topic_title}**, das du vermittelst, ist noch offen und wartet darauf, einem Abhol zugewiesen zu werden.
+
+          Bitte öffne das Angebot und weise es einem der Interessenten zu, oder schließe es, falls die Spende nicht mehr verfügbar ist.
+
+          [Spendenangebot öffnen](%{topic_url})
     winner_message:
       title: "Glückwunsch! Du hast in der Verlosung gewonnen: %{topic_title}"
       body: |

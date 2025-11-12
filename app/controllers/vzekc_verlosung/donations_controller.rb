@@ -1,0 +1,100 @@
+# frozen_string_literal: true
+
+module VzekcVerlosung
+  # Controller for managing donation offers
+  class DonationsController < ::ApplicationController
+    requires_plugin VzekcVerlosung::PLUGIN_NAME
+
+    before_action :ensure_logged_in
+
+    # GET /vzekc-verlosung/donations/:id
+    #
+    # Gets the current state of a donation
+    #
+    # @param id [Integer] Donation ID
+    #
+    # @return [JSON] Donation details including current state
+    def show
+      donation = Donation.find(params[:id])
+
+      render json: {
+               donation: {
+                 id: donation.id,
+                 state: donation.state,
+                 postcode: donation.postcode,
+                 creator_user_id: donation.creator_user_id,
+                 published_at: donation.published_at,
+               },
+             }
+    end
+
+    # POST /vzekc-verlosung/donations
+    #
+    # Creates a new donation in draft state (no topic yet)
+    #
+    # @param postcode [String] Location postcode for pickup
+    #
+    # @return [JSON] donation_id for use in composer
+    def create
+      donation =
+        Donation.create!(postcode: create_params[:postcode], creator_user_id: current_user.id)
+
+      render json: success_json.merge(donation_id: donation.id)
+    rescue ActiveRecord::RecordInvalid => e
+      render json: failed_json.merge(errors: e.record.errors.full_messages),
+             status: :unprocessable_entity
+    end
+
+    # PUT /vzekc-verlosung/donations/:id/publish
+    #
+    # Publishes a draft donation (changes state to open)
+    #
+    # @param id [Integer] Donation ID
+    #
+    # @return [HTTP 204] No content on success
+    def publish
+      donation = Donation.find(params[:id])
+
+      unless guardian.can_manage_donation?(donation)
+        return(
+          render_json_error("You don't have permission to manage this donation", status: :forbidden)
+        )
+      end
+
+      unless donation.draft?
+        return render_json_error("Donation is not in draft state", status: :unprocessable_entity)
+      end
+
+      donation.publish!
+
+      head :no_content
+    end
+
+    # PUT /vzekc-verlosung/donations/:id/close
+    #
+    # Closes a donation (manual close by creator)
+    #
+    # @param id [Integer] Donation ID
+    #
+    # @return [HTTP 204] No content on success
+    def close
+      donation = Donation.find(params[:id])
+
+      unless guardian.can_manage_donation?(donation)
+        return(
+          render_json_error("You don't have permission to manage this donation", status: :forbidden)
+        )
+      end
+
+      donation.close!
+
+      head :no_content
+    end
+
+    private
+
+    def create_params
+      params.permit(:postcode)
+    end
+  end
+end

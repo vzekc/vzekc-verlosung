@@ -68,6 +68,16 @@ en:
           Please click the "Write Reception Report" button on the packet post to create your report.
 
           [Open packet post](%{packet_url})
+      donation:
+        title: "Reminder: Donation offer is waiting for assignment"
+        body: |
+          Hello %{username},
+
+          The donation offer **%{topic_title}** that you are coordinating is still open and waiting to be assigned to a pickup volunteer.
+
+          Please open the offer and assign it to one of the interested users, or close it if the donation is no longer available.
+
+          [Open donation offer](%{topic_url})
     winner_message:
       title: "Congratulations! You won in the lottery: %{topic_title}"
       body: |

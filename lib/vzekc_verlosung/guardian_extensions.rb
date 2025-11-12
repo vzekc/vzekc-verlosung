@@ -26,5 +26,29 @@ module VzekcVerlosung
 
       false
     end
+
+    # Check if user can manage a donation
+    #
+    # @param donation [Donation] the donation to check
+    # @return [Boolean] true if user is donation creator or staff
+    def can_manage_donation?(donation)
+      return false unless donation
+      return true if is_staff?
+      return true if donation.creator_user_id == @user&.id
+
+      false
+    end
+
+    # Check if user can offer to pick up a donation
+    #
+    # @param donation [Donation] the donation to check
+    # @return [Boolean] true if user can offer pickup
+    def can_offer_pickup?(donation)
+      return false unless @user
+      return false unless donation.open?
+
+      # Can't offer if already has an offer (any state)
+      !VzekcVerlosung::PickupOffer.exists?(donation_id: donation.id, user_id: @user.id)
+    end
   end
 end
