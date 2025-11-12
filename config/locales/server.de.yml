@@ -78,6 +78,28 @@ de:
           Bitte öffne das Angebot und weise es einem der Interessenten zu, oder schließe es, falls die Spende nicht mehr verfügbar ist.
 
           [Spendenangebot öffnen](%{topic_url})
+      donation_picked_up:
+        title: "Spende abgeholt - nächste Schritte: %{topic_title}"
+        body: |
+          Hallo %{username},
+
+          Du hast die Spende **[%{topic_title}](%{topic_url})** abgeholt. Vielen Dank für dein Engagement!
+
+          ## Nächste Schritte
+
+          Bitte wähle eine der folgenden Optionen:
+
+          **Option 1: Einzelnes System behalten**
+          - Wenn die Spende nur ein System enthielt, darfst du es behalten
+          - Du musst dann einen Erhaltungsbericht schreiben
+
+          **Option 2: Verlosung erstellen**
+          - Wenn die Spende mehrere Systeme enthielt, erstelle bitte eine Verlosung
+          - Teile die Hardware in Pakete auf und starte die Verlosung
+
+          Bitte öffne das Spendenangebot und wähle dort eine der beiden Optionen. Du erhältst wöchentliche Erinnerungen, bis du eine Aktion durchgeführt hast.
+
+          **[→ Spendenangebot öffnen und Option wählen](%{topic_url})**
     winner_message:
       title: "Glückwunsch! Du hast in der Verlosung gewonnen: %{topic_title}"
       body: |

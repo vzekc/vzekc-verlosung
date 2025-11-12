@@ -171,6 +171,10 @@ en:
         no_offers: "No pickup offers yet"
         your_offer: "You have offered to pick this up"
         assigned_to_you: "This donation has been assigned to you"
+        next_steps: "Next Steps"
+        next_steps_description: "Please choose one of the following options:"
+        write_erhaltungsbericht: "Write Reception Report"
+        create_lottery_action: "Create Lottery"
         state:
           title: "Status"
           draft: "Draft"

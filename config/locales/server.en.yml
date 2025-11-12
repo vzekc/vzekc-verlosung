@@ -78,6 +78,28 @@ en:
           Please open the offer and assign it to one of the interested users, or close it if the donation is no longer available.
 
           [Open donation offer](%{topic_url})
+      donation_picked_up:
+        title: "Donation picked up - next steps: %{topic_title}"
+        body: |
+          Hello %{username},
+
+          You have picked up the donation **[%{topic_title}](%{topic_url})**. Thank you for your commitment!
+
+          ## Next Steps
+
+          Please choose one of the following options:
+
+          **Option 1: Keep single system**
+          - If the donation contained only one system, you may keep it
+          - You must then write a reception report (Erhaltungsbericht)
+
+          **Option 2: Create lottery**
+          - If the donation contained multiple systems, please create a lottery
+          - Divide the hardware into packets and start the lottery
+
+          Please open the donation offer and choose one of the two options there. You will receive weekly reminders until you have taken action.
+
+          **[→ Open donation offer and choose option](%{topic_url})**
     winner_message:
       title: "Congratulations! You won in the lottery: %{topic_title}"
       body: |

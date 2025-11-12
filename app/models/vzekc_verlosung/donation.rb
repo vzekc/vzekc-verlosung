@@ -33,6 +33,13 @@ module VzekcVerlosung
               24.hours.ago,
             )
           }
+    scope :needs_pickup_action_reminder,
+          lambda {
+            where(state: %w[picked_up closed]).where(
+              "last_reminded_at IS NULL OR last_reminded_at < ?",
+              7.days.ago,
+            )
+          }
 
     # State helper methods
     #
@@ -93,6 +100,8 @@ module VzekcVerlosung
       end
       # Auto-close after pickup
       close_automatically!
+      # Send initial PM notification
+      send_pickup_notification!
     end
 
     # Close the donation
@@ -102,11 +111,70 @@ module VzekcVerlosung
       update!(state: "closed")
     end
 
+    # Check if the picker has completed required action after pickup
+    # Returns true if either:
+    # - A lottery was created from this donation's topic
+    # - An Erhaltungsbericht was created for this donation
+    #
+    # @return [Boolean] true if action completed
+    def pickup_action_completed?
+      return false unless topic_id
+
+      # Check if a lottery exists for this topic
+      return true if VzekcVerlosung::Lottery.exists?(topic_id: topic_id)
+
+      # Check if an Erhaltungsbericht exists for this donation
+      # (Look for topics in Erhaltungsberichte category with donation_id custom field)
+      erhaltungsberichte_category_id = SiteSetting.vzekc_verlosung_erhaltungsberichte_category_id
+      return false if erhaltungsberichte_category_id.blank?
+
+      Topic
+        .where(category_id: erhaltungsberichte_category_id)
+        .joins(:_custom_fields)
+        .where(topic_custom_fields: { name: "donation_id", value: id.to_s })
+        .exists?
+    end
+
     private
 
     # Automatically close donation after pickup
     def close_automatically!
       close! if picked_up?
+    end
+
+    # Send initial PM notification when donation is marked as picked up
+    def send_pickup_notification!
+      return unless topic
+
+      # Get the assigned user
+      assigned_offer = pickup_offers.find_by(state: %w[assigned picked_up])
+      return unless assigned_offer
+
+      user = assigned_offer.user
+      return unless user
+
+      # Send PM
+      PostCreator.create!(
+        Discourse.system_user,
+        title:
+          I18n.t(
+            "vzekc_verlosung.reminders.donation_picked_up.title",
+            locale: user.effective_locale,
+            topic_title: topic.title,
+          ),
+        raw:
+          I18n.t(
+            "vzekc_verlosung.reminders.donation_picked_up.body",
+            locale: user.effective_locale,
+            username: user.username,
+            topic_title: topic.title,
+            topic_url: "#{Discourse.base_url}#{topic.relative_url}",
+          ),
+        archetype: Archetype.private_message,
+        subtype: TopicSubtype.system_message,
+        target_usernames: user.username,
+        skip_validations: true,
+      )
     end
   end
 end

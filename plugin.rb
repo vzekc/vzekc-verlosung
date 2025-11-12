@@ -16,19 +16,11 @@ register_asset "stylesheets/donation-widget.scss"
 
 register_svg_icon "trophy"
 register_svg_icon "dice"
-register_svg_icon "receipt"
-register_svg_icon "ticket"
-register_svg_icon "tag"
-register_svg_icon "tags"
-register_svg_icon "clipboard-list"
-register_svg_icon "bullhorn"
-register_svg_icon "times-circle"
 register_svg_icon "clock"
 register_svg_icon "pen"
 register_svg_icon "file"
+register_svg_icon "file-alt"
 register_svg_icon "gift"
-register_svg_icon "hands-helping"
-register_svg_icon "hand-holding"
 register_svg_icon "hand-point-up"
 register_svg_icon "user-plus"
 
@@ -125,6 +117,8 @@ after_initialize do
   register_topic_custom_field_type("packet_post_id", :integer)
   # packet_topic_id: Topic ID of the lottery (for Erhaltungsberichte)
   register_topic_custom_field_type("packet_topic_id", :integer)
+  # donation_id: Donation ID (for Erhaltungsberichte created from donations)
+  register_topic_custom_field_type("donation_id", :integer)
 
   # Add helper methods to Topic class to safely access lottery fields
   add_to_class(:topic, :lottery_state) { lottery&.state }
@@ -250,32 +244,45 @@ after_initialize do
   # Whitelist packet reference parameters for topic creation
   add_permitted_post_create_param(:packet_post_id)
   add_permitted_post_create_param(:packet_topic_id)
+  # Whitelist donation_id for Erhaltungsberichte from donations
+  add_permitted_post_create_param(:donation_id)
 
   # Register callback to establish bidirectional link when Erhaltungsbericht is created
   on(:topic_created) do |topic, opts, user|
-    # Check if packet reference data is in opts (from composer)
+    # Handle Erhaltungsbericht from lottery packet
     packet_post_id = opts[:packet_post_id]&.to_i
     packet_topic_id = opts[:packet_topic_id]&.to_i
 
-    next if packet_post_id.blank? || packet_topic_id.blank?
+    if packet_post_id.present? && packet_topic_id.present?
+      # Save packet reference to topic custom fields (for backward compatibility)
+      topic.custom_fields["packet_post_id"] = packet_post_id
+      topic.custom_fields["packet_topic_id"] = packet_topic_id
+      topic.save_custom_fields
 
-    # Save packet reference to topic custom fields (for backward compatibility)
-    topic.custom_fields["packet_post_id"] = packet_post_id
-    topic.custom_fields["packet_topic_id"] = packet_topic_id
-    topic.save_custom_fields
+      # Find the lottery packet
+      packet = VzekcVerlosung::LotteryPacket.find_by(post_id: packet_post_id)
+      if packet
+        # Verify the post belongs to the correct topic
+        if packet.post.topic_id == packet_topic_id
+          # Verify the user is the winner
+          if packet.winner_user_id == user.id
+            # Establish reverse link from packet to Erhaltungsbericht
+            packet.link_report!(topic)
+          end
+        end
+      end
+    end
 
-    # Find the lottery packet
-    packet = VzekcVerlosung::LotteryPacket.find_by(post_id: packet_post_id)
-    next unless packet
+    # Handle Erhaltungsbericht from donation
+    donation_id = opts[:donation_id]&.to_i
 
-    # Verify the post belongs to the correct topic
-    next unless packet.post.topic_id == packet_topic_id
+    if donation_id.present?
+      # Save donation_id to topic custom fields
+      topic.custom_fields["donation_id"] = donation_id
+      topic.save_custom_fields
 
-    # Verify the user is the winner
-    next unless packet.winner_user_id == user.id
-
-    # Establish reverse link from packet to Erhaltungsbericht
-    packet.link_report!(topic)
+      Rails.logger.info("Linked Erhaltungsbericht topic #{topic.id} to donation #{donation_id}")
+    end
   end
 
   # Sync erhaltungsbericht template to category whenever it changes

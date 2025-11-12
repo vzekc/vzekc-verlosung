@@ -11,7 +11,9 @@ import formatUsername from "discourse/helpers/format-username";
 import { ajax } from "discourse/lib/ajax";
 import { popupAjaxError } from "discourse/lib/ajax-error";
 import { bind } from "discourse/lib/decorators";
+import Composer from "discourse/models/composer";
 import { i18n } from "discourse-i18n";
+import CreateLotteryModal from "./modal/create-lottery-modal";
 
 /**
  * Donation widget component for managing pickup offers
@@ -25,6 +27,9 @@ export default class DonationWidget extends Component {
   @service currentUser;
   @service appEvents;
   @service dialog;
+  @service composer;
+  @service modal;
+  @service siteSettings;
 
   @tracked donationData = null;
   @tracked pickupOffers = [];
@@ -82,8 +87,6 @@ export default class DonationWidget extends Component {
     try {
       const initialData = this.post?.donation_data;
       if (!initialData) {
-        // eslint-disable-next-line no-console
-        console.log("[Donation Widget] No donation_data found on post");
         return;
       }
 
@@ -92,13 +95,6 @@ export default class DonationWidget extends Component {
         `/vzekc-verlosung/donations/${initialData.id}`
       );
       this.donationData = donationResult.donation;
-
-      // eslint-disable-next-line no-console
-      console.log(
-        `[Donation Widget] Loaded donation data:`,
-        this.donationData,
-        `isCreator=${this.isCreator}, canOfferPickup=${this.canOfferPickup}`
-      );
 
       // Load pickup offers (except for drafts)
       if (this.donationData.state !== "draft") {
@@ -112,11 +108,6 @@ export default class DonationWidget extends Component {
           (offer) =>
             offer.user.id === this.currentUser.id &&
             (offer.state === "pending" || offer.state === "assigned")
-        );
-
-        // eslint-disable-next-line no-console
-        console.log(
-          `[Donation Widget] Loaded ${this.pickupOffers.length} offers, userOffer=${this.userOffer ? "found" : "none"}`
         );
       }
     } catch (error) {
@@ -212,6 +203,29 @@ export default class DonationWidget extends Component {
     return ["assigned", "picked_up", "closed"].includes(
       this.donationData?.state
     );
+  }
+
+  /**
+   * Check if current user picked up the donation and needs to take action
+   *
+   * @type {boolean}
+   */
+  get needsPickupAction() {
+    if (!this.donationData || !this.currentUser) {
+      return false;
+    }
+
+    // Check if donation is in picked_up or closed state
+    if (!["picked_up", "closed"].includes(this.donationData.state)) {
+      return false;
+    }
+
+    // Check if current user is the one who picked it up
+    const pickedUpOffer = this.pickupOffers.find(
+      (offer) => offer.state === "picked_up"
+    );
+
+    return pickedUpOffer && pickedUpOffer.user.id === this.currentUser.id;
   }
 
   /**
@@ -324,6 +338,75 @@ export default class DonationWidget extends Component {
     } finally {
       this.actionInProgress = false;
     }
+  }
+
+  /**
+   * Open composer to write Erhaltungsbericht
+   */
+  @action
+  writeErhaltungsbericht() {
+    const erhaltungsberichtCategoryId = parseInt(
+      this.siteSettings.vzekc_verlosung_erhaltungsberichte_category_id,
+      10
+    );
+
+    if (!erhaltungsberichtCategoryId) {
+      this.appEvents.trigger(
+        "modal-body:flash",
+        "error",
+        "vzekc_verlosung.erhaltungsbericht.category_not_configured"
+      );
+      return;
+    }
+
+    const template =
+      this.siteSettings.vzekc_verlosung_erhaltungsbericht_template || "";
+    const topic = this.post.topic;
+
+    // Replace placeholders
+    const content = template
+      .replace(/\[LOTTERY_TITLE\]/g, topic.title)
+      .replace(
+        /\[PACKET_LINK\]/g,
+        `${window.location.origin}${topic.get("url")}`
+      );
+
+    // Open composer
+    this.composer.open({
+      action: Composer.CREATE_TOPIC,
+      categoryId: erhaltungsberichtCategoryId,
+      title: `Erhaltungsbericht: ${topic.title}`,
+      reply: content,
+      draftKey: `erhaltungsbericht_donation_${this.donationData.id}_${Date.now()}`,
+      donation_id: this.donationData.id,
+    });
+  }
+
+  /**
+   * Open lottery creation modal
+   */
+  @action
+  createLottery() {
+    const lotteryCategoryId = parseInt(
+      this.siteSettings.vzekc_verlosung_category_id,
+      10
+    );
+
+    if (!lotteryCategoryId) {
+      return;
+    }
+
+    const topic = this.post.topic;
+
+    this.modal.show(CreateLotteryModal, {
+      model: {
+        categoryId: lotteryCategoryId,
+        fromDonation: {
+          id: this.donationData.id,
+          topicTitle: topic.title,
+        },
+      },
+    });
   }
 
   <template>
@@ -489,6 +572,27 @@ export default class DonationWidget extends Component {
                 @disabled={{this.actionInProgress}}
                 class="btn-primary mark-picked-up-button"
               />
+            </div>
+          {{/if}}
+
+          {{#if this.needsPickupAction}}
+            <div class="donation-next-steps">
+              <h4>{{i18n "vzekc_verlosung.donation.next_steps"}}</h4>
+              <p>{{i18n "vzekc_verlosung.donation.next_steps_description"}}</p>
+              <div class="next-steps-buttons">
+                <DButton
+                  @action={{this.writeErhaltungsbericht}}
+                  @label="vzekc_verlosung.donation.write_erhaltungsbericht"
+                  @icon="pen"
+                  class="btn-primary write-erhaltungsbericht-button"
+                />
+                <DButton
+                  @action={{this.createLottery}}
+                  @label="vzekc_verlosung.donation.create_lottery_action"
+                  @icon="gift"
+                  class="btn-primary create-lottery-button"
+                />
+              </div>
             </div>
           {{/if}}
         {{/if}}

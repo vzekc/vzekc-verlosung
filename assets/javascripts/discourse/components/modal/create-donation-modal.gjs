@@ -117,24 +117,7 @@ export default class CreateDonationModal extends Component {
 
       // Get the donation template and replace [POSTCODE]
       let template = this.siteSettings.vzekc_verlosung_donation_template || "";
-
-      // eslint-disable-next-line no-console
-      console.log("[Donation Modal] Raw template:", {
-        hasTemplate: !!template,
-        length: template.length,
-        preview: template.substring(0, 200),
-      });
-
       template = template.replace(/\[POSTCODE\]/g, this.postcode.trim());
-
-      // eslint-disable-next-line no-console
-      console.log("[Donation Modal] Opening composer with:", {
-        donationId,
-        title: this.title.trim(),
-        categoryId: this.args.model.categoryId,
-        templateLength: template.length,
-        template: template.substring(0, 200),
-      });
 
       this.args.closeModal();
 

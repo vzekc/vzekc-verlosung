@@ -171,6 +171,10 @@ de:
         no_offers: "Noch keine Abholangebote"
         your_offer: "Sie haben sich zum Abholen gemeldet"
         assigned_to_you: "Diese Spende wurde Ihnen zugewiesen"
+        next_steps: "Nächste Schritte"
+        next_steps_description: "Bitte wählen Sie eine der folgenden Optionen:"
+        write_erhaltungsbericht: "Erhaltungsbericht schreiben"
+        create_lottery_action: "Verlosung erstellen"
         state:
           title: "Status"
           draft: "Entwurf"

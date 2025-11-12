@@ -51,9 +51,8 @@ class ErhaltungsberichtPacketLink extends Component {
           this.packetTitle = `Paket #${post.post_number}`;
         }
       }
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error("Failed to load packet info:", error);
+    } catch {
+      // Silently handle errors loading packet info
     } finally {
       this.loading = false;
     }
