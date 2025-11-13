@@ -10,7 +10,8 @@ Project-specific instructions for AI agents. MUST be loaded at conversation star
 Discourse is large with long history. Understand context before changes.
 
 ### All Files
-- Always lint changed files
+- Always lint changed files with `bundle exec rubocop -a` before committing
+- Run `bundle exec rubocop plugin.rb app/ lib/ spec/` to verify main code passes
 - Make display strings translatable (use placeholders, not split strings)
 - Create subagent to review changes against this file after completing tasks
 
@@ -21,6 +22,28 @@ Discourse is large with long history. Understand context before changes.
 ### JavaScript
 - No empty backing classes for template-only components unless requested
 - Use FormKit for forms: https://meta.discourse.org/t/discourse-toolkit-to-render-forms/326439 (`app/assets/javascripts/discourse/app/form-kit`)
+- **NEVER use console.log in production code** - remove all debug logging before committing
+
+### Ruby
+- **Guardian Extensions**: NEVER use `Guardian.class_eval`. Always use prepend mixin pattern:
+```ruby
+# ❌ WRONG - Monkey patching
+Guardian.class_eval do
+  def can_do_something?(obj)
+    # logic
+  end
+end
+
+# ✅ CORRECT - Prepend mixin
+module GuardianExtensions
+  def can_do_something?(obj)
+    return false unless super  # Call original if overriding
+    # additional logic
+  end
+end
+
+Guardian.prepend GuardianExtensions
+```
 
 ### JSDoc
 - Required for classes, methods, members (except `@service` members, constructors)
@@ -34,6 +57,18 @@ Discourse is large with long history. Understand context before changes.
 - Don't test functionality handled by other classes/components
 - Don't write obvious tests
 - Ruby: use `fab!()` over `let()`, system tests for UI (`spec/system`), use page objects for system spec finders (`spec/system/page_objects`)
+
+### RSpec Style
+- **Context descriptions** MUST start with: `when`, `with`, `without`, `for`, `while`, `if`, `as`, `after`, or `in`
+```ruby
+# ❌ WRONG
+context "uniqueness" do
+context "cascade to lottery tickets" do
+
+# ✅ CORRECT
+context "with uniqueness validation" do
+context "when cascading to lottery tickets" do
+```
 
 ### Page Objects (System Specs)
 - Located in `spec/system/page_objects/pages/`, inherit from `PageObjects::Pages::Base`
