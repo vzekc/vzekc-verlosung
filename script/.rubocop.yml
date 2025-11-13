@@ -1,4 +1,0 @@
-# RuboCop configuration for test scripts
-# These are utility scripts, not production code
-Discourse/Plugins/NamespaceMethods:
-  Enabled: false

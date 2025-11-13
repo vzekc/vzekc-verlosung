@@ -5,15 +5,17 @@
 #
 # If no username is provided, randomly selects 4 different users from the "vereinsmitglied" group
 
-def random_vereinsmitglieder(count)
-  group = Group.find_by(name: 'vereinsmitglied') ||
-          (puts("✗ Group 'vereinsmitglied' not found") && exit(1))
-  members = group.users.where('users.id > 0').to_a
-  if members.count < count
-    puts "⚠ Warning: Only #{members.count} members in vereinsmitglied group, need #{count}"
-    members
-  else
-    members.sample(count)
+module DemoLotteriesHelper
+  def self.random_vereinsmitglieder(count)
+    group = Group.find_by(name: 'vereinsmitglied') ||
+            (puts("✗ Group 'vereinsmitglied' not found") && exit(1))
+    members = group.users.where('users.id > 0').to_a
+    if members.count < count
+      puts "⚠ Warning: Only #{members.count} members in vereinsmitglied group, need #{count}"
+      members
+    else
+      members.sample(count)
+    end
   end
 end
 
@@ -27,7 +29,7 @@ if username
   end
   puts "Using specified user: #{users.first.username} (ID: #{users.first.id}) for all lotteries"
 else
-  users = random_vereinsmitglieder(4)
+  users = DemoLotteriesHelper.random_vereinsmitglieder(4)
   puts 'Selected 4 random users from vereinsmitglied group:'
   users.each_with_index do |user, i|
     puts "  #{i + 1}. #{user.username} (ID: #{user.id})"
