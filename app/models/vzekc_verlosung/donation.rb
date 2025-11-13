@@ -190,8 +190,8 @@ end
 #  state            :string           default("draft"), not null
 #  created_at       :datetime         not null
 #  updated_at       :datetime         not null
-#  creator_user_id  :integer          not null
-#  topic_id         :integer
+#  creator_user_id  :bigint           not null
+#  topic_id         :bigint
 #
 # Indexes
 #

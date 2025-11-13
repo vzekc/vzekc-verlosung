@@ -87,10 +87,10 @@ end
 #  won_at                     :datetime
 #  created_at                 :datetime         not null
 #  updated_at                 :datetime         not null
-#  erhaltungsbericht_topic_id :integer
+#  erhaltungsbericht_topic_id :bigint
 #  lottery_id                 :integer          not null
-#  post_id                    :integer          not null
-#  winner_user_id             :integer
+#  post_id                    :bigint           not null
+#  winner_user_id             :bigint
 #
 # Indexes
 #
