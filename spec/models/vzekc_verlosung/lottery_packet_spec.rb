@@ -113,12 +113,7 @@ RSpec.describe VzekcVerlosung::LotteryPacket do
     describe ".requiring_report" do
       let!(:packet_not_requiring_report) do
         post = Fabricate(:post, topic: lottery.topic)
-        Fabricate(
-          :lottery_packet,
-          lottery: lottery,
-          post: post,
-          erhaltungsbericht_required: false,
-        )
+        Fabricate(:lottery_packet, lottery: lottery, post: post, erhaltungsbericht_required: false)
       end
 
       it "returns packets where erhaltungsbericht is required" do

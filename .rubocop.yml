@@ -1,1 +1,2 @@
-inherit_from: ../../.rubocop.yml
+inherit_gem:
+  rubocop-discourse: stree-compat.yml

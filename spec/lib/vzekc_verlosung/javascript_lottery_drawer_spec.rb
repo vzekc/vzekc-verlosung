@@ -21,7 +21,10 @@ RSpec.describe VzekcVerlosung::JavascriptLotteryDrawer do
           {
             "id" => 2,
             "title" => "Software Bundle",
-            "participants" => [{ "name" => "alice", "tickets" => 1 }, { "name" => "bob", "tickets" => 2 }],
+            "participants" => [
+              { "name" => "alice", "tickets" => 1 },
+              { "name" => "bob", "tickets" => 2 },
+            ],
           },
         ],
       }
@@ -85,7 +88,13 @@ RSpec.describe VzekcVerlosung::JavascriptLotteryDrawer do
       single_input = {
         "title" => "Single Winner",
         "timestamp" => "2024-01-01T00:00:00Z",
-        "packets" => [{ "id" => 1, "title" => "Prize", "participants" => [{ "name" => "alice", "tickets" => 1 }] }],
+        "packets" => [
+          {
+            "id" => 1,
+            "title" => "Prize",
+            "participants" => [{ "name" => "alice", "tickets" => 1 }],
+          },
+        ],
       }
 
       result = described_class.draw(single_input)
@@ -100,7 +109,10 @@ RSpec.describe VzekcVerlosung::JavascriptLotteryDrawer do
           {
             "id" => 1,
             "title" => "Prize",
-            "participants" => [{ "name" => "alice", "tickets" => 100 }, { "name" => "bob", "tickets" => 1 }],
+            "participants" => [
+              { "name" => "alice", "tickets" => 100 },
+              { "name" => "bob", "tickets" => 1 },
+            ],
           },
         ],
       }
@@ -145,7 +157,10 @@ RSpec.describe VzekcVerlosung::JavascriptLotteryDrawer do
     it "handles invalid timestamp format" do
       invalid_input = input.merge("timestamp" => "not-a-timestamp")
 
-      expect { described_class.draw(invalid_input) }.to raise_error(MiniRacer::RuntimeError, /Invalid timestamp/)
+      expect { described_class.draw(invalid_input) }.to raise_error(
+        MiniRacer::RuntimeError,
+        /Invalid timestamp/,
+      )
     end
   end
 end

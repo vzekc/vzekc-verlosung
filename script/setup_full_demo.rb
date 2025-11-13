@@ -8,9 +8,10 @@
 
 module FullDemoHelper
   def self.random_vereinsmitglieder(count)
-    group = Group.find_by(name: 'vereinsmitglieder') ||
-            (puts("✗ Group 'vereinsmitglieder' not found") && exit(1))
-    members = group.users.where('users.id > 0').to_a
+    group =
+      Group.find_by(name: "vereinsmitglieder") ||
+        (puts("✗ Group 'vereinsmitglieder' not found") && exit(1))
+    members = group.users.where("users.id > 0").to_a
     if members.count < count
       puts "⚠ Warning: Only #{members.count} members in vereinsmitglieder group, need #{count}"
       members
@@ -20,20 +21,21 @@ module FullDemoHelper
   end
 
   def self.participant_pool
-    User.where('id > 0').where.not(id: [-1, -2]).limit(50).to_a
+    User.where("id > 0").where.not(id: [-1, -2]).limit(50).to_a
   end
 
   def self.lottery_packets(topic)
-    Post.where(topic_id: topic.id).order(:post_number).select do |p|
-      p.custom_fields['is_lottery_packet'] == true
-    end
+    Post
+      .where(topic_id: topic.id)
+      .order(:post_number)
+      .select { |p| p.custom_fields["is_lottery_packet"] == true }
   end
 
   def self.select_excluded_packet(packet_posts, exclude_one_packet)
     return nil unless exclude_one_packet
 
     excluded = packet_posts.sample
-    title = excluded.raw.lines.first.to_s.gsub(/^#\s*/, '').strip
+    title = excluded.raw.lines.first.to_s.gsub(/^#\s*/, "").strip
     puts "  ⚠ Excluding packet ##{excluded.post_number} (#{title}) from ticket sales"
     excluded
   end
@@ -42,10 +44,8 @@ module FullDemoHelper
     num_packets = rand(1..5)
     selected = available_packets.sample([num_packets, available_packets.length].min)
     selected.count do |packet_post|
-      ticket = VzekcVerlosung::LotteryTicket.find_or_create_by(
-        post_id: packet_post.id,
-        user_id: user.id
-      )
+      ticket =
+        VzekcVerlosung::LotteryTicket.find_or_create_by(post_id: packet_post.id, user_id: user.id)
       ticket.previously_new_record?
     end
   end
@@ -53,7 +53,7 @@ module FullDemoHelper
   def self.print_packet_summary(packet_posts, excluded_packet)
     packet_posts.each do |post|
       tickets = VzekcVerlosung::LotteryTicket.where(post_id: post.id)
-      status = post == excluded_packet ? ' [NO TICKETS]' : ''
+      status = post == excluded_packet ? " [NO TICKETS]" : ""
       puts "    Packet ##{post.post_number}: #{tickets.count} tickets#{status}"
     end
   end
@@ -66,14 +66,14 @@ module FullDemoHelper
     ticket_count = pool.shuffle.sum { |user| self.buy_tickets_for_user(user, available_packets) }
     puts "  ✓ Added #{ticket_count} tickets from #{pool.count} participants"
     self.print_packet_summary(packet_posts, excluded_packet)
-    puts ''
+    puts ""
   end
 
   def self.publish_lottery(topic)
-    topic.custom_fields['lottery_state'] = 'active'
-    topic.custom_fields['lottery_ends_at'] = 2.weeks.from_now
+    topic.custom_fields["lottery_state"] = "active"
+    topic.custom_fields["lottery_ends_at"] = 2.weeks.from_now
     topic.save_custom_fields
-    puts "  ✓ Published (ends: #{topic.custom_fields['lottery_ends_at']})"
+    puts "  ✓ Published (ends: #{topic.custom_fields["lottery_ends_at"]})"
   end
 end
 
@@ -81,10 +81,10 @@ end
 # Main Script
 # ============================================================================
 
-puts '=' * 80
-puts 'VZEKC VERLOSUNG - FULL DEMO SETUP'
-puts '=' * 80
-puts ''
+puts "=" * 80
+puts "VZEKC VERLOSUNG - FULL DEMO SETUP"
+puts "=" * 80
+puts ""
 
 username = ARGV[0]
 
@@ -97,33 +97,31 @@ if username
   puts "Using specified user: #{users.first.username} (ID: #{users.first.id}) for all lotteries"
 else
   users = FullDemoHelper.random_vereinsmitglieder(4)
-  puts 'Selected 4 random lottery owners from Vereinsmitglieder group:'
-  users.each_with_index do |user, i|
-    puts "  #{i + 1}. #{user.username} (ID: #{user.id})"
-  end
+  puts "Selected 4 random lottery owners from Vereinsmitglieder group:"
+  users.each_with_index { |user, i| puts "  #{i + 1}. #{user.username} (ID: #{user.id})" }
 end
-puts ''
+puts ""
 
 # Get the lottery category
 category_id = SiteSetting.vzekc_verlosung_category_id
 if category_id.blank?
-  puts '✗ vzekc_verlosung_category_id not configured in site settings'
+  puts "✗ vzekc_verlosung_category_id not configured in site settings"
   exit 1
 end
 
 # Get participant pool
 pool = FullDemoHelper.participant_pool
 puts "Participant pool: #{pool.count} users"
-puts ''
+puts ""
 
 created_lotteries = []
 
 # ============================================================================
 # Lottery 1: Business Liquidation - Office Equipment
 # ============================================================================
-puts '=' * 80
-puts 'Creating Lottery 1: IT-Firma Liquidation...'
-puts '=' * 80
+puts "=" * 80
+puts "Creating Lottery 1: IT-Firma Liquidation..."
+puts "=" * 80
 
 description1 = <<~DESC
   ## Über diese Verlosung
@@ -158,25 +156,25 @@ result1 =
     user: users[0],
     guardian: Guardian.new(users[0]),
     params: {
-      title: 'Spende TechnoData GmbH – CAD-Workstations und Peripherie',
+      title: "Spende TechnoData GmbH – CAD-Workstations und Peripherie",
       duration_days: 14,
       category_id: category_id.to_i,
       packets: [
-        { title: 'Sun Ultra 10 Creator3D Workstation' },
+        { title: "Sun Ultra 10 Creator3D Workstation" },
         { title: 'HP Visualize C3000 Workstation mit 21" Monitor' },
-        { title: 'Silicon Graphics O2 Workstation' },
-        { title: 'Intergraph TDZ-2000 GL1 Workstation' },
-        { title: 'HP DesignJet 350C Plotter (A1)' },
-        { title: '3Dconnexion SpaceMouse und Grafiktablett Bundle' },
+        { title: "Silicon Graphics O2 Workstation" },
+        { title: "Intergraph TDZ-2000 GL1 Workstation" },
+        { title: "HP DesignJet 350C Plotter (A1)" },
+        { title: "3Dconnexion SpaceMouse und Grafiktablett Bundle" },
         { title: '21" und 24" CRT Monitore (Sony GDM, NEC MultiSync)' },
-        { title: 'SCSI-Festplatten und DAT-Tape Backup System' }
-      ]
-    }
+        { title: "SCSI-Festplatten und DAT-Tape Backup System" },
+      ],
+    },
   )
 
 if result1.success?
   topic1 = result1.main_topic
-  topic1.first_post.revise(users[0], raw: description1, edit_reason: 'Initial description')
+  topic1.first_post.revise(users[0], raw: description1, edit_reason: "Initial description")
   puts "✓ Created: #{topic1.title} (ID: #{topic1.id})"
 
   FullDemoHelper.add_participants_to_lottery(topic1, pool, exclude_one_packet: true)
@@ -186,14 +184,14 @@ if result1.success?
 else
   puts "✗ Failed to create lottery 1: #{result1.inspect}"
 end
-puts ''
+puts ""
 
 # ============================================================================
 # Lottery 2: Private Collector - Home Computer Collection
 # ============================================================================
-puts '=' * 80
-puts 'Creating Lottery 2: Sammler-Nachlass...'
-puts '=' * 80
+puts "=" * 80
+puts "Creating Lottery 2: Sammler-Nachlass..."
+puts "=" * 80
 
 description2 = <<~DESC
   ## Über diese Verlosung
@@ -228,27 +226,27 @@ result2 =
     user: users[1],
     guardian: Guardian.new(users[1]),
     params: {
-      title: 'Sammlung Werner K. – Heimcomputer-Klassiker der 80er/90er',
+      title: "Sammlung Werner K. – Heimcomputer-Klassiker der 80er/90er",
       duration_days: 14,
       category_id: category_id.to_i,
       packets: [
-        { title: 'Commodore 64C mit 1541-II und Software' },
-        { title: 'Amiga 500 Plus mit RGB-Monitor' },
-        { title: 'Atari 800XL mit 1050 Diskettenlaufwerk' },
-        { title: 'Schneider CPC 6128 mit CTM644 Monitor' },
-        { title: 'Sinclair ZX Spectrum +2A Bundle' },
-        { title: 'MSX 2 Philips NMS 8250' },
-        { title: 'Commodore 128D mit 1571 Laufwerk' },
-        { title: 'Acorn Archimedes A3000' },
-        { title: 'Sharp X68000 mit Peripherie' },
-        { title: 'Vintage Joystick und Controller Sammlung' }
-      ]
-    }
+        { title: "Commodore 64C mit 1541-II und Software" },
+        { title: "Amiga 500 Plus mit RGB-Monitor" },
+        { title: "Atari 800XL mit 1050 Diskettenlaufwerk" },
+        { title: "Schneider CPC 6128 mit CTM644 Monitor" },
+        { title: "Sinclair ZX Spectrum +2A Bundle" },
+        { title: "MSX 2 Philips NMS 8250" },
+        { title: "Commodore 128D mit 1571 Laufwerk" },
+        { title: "Acorn Archimedes A3000" },
+        { title: "Sharp X68000 mit Peripherie" },
+        { title: "Vintage Joystick und Controller Sammlung" },
+      ],
+    },
   )
 
 if result2.success?
   topic2 = result2.main_topic
-  topic2.first_post.revise(users[1], raw: description2, edit_reason: 'Initial description')
+  topic2.first_post.revise(users[1], raw: description2, edit_reason: "Initial description")
   puts "✓ Created: #{topic2.title} (ID: #{topic2.id})"
 
   FullDemoHelper.add_participants_to_lottery(topic2, pool, exclude_one_packet: true)
@@ -258,14 +256,14 @@ if result2.success?
 else
   puts "✗ Failed to create lottery 2: #{result2.inspect}"
 end
-puts ''
+puts ""
 
 # ============================================================================
 # Lottery 3: Estate/Inheritance - IBM PC Collection
 # ============================================================================
-puts '=' * 80
-puts 'Creating Lottery 3: Nachlass eines PC-Pioniers...'
-puts '=' * 80
+puts "=" * 80
+puts "Creating Lottery 3: Nachlass eines PC-Pioniers..."
+puts "=" * 80
 
 description3 = <<~DESC
   ## Über diese Verlosung
@@ -301,28 +299,28 @@ result3 =
     user: users[2],
     guardian: Guardian.new(users[2]),
     params: {
-      title: 'Nachlass Dr. Schmidt – IBM PC Geschichte 1983-1995',
+      title: "Nachlass Dr. Schmidt – IBM PC Geschichte 1983-1995",
       duration_days: 14,
       category_id: category_id.to_i,
       packets: [
-        { title: 'IBM PC XT 5160 mit MDA Monitor' },
-        { title: 'IBM PC AT 5170 Model 339' },
-        { title: 'IBM PS/2 Model 80 mit VGA Monitor' },
-        { title: 'Compaq Portable II Luggable' },
-        { title: 'IBM ThinkPad 700C (1992)' },
-        { title: 'Vintage ISA Karten Sammlung' },
+        { title: "IBM PC XT 5160 mit MDA Monitor" },
+        { title: "IBM PC AT 5170 Model 339" },
+        { title: "IBM PS/2 Model 80 mit VGA Monitor" },
+        { title: "Compaq Portable II Luggable" },
+        { title: "IBM ThinkPad 700C (1992)" },
+        { title: "Vintage ISA Karten Sammlung" },
         { title: '5,25" und 3,5" Diskettenlaufwerke' },
-        { title: 'IBM Model M Tastaturen (3 Stück)' },
-        { title: 'Original IBM DOS und OS/2 Softwaresammlung' },
-        { title: 'PC-Peripherie Bundle (Mäuse, Kabel, Adapter)' },
-        { title: 'Historische Fachzeitschriften 1983-1990' }
-      ]
-    }
+        { title: "IBM Model M Tastaturen (3 Stück)" },
+        { title: "Original IBM DOS und OS/2 Softwaresammlung" },
+        { title: "PC-Peripherie Bundle (Mäuse, Kabel, Adapter)" },
+        { title: "Historische Fachzeitschriften 1983-1990" },
+      ],
+    },
   )
 
 if result3.success?
   topic3 = result3.main_topic
-  topic3.first_post.revise(users[2], raw: description3, edit_reason: 'Initial description')
+  topic3.first_post.revise(users[2], raw: description3, edit_reason: "Initial description")
   puts "✓ Created: #{topic3.title} (ID: #{topic3.id})"
 
   FullDemoHelper.add_participants_to_lottery(topic3, pool, exclude_one_packet: true)
@@ -332,14 +330,14 @@ if result3.success?
 else
   puts "✗ Failed to create lottery 3: #{result3.inspect}"
 end
-puts ''
+puts ""
 
 # ============================================================================
 # Lottery 4: School Donation - Educational Hardware
 # ============================================================================
-puts '=' * 80
-puts 'Creating Lottery 4: Schulspende...'
-puts '=' * 80
+puts "=" * 80
+puts "Creating Lottery 4: Schulspende..."
+puts "=" * 80
 
 description4 = <<~DESC
   ## Über diese Verlosung
@@ -374,29 +372,29 @@ result4 =
     user: users[3],
     guardian: Guardian.new(users[3]),
     params: {
-      title: 'Spende Heinrich-Hertz-Gymnasium – Schul-IT der 90er Jahre',
+      title: "Spende Heinrich-Hertz-Gymnasium – Schul-IT der 90er Jahre",
       duration_days: 14,
       category_id: category_id.to_i,
       packets: [
-        { title: 'Apple Macintosh Classic II Bundle' },
-        { title: 'Apple PowerMac G3 Beige Desktop' },
-        { title: 'Acorn RiscPC 600 mit Monitor' },
-        { title: 'RM Nimbus PC-186 (UK Schulcomputer)' },
-        { title: 'BBC Micro Model B mit Acorn Monitor' },
-        { title: 'Apple IIe Europlus mit Disk II' },
-        { title: 'Atari ST 1040F mit SM124 Monitor' },
-        { title: 'Commodore PC-10 III (1987)' },
-        { title: 'LOGO Turtle Roboter mit Interface' },
-        { title: 'Bildungs-Software Sammlung (BBC, Apple, Atari)' },
-        { title: 'Overhead-Projektor Folien mit BASIC Code' },
-        { title: 'Original Informatik Lehrbücher 1985-2000' }
-      ]
-    }
+        { title: "Apple Macintosh Classic II Bundle" },
+        { title: "Apple PowerMac G3 Beige Desktop" },
+        { title: "Acorn RiscPC 600 mit Monitor" },
+        { title: "RM Nimbus PC-186 (UK Schulcomputer)" },
+        { title: "BBC Micro Model B mit Acorn Monitor" },
+        { title: "Apple IIe Europlus mit Disk II" },
+        { title: "Atari ST 1040F mit SM124 Monitor" },
+        { title: "Commodore PC-10 III (1987)" },
+        { title: "LOGO Turtle Roboter mit Interface" },
+        { title: "Bildungs-Software Sammlung (BBC, Apple, Atari)" },
+        { title: "Overhead-Projektor Folien mit BASIC Code" },
+        { title: "Original Informatik Lehrbücher 1985-2000" },
+      ],
+    },
   )
 
 if result4.success?
   topic4 = result4.main_topic
-  topic4.first_post.revise(users[3], raw: description4, edit_reason: 'Initial description')
+  topic4.first_post.revise(users[3], raw: description4, edit_reason: "Initial description")
   puts "✓ Created: #{topic4.title} (ID: #{topic4.id})"
 
   FullDemoHelper.add_participants_to_lottery(topic4, pool, exclude_one_packet: true)
@@ -406,34 +404,35 @@ if result4.success?
 else
   puts "✗ Failed to create lottery 4: #{result4.inspect}"
 end
-puts ''
+puts ""
 
 # ============================================================================
 # Summary
 # ============================================================================
-puts '=' * 80
-puts 'SETUP COMPLETE'
-puts '=' * 80
-puts ''
+puts "=" * 80
+puts "SETUP COMPLETE"
+puts "=" * 80
+puts ""
 puts "Successfully created and published #{created_lotteries.count} demo lotteries:"
-puts ''
+puts ""
 
 created_lotteries.each_with_index do |topic, index|
   packet_count =
-    Post.where(topic_id: topic.id).count { |p| p.custom_fields['is_lottery_packet'] == true }
-  ticket_count = VzekcVerlosung::LotteryTicket.joins(:post).where(posts: { topic_id: topic.id }).count
+    Post.where(topic_id: topic.id).count { |p| p.custom_fields["is_lottery_packet"] == true }
+  ticket_count =
+    VzekcVerlosung::LotteryTicket.joins(:post).where(posts: { topic_id: topic.id }).count
 
   puts "#{index + 1}. #{topic.title}"
   puts "   Owner: #{topic.user.username}"
-  puts "   Status: Active (ends #{topic.custom_fields['lottery_ends_at']})"
+  puts "   Status: Active (ends #{topic.custom_fields["lottery_ends_at"]})"
   puts "   Packets: #{packet_count} (1 with no tickets)"
   puts "   Tickets: #{ticket_count}"
   puts "   URL: #{topic.url}"
-  puts ''
+  puts ""
 end
 
-puts 'All lotteries are PUBLISHED and ACTIVE.'
-puts 'You can now test the drawing feature by ending them early:'
-puts ''
-puts '  LOAD_PLUGINS=1 bundle exec rails runner plugins/vzekc-verlosung/script/test_lottery.rb end_early <topic_id>'
-puts ''
+puts "All lotteries are PUBLISHED and ACTIVE."
+puts "You can now test the drawing feature by ending them early:"
+puts ""
+puts "  LOAD_PLUGINS=1 bundle exec rails runner plugins/vzekc-verlosung/script/test_lottery.rb end_early <topic_id>"
+puts ""
