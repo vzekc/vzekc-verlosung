@@ -4,11 +4,8 @@ import { action } from "@ember/object";
 
 export default class LotteryHistoryController extends Controller {
   @tracked search = null;
-@tracked sort = "date_desc";
-queryParams = ["search", "sort"];
-
-  
-  
+  @tracked sort = "date_desc";
+  queryParams = ["search", "sort"];
 
   sortOptions = [
     { value: "date_desc", label: "vzekc_verlosung.history.sort.date_desc" },

@@ -5,7 +5,6 @@ import DButton from "discourse/components/d-button";
  * Adds a link to lottery history page when viewing a lottery topic
  */
 export default class LotteryHistoryLink extends Component {
-
   get shouldDisplay() {
     const topic = this.args.outletArgs?.topic;
     if (!topic) {
