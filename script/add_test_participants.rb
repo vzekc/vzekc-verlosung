@@ -9,14 +9,14 @@ topic_id = ARGV[0]&.to_i || 311
 topic = Topic.find(topic_id)
 packet_posts =
   Post
-    .where(topic_id: topic.id)
-    .order(:post_number)
-    .select { |p| p.custom_fields["is_lottery_packet"] == true }
+  .where(topic_id: topic.id)
+  .order(:post_number)
+  .select { |p| p.custom_fields['is_lottery_packet'] == true }
 
 puts "Found #{packet_posts.count} packet posts in topic #{topic_id}"
 
 # Get first 30 users (excluding system users)
-users = User.where("id > ?", 0).where.not(id: [-1, -2]).limit(30).to_a
+users = User.where('id > ?', 0).where.not(id: [-1, -2]).limit(30).to_a
 puts "Found #{users.count} users"
 
 # Add tickets for each user to random packets (1 ticket per user per packet)
@@ -37,15 +37,15 @@ users.each do |user|
   end
 end
 
-puts ""
+puts ''
 puts "✓ Added #{ticket_count} total tickets from #{users.count} users"
 
 # Show summary per packet
-puts ""
-puts "Packet Summary:"
+puts ''
+puts 'Packet Summary:'
 packet_posts.each do |post|
   tickets = VzekcVerlosung::LotteryTicket.where(post_id: post.id)
   unique_users = tickets.pluck(:user_id).uniq.count
-  title = post.raw.lines.first.to_s.gsub(/^#\s*/, "").strip
+  title = post.raw.lines.first.to_s.gsub(/^#\s*/, '').strip
   puts "  Packet ##{post.post_number} (#{title}): #{tickets.count} tickets from #{unique_users} users"
 end

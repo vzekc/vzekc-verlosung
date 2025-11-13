@@ -53,14 +53,14 @@ after_initialize do
   Guardian.include(VzekcVerlosung::GuardianExtensions)
 
   # Hook into can_create_post to check lottery draft status
-  Guardian.class_eval do
-    alias_method :original_can_create_post?, :can_create_post?
-
+  module GuardianExtensions
     def can_create_post?(topic)
-      return false unless original_can_create_post?(topic)
+      return false unless super
       can_create_post_in_lottery_draft?(topic)
     end
   end
+
+  Guardian.prepend GuardianExtensions
 
   # Filter draft lotteries from topic lists for non-owners
   TopicQuery.add_custom_filter(:lottery_state) do |results, topic_query|

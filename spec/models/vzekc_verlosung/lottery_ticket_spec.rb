@@ -15,7 +15,7 @@ RSpec.describe VzekcVerlosung::LotteryTicket do
     it { is_expected.to validate_presence_of(:post_id) }
     it { is_expected.to validate_presence_of(:user_id) }
 
-    context "uniqueness" do
+    context "with uniqueness validation" do
       it "validates uniqueness of post_id scoped to user_id" do
         existing_ticket = Fabricate(:lottery_ticket)
 
@@ -145,7 +145,7 @@ RSpec.describe VzekcVerlosung::LotteryTicket do
       end
     end
 
-    context "cascade from topic deletion" do
+    context "when cascading from topic deletion" do
       it "deletes all tickets when lottery topic and posts are deleted" do
         lottery = Fabricate(:lottery)
         topic = lottery.topic

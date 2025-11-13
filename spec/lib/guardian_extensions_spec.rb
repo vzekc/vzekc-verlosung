@@ -2,8 +2,8 @@
 
 RSpec.describe VzekcVerlosung::GuardianExtensions do
   fab!(:user)
-  fab!(:other_user) { Fabricate(:user) }
-  fab!(:admin) { Fabricate(:admin) }
+  fab!(:other_user, :user)
+  fab!(:admin)
   fab!(:category)
 
   let(:lottery_result) do

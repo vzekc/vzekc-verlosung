@@ -328,7 +328,7 @@ RSpec.describe VzekcVerlosung::LotteryPacket do
       end
     end
 
-    context "cascade to lottery tickets" do
+    context "when cascading to lottery tickets" do
       it "deletes associated tickets when packet post is deleted" do
         lottery = Fabricate(:lottery)
         post = Fabricate(:post, topic: lottery.topic)
