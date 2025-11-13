@@ -18,3 +18,25 @@ module VzekcVerlosung
     end
   end
 end
+
+# == Schema Information
+#
+# Table name: vzekc_verlosung_lottery_tickets
+#
+#  id         :bigint           not null, primary key
+#  created_at :datetime         not null
+#  updated_at :datetime         not null
+#  post_id    :integer          not null
+#  user_id    :integer          not null
+#
+# Indexes
+#
+#  index_lottery_tickets_on_post_and_user            (post_id,user_id) UNIQUE
+#  index_vzekc_verlosung_lottery_tickets_on_post_id  (post_id)
+#  index_vzekc_verlosung_lottery_tickets_on_user_id  (user_id)
+#
+# Foreign Keys
+#
+#  fk_rails_...  (post_id => posts.id) ON DELETE => cascade
+#  fk_rails_...  (user_id => users.id) ON DELETE => cascade
+#

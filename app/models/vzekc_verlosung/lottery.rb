@@ -79,3 +79,30 @@ module VzekcVerlosung
     end
   end
 end
+
+# == Schema Information
+#
+# Table name: vzekc_verlosung_lotteries
+#
+#  id            :bigint           not null, primary key
+#  drawn_at      :datetime
+#  duration_days :integer
+#  ends_at       :datetime
+#  results       :jsonb
+#  state         :string           default("draft"), not null
+#  created_at    :datetime         not null
+#  updated_at    :datetime         not null
+#  display_id    :integer          not null
+#  topic_id      :integer          not null
+#
+# Indexes
+#
+#  index_lotteries_on_state_and_ends_at           (state,ends_at)
+#  index_vzekc_verlosung_lotteries_on_display_id  (display_id) UNIQUE
+#  index_vzekc_verlosung_lotteries_on_state       (state)
+#  index_vzekc_verlosung_lotteries_on_topic_id    (topic_id) UNIQUE
+#
+# Foreign Keys
+#
+#  fk_rails_...  (topic_id => topics.id) ON DELETE => cascade
+#

@@ -73,3 +73,36 @@ module VzekcVerlosung
     end
   end
 end
+
+# == Schema Information
+#
+# Table name: vzekc_verlosung_lottery_packets
+#
+#  id                         :bigint           not null, primary key
+#  abholerpaket               :boolean          default(FALSE), not null
+#  collected_at               :datetime
+#  erhaltungsbericht_required :boolean          default(TRUE), not null
+#  ordinal                    :integer          not null
+#  title                      :string           not null
+#  won_at                     :datetime
+#  created_at                 :datetime         not null
+#  updated_at                 :datetime         not null
+#  erhaltungsbericht_topic_id :integer
+#  lottery_id                 :integer          not null
+#  post_id                    :integer          not null
+#  winner_user_id             :integer
+#
+# Indexes
+#
+#  index_packets_on_collected_and_winner                    (collected_at,winner_user_id) WHERE ((winner_user_id IS NOT NULL) AND (collected_at IS NULL))
+#  index_vzekc_verlosung_lottery_packets_on_lottery_id      (lottery_id)
+#  index_vzekc_verlosung_lottery_packets_on_post_id         (post_id) UNIQUE
+#  index_vzekc_verlosung_lottery_packets_on_winner_user_id  (winner_user_id)
+#
+# Foreign Keys
+#
+#  fk_rails_...  (erhaltungsbericht_topic_id => topics.id) ON DELETE => nullify
+#  fk_rails_...  (lottery_id => vzekc_verlosung_lotteries.id) ON DELETE => cascade
+#  fk_rails_...  (post_id => posts.id) ON DELETE => cascade
+#  fk_rails_...  (winner_user_id => users.id) ON DELETE => nullify
+#

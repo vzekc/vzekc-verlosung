@@ -178,3 +178,30 @@ module VzekcVerlosung
     end
   end
 end
+
+# == Schema Information
+#
+# Table name: vzekc_verlosung_donations
+#
+#  id               :bigint           not null, primary key
+#  last_reminded_at :datetime
+#  postcode         :string           not null
+#  published_at     :datetime
+#  state            :string           default("draft"), not null
+#  created_at       :datetime         not null
+#  updated_at       :datetime         not null
+#  creator_user_id  :integer          not null
+#  topic_id         :integer
+#
+# Indexes
+#
+#  index_vzekc_verlosung_donations_on_creator_user_id         (creator_user_id)
+#  index_vzekc_verlosung_donations_on_state                   (state)
+#  index_vzekc_verlosung_donations_on_state_and_published_at  (state,published_at)
+#  index_vzekc_verlosung_donations_on_topic_id                (topic_id) UNIQUE
+#
+# Foreign Keys
+#
+#  fk_rails_...  (creator_user_id => users.id) ON DELETE => cascade
+#  fk_rails_...  (topic_id => topics.id) ON DELETE => cascade
+#

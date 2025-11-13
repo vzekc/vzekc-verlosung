@@ -52,3 +52,30 @@ module VzekcVerlosung
     end
   end
 end
+
+# == Schema Information
+#
+# Table name: vzekc_verlosung_pickup_offers
+#
+#  id           :bigint           not null, primary key
+#  assigned_at  :datetime
+#  notes        :text
+#  picked_up_at :datetime
+#  state        :string           default("pending"), not null
+#  created_at   :datetime         not null
+#  updated_at   :datetime         not null
+#  donation_id  :integer          not null
+#  user_id      :integer          not null
+#
+# Indexes
+#
+#  index_pickup_offers_on_donation_and_user            (donation_id,user_id) UNIQUE
+#  index_vzekc_verlosung_pickup_offers_on_donation_id  (donation_id)
+#  index_vzekc_verlosung_pickup_offers_on_state        (state)
+#  index_vzekc_verlosung_pickup_offers_on_user_id      (user_id)
+#
+# Foreign Keys
+#
+#  fk_rails_...  (donation_id => vzekc_verlosung_donations.id) ON DELETE => cascade
+#  fk_rails_...  (user_id => users.id) ON DELETE => cascade
+#
