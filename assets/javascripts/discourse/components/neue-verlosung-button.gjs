@@ -1,6 +1,6 @@
 import Component from "@glimmer/component";
-import { service } from "@ember/service";
 import { action } from "@ember/object";
+import { service } from "@ember/service";
 import DButton from "discourse/components/d-button";
 import CreateLotteryModal from "./modal/create-lottery-modal";
 
@@ -13,7 +13,6 @@ import CreateLotteryModal from "./modal/create-lottery-modal";
 export default class NeueVerlosungButton extends Component {
   @service siteSettings;
   @service modal;
-  @service router;
 
   /**
    * Check if button should be shown in current category

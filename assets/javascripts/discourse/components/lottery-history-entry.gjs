@@ -1,9 +1,9 @@
 import Component from "@glimmer/component";
 import { htmlSafe } from "@ember/template";
 import avatar from "discourse/helpers/avatar";
-import formatDate from "discourse/helpers/format-date";
-import icon from "discourse/helpers/d-icon";
 import { categoryBadgeHTML } from "discourse/helpers/category-link";
+import icon from "discourse/helpers/d-icon";
+import formatDate from "discourse/helpers/format-date";
 import { i18n } from "discourse-i18n";
 
 /**
@@ -110,7 +110,9 @@ export default class LotteryHistoryEntry extends Component {
               <th>{{i18n "vzekc_verlosung.history.table.packet"}}</th>
               <th>{{i18n "vzekc_verlosung.history.table.winner"}}</th>
               <th>{{i18n "vzekc_verlosung.history.table.collected"}}</th>
-              <th>{{i18n "vzekc_verlosung.history.table.erhaltungsbericht"}}</th>
+              <th>{{i18n
+                  "vzekc_verlosung.history.table.erhaltungsbericht"
+                }}</th>
             </tr>
           </thead>
           <tbody>

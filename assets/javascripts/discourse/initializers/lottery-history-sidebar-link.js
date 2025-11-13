@@ -1,7 +1,7 @@
 import { apiInitializer } from "discourse/lib/api";
 import { i18n } from "discourse-i18n";
 
-export default apiInitializer("1.34.0", (api) => {
+export default apiInitializer((api) => {
   api.addCommunitySectionLink({
     name: "lottery_history",
     route: "lotteryHistory",

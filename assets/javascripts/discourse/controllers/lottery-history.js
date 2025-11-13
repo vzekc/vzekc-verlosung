@@ -1,18 +1,23 @@
-import Controller from "@ember/controller";
 import { tracked } from "@glimmer/tracking";
+import Controller from "@ember/controller";
 import { action } from "@ember/object";
 
 export default class LotteryHistoryController extends Controller {
-  queryParams = ["search", "sort"];
-
   @tracked search = null;
-  @tracked sort = "date_desc";
+@tracked sort = "date_desc";
+queryParams = ["search", "sort"];
+
+  
+  
 
   sortOptions = [
     { value: "date_desc", label: "vzekc_verlosung.history.sort.date_desc" },
     { value: "date_asc", label: "vzekc_verlosung.history.sort.date_asc" },
     { value: "lottery_asc", label: "vzekc_verlosung.history.sort.lottery_asc" },
-    { value: "lottery_desc", label: "vzekc_verlosung.history.sort.lottery_desc" },
+    {
+      value: "lottery_desc",
+      label: "vzekc_verlosung.history.sort.lottery_desc",
+    },
   ];
 
   @action
