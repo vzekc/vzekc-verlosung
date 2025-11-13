@@ -49,18 +49,8 @@ after_initialize do
   Notification.types[:vzekc_verlosung_uncollected_reminder] = 817
   Notification.types[:vzekc_verlosung_erhaltungsbericht_reminder] = 818
 
-  # Extend Guardian with custom permissions
-  Guardian.include(VzekcVerlosung::GuardianExtensions)
-
-  # Hook into can_create_post to check lottery draft status
-  module GuardianExtensions
-    def can_create_post?(topic)
-      return false unless super
-      can_create_post_in_lottery_draft?(topic)
-    end
-  end
-
-  Guardian.prepend GuardianExtensions
+  # Extend Guardian with custom permissions and override can_create_post
+  Guardian.prepend VzekcVerlosung::GuardianExtensions
 
   # Filter draft lotteries from topic lists for non-owners
   TopicQuery.add_custom_filter(:lottery_state) do |results, topic_query|
@@ -119,6 +109,9 @@ after_initialize do
   register_topic_custom_field_type("packet_topic_id", :integer)
   # donation_id: Donation ID (for Erhaltungsberichte created from donations)
   register_topic_custom_field_type("donation_id", :integer)
+
+  # Register is_lottery_intro as boolean for intro post identification
+  register_post_custom_field_type("is_lottery_intro", :boolean)
 
   # Add helper methods to Topic class to safely access lottery fields
   add_to_class(:topic, :lottery_state) { lottery&.state }

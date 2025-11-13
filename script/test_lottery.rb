@@ -12,98 +12,118 @@
 #   delete <topic_id>           - Delete a lottery topic
 #   list                        - List all lotteries
 
-def create_lottery(username)
+def validate_lottery_user(username)
   user = User.find_by(username: username)
-  unless user
-    puts "✗ User '#{username}' not found"
-    exit 1
-  end
+  return user if user
 
+  puts "✗ User '#{username}' not found"
+  exit 1
+end
+
+def validate_lottery_category
   category_id = SiteSetting.vzekc_verlosung_category_id
-  if category_id.blank?
-    puts '✗ vzekc_verlosung_category_id not configured'
-    exit 1
+  return category_id.to_i if category_id.present?
+
+  puts '✗ vzekc_verlosung_category_id not configured'
+  exit 1
+end
+
+def test_lottery_packets
+  [
+    { title: 'Commodore 64 mit Datasette' },
+    { title: 'Amiga 500 Bundle' },
+    { title: 'Atari ST 1040' },
+    { title: 'Apple IIe' },
+    { title: 'ZX Spectrum +2' },
+    { title: 'IBM PS/2 Model 30' }
+  ]
+end
+
+def lottery_creation_params(user, category_id)
+  {
+    user: user,
+    guardian: Guardian.new(user),
+    params: {
+      title: "Test Verlosung #{Time.zone.now.strftime('%Y-%m-%d %H:%M')}",
+      duration_days: 14,
+      category_id: category_id,
+      packets: test_lottery_packets
+    }
+  }
+end
+
+def handle_lottery_result(result)
+  return result.main_topic if result.success?
+
+  puts "✗ Failed to create lottery: #{result.inspect}"
+  exit 1
+end
+
+def create_lottery(username)
+  user = validate_lottery_user(username)
+  category_id = validate_lottery_category
+  params = lottery_creation_params(user, category_id)
+  result = VzekcVerlosung::CreateLottery.call(params)
+  topic = handle_lottery_result(result)
+  puts "✓ Created lottery topic #{topic.id}: #{topic.title}"
+  puts "  URL: #{topic.url}"
+  topic.id
+end
+
+def find_packet_posts(topic)
+  Post.where(topic_id: topic.id).order(:post_number).select do |p|
+    p.custom_fields['is_lottery_packet'] == true
   end
+end
 
-  result =
-    VzekcVerlosung::CreateLottery.call(
-      user: user,
-      guardian: Guardian.new(user),
-      params: {
-        title: "Test Verlosung #{Time.zone.now.strftime('%Y-%m-%d %H:%M')}",
-        duration_days: 14,
-        category_id: category_id.to_i,
-        packets: [
-          { title: 'Commodore 64 mit Datasette' },
-          { title: 'Amiga 500 Bundle' },
-          { title: 'Atari ST 1040' },
-          { title: 'Apple IIe' },
-          { title: 'ZX Spectrum +2' },
-          { title: 'IBM PS/2 Model 30' }
-        ]
-      }
+def buy_user_tickets(user, packet_posts)
+  num_packets = rand(1..5)
+  selected = packet_posts.sample(num_packets)
+  selected.count do |packet_post|
+    ticket = VzekcVerlosung::LotteryTicket.find_or_create_by(
+      post_id: packet_post.id,
+      user_id: user.id
     )
+    ticket.previously_new_record?
+  end
+end
 
-  if result.success?
-    topic = result.main_topic
-    puts "✓ Created lottery topic #{topic.id}: #{topic.title}"
-    puts "  URL: #{topic.url}"
-    topic.id
-  else
-    puts "✗ Failed to create lottery: #{result.inspect}"
-    exit 1
+def print_ticket_summary(packet_posts)
+  packet_posts.each do |post|
+    tickets = VzekcVerlosung::LotteryTicket.where(post_id: post.id)
+    unique_users = tickets.pluck(:user_id).uniq.count
+    puts "  Packet ##{post.post_number}: #{tickets.count} tickets, #{unique_users} users"
   end
 end
 
 def add_participants(topic_id, num_users = 30)
   topic = Topic.find(topic_id)
-  packet_posts =
-    Post
-    .where(topic_id: topic.id)
-    .order(:post_number)
-    .select { |p| p.custom_fields['is_lottery_packet'] == true }
-
+  packet_posts = find_packet_posts(topic)
   puts "Found #{packet_posts.count} packets"
 
   users = User.where('id > ?', 0).where.not(id: [-1, -2]).limit(num_users).to_a
   puts "Adding tickets from #{users.count} users..."
 
   ticket_count = 0
-  users.each do |user|
-    num_packets = rand(1..5)
-    selected_packets = packet_posts.sample(num_packets)
-
-    selected_packets.each do |packet_post|
-      # Users can only have 1 ticket per packet (enforced by uniqueness constraint)
-      ticket =
-        VzekcVerlosung::LotteryTicket.find_or_create_by(post_id: packet_post.id, user_id: user.id)
-      ticket_count += 1 if ticket.previously_new_record?
-    end
-  end
+  users.each { |user| ticket_count += buy_user_tickets(user, packet_posts) }
 
   puts "✓ Added #{ticket_count} tickets"
+  print_ticket_summary(packet_posts)
+end
 
-  # Show summary
-  packet_posts.each do |post|
-    tickets = VzekcVerlosung::LotteryTicket.where(post_id: post.id)
-    unique_users = tickets.pluck(:user_id).uniq.count
-    post.raw.lines.first.to_s.gsub(/^#\s*/, '').strip
-    puts "  Packet ##{post.post_number}: #{tickets.count} tickets, #{unique_users} users"
-  end
+def validate_draft_state(topic)
+  return if topic.custom_fields['lottery_state'] == 'draft'
+
+  puts "✗ Lottery is not in draft state (current: #{topic.custom_fields['lottery_state']})"
+  exit 1
 end
 
 def publish_lottery(topic_id)
   topic = Topic.find(topic_id)
-
-  if topic.custom_fields['lottery_state'] != 'draft'
-    puts "✗ Lottery is not in draft state (current: #{topic.custom_fields['lottery_state']})"
-    exit 1
-  end
-
+  validate_draft_state(topic)
   topic.custom_fields['lottery_state'] = 'active'
   topic.custom_fields['lottery_ends_at'] = 2.weeks.from_now
   topic.save_custom_fields
-
   puts "✓ Published lottery #{topic_id}"
   puts "  Ends at: #{topic.custom_fields['lottery_ends_at']}"
 end
@@ -154,13 +174,34 @@ def delete_lottery(topic_id)
   puts "✓ Deleted lottery topic #{topic_id} (#{ticket_count} tickets removed)"
 end
 
+def recent_lottery_topics
+  Topic.joins(:_custom_fields)
+       .where(topic_custom_fields: { name: 'lottery_state' })
+       .order(created_at: :desc)
+       .limit(20)
+end
+
+def count_lottery_packets(topic_id)
+  Post.where(topic_id: topic_id).count do |p|
+    p.custom_fields['is_lottery_packet'] == true
+  end
+end
+
+def count_lottery_tickets(topic_id)
+  VzekcVerlosung::LotteryTicket.joins(:post).where(posts: { topic_id: topic_id }).count
+end
+
+def print_lottery_info(topic)
+  state = topic.custom_fields['lottery_state']
+  packet_count = count_lottery_packets(topic.id)
+  ticket_count = count_lottery_tickets(topic.id)
+
+  puts "  [#{topic.id}] #{topic.title}"
+  puts "       State: #{state} | Packets: #{packet_count} | Tickets: #{ticket_count}"
+end
+
 def list_lotteries
-  topics =
-    Topic
-    .joins(:_custom_fields)
-    .where(topic_custom_fields: { name: 'lottery_state' })
-    .order(created_at: :desc)
-    .limit(20)
+  topics = recent_lottery_topics
 
   if topics.empty?
     puts 'No lotteries found'
@@ -169,16 +210,7 @@ def list_lotteries
 
   puts 'Recent lotteries:'
   puts ''
-  topics.each do |topic|
-    state = topic.custom_fields['lottery_state']
-    packet_count =
-      Post.where(topic_id: topic.id).count { |p| p.custom_fields['is_lottery_packet'] == true }
-    ticket_count =
-      VzekcVerlosung::LotteryTicket.joins(:post).where(posts: { topic_id: topic.id }).count
-
-    puts "  [#{topic.id}] #{topic.title}"
-    puts "       State: #{state} | Packets: #{packet_count} | Tickets: #{ticket_count}"
-  end
+  topics.each { |topic| print_lottery_info(topic) }
 end
 
 # Main command dispatcher

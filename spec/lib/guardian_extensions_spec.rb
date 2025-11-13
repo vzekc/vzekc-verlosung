@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 RSpec.describe VzekcVerlosung::GuardianExtensions do
-  fab!(:user)
-  fab!(:other_user, :user)
+  fab!(:user) { Fabricate(:user, trust_level: TrustLevel[2]) }
+  fab!(:other_user) { Fabricate(:user, trust_level: TrustLevel[2]) }
   fab!(:admin)
   fab!(:category)
 
@@ -10,7 +10,8 @@ RSpec.describe VzekcVerlosung::GuardianExtensions do
     VzekcVerlosung::CreateLottery.call(
       params: {
         title: "Test Lottery",
-        description: "Test description",
+        display_id: 500,
+        duration_days: 14,
         category_id: category.id,
         packets: [{ title: "Packet 1", description: "Content" }],
       },
@@ -22,6 +23,18 @@ RSpec.describe VzekcVerlosung::GuardianExtensions do
   let!(:published_topic) do
     topic = Fabricate(:topic, user: user, category: category)
     topic
+  end
+
+  # Force lottery creation before tests
+  before { draft_topic }
+
+  describe "setup" do
+    it "creates a draft lottery" do
+      expect(lottery_result).to be_success
+      lottery = VzekcVerlosung::Lottery.find_by(topic_id: draft_topic.id)
+      expect(lottery).to be_present
+      expect(lottery.state).to eq("draft")
+    end
   end
 
   describe "#can_create_post_in_lottery_draft?" do

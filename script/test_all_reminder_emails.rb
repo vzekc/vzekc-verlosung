@@ -46,7 +46,7 @@ if group
 else
   puts "  WARNING: 'Vereinsmitglieder' group not found, using admin users instead"
   test_users = User.where(admin: true).limit(5).to_a
-  test_users << test_users[0] if test_users.any? while test_users.size < 5
+  test_users << test_users[0] while test_users.any? && test_users.size < 5
 end
 
 if test_users.empty?

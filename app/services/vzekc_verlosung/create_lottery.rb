@@ -92,6 +92,10 @@ module VzekcVerlosung
         fail!("Failed to create main topic: #{post_creator.errors.full_messages.join(", ")}")
       end
 
+      # Mark intro post
+      post.custom_fields["is_lottery_intro"] = true
+      post.save_custom_fields
+
       # Create lottery record for this topic
       lottery =
         Lottery.create!(

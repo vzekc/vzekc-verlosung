@@ -5,20 +5,16 @@
 #
 # If no username is provided, randomly selects 4 different users from the "vereinsmitglied" group
 
-def get_random_vereinsmitglieder(count)
-  group = Group.find_by(name: 'vereinsmitglied')
-  unless group
-    puts "✗ Group 'vereinsmitglied' not found"
-    exit 1
-  end
-
+def random_vereinsmitglieder(count)
+  group = Group.find_by(name: 'vereinsmitglied') ||
+          (puts("✗ Group 'vereinsmitglied' not found") && exit(1))
   members = group.users.where('users.id > 0').to_a
   if members.count < count
     puts "⚠ Warning: Only #{members.count} members in vereinsmitglied group, need #{count}"
-    return members
+    members
+  else
+    members.sample(count)
   end
-
-  members.sample(count)
 end
 
 username = ARGV[0]
@@ -31,7 +27,7 @@ if username
   end
   puts "Using specified user: #{users.first.username} (ID: #{users.first.id}) for all lotteries"
 else
-  users = get_random_vereinsmitglieder(4)
+  users = random_vereinsmitglieder(4)
   puts 'Selected 4 random users from vereinsmitglied group:'
   users.each_with_index do |user, i|
     puts "  #{i + 1}. #{user.username} (ID: #{user.id})"
@@ -56,7 +52,7 @@ created_lotteries = []
 # ============================================================================
 # Lottery 1: Business Liquidation - Office Equipment
 # ============================================================================
-puts "\n" + '=' * 80
+puts "\n#{'=' * 80}"
 puts 'Creating Lottery 1: IT-Firma Liquidation...'
 puts '=' * 80
 
@@ -122,7 +118,7 @@ end
 # ============================================================================
 # Lottery 2: Private Collector - Home Computer Collection
 # ============================================================================
-puts "\n" + '=' * 80
+puts "\n#{'=' * 80}"
 puts 'Creating Lottery 2: Sammler-Nachlass...'
 puts '=' * 80
 
@@ -189,7 +185,7 @@ end
 # ============================================================================
 # Lottery 3: Estate/Inheritance - IBM PC Collection
 # ============================================================================
-puts "\n" + '=' * 80
+puts "\n#{'=' * 80}"
 puts 'Creating Lottery 3: Nachlass eines PC-Pioniers...'
 puts '=' * 80
 
@@ -258,7 +254,7 @@ end
 # ============================================================================
 # Lottery 4: School Donation - Educational Hardware
 # ============================================================================
-puts "\n" + '=' * 80
+puts "\n#{'=' * 80}"
 puts 'Creating Lottery 4: Schulspende...'
 puts '=' * 80
 
@@ -327,7 +323,7 @@ end
 # ============================================================================
 # Summary
 # ============================================================================
-puts "\n" + '=' * 80
+puts "\n#{'=' * 80}"
 puts 'SUMMARY'
 puts '=' * 80
 puts ''

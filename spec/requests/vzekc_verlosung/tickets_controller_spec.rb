@@ -6,20 +6,28 @@ describe VzekcVerlosung::TicketsController do
   fab!(:user)
   fab!(:admin)
   fab!(:topic) { Fabricate(:topic, user: admin) }
-
-  before do
-    SiteSetting.vzekc_verlosung_enabled = true
-    topic.custom_fields["lottery_state"] = "active"
-    topic.custom_fields["lottery_ends_at"] = 1.week.from_now
-    topic.save_custom_fields(true)
+  let!(:lottery) do
+    VzekcVerlosung::Lottery.create!(
+      topic_id: topic.id,
+      display_id: 500,
+      state: "active",
+      duration_days: 14,
+    )
   end
 
+  before { SiteSetting.vzekc_verlosung_enabled = true }
+
   describe "#create" do
-    let!(:lottery_post) do
-      lottery_post = Fabricate(:post, topic: topic, user: admin)
-      lottery_post.custom_fields["is_lottery_packet"] = true
-      lottery_post.save_custom_fields(true)
-      lottery_post
+    let!(:lottery_post) { Fabricate(:post, topic: topic, user: admin) }
+    let!(:lottery_packet) do
+      VzekcVerlosung::LotteryPacket.create!(
+        lottery_id: lottery.id,
+        post_id: lottery_post.id,
+        ordinal: 1,
+        title: "Test Packet",
+        erhaltungsbericht_required: true,
+        abholerpaket: false,
+      )
     end
 
     context "when user is not logged in" do
@@ -50,10 +58,7 @@ describe VzekcVerlosung::TicketsController do
       end
 
       context "when lottery is in draft state" do
-        before do
-          topic.custom_fields["lottery_state"] = "draft"
-          topic.save_custom_fields(true)
-        end
+        before { lottery.update!(state: "draft") }
 
         it "prevents ticket purchase" do
           expect {
@@ -67,10 +72,7 @@ describe VzekcVerlosung::TicketsController do
       end
 
       context "when lottery is finished" do
-        before do
-          topic.custom_fields["lottery_state"] = "finished"
-          topic.save_custom_fields(true)
-        end
+        before { lottery.update!(state: "finished") }
 
         it "prevents ticket purchase" do
           expect {
@@ -84,10 +86,7 @@ describe VzekcVerlosung::TicketsController do
       end
 
       context "when lottery has ended" do
-        before do
-          topic.custom_fields["lottery_ends_at"] = 1.day.ago
-          topic.save_custom_fields(true)
-        end
+        before { lottery.update!(ends_at: 1.day.ago) }
 
         it "prevents ticket purchase" do
           expect {
@@ -115,11 +114,16 @@ describe VzekcVerlosung::TicketsController do
   end
 
   describe "#destroy" do
-    let!(:lottery_post) do
-      lottery_post = Fabricate(:post, topic: topic, user: admin)
-      lottery_post.custom_fields["is_lottery_packet"] = true
-      lottery_post.save_custom_fields(true)
-      lottery_post
+    let!(:lottery_post) { Fabricate(:post, topic: topic, user: admin) }
+    let!(:lottery_packet) do
+      VzekcVerlosung::LotteryPacket.create!(
+        lottery_id: lottery.id,
+        post_id: lottery_post.id,
+        ordinal: 1,
+        title: "Test Packet",
+        erhaltungsbericht_required: true,
+        abholerpaket: false,
+      )
     end
     let!(:ticket) do
       VzekcVerlosung::LotteryTicket.create!(post_id: lottery_post.id, user_id: user.id)
@@ -152,10 +156,7 @@ describe VzekcVerlosung::TicketsController do
       end
 
       context "when lottery is in draft state" do
-        before do
-          topic.custom_fields["lottery_state"] = "draft"
-          topic.save_custom_fields(true)
-        end
+        before { lottery.update!(state: "draft") }
 
         it "prevents ticket return" do
           expect { delete "/vzekc-verlosung/tickets/#{lottery_post.id}.json" }.not_to change {
@@ -169,10 +170,7 @@ describe VzekcVerlosung::TicketsController do
       end
 
       context "when lottery is finished" do
-        before do
-          topic.custom_fields["lottery_state"] = "finished"
-          topic.save_custom_fields(true)
-        end
+        before { lottery.update!(state: "finished") }
 
         it "prevents ticket return" do
           expect { delete "/vzekc-verlosung/tickets/#{lottery_post.id}.json" }.not_to change {
@@ -186,10 +184,7 @@ describe VzekcVerlosung::TicketsController do
       end
 
       context "when lottery has ended" do
-        before do
-          topic.custom_fields["lottery_ends_at"] = 1.day.ago
-          topic.save_custom_fields(true)
-        end
+        before { lottery.update!(ends_at: 1.day.ago) }
 
         it "prevents ticket return" do
           expect { delete "/vzekc-verlosung/tickets/#{lottery_post.id}.json" }.not_to change {
@@ -205,11 +200,16 @@ describe VzekcVerlosung::TicketsController do
   end
 
   describe "#packet_status" do
-    let!(:lottery_post) do
-      lottery_post = Fabricate(:post, topic: topic, user: admin)
-      lottery_post.custom_fields["is_lottery_packet"] = true
-      lottery_post.save_custom_fields(true)
-      lottery_post
+    let!(:lottery_post) { Fabricate(:post, topic: topic, user: admin) }
+    let!(:lottery_packet) do
+      VzekcVerlosung::LotteryPacket.create!(
+        lottery_id: lottery.id,
+        post_id: lottery_post.id,
+        ordinal: 1,
+        title: "Test Packet",
+        erhaltungsbericht_required: true,
+        abholerpaket: false,
+      )
     end
 
     context "when user is not logged in" do

@@ -2,6 +2,15 @@
 
 module VzekcVerlosung
   module GuardianExtensions
+    # Override can_create_post to check lottery draft status
+    #
+    # @param topic [Topic] the topic to check
+    # @return [Boolean] true if user can post, false otherwise
+    def can_create_post?(topic)
+      return false unless super
+      can_create_post_in_lottery_draft?(topic)
+    end
+
     # Check if user can create a post in a lottery draft topic
     #
     # @param topic [Topic] the topic to check
@@ -10,7 +19,7 @@ module VzekcVerlosung
       lottery = VzekcVerlosung::Lottery.find_by(topic_id: topic&.id)
       return true unless lottery&.draft?
       return true if is_staff?
-      return true if topic.user_id == @user&.id
+      return true if @user && !is_anonymous? && topic.user_id == @user.id
 
       false
     end

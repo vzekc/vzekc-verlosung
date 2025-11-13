@@ -1,29 +1,32 @@
 # frozen_string_literal: true
 
 RSpec.describe VzekcVerlosung::CreateLottery do
-  fab!(:user)
+  fab!(:user) { Fabricate(:user, trust_level: TrustLevel[2]) }
   fab!(:category)
 
   let(:valid_params) do
     {
       user: user,
       guardian: Guardian.new(user),
-      title: "Hardware Verlosung Januar 2025",
-      description: "Eine tolle Verlosung mit vielen Preisen",
-      category_id: category.id,
-      packets: [
-        { "title" => "Packet 1", "description" => "Inhalt 1" },
-        { "title" => "Packet 2", "description" => "Inhalt 2" },
-      ],
+      params: {
+        title: "Hardware Verlosung Januar 2025",
+        display_id: 500,
+        duration_days: 14,
+        category_id: category.id,
+        packets: [
+          { "title" => "Packet 1", "description" => "Inhalt 1" },
+          { "title" => "Packet 2", "description" => "Inhalt 2" },
+        ],
+      },
     }
   end
 
   describe "#call" do
     context "when user can create topics" do
-      it "creates main topic and packet topics" do
-        expect { described_class.call(**valid_params) }.to change { Topic.count }.by(3).and change {
+      it "creates main topic and packet posts" do
+        expect { described_class.call(**valid_params) }.to change { Topic.count }.by(1).and change {
                 Post.count
-              }.by(3)
+              }.by(4) # intro post + abholerpaket + 2 user packets
       end
 
       it "returns success with main topic" do
@@ -37,7 +40,8 @@ RSpec.describe VzekcVerlosung::CreateLottery do
       it "marks the main topic as a draft" do
         result = described_class.call(**valid_params)
 
-        expect(result.main_topic.custom_fields["lottery_state"]).to eq("draft")
+        lottery = VzekcVerlosung::Lottery.find_by(topic_id: result.main_topic.id)
+        expect(lottery.state).to eq("draft")
       end
 
       it "marks the intro post with is_lottery_intro" do
@@ -47,28 +51,21 @@ RSpec.describe VzekcVerlosung::CreateLottery do
         expect(intro_post.custom_fields["is_lottery_intro"]).to eq(true)
       end
 
-      it "creates packet topics in the same category" do
+      it "creates packet posts in the main topic" do
         result = described_class.call(**valid_params)
 
-        packet_topics = Topic.where(category_id: category.id).where.not(id: result.main_topic.id)
-        expect(packet_topics.count).to eq(2)
-        expect(packet_topics.pluck(:title)).to contain_exactly("Packet 1", "Packet 2")
+        lottery_packets = VzekcVerlosung::LotteryPacket.where(lottery_id: result.lottery.id)
+        expect(lottery_packets.count).to eq(3) # abholerpaket + 2 user packets
+        user_packets = lottery_packets.where(abholerpaket: false)
+        expect(user_packets.pluck(:title)).to contain_exactly("Packet 1", "Packet 2")
       end
 
-      it "updates main topic with links to packet topics" do
+      it "creates posts with packet content" do
         result = described_class.call(**valid_params)
 
-        main_post_content = result.main_topic.first_post.raw
-        expect(main_post_content).to include("## Pakete")
-        expect(main_post_content).to include("[Packet 1]")
-        expect(main_post_content).to include("[Packet 2]")
-      end
-
-      it "includes image in packet post when image_url provided" do
-        result = described_class.call(**valid_params)
-
-        packet_with_image = Topic.find_by(title: "Packet 2")
-        expect(packet_with_image.first_post.raw).to include("![](https://example.com/image.jpg)")
+        packet_posts = result.main_topic.posts.where.not(post_number: 1)
+        expect(packet_posts.count).to eq(3) # abholerpaket + 2 user packets
+        expect(packet_posts.map(&:raw)).to include(match(/Packet 1/), match(/Packet 2/))
       end
     end
 
@@ -76,7 +73,7 @@ RSpec.describe VzekcVerlosung::CreateLottery do
       fab!(:readonly_category) { Fabricate(:private_category, group: Fabricate(:group)) }
 
       let(:params_with_readonly_category) do
-        valid_params.merge(category_id: readonly_category.id)
+        valid_params.merge(params: valid_params[:params].merge(category_id: readonly_category.id))
       end
 
       it "fails with policy error" do
@@ -88,21 +85,22 @@ RSpec.describe VzekcVerlosung::CreateLottery do
 
     context "with invalid params" do
       it "fails when title is missing" do
-        invalid_params = valid_params.merge(title: "")
+        invalid_params = valid_params.merge(params: valid_params[:params].merge(title: ""))
         result = described_class.call(**invalid_params)
 
         expect(result).to be_failure
       end
 
       it "fails when packets array is empty" do
-        invalid_params = valid_params.merge(packets: [])
+        invalid_params = valid_params.merge(params: valid_params[:params].merge(packets: []))
         result = described_class.call(**invalid_params)
 
         expect(result).to be_failure
       end
 
       it "fails when category does not exist" do
-        invalid_params = valid_params.merge(category_id: 99_999)
+        invalid_params =
+          valid_params.merge(params: valid_params[:params].merge(category_id: 99_999))
         result = described_class.call(**invalid_params)
 
         expect(result).to be_failure

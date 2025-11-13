@@ -58,7 +58,9 @@ if result.success?
   puts ''
   puts 'Next steps:'
   puts "  1. Edit the lottery description at #{topic.url}"
-  puts "  2. Add test participants: LOAD_PLUGINS=1 bundle exec rails runner plugins/vzekc-verlosung/script/add_test_participants.rb #{topic.id}"
+  puts '  2. Add test participants:'
+  script_path = 'plugins/vzekc-verlosung/script/add_test_participants.rb'
+  puts "     LOAD_PLUGINS=1 bundle exec rails runner #{script_path} #{topic.id}"
   puts '  3. Publish the lottery (via UI or script)'
 else
   puts ''

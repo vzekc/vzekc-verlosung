@@ -143,7 +143,7 @@ Topic
   .where(deleted_at: nil)
   .joins(:_custom_fields)
   .where(topic_custom_fields: { name: 'lottery_state', value: 'active' })
-  .each do |t|
+  .find_each do |t|
     if t.lottery_ends_at && t.lottery_ends_at <= Time.zone.now && !t.lottery_drawn?
       puts "  - #{t.title} (ended: #{t.lottery_ends_at}, user: #{t.user.username})"
       ended_count += 1

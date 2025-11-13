@@ -67,7 +67,7 @@ puts '=' * 80
 puts ''
 
 print "Type 'DELETE' to confirm: "
-confirmation = STDIN.gets.chomp
+confirmation = $stdin.gets.chomp
 
 if confirmation != 'DELETE'
   puts 'Cancelled.'

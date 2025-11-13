@@ -6,68 +6,65 @@
 # If no username is provided, randomly selects 4 different users from the "vereinsmitglieder" group
 # Ensures one packet per lottery has NO tickets for testing purposes
 
-def get_random_vereinsmitglieder(count)
-  group = Group.find_by(name: 'vereinsmitglieder')
-  unless group
-    puts "✗ Group 'vereinsmitglieder' not found"
-    exit 1
-  end
-
+def random_vereinsmitglieder(count)
+  group = Group.find_by(name: 'vereinsmitglieder') ||
+          (puts("✗ Group 'vereinsmitglieder' not found") && exit(1))
   members = group.users.where('users.id > 0').to_a
   if members.count < count
     puts "⚠ Warning: Only #{members.count} members in vereinsmitglieder group, need #{count}"
-    return members
+    members
+  else
+    members.sample(count)
   end
-
-  members.sample(count)
 end
 
-def get_participant_pool
-  # Get users excluding system users and lottery owners
+def participant_pool
   User.where('id > 0').where.not(id: [-1, -2]).limit(50).to_a
 end
 
-def add_participants_to_lottery(topic, participant_pool, exclude_one_packet: true)
-  packet_posts =
-    Post
-    .where(topic_id: topic.id)
-    .order(:post_number)
-    .select { |p| p.custom_fields['is_lottery_packet'] == true }
-
-  puts "  Found #{packet_posts.count} packets"
-
-  # Select one random packet to exclude from ticket sales
-  excluded_packet = exclude_one_packet ? packet_posts.sample : nil
-  if excluded_packet
-    excluded_title = excluded_packet.raw.lines.first.to_s.gsub(/^#\s*/, '').strip
-    puts "  ⚠ Excluding packet ##{excluded_packet.post_number} (#{excluded_title}) from ticket sales"
+def lottery_packets(topic)
+  Post.where(topic_id: topic.id).order(:post_number).select do |p|
+    p.custom_fields['is_lottery_packet'] == true
   end
+end
 
-  ticket_count = 0
-  available_packets = excluded_packet ? packet_posts - [excluded_packet] : packet_posts
+def select_excluded_packet(packet_posts, exclude_one_packet)
+  return nil unless exclude_one_packet
 
-  # Each participant buys 1-5 random tickets
-  participant_pool.shuffle.each do |user|
-    num_packets = rand(1..5)
-    selected_packets = available_packets.sample([num_packets, available_packets.length].min)
+  excluded = packet_posts.sample
+  title = excluded.raw.lines.first.to_s.gsub(/^#\s*/, '').strip
+  puts "  ⚠ Excluding packet ##{excluded.post_number} (#{title}) from ticket sales"
+  excluded
+end
 
-    selected_packets.each do |packet_post|
-      ticket =
-        VzekcVerlosung::LotteryTicket.find_or_create_by(post_id: packet_post.id, user_id: user.id)
-      ticket_count += 1 if ticket.previously_new_record?
-    end
+def buy_tickets_for_user(user, available_packets)
+  num_packets = rand(1..5)
+  selected = available_packets.sample([num_packets, available_packets.length].min)
+  selected.count do |packet_post|
+    ticket = VzekcVerlosung::LotteryTicket.find_or_create_by(
+      post_id: packet_post.id,
+      user_id: user.id
+    )
+    ticket.previously_new_record?
   end
+end
 
-  puts "  ✓ Added #{ticket_count} tickets from #{participant_pool.count} participants"
-
-  # Show summary
+def print_packet_summary(packet_posts, excluded_packet)
   packet_posts.each do |post|
     tickets = VzekcVerlosung::LotteryTicket.where(post_id: post.id)
-    post.raw.lines.first.to_s.gsub(/^#\s*/, '').strip
     status = post == excluded_packet ? ' [NO TICKETS]' : ''
     puts "    Packet ##{post.post_number}: #{tickets.count} tickets#{status}"
   end
+end
 
+def add_participants_to_lottery(topic, pool, exclude_one_packet: true)
+  packet_posts = lottery_packets(topic)
+  puts "  Found #{packet_posts.count} packets"
+  excluded_packet = select_excluded_packet(packet_posts, exclude_one_packet)
+  available_packets = excluded_packet ? packet_posts - [excluded_packet] : packet_posts
+  ticket_count = pool.shuffle.sum { |user| buy_tickets_for_user(user, available_packets) }
+  puts "  ✓ Added #{ticket_count} tickets from #{pool.count} participants"
+  print_packet_summary(packet_posts, excluded_packet)
   puts ''
 end
 
@@ -97,7 +94,7 @@ if username
   end
   puts "Using specified user: #{users.first.username} (ID: #{users.first.id}) for all lotteries"
 else
-  users = get_random_vereinsmitglieder(4)
+  users = random_vereinsmitglieder(4)
   puts 'Selected 4 random lottery owners from Vereinsmitglieder group:'
   users.each_with_index do |user, i|
     puts "  #{i + 1}. #{user.username} (ID: #{user.id})"
@@ -113,8 +110,8 @@ if category_id.blank?
 end
 
 # Get participant pool
-participant_pool = get_participant_pool
-puts "Participant pool: #{participant_pool.count} users"
+pool = participant_pool
+puts "Participant pool: #{pool.count} users"
 puts ''
 
 created_lotteries = []
@@ -180,7 +177,7 @@ if result1.success?
   topic1.first_post.revise(users[0], raw: description1, edit_reason: 'Initial description')
   puts "✓ Created: #{topic1.title} (ID: #{topic1.id})"
 
-  add_participants_to_lottery(topic1, participant_pool, exclude_one_packet: true)
+  add_participants_to_lottery(topic1, pool, exclude_one_packet: true)
   publish_lottery(topic1)
 
   created_lotteries << topic1
@@ -252,7 +249,7 @@ if result2.success?
   topic2.first_post.revise(users[1], raw: description2, edit_reason: 'Initial description')
   puts "✓ Created: #{topic2.title} (ID: #{topic2.id})"
 
-  add_participants_to_lottery(topic2, participant_pool, exclude_one_packet: true)
+  add_participants_to_lottery(topic2, pool, exclude_one_packet: true)
   publish_lottery(topic2)
 
   created_lotteries << topic2
@@ -326,7 +323,7 @@ if result3.success?
   topic3.first_post.revise(users[2], raw: description3, edit_reason: 'Initial description')
   puts "✓ Created: #{topic3.title} (ID: #{topic3.id})"
 
-  add_participants_to_lottery(topic3, participant_pool, exclude_one_packet: true)
+  add_participants_to_lottery(topic3, pool, exclude_one_packet: true)
   publish_lottery(topic3)
 
   created_lotteries << topic3
@@ -400,7 +397,7 @@ if result4.success?
   topic4.first_post.revise(users[3], raw: description4, edit_reason: 'Initial description')
   puts "✓ Created: #{topic4.title} (ID: #{topic4.id})"
 
-  add_participants_to_lottery(topic4, participant_pool, exclude_one_packet: true)
+  add_participants_to_lottery(topic4, pool, exclude_one_packet: true)
   publish_lottery(topic4)
 
   created_lotteries << topic4

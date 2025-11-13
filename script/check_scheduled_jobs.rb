@@ -21,7 +21,7 @@ puts ''
 # Check current time
 puts '2. TIME INFORMATION'
 puts '-' * 80
-puts "Current server time: #{Time.now}"
+puts "Current server time: #{Time.zone.now}"
 puts "Current zone time: #{Time.zone.now}"
 puts "Current hour: #{Time.zone.now.hour}"
 puts "Configured reminder hour: #{SiteSetting.vzekc_verlosung_reminder_hour || 7}"
@@ -58,8 +58,8 @@ job_classes.each do |job_class|
   schedule_info = job_class.schedule_info
   puts "#{job_class.name}:"
   puts "  Valid: #{schedule_info.valid?}"
-  puts "  Next run: #{schedule_info.next_run ? Time.at(schedule_info.next_run) : 'not scheduled'}"
-  puts "  Prev run: #{schedule_info.prev_run ? Time.at(schedule_info.prev_run) : 'never'}"
+  puts "  Next run: #{schedule_info.next_run ? Time.zone.at(schedule_info.next_run) : 'not scheduled'}"
+  puts "  Prev run: #{schedule_info.prev_run ? Time.zone.at(schedule_info.prev_run) : 'never'}"
   puts "  Prev result: #{schedule_info.prev_result}"
   puts "  Prev duration: #{schedule_info.prev_duration}s" if schedule_info.prev_duration
   puts ''
