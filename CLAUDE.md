@@ -14,6 +14,7 @@ Discourse is large with long history. Understand context before changes.
 - Run `bundle exec rubocop plugin.rb app/ lib/ spec/` to verify main code passes
 - Make display strings translatable (use placeholders, not split strings)
 - Create subagent to review changes against this file after completing tasks
+- **NEVER use git rebase** - repo may be pushed from multiple places, rewriting history causes conflicts
 
 ### Toolset
 - Use `pnpm` for JavaScript, `bundle` for Ruby
