@@ -44,13 +44,6 @@ RSpec.describe VzekcVerlosung::CreateLottery do
         expect(lottery.state).to eq("draft")
       end
 
-      it "marks the intro post with is_lottery_intro" do
-        result = described_class.call(**valid_params)
-
-        intro_post = result.main_topic.first_post
-        expect(intro_post.custom_fields["is_lottery_intro"]).to eq(true)
-      end
-
       it "creates packet posts in the main topic" do
         result = described_class.call(**valid_params)
 

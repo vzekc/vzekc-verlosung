@@ -188,10 +188,11 @@ puts JSON.pretty_generate(topic.lottery_results)
 - `lottery_results` (JSON): Full drawing results from lottery.js
 - `lottery_drawn_at` (datetime): When the drawing was performed
 
-**Post Custom Fields**:
-- `is_lottery_intro` (boolean): Marks the lottery introduction post
-- `is_lottery_packet` (boolean): Marks a lottery packet post
-- `lottery_winner` (string): Username of the winner (on packet posts)
+**Post Serializer Fields** (computed, not stored as custom fields):
+- `is_lottery_intro` (boolean): True if post_number == 1 in a lottery topic
+- `is_lottery_packet` (boolean): True if post has a LotteryPacket record
+- `is_abholerpaket` (boolean): True if the packet is marked as Abholerpaket
+- `lottery_winner` (string): Username of the packet winner (from LotteryPacket table)
 
 ### Drawing Algorithm
 

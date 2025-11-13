@@ -110,9 +110,6 @@ after_initialize do
   # donation_id: Donation ID (for Erhaltungsberichte created from donations)
   register_topic_custom_field_type("donation_id", :integer)
 
-  # Register is_lottery_intro as boolean for intro post identification
-  register_post_custom_field_type("is_lottery_intro", :boolean)
-
   # Add helper methods to Topic class to safely access lottery fields
   add_to_class(:topic, :lottery_state) { lottery&.state }
 
