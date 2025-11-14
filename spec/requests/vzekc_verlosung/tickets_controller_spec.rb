@@ -94,6 +94,30 @@ describe VzekcVerlosung::TicketsController do
         end
       end
 
+      context "when trying to buy ticket for Abholerpaket" do
+        let!(:abholerpaket_post) { Fabricate(:post, topic: topic, user: admin) }
+        let!(:abholerpaket) do
+          VzekcVerlosung::LotteryPacket.create!(
+            lottery_id: lottery.id,
+            post_id: abholerpaket_post.id,
+            ordinal: 0,
+            title: "Abholerpaket",
+            erhaltungsbericht_required: false,
+            abholerpaket: true,
+          )
+        end
+
+        it "prevents ticket purchase for Abholerpaket" do
+          expect {
+            post "/vzekc-verlosung/tickets.json", params: { post_id: abholerpaket_post.id }
+          }.not_to change { VzekcVerlosung::LotteryTicket.count }
+
+          expect(response.status).to eq(422)
+          json = response.parsed_body
+          expect(json["errors"]).to include("Cannot buy tickets for the Abholerpaket")
+        end
+      end
+
       context "when user already has a ticket" do
         before { VzekcVerlosung::LotteryTicket.create!(post_id: lottery_post.id, user_id: user.id) }
 

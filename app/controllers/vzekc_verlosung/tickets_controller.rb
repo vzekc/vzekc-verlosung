@@ -27,6 +27,17 @@ module VzekcVerlosung
         return render_json_error("Lottery has ended", status: :unprocessable_entity)
       end
 
+      # Prevent buying tickets for Abholerpaket (packet 0)
+      packet = LotteryPacket.find_by(post_id: post.id)
+      if packet&.abholerpaket?
+        return(
+          render_json_error(
+            "Cannot buy tickets for the Abholerpaket",
+            status: :unprocessable_entity,
+          )
+        )
+      end
+
       ticket = VzekcVerlosung::LotteryTicket.new(post_id: post.id, user_id: current_user.id)
 
       if ticket.save
