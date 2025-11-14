@@ -388,9 +388,8 @@ after_initialize do
     end
 
     # Handle Erhaltungsbericht from donation
-    # Note: Discourse automatically renames 'erhaltungsbericht_donation_id' to 'donation_id'
-    # because 'donation_id' is a registered topic custom field
-    erhaltungsbericht_donation_id = opts[:donation_id]&.to_i
+    # Read from erhaltungsbericht_donation_id parameter (sent by erhaltungsbericht-composer.js)
+    erhaltungsbericht_donation_id = opts[:erhaltungsbericht_donation_id]&.to_i
 
     if erhaltungsbericht_donation_id.present?
       # CRITICAL: Check if this is actually an Erhaltungsbericht topic,
