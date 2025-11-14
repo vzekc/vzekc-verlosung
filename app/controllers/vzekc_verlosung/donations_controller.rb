@@ -13,9 +13,15 @@ module VzekcVerlosung
     #
     # @param id [Integer] Donation ID
     #
-    # @return [JSON] Donation details including current state
+    # @return [JSON] Donation details including current state and lottery link if created
     def show
       donation = Donation.find(params[:id])
+
+      lottery_topic = donation.lottery&.topic
+      lottery_data =
+        if lottery_topic
+          { id: donation.lottery.id, topic_id: lottery_topic.id, url: lottery_topic.url }
+        end
 
       render json: {
                donation: {
@@ -24,6 +30,8 @@ module VzekcVerlosung
                  postcode: donation.postcode,
                  creator_user_id: donation.creator_user_id,
                  published_at: donation.published_at,
+                 lottery_id: donation.lottery&.id,
+                 lottery: lottery_data,
                },
              }
     end
