@@ -495,7 +495,7 @@ export default class LotteryWidget extends Component {
                       href={{this.erhaltungsberichtUrl}}
                       class="erhaltungsbericht-link"
                     >
-                      {{icon "file"}}
+                      {{icon "gift"}}
                       <span>{{i18n
                           "vzekc_verlosung.erhaltungsbericht.view_link"
                         }}</span>
@@ -577,7 +577,7 @@ export default class LotteryWidget extends Component {
                       href={{this.erhaltungsberichtUrl}}
                       class="erhaltungsbericht-link"
                     >
-                      {{icon "file"}}
+                      {{icon "gift"}}
                       <span>{{i18n
                           "vzekc_verlosung.erhaltungsbericht.view_link"
                         }}</span>
