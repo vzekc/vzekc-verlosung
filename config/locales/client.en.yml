@@ -59,7 +59,7 @@ en:
         return: "Return Ticket"
         loading: "Loading..."
         winner: "Winner:"
-        abholerpaket: "Pickup Packet:"
+        abholerpaket: "Pickup Packet"
         no_tickets: "No tickets claimed"
         no_winner: "No winner (no tickets were purchased)"
         tickets_bought_for: "Tickets bought for"

@@ -59,7 +59,7 @@ de:
         return: "Los zurückgeben"
         loading: "Lädt..."
         winner: "Gewinner:"
-        abholerpaket: "Abholerpaket:"
+        abholerpaket: "Abholerpaket"
         no_tickets: "Keine Lose beansprucht"
         no_winner: "Kein Gewinner (keine Lose wurden gekauft)"
         tickets_bought_for: "Lose gekauft für"
