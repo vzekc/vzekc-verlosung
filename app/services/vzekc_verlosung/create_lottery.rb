@@ -93,11 +93,6 @@ module VzekcVerlosung
         fail!("Failed to create main topic: #{post_creator.errors.full_messages.join(", ")}")
       end
 
-      # Set custom slug with "-verlosung" suffix to prevent URL collisions with donation topics
-      # Must use update_column to bypass Discourse's automatic slug regeneration
-      custom_slug = "#{params.title.parameterize}-verlosung"
-      post.topic.update_column(:slug, custom_slug)
-
       # Create lottery record for this topic
       lottery =
         Lottery.create!(

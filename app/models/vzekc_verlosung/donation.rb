@@ -94,20 +94,10 @@ module VzekcVerlosung
     end
 
     # Publish the donation (draft → open)
-    # Also sets custom slug with "-spende" suffix to prevent URL collisions
     #
     # @return [Boolean] true if successful
     def publish!
-      transaction do
-        update!(state: "open", published_at: Time.zone.now)
-
-        # Set custom slug with "-spende" suffix to prevent URL collisions with lottery topics
-        # Must use update_column to bypass Discourse's automatic slug regeneration
-        if topic.present?
-          custom_slug = "#{topic.title.parameterize}-spende"
-          topic.update_column(:slug, custom_slug)
-        end
-      end
+      update!(state: "open", published_at: Time.zone.now)
     end
 
     # Assign donation to a specific pickup offer
