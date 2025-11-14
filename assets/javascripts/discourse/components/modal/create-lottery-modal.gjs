@@ -31,6 +31,15 @@ export default class CreateLotteryModal extends Component {
   @tracked isSubmitting = false;
   @tracked lastAddedPacketIndex = 0;
 
+  constructor() {
+    super(...arguments);
+
+    // Pre-fill title from donation if creating lottery from donation
+    if (this.args.model.fromDonation?.topicTitle) {
+      this.title = this.args.model.fromDonation.topicTitle;
+    }
+  }
+
   /**
    * Check if user can submit
    *
@@ -204,21 +213,28 @@ export default class CreateLotteryModal extends Component {
     this.isSubmitting = true;
 
     try {
+      const data = {
+        title: this.title,
+        duration_days: this.durationDays,
+        drawing_mode: this.drawingMode,
+        category_id: this.args.model.categoryId,
+        has_abholerpaket: !this.noAbholerpaket,
+        abholerpaket_title: this.abholerpaketTitle,
+        packets: this.packets.map((p) => ({
+          title: p.title,
+          erhaltungsbericht_required: p.erhaltungsberichtRequired,
+        })),
+      };
+
+      // Include donation_id if creating lottery from donation
+      if (this.args.model.fromDonation?.id) {
+        data.donation_id = this.args.model.fromDonation.id;
+      }
+
       const result = await ajax("/vzekc-verlosung/lotteries", {
         type: "POST",
         contentType: "application/json",
-        data: JSON.stringify({
-          title: this.title,
-          duration_days: this.durationDays,
-          drawing_mode: this.drawingMode,
-          category_id: this.args.model.categoryId,
-          has_abholerpaket: !this.noAbholerpaket,
-          abholerpaket_title: this.abholerpaketTitle,
-          packets: this.packets.map((p) => ({
-            title: p.title,
-            erhaltungsbericht_required: p.erhaltungsberichtRequired,
-          })),
-        }),
+        data: JSON.stringify(data),
       });
 
       this.args.closeModal();
@@ -281,7 +297,10 @@ export default class CreateLotteryModal extends Component {
               {{on "change" (fn this.updateField "drawingMode")}}
               class="lottery-drawing-mode-select"
             >
-              <option value="automatic" selected={{eq this.drawingMode "automatic"}}>
+              <option
+                value="automatic"
+                selected={{eq this.drawingMode "automatic"}}
+              >
                 {{i18n "vzekc_verlosung.modal.drawing_mode_automatic"}}
               </option>
               <option value="manual" selected={{eq this.drawingMode "manual"}}>
