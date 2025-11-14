@@ -224,6 +224,19 @@ after_initialize do
 
   add_to_serializer(:topic_list_item, :lottery_drawing_mode) { object.lottery&.drawing_mode }
 
+  # Register custom field for Erhaltungsbericht donation source
+  register_topic_custom_field_type("donation_id", :integer)
+
+  # Preload donation_id custom field for topic views to prevent N+1 queries
+  TopicView.on_preload do |topic_view|
+    Topic.preload_custom_fields([topic_view.topic], ["donation_id"])
+  end
+
+  # Add helper method to Topic class (CRITICAL - prevents NotPreloadedError)
+  add_to_class(:topic, :erhaltungsbericht_donation_id) do
+    custom_fields["donation_id"]&.to_i
+  end
+
   # Include packet reference fields for Erhaltungsberichte
   # These store which packet an Erhaltungsbericht is about
   add_to_serializer(:topic_view, :packet_post_id) do
@@ -239,14 +252,14 @@ after_initialize do
   end
 
   # Include donation reference field for Erhaltungsberichte from donations
-  # This stores which donation an Erhaltungsbericht is about
+  # Call helper method (NOT custom_fields directly) to avoid NotPreloadedError
   add_to_serializer(:topic_view, :erhaltungsbericht_donation_id) do
-    object.topic.custom_fields["donation_id"]&.to_i
+    object.topic.erhaltungsbericht_donation_id
   end
 
   # Also add to basic_topic serializer so it's available in the post stream
   add_to_serializer(:basic_topic, :erhaltungsbericht_donation_id) do
-    object.custom_fields["donation_id"]&.to_i
+    object.erhaltungsbericht_donation_id
   end
 
   add_to_serializer(:basic_topic, :packet_post_id) do
