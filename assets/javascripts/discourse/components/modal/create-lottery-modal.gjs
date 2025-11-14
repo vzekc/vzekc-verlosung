@@ -11,7 +11,8 @@ import DModal from "discourse/components/d-modal";
 import { ajax } from "discourse/lib/ajax";
 import { popupAjaxError } from "discourse/lib/ajax-error";
 import autoFocus from "discourse/modifiers/auto-focus";
-import { i18n, i18n as i18nFn } from "discourse-i18n";
+import { i18n } from "discourse-i18n";
+import ConfirmLotteryModal from "./confirm-lottery-modal";
 
 /**
  * Modal component for creating a new lottery with multiple packets
@@ -21,6 +22,7 @@ import { i18n, i18n as i18nFn } from "discourse-i18n";
  */
 export default class CreateLotteryModal extends Component {
   @service router;
+  @service modal;
 
   @tracked title = "";
   @tracked durationDays = 14;
@@ -34,8 +36,17 @@ export default class CreateLotteryModal extends Component {
   constructor() {
     super(...arguments);
 
-    // Pre-fill title from donation if creating lottery from donation
-    if (this.args.model.fromDonation?.topicTitle) {
+    // Restore initial data if coming back from confirmation
+    if (this.args.model.initialData) {
+      const data = this.args.model.initialData;
+      this.title = data.title;
+      this.durationDays = data.durationDays;
+      this.drawingMode = data.drawingMode;
+      this.noAbholerpaket = data.noAbholerpaket;
+      this.abholerpaketTitle = data.abholerpaketTitle;
+      this.packets = data.packets;
+    } else if (this.args.model.fromDonation?.topicTitle) {
+      // Pre-fill title from donation if creating lottery from donation
       this.title = this.args.model.fromDonation.topicTitle;
     }
   }
@@ -46,13 +57,24 @@ export default class CreateLotteryModal extends Component {
    * @type {boolean}
    */
   get canSubmit() {
-    return (
+    // Basic validation
+    const basicValid =
       this.title.trim().length >= 3 &&
       this.durationDays >= 7 &&
       this.durationDays <= 28 &&
       this.packets.length > 0 &&
-      this.packets.every((p) => p.title.trim().length > 0)
-    );
+      this.packets.every((p) => p.title.trim().length > 0);
+
+    if (!basicValid) {
+      return false;
+    }
+
+    // Abholerpaket validation: Either has a title OR "Ich behalte kein System" is checked
+    if (!this.noAbholerpaket && this.abholerpaketTitle.trim().length === 0) {
+      return false;
+    }
+
+    return true;
   }
 
   /**
@@ -157,26 +179,6 @@ export default class CreateLotteryModal extends Component {
   }
 
   /**
-   * Get the submit button label
-   *
-   * @type {string}
-   */
-  get submitLabel() {
-    return this.isSubmitting
-      ? i18nFn("vzekc_verlosung.modal.creating")
-      : i18nFn("vzekc_verlosung.modal.create");
-  }
-
-  /**
-   * Get the submit button icon
-   *
-   * @type {string}
-   */
-  get submitIcon() {
-    return this.isSubmitting ? "spinner" : null;
-  }
-
-  /**
    * Prevent Enter key from submitting forms
    *
    * @param {KeyboardEvent} event - Keyboard event
@@ -202,11 +204,60 @@ export default class CreateLotteryModal extends Component {
   }
 
   /**
-   * Submit the lottery creation
+   * Show confirmation modal with lottery details
    */
   @action
-  async submit() {
-    if (this.isSubmitting || !this.canSubmit) {
+  async showConfirmation() {
+    if (!this.canSubmit) {
+      return;
+    }
+
+    // Prepare lottery data for confirmation
+    const lotteryData = {
+      title: this.title,
+      durationDays: this.durationDays,
+      drawingMode: this.drawingMode,
+      noAbholerpaket: this.noAbholerpaket,
+      abholerpaketTitle: this.abholerpaketTitle,
+      packets: this.packets,
+    };
+
+    // Store data for restoration
+    const modalData = {
+      categoryId: this.args.model.categoryId,
+      fromDonation: this.args.model.fromDonation,
+      initialData: lotteryData,
+    };
+
+    await this.modal.show(ConfirmLotteryModal, {
+      model: {
+        lotteryData,
+        onConfirm: () => this.submitLottery(),
+        onBack: () => this.restoreCreateModal(modalData),
+      },
+    });
+  }
+
+  /**
+   * Restore the create modal after going back from confirmation
+   *
+   * @param {Object} modalData - The modal data to restore
+   */
+  async restoreCreateModal(modalData) {
+    await this.modal.show(CreateLotteryModal, {
+      model: {
+        categoryId: modalData.categoryId,
+        fromDonation: modalData.fromDonation,
+        initialData: modalData.initialData,
+      },
+    });
+  }
+
+  /**
+   * Submit the lottery creation (called from confirmation modal)
+   */
+  async submitLottery() {
+    if (this.isSubmitting) {
       return;
     }
 
@@ -406,9 +457,8 @@ export default class CreateLotteryModal extends Component {
 
       <:footer>
         <DButton
-          @action={{this.submit}}
-          @translatedLabel={{this.submitLabel}}
-          @icon={{this.submitIcon}}
+          @action={{this.showConfirmation}}
+          @label="vzekc_verlosung.modal.review_and_create"
           @disabled={{not this.canSubmit}}
           class="btn-primary"
         />
