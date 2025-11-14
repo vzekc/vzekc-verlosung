@@ -6,7 +6,10 @@ export default apiInitializer((api) => {
     (element, helper) => {
       const post = helper.getModel();
 
-      if (!post || !post.is_lottery_intro) {
+      // Only show lottery intro summary if:
+      // 1. Post is a lottery intro
+      // 2. Post is NOT a donation (donations have their own widget)
+      if (!post || !post.is_lottery_intro || post.is_donation_post) {
         return;
       }
 

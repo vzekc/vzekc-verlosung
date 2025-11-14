@@ -519,6 +519,7 @@ module VzekcVerlosung
         :has_abholerpaket,
         :abholerpaket_title,
         :drawing_mode,
+        :donation_id,
         packets: %i[title erhaltungsbericht_required],
       )
     end

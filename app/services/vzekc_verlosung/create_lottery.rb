@@ -27,6 +27,7 @@ module VzekcVerlosung
       attribute :has_abholerpaket, :boolean
       attribute :abholerpaket_title, :string
       attribute :drawing_mode, :string
+      attribute :donation_id, :integer
 
       validates :title, presence: true, length: { minimum: 3, maximum: 255 }
       validates :duration_days,
@@ -99,6 +100,7 @@ module VzekcVerlosung
           state: "draft",
           duration_days: params.duration_days,
           drawing_mode: params.drawing_mode || "automatic",
+          donation_id: params.donation_id,
         )
 
       context[:main_topic] = post.topic

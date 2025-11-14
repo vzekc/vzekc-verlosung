@@ -585,4 +585,68 @@ RSpec.describe "Lottery Full Lifecycle Integration" do
     abholerpaket_in_history = history["packets"].find { |p| p["abholerpaket"] == true }
     expect(abholerpaket_in_history).to be_nil
   end
+
+  it "correctly handles donation topics with lottery created" do
+    # STEP 1: Create a donation
+    donation =
+      VzekcVerlosung::Donation.create!(postcode: "10115", creator_user_id: owner.id, state: "draft")
+
+    post_creator =
+      PostCreator.new(
+        owner,
+        title: "Hardware to give away in 10115",
+        raw: "Some hardware available for pickup",
+        category: category.id,
+        skip_validations: true,
+      )
+    donation_topic_post = post_creator.create
+    donation.update!(topic_id: donation_topic_post.topic_id, state: "picked_up")
+
+    # STEP 2: Check donation_data before lottery creation
+    sign_in(owner)
+    get "/t/#{donation_topic_post.topic_id}.json"
+    expect(response.status).to eq(200)
+    expect(response.parsed_body.dig("post_stream", "posts", 0, "donation_data")).to be_present
+    expect(
+      response.parsed_body.dig("post_stream", "posts", 0, "donation_data", "lottery_id"),
+    ).to be_nil
+    expect(response.parsed_body.dig("post_stream", "posts", 0, "is_donation_post")).to eq(true)
+
+    # STEP 3: Create lottery from donation
+    post "/vzekc-verlosung/lotteries.json",
+         params: {
+           title: "Lottery from donation",
+           category_id: category.id,
+           duration_days: 7,
+           donation_id: donation.id,
+           packets: [{ title: "Hardware Bundle" }],
+         }
+
+    expect(response.status).to eq(200)
+    lottery_response = response.parsed_body
+    lottery_topic_id = lottery_response["main_topic"]["id"]
+    lottery = VzekcVerlosung::Lottery.find_by(topic_id: lottery_topic_id)
+
+    # Verify donation now has lottery_id
+    donation.reload
+    expect(donation.lottery).to eq(lottery)
+
+    # STEP 4: Check donation_data after lottery creation
+    get "/t/#{donation_topic_post.topic_id}.json"
+    expect(response.status).to eq(200)
+    donation_data = response.parsed_body.dig("post_stream", "posts", 0, "donation_data")
+    expect(donation_data).to be_present
+    expect(donation_data["lottery_id"]).to eq(lottery.id)
+
+    # STEP 5: Verify donation topic still shows is_donation_post
+    # Donation topics remain donation topics even after lottery creation
+    expect(response.parsed_body.dig("post_stream", "posts", 0, "is_donation_post")).to eq(true)
+    expect(response.parsed_body.dig("post_stream", "posts", 0, "is_lottery_intro")).to be_falsey
+
+    # STEP 6: Verify the lottery topic shows is_lottery_intro but NOT is_donation_post
+    get "/t/#{lottery_topic_id}.json"
+    expect(response.status).to eq(200)
+    expect(response.parsed_body.dig("post_stream", "posts", 0, "is_donation_post")).to be_falsey
+    expect(response.parsed_body.dig("post_stream", "posts", 0, "is_lottery_intro")).to eq(true)
+  end
 end

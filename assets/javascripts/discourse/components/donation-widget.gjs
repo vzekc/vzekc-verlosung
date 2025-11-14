@@ -220,6 +220,11 @@ export default class DonationWidget extends Component {
       return false;
     }
 
+    // Don't show next steps if lottery already created
+    if (this.donationData.lottery_id) {
+      return false;
+    }
+
     // Check if current user is the one who picked it up
     const pickedUpOffer = this.pickupOffers.find(
       (offer) => offer.state === "picked_up"

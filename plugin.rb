@@ -342,6 +342,7 @@ after_initialize do
       postcode: donation.postcode,
       creator_user_id: donation.creator_user_id,
       published_at: donation.published_at,
+      lottery_id: donation.lottery&.id,
     }
   end
 
@@ -361,6 +362,7 @@ after_initialize do
       postcode: donation.postcode,
       creator_user_id: donation.creator_user_id,
       published_at: donation.published_at,
+      lottery_id: donation.lottery&.id,
     }
   end
 
