@@ -390,6 +390,11 @@ export default class LotteryWidget extends Component {
    * @type {boolean}
    */
   get canCreateErhaltungsbericht() {
+    // For Abholerpaket, don't require collection (creator already has it)
+    if (this.isAbholerpaket) {
+      return this.isWinner && !this.erhaltungsberichtTopicId && !this.loading;
+    }
+    // For regular packets, require collection first
     return (
       this.isWinner &&
       this.collectedAt &&
@@ -469,85 +474,113 @@ export default class LotteryWidget extends Component {
           {{! Lottery has been drawn - show winner or no winner message }}
           {{#if this.winner}}
             <div class="lottery-packet-winner-notice">
-              {{#unless this.loading}}
-                <div class="participants-display">
-                  <span class="participants-label">{{i18n
-                      "vzekc_verlosung.ticket.participants"
-                    }}</span>
-                  <TicketCountBadge
-                    @count={{this.ticketCount}}
-                    @users={{this.users}}
-                    @packetTitle={{this.packetTitle}}
-                  />
-                </div>
-              {{/unless}}
-              <div class="winner-message">
-                <span class="participants-label">{{i18n
-                    "vzekc_verlosung.ticket.winner"
-                  }}</span>
-                {{#if this.hasWinnerObject}}
-                  <UserLink
-                    @username={{this.winnerUsername}}
-                    class="winner-user-link"
-                  >
-                    {{avatar this.winner imageSize="small"}}
-                    <span class="winner-name">{{this.winnerUsername}}</span>
-                  </UserLink>
-                {{else}}
-                  <UserLink
-                    @username={{this.winnerUsername}}
-                    class="winner-user-link"
-                  >
-                    <span class="winner-name">{{this.winnerUsername}}</span>
-                  </UserLink>
-                {{/if}}
-              </div>
-              {{! Collection tracking - only visible to lottery owner }}
-              {{#if this.isLotteryOwner}}
-                <div class="collection-tracking">
-                  {{#if this.collectedAt}}
-                    <div class="collection-status collected">
-                      <span class="collection-icon">✓</span>
-                      <span class="collection-text">{{i18n
-                          "vzekc_verlosung.collection.collected_on"
-                          date=this.formattedCollectedDate
-                        }}</span>
-                    </div>
-                  {{else if this.canMarkAsCollected}}
+              {{#if this.isAbholerpaket}}
+                {{! Abholerpaket - only show Erhaltungsbericht section }}
+                {{#if this.canCreateErhaltungsbericht}}
+                  <div class="erhaltungsbericht-section">
                     <DButton
-                      @action={{this.markAsCollected}}
-                      @label="vzekc_verlosung.collection.mark_collected"
-                      @icon="check"
-                      @disabled={{this.markingCollected}}
-                      class="btn-default mark-collected-button"
+                      @action={{this.createErhaltungsbericht}}
+                      @label="vzekc_verlosung.erhaltungsbericht.create_button"
+                      @icon="pen"
+                      class="btn-primary create-erhaltungsbericht-button"
                     />
+                  </div>
+                {{/if}}
+                {{#if this.erhaltungsberichtUrl}}
+                  <div class="erhaltungsbericht-link-section">
+                    <a
+                      href={{this.erhaltungsberichtUrl}}
+                      class="erhaltungsbericht-link"
+                    >
+                      {{icon "file"}}
+                      <span>{{i18n
+                          "vzekc_verlosung.erhaltungsbericht.view_link"
+                        }}</span>
+                    </a>
+                  </div>
+                {{/if}}
+              {{else}}
+                {{! Regular packet - show full information }}
+                {{#unless this.loading}}
+                  <div class="participants-display">
+                    <span class="participants-label">{{i18n
+                        "vzekc_verlosung.ticket.participants"
+                      }}</span>
+                    <TicketCountBadge
+                      @count={{this.ticketCount}}
+                      @users={{this.users}}
+                      @packetTitle={{this.packetTitle}}
+                    />
+                  </div>
+                {{/unless}}
+                <div class="winner-message">
+                  <span class="participants-label">{{i18n
+                      "vzekc_verlosung.ticket.winner"
+                    }}</span>
+                  {{#if this.hasWinnerObject}}
+                    <UserLink
+                      @username={{this.winnerUsername}}
+                      class="winner-user-link"
+                    >
+                      {{avatar this.winner imageSize="small"}}
+                      <span class="winner-name">{{this.winnerUsername}}</span>
+                    </UserLink>
+                  {{else}}
+                    <UserLink
+                      @username={{this.winnerUsername}}
+                      class="winner-user-link"
+                    >
+                      <span class="winner-name">{{this.winnerUsername}}</span>
+                    </UserLink>
                   {{/if}}
                 </div>
-              {{/if}}
-              {{! Erhaltungsbericht button - only visible to winner }}
-              {{#if this.canCreateErhaltungsbericht}}
-                <div class="erhaltungsbericht-section">
-                  <DButton
-                    @action={{this.createErhaltungsbericht}}
-                    @label="vzekc_verlosung.erhaltungsbericht.create_button"
-                    @icon="pen"
-                    class="btn-primary create-erhaltungsbericht-button"
-                  />
-                </div>
-              {{/if}}
-              {{! Link to Erhaltungsbericht - visible to everyone }}
-              {{#if this.erhaltungsberichtUrl}}
-                <div class="erhaltungsbericht-link-section">
-                  <a
-                    href={{this.erhaltungsberichtUrl}}
-                    class="erhaltungsbericht-link"
-                  >
-                    {{icon "file"}}
-                    <span>{{i18n
-                        "vzekc_verlosung.erhaltungsbericht.view_link"
-                      }}</span>
-                  </a>
-                </div>
+                {{! Collection tracking - only visible to lottery owner }}
+                {{#if this.isLotteryOwner}}
+                  <div class="collection-tracking">
+                    {{#if this.collectedAt}}
+                      <div class="collection-status collected">
+                        <span class="collection-icon">✓</span>
+                        <span class="collection-text">{{i18n
+                            "vzekc_verlosung.collection.collected_on"
+                            date=this.formattedCollectedDate
+                          }}</span>
+                      </div>
+                    {{else if this.canMarkAsCollected}}
+                      <DButton
+                        @action={{this.markAsCollected}}
+                        @label="vzekc_verlosung.collection.mark_collected"
+                        @icon="check"
+                        @disabled={{this.markingCollected}}
+                        class="btn-default mark-collected-button"
+                      />
+                    {{/if}}
+                  </div>
+                {{/if}}
+                {{! Erhaltungsbericht button - only visible to winner }}
+                {{#if this.canCreateErhaltungsbericht}}
+                  <div class="erhaltungsbericht-section">
+                    <DButton
+                      @action={{this.createErhaltungsbericht}}
+                      @label="vzekc_verlosung.erhaltungsbericht.create_button"
+                      @icon="pen"
+                      class="btn-primary create-erhaltungsbericht-button"
+                    />
+                  </div>
+                {{/if}}
+                {{! Link to Erhaltungsbericht - visible to everyone }}
+                {{#if this.erhaltungsberichtUrl}}
+                  <div class="erhaltungsbericht-link-section">
+                    <a
+                      href={{this.erhaltungsberichtUrl}}
+                      class="erhaltungsbericht-link"
+                    >
+                      {{icon "file"}}
+                      <span>{{i18n
+                          "vzekc_verlosung.erhaltungsbericht.view_link"
+                        }}</span>
+                    </a>
+                  </div>
+                {{/if}}
               {{/if}}
             </div>
           {{else}}
