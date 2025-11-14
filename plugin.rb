@@ -227,14 +227,11 @@ after_initialize do
   # Register custom field for Erhaltungsbericht donation source
   register_topic_custom_field_type("donation_id", :integer)
 
-  # Preload donation_id custom field for topic views to prevent N+1 queries
-  TopicView.on_preload do |topic_view|
-    Topic.preload_custom_fields([topic_view.topic], ["donation_id"])
-  end
-
-  # Add helper method to Topic class (CRITICAL - prevents NotPreloadedError)
+  # Add helper method to Topic class
+  # Directly query the custom field to avoid strict preload enforcement
   add_to_class(:topic, :erhaltungsbericht_donation_id) do
-    custom_fields["donation_id"]&.to_i
+    return @erhaltungsbericht_donation_id if defined?(@erhaltungsbericht_donation_id)
+    @erhaltungsbericht_donation_id = TopicCustomField.where(topic_id: id, name: "donation_id").pick(:value)&.to_i
   end
 
   # Include packet reference fields for Erhaltungsberichte
