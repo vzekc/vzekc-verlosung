@@ -1,9 +1,9 @@
 import Component from "@glimmer/component";
 import { tracked } from "@glimmer/tracking";
-import { fn } from "@ember/helper";
+import { fn, get } from "@ember/helper";
 import { on } from "@ember/modifier";
 import { action } from "@ember/object";
-import { and, not } from "truth-helpers";
+import { and, eq, not } from "truth-helpers";
 import DButton from "discourse/components/d-button";
 import DModal from "discourse/components/d-modal";
 import icon from "discourse/helpers/d-icon";
@@ -67,12 +67,12 @@ export default class DrawLotteryModal extends Component {
   get selectionsSummary() {
     return this.packetsWithParticipants.map((packet) => {
       const selectedUserId = this.manualSelections[packet.id];
-      const selectedUser = packet.users?.find(
-        (u) => u.id.toString() === selectedUserId
+      const selectedParticipant = packet.participants?.find(
+        (p) => p.id.toString() === selectedUserId
       );
       return {
         packetTitle: packet.title,
-        winnerUsername: selectedUser?.username || "Unknown",
+        winnerUsername: selectedParticipant?.name || "Unknown",
       };
     });
   }
@@ -88,11 +88,29 @@ export default class DrawLotteryModal extends Component {
       this.lotteryData = await ajax(
         `/vzekc-verlosung/lotteries/${this.args.model.topicId}/drawing-data`
       );
+
+      // Auto-select packets with only one participant
+      if (this.isManualMode) {
+        this.autoSelectSingleParticipants();
+      }
     } catch (error) {
       this.error = error.jqXHR?.responseJSON?.errors?.[0] || error.message;
     } finally {
       this.loading = false;
     }
+  }
+
+  /**
+   * Auto-select winners for packets with only one participant
+   */
+  autoSelectSingleParticipants() {
+    const selections = {};
+    this.packetsWithParticipants.forEach((packet) => {
+      if (packet.participants.length === 1) {
+        selections[packet.id] = packet.participants[0].id.toString();
+      }
+    });
+    this.manualSelections = selections;
   }
 
   /**
@@ -246,8 +264,12 @@ export default class DrawLotteryModal extends Component {
             <div class="draw-confirmation">
               <div class="confirmation-message">
                 {{icon "check-circle"}}
-                <h4>{{i18n "vzekc_verlosung.drawing.confirm_selections_title"}}</h4>
-                <p>{{i18n "vzekc_verlosung.drawing.confirm_selections_message"}}</p>
+                <h4>{{i18n
+                    "vzekc_verlosung.drawing.confirm_selections_title"
+                  }}</h4>
+                <p>{{i18n
+                    "vzekc_verlosung.drawing.confirm_selections_message"
+                  }}</p>
               </div>
               <div class="selections-summary">
                 <ul>
@@ -270,18 +292,25 @@ export default class DrawLotteryModal extends Component {
                 <div class="manual-selections">
                   {{#each this.packetsWithParticipants as |packet|}}
                     <div class="packet-selection">
-                      <label>
-                        {{i18n
-                          "vzekc_verlosung.drawing.select_winner_label"
-                          packet=packet.title
-                        }}
-                      </label>
-                      <select {{on "change" (fn this.updateSelection packet.id)}}>
-                        <option value="">-- Select Winner --</option>
-                        {{#each packet.users as |user|}}
-                          <option value={{user.id}}>{{user.username}}</option>
-                        {{/each}}
-                      </select>
+                      <label>{{packet.title}}</label>
+                      {{#if (eq packet.participants.length 1)}}
+                        <div class="single-participant">
+                          <strong>{{get packet.participants "0.name"}}</strong>
+                          <span class="only-ticket-note">(nur ein Ticket
+                            gezogen)</span>
+                        </div>
+                      {{else}}
+                        <select
+                          {{on "change" (fn this.updateSelection packet.id)}}
+                        >
+                          <option value="">-- Select Winner --</option>
+                          {{#each packet.participants as |participant|}}
+                            <option
+                              value={{participant.id}}
+                            >{{participant.name}}</option>
+                          {{/each}}
+                        </select>
+                      {{/if}}
                     </div>
                   {{/each}}
                 </div>
@@ -337,7 +366,9 @@ export default class DrawLotteryModal extends Component {
               @disabled={{this.drawing}}
               class="btn-default"
             />
-          {{else if (and (not this.loading) (not this.error) (not this.drawing))}}
+          {{else if
+            (and (not this.loading) (not this.error) (not this.drawing))
+          }}
             {{#if this.isManualMode}}
               <DButton
                 @action={{this.showConfirmationDialog}}

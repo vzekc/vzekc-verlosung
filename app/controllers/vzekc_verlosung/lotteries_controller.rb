@@ -258,7 +258,9 @@ module VzekcVerlosung
           participants =
             tickets
               .group_by(&:user)
-              .map { |user, user_tickets| { name: user.username, tickets: user_tickets.count } }
+              .map do |user, user_tickets|
+                { id: user.id, name: user.username, tickets: user_tickets.count }
+              end
 
           { id: packet.post_id, title: packet.title, participants: participants }
         end
@@ -416,14 +418,11 @@ module VzekcVerlosung
       end
 
       # Get selections from params: { post_id: winner_user_id, ... }
-      selections = params[:selections]&.permit!&.to_h || {}
+      selections = params[:selections]&.permit!.to_h
 
       # Get all non-Abholerpaket packets with their tickets
       lottery_packets =
-        lottery
-          .lottery_packets
-          .where(abholerpaket: false)
-          .includes(lottery_tickets: :user)
+        lottery.lottery_packets.where(abholerpaket: false).includes(lottery_tickets: :user)
 
       # Validate: all packets with participants must have a winner selected
       packets_with_participants = lottery_packets.select { |p| p.lottery_tickets.any? }
