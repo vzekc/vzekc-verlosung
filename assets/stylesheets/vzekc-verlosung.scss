@@ -794,5 +794,58 @@
   }
 }
 
+// Draw lottery modal
+.draw-lottery-modal {
+  .manual-selections {
+    .packet-selection {
+      margin-bottom: 1.5em;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+
+      label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 0.5em;
+        color: var(--primary);
+      }
+
+      select {
+        width: 100%;
+        padding: 0.5em;
+        padding-left: 1em;
+        border: 1px solid var(--primary-low-mid);
+        border-radius: 3px;
+        background: var(--secondary);
+        color: var(--primary);
+        font-size: 1em;
+
+        &:focus {
+          outline: none;
+          border-color: var(--tertiary);
+        }
+      }
+
+      .single-participant {
+        padding-left: 1em;
+        color: var(--primary);
+
+        strong {
+          color: var(--success);
+          font-weight: 600;
+        }
+
+        .only-ticket-note {
+          margin-left: 0.5em;
+          color: var(--primary-medium);
+          font-style: italic;
+          font-size: 0.9em;
+        }
+      }
+    }
+  }
+}
+
 // Import component styles
 @import "components/lottery-status-chip";
