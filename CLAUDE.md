@@ -271,6 +271,64 @@ If the rake task fails (e.g., database connection issues), manually update the s
 - Functionality in `lib/site_setting_extension.rb`
 - Access: `SiteSetting.setting_name` (Ruby), `siteSettings.setting_name` (JS with `@service siteSettings`)
 
+### Type Coercion (CRITICAL)
+**IMPORTANT**: Discourse SiteSettings have type-dependent behavior that causes bugs if not handled correctly.
+
+#### Type Behavior
+- **`type: integer`** → Automatically converted to Integer in Ruby ✅
+  ```ruby
+  # config/settings.yml: type: integer
+  SiteSetting.reminder_hour.class  # => Integer
+  Time.zone.now.hour == SiteSetting.reminder_hour  # ✅ Works correctly
+  ```
+
+- **`type: category`** → Stored as String in Ruby, must convert manually ⚠️
+  ```ruby
+  # config/settings.yml: type: category
+  SiteSetting.my_category_id.class  # => String (e.g., "7")
+  topic.category_id.class  # => Integer (e.g., 7)
+
+  # ❌ WRONG - This will always fail!
+  topic.category_id == SiteSetting.my_category_id  # false (7 != "7")
+
+  # ✅ CORRECT - Convert to integer first
+  topic.category_id == SiteSetting.my_category_id.to_i  # true
+  ```
+
+- **JavaScript** → All SiteSettings are strings, must parse manually ⚠️
+  ```javascript
+  // ❌ WRONG
+  if (topic.category_id === this.siteSettings.my_category_id) { }
+
+  // ✅ CORRECT
+  const categoryId = parseInt(this.siteSettings.my_category_id, 10);
+  if (topic.category_id === categoryId) { }
+  ```
+
+#### Common Pitfalls
+1. **Tests passing but production failing**: Tests may inadvertently use integers while production has strings
+   ```ruby
+   # ❌ Test doesn't match production
+   SiteSetting.my_category_id = category.id  # Integer in test
+
+   # ✅ Test matches production
+   SiteSetting.my_category_id = category.id.to_s  # String like production
+   ```
+
+2. **ActiveRecord queries handle conversion**: Using SiteSettings in `find_by` or `where` works fine
+   ```ruby
+   # ✅ These work even without .to_i (ActiveRecord converts)
+   Category.find_by(id: SiteSetting.my_category_id)
+   Category.where(id: SiteSetting.my_category_id)
+   ```
+
+#### Checklist for Category Settings
+When working with category-type SiteSettings:
+- [ ] Ruby comparisons: Use `.to_i` before comparing with integer values
+- [ ] JavaScript comparisons: Use `parseInt(value, 10)` before comparing
+- [ ] Tests: Set SiteSettings as strings (`.to_s`) to match production behavior
+- [ ] ActiveRecord queries: No conversion needed (ActiveRecord handles it)
+
 ## Services
 - Extract business logic (validation, models, permissions) from controllers
 - https://meta.discourse.org/t/using-service-objects-in-discourse/333641

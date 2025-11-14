@@ -419,8 +419,10 @@ export default class LotteryWidget extends Component {
   @action
   createErhaltungsbericht() {
     // Get category and template
-    const categoryId =
-      this.siteSettings.vzekc_verlosung_erhaltungsberichte_category_id;
+    const categoryId = parseInt(
+      this.siteSettings.vzekc_verlosung_erhaltungsberichte_category_id,
+      10
+    );
 
     if (!categoryId) {
       this.dialog.alert(
