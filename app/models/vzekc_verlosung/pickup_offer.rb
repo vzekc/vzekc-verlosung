@@ -64,7 +64,7 @@ end
 #  state        :string           default("pending"), not null
 #  created_at   :datetime         not null
 #  updated_at   :datetime         not null
-#  donation_id  :integer          not null
+#  donation_id  :bigint           not null
 #  user_id      :bigint           not null
 #
 # Indexes

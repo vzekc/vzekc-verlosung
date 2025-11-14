@@ -88,7 +88,7 @@ end
 #  created_at                 :datetime         not null
 #  updated_at                 :datetime         not null
 #  erhaltungsbericht_topic_id :bigint
-#  lottery_id                 :integer          not null
+#  lottery_id                 :bigint           not null
 #  post_id                    :bigint           not null
 #  winner_user_id             :bigint
 #
