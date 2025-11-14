@@ -11,8 +11,9 @@ RSpec.describe "Donation Full Lifecycle Integration" do
 
   before do
     SiteSetting.vzekc_verlosung_enabled = true
-    SiteSetting.vzekc_verlosung_erhaltungsberichte_category_id = erhaltungsberichte_category.id
-    SiteSetting.vzekc_verlosung_category_id = lotteries_category.id
+    # CRITICAL: Set as strings to match production behavior (SiteSettings are always strings)
+    SiteSetting.vzekc_verlosung_erhaltungsberichte_category_id = erhaltungsberichte_category.id.to_s
+    SiteSetting.vzekc_verlosung_category_id = lotteries_category.id.to_s
   end
 
   describe "Path 1: Donation → Pickup → Erhaltungsbericht" do

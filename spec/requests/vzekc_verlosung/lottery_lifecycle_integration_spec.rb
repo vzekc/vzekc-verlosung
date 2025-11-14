@@ -10,7 +10,8 @@ RSpec.describe "Lottery Full Lifecycle Integration" do
 
   before do
     SiteSetting.vzekc_verlosung_enabled = true
-    SiteSetting.vzekc_verlosung_erhaltungsberichte_category_id = erhaltungsberichte_category.id
+    # CRITICAL: Set as string to match production behavior (SiteSettings are always strings)
+    SiteSetting.vzekc_verlosung_erhaltungsberichte_category_id = erhaltungsberichte_category.id.to_s
     SiteSetting.vzekc_verlosung_reminder_hour = 7
   end
 

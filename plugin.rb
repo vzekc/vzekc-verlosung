@@ -394,7 +394,8 @@ after_initialize do
     if erhaltungsbericht_donation_id.present?
       # CRITICAL: Check if this is actually an Erhaltungsbericht topic,
       # not a donation topic. Both pass donation_id, so we distinguish by category.
-      erhaltungsberichte_category_id = SiteSetting.vzekc_verlosung_erhaltungsberichte_category_id
+      erhaltungsberichte_category_id =
+        SiteSetting.vzekc_verlosung_erhaltungsberichte_category_id.to_i
 
       if erhaltungsberichte_category_id.present? &&
            topic.category_id == erhaltungsberichte_category_id
