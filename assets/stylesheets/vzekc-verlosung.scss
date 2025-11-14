@@ -494,6 +494,12 @@
         border-bottom: none;
       }
 
+      .packet-ordinal {
+        margin-right: 0.5em;
+        font-weight: 600;
+        color: var(--primary-medium);
+      }
+
       .packet-title {
         flex: 1;
         font-weight: 500;
@@ -841,6 +847,103 @@
           color: var(--primary-medium);
           font-style: italic;
           font-size: 0.9em;
+        }
+      }
+    }
+  }
+}
+
+// Confirmation modal styles
+.confirm-lottery-modal {
+  .lottery-confirmation {
+    .confirmation-help {
+      color: var(--primary-medium);
+      margin-bottom: 1.5em;
+    }
+
+    .confirmation-details {
+      background-color: var(--primary-very-low);
+      border: 1px solid var(--primary-low);
+      border-radius: 4px;
+      padding: 1em;
+      margin-bottom: 1.5em;
+
+      .detail-row {
+        display: flex;
+        margin-bottom: 0.75em;
+
+        &:last-child {
+          margin-bottom: 0;
+        }
+
+        .detail-label {
+          font-weight: bold;
+          min-width: 150px;
+          color: var(--primary-high);
+        }
+
+        .detail-value {
+          color: var(--primary);
+        }
+      }
+    }
+
+    h4 {
+      margin-top: 0;
+      margin-bottom: 1em;
+      font-size: 1.1em;
+    }
+
+    .confirmation-packets {
+      .packet-row {
+        display: flex;
+        align-items: center;
+        padding: 0.75em;
+        margin-bottom: 0.5em;
+        background-color: var(--primary-very-low);
+        border: 1px solid var(--primary-low);
+        border-radius: 4px;
+
+        &.abholerpaket {
+          background-color: var(--tertiary-very-low);
+          border-color: var(--tertiary-low);
+
+          .packet-badge {
+            background-color: var(--tertiary);
+            color: var(--secondary);
+          }
+        }
+
+        .packet-badge {
+          display: inline-block;
+          background-color: var(--primary-medium);
+          color: var(--secondary);
+          padding: 0.25em 0.75em;
+          border-radius: 3px;
+          font-weight: bold;
+          font-size: 0.9em;
+          margin-right: 0.75em;
+          min-width: 70px;
+          text-align: center;
+        }
+
+        .packet-title {
+          flex: 1;
+          color: var(--primary);
+        }
+
+        .packet-meta {
+          margin-left: 0.75em;
+          color: var(--primary-medium);
+          font-size: 0.9em;
+          display: flex;
+          align-items: center;
+          gap: 0.25em;
+
+          svg {
+            width: 0.9em;
+            height: 0.9em;
+          }
         }
       }
     }

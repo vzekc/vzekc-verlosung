@@ -447,6 +447,7 @@ export default class LotteryIntroSummary extends Component {
           <ul class="lottery-packets-list">
             {{#each this.packets as |packet|}}
               <li class="lottery-packet-item">
+                <span class="packet-ordinal">{{packet.ordinal}}:</span>
                 <a
                   href="#post_{{packet.post_number}}"
                   class="packet-title"
@@ -454,9 +455,13 @@ export default class LotteryIntroSummary extends Component {
                 {{#if this.isFinished}}
                   {{#if packet.winner}}
                     <span class="packet-winner">
-                      <span class="participants-label">{{i18n
-                          "vzekc_verlosung.ticket.winner"
-                        }}</span>
+                      <span class="participants-label">{{#if
+                          packet.abholerpaket
+                        }}{{i18n
+                            "vzekc_verlosung.ticket.abholerpaket"
+                          }}{{else}}{{i18n
+                            "vzekc_verlosung.ticket.winner"
+                          }}{{/if}}</span>
                       <UserLink
                         @username={{packet.winner.username}}
                         class="winner-user-link"

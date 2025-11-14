@@ -123,6 +123,8 @@ module VzekcVerlosung
             ticket_count: ticket_count,
             winner: winner_obj,
             users: users,
+            ordinal: packet.ordinal,
+            abholerpaket: packet.abholerpaket,
           }
 
           # Only include collected_at for lottery owner or staff
@@ -533,10 +535,11 @@ module VzekcVerlosung
     def fetch_drawing_data_for_verification(lottery)
       topic = lottery.topic
 
-      # Get all lottery packets with tickets
+      # Get all lottery packets with tickets (excluding Abholerpaket which is already assigned)
       lottery_packets =
         lottery
           .lottery_packets
+          .where(abholerpaket: false)
           .joins(:post)
           .includes(lottery_tickets: :user)
           .order("posts.post_number")

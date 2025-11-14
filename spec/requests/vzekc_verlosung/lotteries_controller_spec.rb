@@ -353,6 +353,81 @@ RSpec.describe VzekcVerlosung::LotteriesController do
       end
     end
 
+    context "with Abholerpaket (packet 0)" do
+      let!(:lottery_with_abholerpaket_result) do
+        VzekcVerlosung::CreateLottery.call(
+          params: {
+            title: "Test Lottery with Abholerpaket",
+            category_id: category.id,
+            duration_days: 14,
+            has_abholerpaket: true,
+            packets: [{ title: "Regular Packet 1" }],
+          },
+          user: user,
+          guardian: Guardian.new(user),
+        )
+      end
+      let(:abholerpaket_topic) { lottery_with_abholerpaket_result.main_topic }
+      let(:abholerpaket_lottery) { lottery_with_abholerpaket_result.lottery }
+      let(:abholerpaket) { abholerpaket_lottery.lottery_packets.find_by(abholerpaket: true) }
+      let(:regular_packet) { abholerpaket_lottery.lottery_packets.find_by(abholerpaket: false) }
+
+      before do
+        # Publish lottery and set it to ended
+        abholerpaket_lottery.update!(state: "active", ends_at: 1.day.ago)
+
+        # Add a ticket to the REGULAR packet (not Abholerpaket)
+        VzekcVerlosung::LotteryTicket.create!(
+          post_id: regular_packet.post_id,
+          user_id: other_user.id,
+        )
+      end
+
+      it "excludes Abholerpaket from drawing and verification succeeds" do
+        # Get drawing data from server (should exclude Abholerpaket)
+        get "/vzekc-verlosung/lotteries/#{abholerpaket_topic.id}/drawing-data.json"
+        expect(response.status).to eq(200)
+        drawing_data = response.parsed_body
+
+        # Verify Abholerpaket is NOT included in drawing data
+        expect(drawing_data["packets"].length).to eq(1)
+        expect(drawing_data["packets"][0]["title"]).to eq("Regular Packet 1")
+
+        # Draw using the server-provided data
+        results = VzekcVerlosung::JavascriptLotteryDrawer.draw(drawing_data)
+
+        # Submit results - verification should succeed
+        post "/vzekc-verlosung/lotteries/#{abholerpaket_topic.id}/draw.json",
+             params: {
+               results: results,
+             }
+
+        expect(response.status).to eq(204)
+        abholerpaket_lottery.reload
+        expect(abholerpaket_lottery.results).to be_present
+        expect(abholerpaket_lottery.state).to eq("finished")
+
+        # Verify only regular packet has winner, not Abholerpaket
+        regular_packet.reload
+        expect(regular_packet.winner).to be_present
+
+        abholerpaket.reload
+        expect(abholerpaket.winner).to be_nil
+      end
+
+      it "prevents users from buying tickets for Abholerpaket" do
+        # Try to buy ticket for Abholerpaket - should fail
+        post "/vzekc-verlosung/tickets.json", params: { post_id: abholerpaket.post_id }
+
+        expect(response.status).to eq(422)
+        json = response.parsed_body
+        expect(json["errors"]).to include(/Cannot buy tickets for the Abholerpaket/)
+
+        # Verify no ticket was created
+        expect(VzekcVerlosung::LotteryTicket.where(post_id: abholerpaket.post_id).count).to eq(0)
+      end
+    end
+
     context "when results are tampered with" do
       it "rejects results with wrong seed" do
         tampered_results = valid_results.dup
