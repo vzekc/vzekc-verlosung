@@ -127,13 +127,21 @@ Exmaple filters JavaScript tests:
 
 # Linting
 
-**IMPORTANT for Plugin Development:**
+**CRITICAL for Plugin Development:**
+
+## Ruby/ESLint/Template Linting
 - Linting commands MUST be run from the Discourse root directory (`/Users/hans/Development/vzekc/discourse`)
 - Plugin file paths must be relative to Discourse root (e.g., `plugins/vzekc-verlosung/...`)
 - DO NOT run linting from the plugin directory - there is no `bin/lint` there
 
+## Prettier (JavaScript/CSS Formatting)
+- **MUST be run from the plugin directory** (`/Users/hans/Development/vzekc/vzekc-verlosung`)
+- Running prettier from Discourse root uses different config resolution and may pass incorrectly
+- CI runs prettier from plugin directory context, so local checks must match
+- The plugin has its own `node_modules` with prettier 3.6.2
+
 ```bash
-# From Discourse root directory
+# Ruby/ESLint/Template linting - From Discourse root directory
 cd /Users/hans/Development/vzekc/discourse
 
 # If Ruby linting fails with bundle errors, run bundle install first
@@ -152,16 +160,36 @@ bin/lint --fix --recent
 ruby -c plugins/vzekc-verlosung/path/to/file.rb
 ```
 
-**Example for this plugin:**
 ```bash
+# Prettier - From PLUGIN directory (CRITICAL!)
+cd /Users/hans/Development/vzekc/vzekc-verlosung
+
+# Check formatting (what CI runs)
+pnpm prettier --check "assets/**/*.{scss,js,gjs,hbs}"
+
+# Fix formatting issues
+pnpm prettier --write "assets/**/*.{scss,js,gjs,hbs}"
+
+# Check/fix specific file
+pnpm prettier --check assets/javascripts/discourse/components/my-component.gjs
+pnpm prettier --write assets/javascripts/discourse/components/my-component.gjs
+```
+
+**Example workflow for this plugin:**
+```bash
+# 1. Ruby/ESLint linting from Discourse root
 cd /Users/hans/Development/vzekc/discourse
 bin/lint --fix \
   plugins/vzekc-verlosung/plugin.rb \
   plugins/vzekc-verlosung/app/controllers/vzekc_verlosung/lotteries_controller.rb \
   plugins/vzekc-verlosung/assets/javascripts/discourse/components/my-component.gjs
+
+# 2. Prettier formatting from plugin directory
+cd /Users/hans/Development/vzekc/vzekc-verlosung
+pnpm prettier --write "assets/**/*.{scss,js,gjs,hbs}"
 ```
 
-ALWAYS lint any changes you make
+**ALWAYS lint AND format your changes before committing!**
 
 ## Site Settings
 - Configured in `config/site_settings.yml` or `config/settings.yml` for plugins
