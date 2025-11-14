@@ -238,11 +238,17 @@ after_initialize do
     packet&.lottery&.topic_id
   end
 
+  # Include donation reference field for Erhaltungsberichte from donations
+  # This stores which donation an Erhaltungsbericht is about
+  add_to_serializer(:topic_view, :erhaltungsbericht_donation_id) do
+    object.topic.custom_fields["donation_id"]&.to_i
+  end
+
   # Whitelist packet reference parameters for topic creation
   add_permitted_post_create_param(:packet_post_id)
   add_permitted_post_create_param(:packet_topic_id)
-  # Whitelist donation_id for Erhaltungsberichte from donations
-  add_permitted_post_create_param(:donation_id)
+  # Whitelist erhaltungsbericht_donation_id for Erhaltungsberichte from donations
+  add_permitted_post_create_param(:erhaltungsbericht_donation_id)
 
   # Register callback to establish bidirectional link when Erhaltungsbericht is created
   on(:topic_created) do |topic, opts, user|
@@ -271,14 +277,16 @@ after_initialize do
     end
 
     # Handle Erhaltungsbericht from donation
-    donation_id = opts[:donation_id]&.to_i
+    erhaltungsbericht_donation_id = opts[:erhaltungsbericht_donation_id]&.to_i
 
-    if donation_id.present?
-      # Save donation_id to topic custom fields
-      topic.custom_fields["donation_id"] = donation_id
+    if erhaltungsbericht_donation_id.present?
+      # Save donation_id to topic custom fields for linking back
+      topic.custom_fields["donation_id"] = erhaltungsbericht_donation_id
       topic.save_custom_fields
 
-      Rails.logger.info("Linked Erhaltungsbericht topic #{topic.id} to donation #{donation_id}")
+      Rails.logger.info(
+        "Linked Erhaltungsbericht topic #{topic.id} to donation #{erhaltungsbericht_donation_id}",
+      )
     end
   end
 

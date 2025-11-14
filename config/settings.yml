@@ -49,8 +49,6 @@ vzekc_verlosung:
     type: boolean
   vzekc_verlosung_erhaltungsbericht_template:
     default: |
-      Ich habe folgendes Paket aus der Verlosung "[LOTTERY_TITLE]" erhalten:
-
       ## Was war im Paket?
 
       [Beschreibe hier, was du erhalten hast]
@@ -66,9 +64,6 @@ vzekc_verlosung:
       ## Pläne für die Hardware
 
       [Was hast du mit der Hardware vor? Sammlung, Restaurierung, Nutzung?]
-
-      ---
-      Link zum Paket: [PACKET_LINK]
     type: string
     textarea: true
   vzekc_verlosung_donation_category_id:

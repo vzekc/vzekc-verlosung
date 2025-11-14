@@ -350,6 +350,8 @@ export default class DonationWidget extends Component {
 
   /**
    * Open composer to write Erhaltungsbericht
+   * The erhaltungsbericht_donation_id is passed to the composer and will be stored
+   * as a custom field when the topic is created, allowing for a link back to the donation
    */
   @action
   writeErhaltungsbericht() {
@@ -371,22 +373,15 @@ export default class DonationWidget extends Component {
       this.siteSettings.vzekc_verlosung_erhaltungsbericht_template || "";
     const topic = this.post.topic;
 
-    // Replace placeholders
-    const content = template
-      .replace(/\[LOTTERY_TITLE\]/g, topic.title)
-      .replace(
-        /\[PACKET_LINK\]/g,
-        `${window.location.origin}${topic.get("url")}`
-      );
-
-    // Open composer
+    // Open composer with erhaltungsbericht_donation_id for linking
+    // The topic_created hook will store the donation_id as a custom field
     this.composer.open({
       action: Composer.CREATE_TOPIC,
       categoryId: erhaltungsberichtCategoryId,
-      title: `Erhaltungsbericht: ${topic.title}`,
-      reply: content,
+      title: topic.title,
+      reply: template,
       draftKey: `erhaltungsbericht_donation_${this.donationData.id}_${Date.now()}`,
-      donation_id: this.donationData.id,
+      erhaltungsbericht_donation_id: this.donationData.id,
     });
   }
 

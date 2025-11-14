@@ -201,18 +201,19 @@ module VzekcVerlosung
       # Get lottery topic title
       lottery_title = post.topic.title
 
-      # Get template and replace placeholders
+      # Compose topic title: "<packet-title> aus <lottery-title>"
+      topic_title = "#{packet_title} aus #{lottery_title}"
+
+      # Get template (no placeholder replacement needed - links are stored as custom fields)
       template = SiteSetting.vzekc_verlosung_erhaltungsbericht_template
-      packet_url = "#{Discourse.base_url}/t/#{post.topic.slug}/#{post.topic_id}/#{post.post_number}"
-      content = template.gsub("[LOTTERY_TITLE]", lottery_title).gsub("[PACKET_LINK]", packet_url)
 
       # Create the topic
       begin
         topic_creator =
           PostCreator.new(
             current_user,
-            title: packet_title,
-            raw: content,
+            title: topic_title,
+            raw: template,
             category: category_id,
             skip_validations: false,
           )

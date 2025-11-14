@@ -412,7 +412,9 @@ export default class LotteryWidget extends Component {
 
   /**
    * Create Erhaltungsbericht topic for this packet
-   * Opens the composer with pre-filled content instead of creating immediately
+   * Opens the composer with pre-filled content and packet references
+   * The packet_post_id and packet_topic_id will be stored as custom fields
+   * when the topic is created, allowing for a link back to the packet
    */
   @action
   createErhaltungsbericht() {
@@ -427,19 +429,14 @@ export default class LotteryWidget extends Component {
       return;
     }
 
-    // Get template and replace placeholders
+    // Compose topic title: "<packet-title> aus <lottery-title>"
     const packetTitle = this.packetTitle || `Paket #${this.post.post_number}`;
     const lotteryTitle = this.post.topic.title;
-
-    // Compose topic title: "<packet-title> aus <lottery-title>"
     const topicTitle = `${packetTitle} aus ${lotteryTitle}`;
 
-    // Get template from site settings or use default German template
-    let templateText =
-      this.siteSettings.vzekc_verlosung_erhaltungsbericht_template ||
-      `Ich habe folgendes Paket aus der Verlosung "[LOTTERY_TITLE]" erhalten:\n\n## Was war im Paket?\n\n[Beschreibe hier, was du erhalten hast]\n\n## Zustand und erste Eindrücke\n\n[Wie ist der Zustand? Was waren deine ersten Eindrücke?]\n\n## Fotos\n\n[Füge hier Fotos hinzu]\n\n## Pläne für die Hardware\n\n[Was hast du mit der Hardware vor? Sammlung, Restaurierung, Nutzung?]`;
-
-    const template = templateText.replace("[LOTTERY_TITLE]", lotteryTitle);
+    // Get template from site settings
+    const template =
+      this.siteSettings.vzekc_verlosung_erhaltungsbericht_template || "";
 
     // Open composer with pre-filled content and packet reference
     // Use unique draftKey with timestamp to prevent draft conflicts
