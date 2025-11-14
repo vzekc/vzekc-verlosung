@@ -191,6 +191,81 @@ pnpm prettier --write "assets/**/*.{scss,js,gjs,hbs}"
 
 **ALWAYS lint AND format your changes before committing!**
 
+## Schema Annotations
+
+**CRITICAL**: Schema annotations MUST be updated after adding database migrations.
+
+### What Are Schema Annotations?
+
+Schema annotations are auto-generated comments at the top of model files that document:
+- Table columns and their types
+- Indexes
+- Foreign keys
+- Constraints
+
+Example:
+```ruby
+# == Schema Information
+#
+# Table name: vzekc_verlosung_donations
+#
+#  id                          :bigint           not null, primary key
+#  erhaltungsbericht_topic_id  :bigint
+#  ...
+```
+
+### When to Update Annotations
+
+**ALWAYS update annotations after**:
+- Adding/removing columns via migrations
+- Adding/removing indexes
+- Adding/removing foreign keys
+- Any schema changes
+
+### How to Update Annotations
+
+**CRITICAL**: Annotations MUST be run from the Discourse root directory with LOAD_PLUGINS=1.
+
+```bash
+# From Discourse root directory
+cd /Users/hans/Development/vzekc/discourse
+
+# Update annotations for this plugin (preferred method)
+LOAD_PLUGINS=1 bin/annotaterb models --model-dir plugins/vzekc-verlosung/app/models
+
+# Alternative: Using rake task (requires temp database setup)
+# LOAD_PLUGINS=1 bin/rake "annotate:clean:plugins[vzekc-verlosung]"
+```
+
+### CI Checks
+
+CI runs `bin/rake annotate:ensure_all_indexes_are_unique` which verifies:
+- Annotations match actual database schema
+- All changes are properly documented
+
+**If CI fails with annotation errors**:
+1. Run the annotations rake task from Discourse root
+2. Verify the schema comments in model files match your migrations
+3. Commit the updated annotations
+
+### Manual Annotation Updates
+
+If the rake task fails (e.g., database connection issues), manually update the schema comment block:
+
+1. Check your migration to see what columns/indexes/foreign keys were added
+2. Update the `# == Schema Information` block in the model file
+3. Follow the existing format exactly (column alignment, spacing)
+4. Columns are listed alphabetically
+5. Indexes are listed alphabetically by name
+6. Foreign keys are listed with their constraints
+
+### Common Pitfalls
+
+- ❌ Forgetting to update annotations after migrations
+- ❌ Running annotations from wrong directory (must be Discourse root)
+- ❌ Missing LOAD_PLUGINS=1 flag
+- ❌ Manually editing annotations without matching migration
+
 ## Site Settings
 - Configured in `config/site_settings.yml` or `config/settings.yml` for plugins
 - Functionality in `lib/site_setting_extension.rb`

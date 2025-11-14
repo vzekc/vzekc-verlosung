@@ -239,18 +239,20 @@ end
 #
 # Table name: vzekc_verlosung_donations
 #
-#  id               :bigint           not null, primary key
-#  last_reminded_at :datetime
-#  postcode         :string           not null
-#  published_at     :datetime
-#  state            :string           default("draft"), not null
-#  created_at       :datetime         not null
-#  updated_at       :datetime         not null
-#  creator_user_id  :bigint           not null
-#  topic_id         :bigint
+#  id                         :bigint           not null, primary key
+#  last_reminded_at           :datetime
+#  postcode                   :string           not null
+#  published_at               :datetime
+#  state                      :string           default("draft"), not null
+#  created_at                 :datetime         not null
+#  updated_at                 :datetime         not null
+#  creator_user_id            :bigint           not null
+#  erhaltungsbericht_topic_id :bigint
+#  topic_id                   :bigint
 #
 # Indexes
 #
+#  index_donations_on_erhaltungsbericht_topic_id              (erhaltungsbericht_topic_id) UNIQUE
 #  index_vzekc_verlosung_donations_on_creator_user_id         (creator_user_id)
 #  index_vzekc_verlosung_donations_on_state                   (state)
 #  index_vzekc_verlosung_donations_on_state_and_published_at  (state,published_at)
@@ -259,5 +261,6 @@ end
 # Foreign Keys
 #
 #  fk_rails_...  (creator_user_id => users.id) ON DELETE => cascade
+#  fk_rails_...  (erhaltungsbericht_topic_id => topics.id) ON DELETE => nullify
 #  fk_rails_...  (topic_id => topics.id) ON DELETE => cascade
 #
