@@ -171,7 +171,7 @@ en:
           bericht_date: "Report date"
         no_packets: "No packets found"
       donation:
-        neue_spende: "New Donation"
+        neue_spende: "New Donation Offer"
         donation_number: "Donation No"
         offer_pickup: "I want to pick this up"
         retract_offer: "Retract offer"

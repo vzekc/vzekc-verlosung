@@ -171,7 +171,7 @@ de:
           bericht_date: "Bericht vom"
         no_packets: "Keine Pakete gefunden"
       donation:
-        neue_spende: "Neue Spende"
+        neue_spende: "Neues Spendenangebot"
         donation_number: "Spende Nr"
         offer_pickup: "Ich möchte abholen"
         retract_offer: "Angebot zurückziehen"

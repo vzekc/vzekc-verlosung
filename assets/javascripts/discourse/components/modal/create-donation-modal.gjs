@@ -123,10 +123,12 @@ export default class CreateDonationModal extends Component {
 
       // Open composer with pre-filled content and donation_id
       // Keys must match first parameter of serializeToDraft in donation-composer.js
+      const topicTitle = `${this.title.trim()} in ${this.postcode.trim()}`;
+
       this.composer.open({
         action: Composer.CREATE_TOPIC,
         categoryId: this.args.model.categoryId,
-        title: this.title.trim(),
+        title: topicTitle,
         reply: template,
         draftKey: `new_topic_donation_${donationId}_${Date.now()}`,
         donation_id: donationId,
