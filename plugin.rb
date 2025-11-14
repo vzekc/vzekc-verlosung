@@ -205,6 +205,11 @@ after_initialize do
     lottery&.drawn_at
   end
 
+  add_to_serializer(:topic_view, :lottery_drawing_mode) do
+    lottery = VzekcVerlosung::Lottery.find_by(topic_id: object.topic.id)
+    lottery&.drawing_mode
+  end
+
   # Preload lottery association for topic lists to prevent N+1 queries
   add_class_method(:topic_list, :preloaded_lottery_data) do
     @preloaded_lottery_data ||=
@@ -216,6 +221,8 @@ after_initialize do
   add_to_serializer(:topic_list_item, :lottery_ends_at) { object.lottery&.ends_at }
 
   add_to_serializer(:topic_list_item, :lottery_results) { object.lottery&.results }
+
+  add_to_serializer(:topic_list_item, :lottery_drawing_mode) { object.lottery&.drawing_mode }
 
   # Include packet reference fields for Erhaltungsberichte
   # These store which packet an Erhaltungsbericht is about

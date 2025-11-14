@@ -1,8 +1,9 @@
 import Component from "@glimmer/component";
 import { tracked } from "@glimmer/tracking";
+import { concat } from "@ember/helper";
 import { action } from "@ember/object";
 import { service } from "@ember/service";
-import { and } from "truth-helpers";
+import { and, or } from "truth-helpers";
 import DButton from "discourse/components/d-button";
 import UserLink from "discourse/components/user-link";
 import avatar from "discourse/helpers/avatar";
@@ -398,7 +399,15 @@ export default class LotteryIntroSummary extends Component {
           <div class="lottery-draw-notice">
             <div class="draw-message">
               {{icon "trophy"}}
-              <span>{{i18n "vzekc_verlosung.drawing.ready"}}</span>
+              <span>{{i18n
+                  "vzekc_verlosung.drawing.ready"
+                  mode=(i18n
+                    (concat
+                      "vzekc_verlosung.drawing.mode_"
+                      (or this.topic.lottery_drawing_mode "automatic")
+                    )
+                  )
+                }}</span>
             </div>
             <DButton
               @action={{this.drawWinners}}
