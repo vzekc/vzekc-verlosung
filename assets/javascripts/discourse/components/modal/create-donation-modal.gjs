@@ -132,6 +132,7 @@ export default class CreateDonationModal extends Component {
         reply: template,
         draftKey: `new_topic_donation_${donationId}_${Date.now()}`,
         donation_id: donationId,
+        skipSimilarTopics: true,
       });
     } catch (error) {
       popupAjaxError(error);

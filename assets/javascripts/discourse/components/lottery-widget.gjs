@@ -453,6 +453,7 @@ export default class LotteryWidget extends Component {
       // Keys must match first parameter of serializeToDraft in erhaltungsbericht-composer.js
       packet_post_id: this.post.id,
       packet_topic_id: this.post.topic_id,
+      skipSimilarTopics: true,
     });
   }
 
