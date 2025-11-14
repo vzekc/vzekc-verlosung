@@ -29,6 +29,22 @@ module VzekcVerlosung
           { id: donation.lottery.id, topic_id: lottery_topic.id, url: lottery_topic.url }
         end
 
+      # Find Erhaltungsbericht topic for this donation
+      erhaltungsberichte_category_id = SiteSetting.vzekc_verlosung_erhaltungsberichte_category_id
+      erhaltungsbericht_topic =
+        if erhaltungsberichte_category_id.present?
+          Topic
+            .where(category_id: erhaltungsberichte_category_id)
+            .joins(:_custom_fields)
+            .where(topic_custom_fields: { name: "donation_id", value: donation.id.to_s })
+            .first
+        end
+
+      erhaltungsbericht_data =
+        if erhaltungsbericht_topic
+          { id: erhaltungsbericht_topic.id, url: erhaltungsbericht_topic.url }
+        end
+
       render json: {
                donation: {
                  id: donation.id,
@@ -39,6 +55,7 @@ module VzekcVerlosung
                  published_at: donation.published_at,
                  lottery_id: donation.lottery&.id,
                  lottery: lottery_data,
+                 erhaltungsbericht: erhaltungsbericht_data,
                },
              }
     end
