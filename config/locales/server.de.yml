@@ -13,6 +13,26 @@ de:
       lottery_drawn: "Die Gewinner für die Verlosung '%{topic_title}' wurden gezogen"
       lottery_won: "Glückwunsch! Du hast '%{packet_title}' in der Verlosung '%{topic_title}' gewonnen"
       lottery_ending_tomorrow: "Die Verlosung '%{topic_title}' endet morgen"
+      donation_assigned:
+        title: "Spende zugewiesen: %{topic_title}"
+        body: |
+          Hallo %{username},
+
+          Dein Abholangebot für die Spende **[%{topic_title}](%{topic_url})** wurde von @%{creator_username} angenommen!
+
+          ## Kontaktinformationen des Spenders
+
+          %{contact_info}
+
+          ## Nächste Schritte
+
+          1. Kontaktiere den Spender mit den oben angegebenen Informationen, um die Abholung zu vereinbaren
+          2. Nachdem du die Spende abgeholt hast, markiere sie bitte als "Abgeholt" im Spendenangebot
+          3. Du musst dann entweder einen Erhaltungsbericht schreiben oder eine Verlosung erstellen
+
+          Bei Fragen kannst du @%{creator_username} kontaktieren.
+
+          **[→ Spendenangebot öffnen](%{topic_url})**
     reminders:
       draft:
         title: "Du hast eine unveröffentlichte Verlosung"

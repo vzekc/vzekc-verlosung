@@ -79,14 +79,17 @@ module VzekcVerlosung
     # Assign donation to a specific pickup offer
     #
     # @param pickup_offer [PickupOffer] The offer to assign
+    # @param contact_info [String] Contact information from donation creator
     # @return [Boolean] true if successful
-    def assign_to!(pickup_offer)
+    def assign_to!(pickup_offer, contact_info: nil)
       transaction do
         update!(state: "assigned")
         # Mark the selected offer as assigned
         pickup_offer.update!(state: "assigned", assigned_at: Time.zone.now)
         # Keep other offers visible but in pending state for transparency
       end
+      # Send notification PM to assigned user
+      send_assignment_notification!(pickup_offer, contact_info) if contact_info.present?
     end
 
     # Mark donation as picked up
@@ -137,6 +140,42 @@ module VzekcVerlosung
     end
 
     private
+
+    # Send PM notification when donation offer is assigned
+    #
+    # @param pickup_offer [PickupOffer] The assigned offer
+    # @param contact_info [String] Contact information from donation creator
+    def send_assignment_notification!(pickup_offer, contact_info)
+      return unless topic
+
+      user = pickup_offer.user
+      return unless user
+
+      # Send PM
+      PostCreator.create!(
+        Discourse.system_user,
+        title:
+          I18n.t(
+            "vzekc_verlosung.notifications.donation_assigned.title",
+            locale: user.effective_locale,
+            topic_title: topic.title,
+          ),
+        raw:
+          I18n.t(
+            "vzekc_verlosung.notifications.donation_assigned.body",
+            locale: user.effective_locale,
+            username: user.username,
+            topic_title: topic.title,
+            topic_url: "#{Discourse.base_url}#{topic.relative_url}",
+            contact_info: contact_info,
+            creator_username: creator.username,
+          ),
+        archetype: Archetype.private_message,
+        subtype: TopicSubtype.system_message,
+        target_usernames: user.username,
+        skip_validations: true,
+      )
+    end
 
     # Automatically close donation after pickup
     def close_automatically!

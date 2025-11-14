@@ -208,3 +208,11 @@ en:
         postcode_placeholder: "City or postcode for pickup"
         create: "Continue to Post"
         creating: "Creating..."
+      assign_offer_modal:
+        title: "Assign Pickup Offer"
+        assigning_to: "Assigning to"
+        contact_info_label: "Donor's Contact Information"
+        contact_info_placeholder: "Donor's contact information (name, email, phone, address, etc.)..."
+        contact_info_help: "This information will be sent as a private message to the assigned person so they can contact the donor to arrange pickup."
+        assign: "Assign and Send Message"
+        assigning: "Sending..."

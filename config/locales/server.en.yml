@@ -13,6 +13,26 @@ en:
       lottery_drawn: "Winners have been drawn for the lottery '%{topic_title}'"
       lottery_won: "Congratulations! You won '%{packet_title}' in the lottery '%{topic_title}'"
       lottery_ending_tomorrow: "The lottery '%{topic_title}' ends tomorrow"
+      donation_assigned:
+        title: "Donation assigned: %{topic_title}"
+        body: |
+          Hello %{username},
+
+          Your pickup offer for the donation **[%{topic_title}](%{topic_url})** has been accepted by @%{creator_username}!
+
+          ## Donor's Contact Information
+
+          %{contact_info}
+
+          ## Next Steps
+
+          1. Contact the donor using the information above to arrange pickup
+          2. After you've picked up the donation, please mark it as "Picked up" in the donation offer
+          3. You'll then need to either write an Erhaltungsbericht (reception report) or create a lottery
+
+          If you have any questions, you can contact @%{creator_username}.
+
+          **[→ Open donation offer](%{topic_url})**
     reminders:
       draft:
         title: "You have an unpublished lottery"

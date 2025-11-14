@@ -81,6 +81,7 @@ module VzekcVerlosung
     # Assigns the donation to a specific pickup offer
     #
     # @param id [Integer] Pickup offer ID
+    # @param contact_info [String] Contact information from donation creator
     #
     # @return [HTTP 204] No content on success
     def assign
@@ -97,7 +98,12 @@ module VzekcVerlosung
         return render_json_error("Donation is not in open state", status: :unprocessable_entity)
       end
 
-      donation.assign_to!(offer)
+      contact_info = assign_params[:contact_info]
+      if contact_info.blank?
+        return(render_json_error("Contact information is required", status: :unprocessable_entity))
+      end
+
+      donation.assign_to!(offer, contact_info: contact_info)
 
       head :no_content
     end
@@ -135,6 +141,10 @@ module VzekcVerlosung
 
     def create_params
       params.permit(:notes)
+    end
+
+    def assign_params
+      params.permit(:contact_info)
     end
 
     # Serialize a pickup offer for JSON response

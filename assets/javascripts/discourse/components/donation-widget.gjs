@@ -13,6 +13,7 @@ import { popupAjaxError } from "discourse/lib/ajax-error";
 import { bind } from "discourse/lib/decorators";
 import Composer from "discourse/models/composer";
 import { i18n } from "discourse-i18n";
+import AssignOfferModal from "./modal/assign-offer-modal";
 import CreateLotteryModal from "./modal/create-lottery-modal";
 
 /**
@@ -26,7 +27,6 @@ import CreateLotteryModal from "./modal/create-lottery-modal";
 export default class DonationWidget extends Component {
   @service currentUser;
   @service appEvents;
-  @service dialog;
   @service composer;
   @service modal;
   @service siteSettings;
@@ -296,35 +296,19 @@ export default class DonationWidget extends Component {
   /**
    * Assign donation to a specific offer
    *
-   * @param {number} offerId - The pickup offer ID
+   * @param {Object} offer - The pickup offer to assign
    */
   @action
-  async assignOffer(offerId) {
-    if (this.actionInProgress) {
-      return;
-    }
-
-    const confirmed = await this.dialog.yesNoConfirm({
-      message: i18n("vzekc_verlosung.donation.confirm_assign"),
+  assignOffer(offer) {
+    this.modal.show(AssignOfferModal, {
+      model: {
+        offer,
+        donationId: this.donationData.id,
+        onAssigned: () => {
+          this.appEvents.trigger("donation:data-changed", this.post.id);
+        },
+      },
     });
-
-    if (!confirmed) {
-      return;
-    }
-
-    this.actionInProgress = true;
-
-    try {
-      await ajax(`/vzekc-verlosung/pickup-offers/${offerId}/assign`, {
-        type: "PUT",
-      });
-
-      this.appEvents.trigger("donation:data-changed", this.post.id);
-    } catch (error) {
-      popupAjaxError(error);
-    } finally {
-      this.actionInProgress = false;
-    }
   }
 
   /**
@@ -526,7 +510,7 @@ export default class DonationWidget extends Component {
                     {{#if this.isCreator}}
                       {{#if (eq this.donationData.state "open")}}
                         <DButton
-                          @action={{fn this.assignOffer offer.id}}
+                          @action={{fn this.assignOffer offer}}
                           @label="vzekc_verlosung.donation.assign"
                           @icon="user-plus"
                           @disabled={{this.actionInProgress}}

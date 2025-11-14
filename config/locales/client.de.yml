@@ -208,3 +208,11 @@ de:
         postcode_placeholder: "Ort oder PLZ für Abholung"
         create: "Weiter zum Post"
         creating: "Erstelle..."
+      assign_offer_modal:
+        title: "Abholangebot zuweisen"
+        assigning_to: "Zuweisen an"
+        contact_info_label: "Kontaktinformationen des Spenders"
+        contact_info_placeholder: "Kontaktinformationen des Spenders (Name, E-Mail, Telefon, Adresse, etc.)..."
+        contact_info_help: "Diese Informationen werden als private Nachricht an den zugewiesenen Abholer gesendet, damit er den Spender kontaktieren kann, um die Abholung zu vereinbaren."
+        assign: "Zuweisen und Nachricht senden"
+        assigning: "Sende..."
