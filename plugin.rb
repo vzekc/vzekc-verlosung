@@ -393,18 +393,31 @@ after_initialize do
     erhaltungsbericht_donation_id = opts[:donation_id]&.to_i
 
     if erhaltungsbericht_donation_id.present?
-      # Save donation_id to topic custom fields for UI lookups
-      topic.custom_fields["donation_id"] = erhaltungsbericht_donation_id
-      topic.save_custom_fields
+      # CRITICAL: Check if this is actually an Erhaltungsbericht topic,
+      # not a donation topic. Both pass donation_id, so we distinguish by category.
+      erhaltungsberichte_category_id = SiteSetting.vzekc_verlosung_erhaltungsberichte_category_id
 
-      # Set business state: Link Erhaltungsbericht topic to donation
-      donation = VzekcVerlosung::Donation.find_by(id: erhaltungsbericht_donation_id)
-      if donation
-        donation.update!(erhaltungsbericht_topic_id: topic.id)
-        Rails.logger.info("Linked Erhaltungsbericht topic #{topic.id} to donation #{donation.id}")
+      if erhaltungsberichte_category_id.present? &&
+           topic.category_id == erhaltungsberichte_category_id
+        # This is an Erhaltungsbericht topic - link it to the donation
+        # Save donation_id to topic custom fields for UI lookups
+        topic.custom_fields["donation_id"] = erhaltungsbericht_donation_id
+        topic.save_custom_fields
+
+        # Set business state: Link Erhaltungsbericht topic to donation
+        donation = VzekcVerlosung::Donation.find_by(id: erhaltungsbericht_donation_id)
+        if donation
+          donation.update!(erhaltungsbericht_topic_id: topic.id)
+          Rails.logger.info("Linked Erhaltungsbericht topic #{topic.id} to donation #{donation.id}")
+        else
+          Rails.logger.warn(
+            "Could not find donation #{erhaltungsbericht_donation_id} for Erhaltungsbericht topic #{topic.id}",
+          )
+        end
       else
-        Rails.logger.warn(
-          "Could not find donation #{erhaltungsbericht_donation_id} for Erhaltungsbericht topic #{topic.id}",
+        # This is a donation topic - donation_id is just for reference, don't set erhaltungsbericht_topic_id
+        Rails.logger.debug(
+          "Topic #{topic.id} has donation_id #{erhaltungsbericht_donation_id} but is not in Erhaltungsberichte category - skipping erhaltungsbericht link",
         )
       end
     end
