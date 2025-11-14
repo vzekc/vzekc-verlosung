@@ -14,9 +14,9 @@ import { i18n } from "discourse-i18n";
  * Modal component for assigning a donation offer with contact information
  *
  * @component AssignOfferModal
- * Allows donation creator to provide donor's contact info when assigning an offer
+ * Allows facilitator to provide donor's contact info when assigning offer to picker
  *
- * @param {Object} args.model.offer - The pickup offer to assign
+ * @param {Object} args.model.offer - The pickup offer to assign to the picker
  * @param {number} args.model.donationId - The donation ID
  * @param {Function} args.model.onAssigned - Callback after successful assignment
  */

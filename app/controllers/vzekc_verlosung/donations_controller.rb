@@ -2,6 +2,12 @@
 
 module VzekcVerlosung
   # Controller for managing donation offers
+  #
+  # Roles:
+  # - donor: Person who has hardware to give away (not in system)
+  # - facilitator: Creates donation offer, finds picker, provides donor contact
+  # - picker: Picks up donation, then keeps it or creates lottery
+  #
   class DonationsController < ::ApplicationController
     requires_plugin VzekcVerlosung::PLUGIN_NAME
 

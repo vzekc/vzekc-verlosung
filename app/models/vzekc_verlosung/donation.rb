@@ -3,17 +3,24 @@
 module VzekcVerlosung
   # Model for donation offers
   #
+  # Roles:
+  # - donor: Person who has hardware to give away (not in system)
+  # - facilitator: User who creates donation offer, finds picker, provides donor contact (creator_user_id)
+  # - picker: User who picks up donation, then keeps it or creates lottery
+  #
   # @attr topic_id [Integer] Associated Discourse topic (set after topic creation)
   # @attr state [String] Current state: draft, open, assigned, picked_up, closed
   # @attr postcode [String] Location postcode for pickup
-  # @attr creator_user_id [Integer] User who created the donation offer
+  # @attr creator_user_id [Integer] The facilitator who created the donation offer
   # @attr published_at [DateTime] When the donation was published (changed to 'open')
   #
   class Donation < ActiveRecord::Base
     self.table_name = "vzekc_verlosung_donations"
 
     belongs_to :topic, optional: true
-    belongs_to :creator, class_name: "User", foreign_key: :creator_user_id
+    belongs_to :facilitator, class_name: "User", foreign_key: :creator_user_id
+    # Alias for backwards compatibility
+    alias_method :creator, :facilitator
     has_many :pickup_offers, dependent: :destroy
     has_one :lottery, class_name: "VzekcVerlosung::Lottery", dependent: :nullify
 
@@ -141,38 +148,38 @@ module VzekcVerlosung
 
     private
 
-    # Send PM notification when donation offer is assigned
+    # Send PM notification when donation offer is assigned to a picker
     #
     # @param pickup_offer [PickupOffer] The assigned offer
-    # @param contact_info [String] Contact information from donation creator
+    # @param contact_info [String] Donor's contact information provided by facilitator
     def send_assignment_notification!(pickup_offer, contact_info)
       return unless topic
 
-      user = pickup_offer.user
-      return unless user
+      picker = pickup_offer.user
+      return unless picker
 
-      # Send PM
+      # Send PM to picker with donor's contact information
       PostCreator.create!(
         Discourse.system_user,
         title:
           I18n.t(
             "vzekc_verlosung.notifications.donation_assigned.title",
-            locale: user.effective_locale,
+            locale: picker.effective_locale,
             topic_title: topic.title,
           ),
         raw:
           I18n.t(
             "vzekc_verlosung.notifications.donation_assigned.body",
-            locale: user.effective_locale,
-            username: user.username,
+            locale: picker.effective_locale,
+            username: picker.username,
             topic_title: topic.title,
             topic_url: "#{Discourse.base_url}#{topic.relative_url}",
             contact_info: contact_info,
-            creator_username: creator.username,
+            facilitator_username: facilitator.username,
           ),
         archetype: Archetype.private_message,
         subtype: TopicSubtype.system_message,
-        target_usernames: user.username,
+        target_usernames: picker.username,
         skip_validations: true,
       )
     end
@@ -183,36 +190,37 @@ module VzekcVerlosung
     end
 
     # Send initial PM notification when donation is marked as picked up
+    # Reminds picker to either write Erhaltungsbericht or create lottery
     def send_pickup_notification!
       return unless topic
 
-      # Get the assigned user
+      # Get the assigned offer (picker)
       assigned_offer = pickup_offers.find_by(state: %w[assigned picked_up])
       return unless assigned_offer
 
-      user = assigned_offer.user
-      return unless user
+      picker = assigned_offer.user
+      return unless picker
 
-      # Send PM
+      # Send PM to picker
       PostCreator.create!(
         Discourse.system_user,
         title:
           I18n.t(
             "vzekc_verlosung.reminders.donation_picked_up.title",
-            locale: user.effective_locale,
+            locale: picker.effective_locale,
             topic_title: topic.title,
           ),
         raw:
           I18n.t(
             "vzekc_verlosung.reminders.donation_picked_up.body",
-            locale: user.effective_locale,
-            username: user.username,
+            locale: picker.effective_locale,
+            username: picker.username,
             topic_title: topic.title,
             topic_url: "#{Discourse.base_url}#{topic.relative_url}",
           ),
         archetype: Archetype.private_message,
         subtype: TopicSubtype.system_message,
-        target_usernames: user.username,
+        target_usernames: picker.username,
         skip_validations: true,
       )
     end

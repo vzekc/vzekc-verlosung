@@ -2,6 +2,11 @@
 
 module VzekcVerlosung
   # Controller for managing pickup offers on donations
+  #
+  # Roles:
+  # - facilitator: Creates donation offer, assigns to picker
+  # - picker: Makes pickup offer, receives donor contact info when assigned
+  #
   class PickupOffersController < ::ApplicationController
     requires_plugin VzekcVerlosung::PLUGIN_NAME
 
@@ -9,10 +14,10 @@ module VzekcVerlosung
 
     # POST /vzekc-verlosung/donations/:donation_id/pickup-offers
     #
-    # Creates a new pickup offer for a donation
+    # Creates a new pickup offer for a donation (picker volunteers)
     #
     # @param donation_id [Integer] Donation ID
-    # @param notes [String] Optional notes from the user
+    # @param notes [String] Optional notes from the picker
     #
     # @return [JSON] The created pickup offer
     def create
@@ -78,10 +83,11 @@ module VzekcVerlosung
 
     # PUT /vzekc-verlosung/pickup-offers/:id/assign
     #
-    # Assigns the donation to a specific pickup offer
+    # Assigns the donation to a specific picker
+    # Facilitator provides donor's contact information which is sent to picker via PM
     #
     # @param id [Integer] Pickup offer ID
-    # @param contact_info [String] Contact information from donation creator
+    # @param contact_info [String] Donor's contact information provided by facilitator
     #
     # @return [HTTP 204] No content on success
     def assign
@@ -110,7 +116,7 @@ module VzekcVerlosung
 
     # PUT /vzekc-verlosung/pickup-offers/:id/mark-picked-up
     #
-    # Marks a donation as picked up
+    # Marks a donation as picked up (called by facilitator or picker)
     #
     # @param id [Integer] Pickup offer ID
     #
@@ -119,7 +125,7 @@ module VzekcVerlosung
       offer = PickupOffer.find(params[:id])
       donation = offer.donation
 
-      # Either creator or assigned user can confirm pickup
+      # Either facilitator or assigned picker can confirm pickup
       can_confirm =
         guardian.can_manage_donation?(donation) ||
           (offer.user_id == current_user.id && offer.assigned?)

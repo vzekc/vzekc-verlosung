@@ -18,7 +18,7 @@ en:
         body: |
           Hello %{username},
 
-          Your pickup offer for the donation **[%{topic_title}](%{topic_url})** has been accepted by @%{creator_username}!
+          Your pickup offer for the donation **[%{topic_title}](%{topic_url})** has been accepted by the facilitator @%{facilitator_username}!
 
           ## Donor's Contact Information
 
@@ -30,7 +30,7 @@ en:
           2. After you've picked up the donation, please mark it as "Picked up" in the donation offer
           3. You'll then need to either write an Erhaltungsbericht (reception report) or create a lottery
 
-          If you have any questions, you can contact @%{creator_username}.
+          If you have any questions, you can contact the facilitator @%{facilitator_username}.
 
           **[→ Open donation offer](%{topic_url})**
     reminders:
@@ -93,7 +93,7 @@ en:
         body: |
           Hello %{username},
 
-          The donation offer **%{topic_title}** that you are coordinating is still open and waiting to be assigned to a pickup volunteer.
+          The donation offer **%{topic_title}** that you are facilitating is still open and waiting to be assigned to a picker.
 
           Please open the offer and assign it to one of the interested users, or close it if the donation is no longer available.
 

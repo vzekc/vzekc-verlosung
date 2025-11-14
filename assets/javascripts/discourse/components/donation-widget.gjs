@@ -20,7 +20,11 @@ import CreateLotteryModal from "./modal/create-lottery-modal";
  * Donation widget component for managing pickup offers
  *
  * @component DonationWidget
- * Shows donation state, pickup offers, and action buttons
+ * Shows donation state, pickup offers from pickers, and action buttons for facilitator
+ *
+ * Roles:
+ * - facilitator: User who created donation, manages offers, provides donor contact
+ * - picker: User who offers to pick up donation
  *
  * @param {Object} args.data.post - The post object (passed via renderGlimmer)
  */
@@ -127,15 +131,20 @@ export default class DonationWidget extends Component {
   }
 
   /**
-   * Check if user is the donation creator
+   * Check if user is the donation facilitator
    *
    * @type {boolean}
    */
-  get isCreator() {
+  get isFacilitator() {
     return (
       this.donationData &&
       this.currentUser.id === this.donationData.creator_user_id
     );
+  }
+
+  // Backwards compatibility alias
+  get isCreator() {
+    return this.isFacilitator;
   }
 
   /**
@@ -294,9 +303,10 @@ export default class DonationWidget extends Component {
   }
 
   /**
-   * Assign donation to a specific offer
+   * Assign donation to a specific picker
+   * Opens modal for facilitator to provide donor's contact information
    *
-   * @param {Object} offer - The pickup offer to assign
+   * @param {Object} offer - The pickup offer from the picker to assign
    */
   @action
   assignOffer(offer) {
