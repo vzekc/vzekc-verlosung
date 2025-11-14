@@ -221,11 +221,12 @@
       display: flex;
       align-items: center;
       gap: 8px;
-      margin: 15px 0;
+      margin: 20px 0 15px 0;
       font-size: 1em;
 
       .d-icon {
-        color: var(--primary-medium);
+        color: var(--tertiary);
+        font-size: 1.2em;
       }
 
       a {

@@ -11,6 +11,21 @@ export default apiInitializer((api) => {
         return;
       }
 
+      // Only show this link on topics in the Erhaltungsberichte category
+      // (not on donation/lottery topics themselves)
+      const siteSettings = api.container.lookup("service:site-settings");
+      const erhaltungsberichteCategoryId = parseInt(
+        siteSettings.vzekc_verlosung_erhaltungsberichte_category_id,
+        10
+      );
+
+      if (
+        !erhaltungsberichteCategoryId ||
+        topic.category_id !== erhaltungsberichteCategoryId
+      ) {
+        return;
+      }
+
       // Check if this is an Erhaltungsbericht with source links
       const donationSource = topic.erhaltungsbericht_source_donation;
       const packetSource = topic.erhaltungsbericht_source_packet;
