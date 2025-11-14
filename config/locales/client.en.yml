@@ -115,6 +115,8 @@ en:
         view_link: "Reception Report"
         packet_notice: "This is a reception report for the packet:"
         category_not_configured: "Reception reports category is not configured. Please contact an administrator."
+        from_donation: "Reception report for donation:"
+        from_lottery: "Reception report for packet from:"
       status:
         finished: "Finished"
         ready_to_draw: "Ready to draw"

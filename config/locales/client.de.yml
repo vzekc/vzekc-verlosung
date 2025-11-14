@@ -115,6 +115,8 @@ de:
         view_link: "Erhaltungsbericht"
         packet_notice: "Dies ist ein Erhaltungsbericht für das Paket:"
         category_not_configured: "Die Kategorie für Erhaltungsberichte ist nicht konfiguriert. Bitte kontaktiere einen Administrator."
+        from_donation: "Erhaltungsbericht zur Spende:"
+        from_lottery: "Erhaltungsbericht zum Paket aus:"
       status:
         finished: "Beendet"
         ready_to_draw: "Ziehung ausstehend"
