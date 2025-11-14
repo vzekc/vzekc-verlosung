@@ -216,5 +216,26 @@
         }
       }
     }
+
+    .donation-erhaltungsbericht-link {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 15px 0;
+      font-size: 1em;
+
+      .d-icon {
+        color: var(--primary-medium);
+      }
+
+      a {
+        color: var(--tertiary);
+        text-decoration: none;
+
+        &:hover {
+          text-decoration: underline;
+        }
+      }
+    }
   }
 }
