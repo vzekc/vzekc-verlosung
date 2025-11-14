@@ -100,6 +100,7 @@ module VzekcVerlosung
     end
 
     # Mark donation as picked up
+    # Picker will then choose to either keep it (write Erhaltungsbericht) or create lottery
     #
     # @return [Boolean] true if successful
     def mark_picked_up!
@@ -108,12 +109,10 @@ module VzekcVerlosung
         # Update the assigned offer
         assigned_offer = pickup_offers.find_by(state: "assigned")
         assigned_offer&.update!(state: "picked_up", picked_up_at: Time.zone.now)
-        # Auto-create draft lottery linked to this donation
-        create_lottery_draft! if topic_id.present?
       end
       # Auto-close after pickup
       close_automatically!
-      # Send initial PM notification
+      # Send initial PM notification to picker about next steps
       send_pickup_notification!
     end
 
@@ -222,20 +221,6 @@ module VzekcVerlosung
         subtype: TopicSubtype.system_message,
         target_usernames: picker.username,
         skip_validations: true,
-      )
-    end
-
-    # Auto-create draft lottery when donation is picked up
-    def create_lottery_draft!
-      # Don't create if lottery already exists
-      return if lottery.present?
-
-      VzekcVerlosung::Lottery.create!(
-        topic_id: topic_id,
-        donation_id: id,
-        state: "draft",
-        duration_days: 14, # Default 14 days
-        drawing_mode: "automatic", # Default to automatic drawing
       )
     end
   end

@@ -116,7 +116,7 @@ module VzekcVerlosung
 
     # PUT /vzekc-verlosung/pickup-offers/:id/mark-picked-up
     #
-    # Marks a donation as picked up (called by facilitator or picker)
+    # Marks a donation as picked up (only callable by the assigned picker)
     #
     # @param id [Integer] Pickup offer ID
     #
@@ -125,12 +125,8 @@ module VzekcVerlosung
       offer = PickupOffer.find(params[:id])
       donation = offer.donation
 
-      # Either facilitator or assigned picker can confirm pickup
-      can_confirm =
-        guardian.can_manage_donation?(donation) ||
-          (offer.user_id == current_user.id && offer.assigned?)
-
-      unless can_confirm
+      # Only the assigned picker can confirm pickup
+      unless offer.user_id == current_user.id && offer.assigned?
         return render_json_error("You don't have permission to confirm pickup", status: :forbidden)
       end
 

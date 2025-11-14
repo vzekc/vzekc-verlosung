@@ -6,6 +6,21 @@ Project-specific instructions for AI agents. MUST be loaded at conversation star
 - Architect mode enabled by default: detailed analysis, patterns, trade-offs, architectural guidance
 - Stop and ask for context if unable to write code meeting guidelines
 
+## Role Terminology
+
+Clear role names used throughout the codebase:
+
+- **donor** / **Spender**: Person who has hardware to give away (not in system)
+- **facilitator** / **Vermittler**: User who creates donation offer, finds picker, provides donor's contact info (stored as `creator_user_id` in database)
+- **picker** / **Abholer**: User who picks up donation from donor, then either keeps it (writes Erhaltungsbericht) OR creates lottery (becomes lottery owner)
+- **winner** / **Gewinner**: User who wins a packet in the lottery, writes Erhaltungsbericht
+
+**Key Points:**
+- Facilitator is NOT the donor - they facilitate on behalf of the donor
+- Only the picker can mark a donation as "picked up"
+- Picker receives donor's contact info via PM when assigned
+- Picker chooses after pickup: keep it OR create lottery (no auto-created draft)
+
 ## Development Rules
 Discourse is large with long history. Understand context before changes.
 
