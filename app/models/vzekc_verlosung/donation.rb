@@ -188,6 +188,7 @@ module VzekcVerlosung
         donation_id: id,
         state: "draft",
         duration_days: 14, # Default 14 days
+        drawing_mode: "automatic", # Default to automatic drawing
       )
     end
   end

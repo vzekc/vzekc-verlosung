@@ -24,6 +24,7 @@ export default class CreateLotteryModal extends Component {
 
   @tracked title = "";
   @tracked durationDays = 14;
+  @tracked drawingMode = "automatic";
   @tracked noAbholerpaket = false;
   @tracked abholerpaketTitle = "";
   @tracked packets = [this.createEmptyPacket()];
@@ -209,6 +210,7 @@ export default class CreateLotteryModal extends Component {
         data: JSON.stringify({
           title: this.title,
           duration_days: this.durationDays,
+          drawing_mode: this.drawingMode,
           category_id: this.args.model.categoryId,
           has_abholerpaket: !this.noAbholerpaket,
           abholerpaket_title: this.abholerpaketTitle,
@@ -270,6 +272,24 @@ export default class CreateLotteryModal extends Component {
             />
             <div class="duration-help">
               {{i18n "vzekc_verlosung.modal.duration_help"}}
+            </div>
+          </div>
+
+          <div class="control-group">
+            <label>{{i18n "vzekc_verlosung.modal.drawing_mode_label"}}</label>
+            <select
+              {{on "change" (fn this.updateField "drawingMode")}}
+              class="lottery-drawing-mode-select"
+            >
+              <option value="automatic" selected={{eq this.drawingMode "automatic"}}>
+                {{i18n "vzekc_verlosung.modal.drawing_mode_automatic"}}
+              </option>
+              <option value="manual" selected={{eq this.drawingMode "manual"}}>
+                {{i18n "vzekc_verlosung.modal.drawing_mode_manual"}}
+              </option>
+            </select>
+            <div class="drawing-mode-help">
+              {{i18n "vzekc_verlosung.modal.drawing_mode_help"}}
             </div>
           </div>
 

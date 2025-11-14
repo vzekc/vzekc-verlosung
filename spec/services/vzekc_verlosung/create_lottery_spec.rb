@@ -43,6 +43,22 @@ RSpec.describe VzekcVerlosung::CreateLottery do
         expect(lottery.state).to eq("draft")
       end
 
+      it "creates lottery with automatic drawing mode by default" do
+        result = described_class.call(**valid_params)
+
+        lottery = VzekcVerlosung::Lottery.find_by(topic_id: result.main_topic.id)
+        expect(lottery.drawing_mode).to eq("automatic")
+      end
+
+      it "creates lottery with manual drawing mode when specified" do
+        manual_params =
+          valid_params.merge(params: valid_params[:params].merge(drawing_mode: "manual"))
+        result = described_class.call(**manual_params)
+
+        lottery = VzekcVerlosung::Lottery.find_by(topic_id: result.main_topic.id)
+        expect(lottery.drawing_mode).to eq("manual")
+      end
+
       it "creates packet posts in the main topic" do
         result = described_class.call(**valid_params)
 

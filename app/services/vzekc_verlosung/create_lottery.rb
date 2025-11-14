@@ -26,6 +26,7 @@ module VzekcVerlosung
       attribute :packets, :array
       attribute :has_abholerpaket, :boolean
       attribute :abholerpaket_title, :string
+      attribute :drawing_mode, :string
 
       validates :title, presence: true, length: { minimum: 3, maximum: 255 }
       validates :duration_days,
@@ -37,6 +38,7 @@ module VzekcVerlosung
                 }
       validates :category_id, presence: true
       validates :packets, presence: true, length: { minimum: 1 }
+      validates :drawing_mode, inclusion: { in: %w[automatic manual] }, allow_nil: true
     end
 
     model :category
@@ -96,6 +98,7 @@ module VzekcVerlosung
           topic_id: post.topic_id,
           state: "draft",
           duration_days: params.duration_days,
+          drawing_mode: params.drawing_mode || "automatic",
         )
 
       context[:main_topic] = post.topic

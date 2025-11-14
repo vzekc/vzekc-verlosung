@@ -16,6 +16,8 @@ RSpec.describe VzekcVerlosung::Lottery do
     it { is_expected.to validate_uniqueness_of(:topic_id) }
     it { is_expected.to validate_presence_of(:state) }
     it { is_expected.to validate_inclusion_of(:state).in_array(%w[draft active finished]) }
+    it { is_expected.to validate_presence_of(:drawing_mode) }
+    it { is_expected.to validate_inclusion_of(:drawing_mode).in_array(%w[automatic manual]) }
 
     context "with duration_days" do
       it "validates minimum value" do
@@ -131,6 +133,20 @@ RSpec.describe VzekcVerlosung::Lottery do
     it "#drawn? returns false when drawn_at is nil" do
       lottery = Fabricate(:lottery, drawn_at: nil)
       expect(lottery.drawn?).to be false
+    end
+  end
+
+  describe "drawing mode helpers" do
+    it "#automatic_drawing? returns true for automatic mode" do
+      lottery = Fabricate(:lottery, drawing_mode: "automatic")
+      expect(lottery.automatic_drawing?).to be true
+      expect(lottery.manual_drawing?).to be false
+    end
+
+    it "#manual_drawing? returns true for manual mode" do
+      lottery = Fabricate(:lottery, drawing_mode: "manual")
+      expect(lottery.manual_drawing?).to be true
+      expect(lottery.automatic_drawing?).to be false
     end
   end
 

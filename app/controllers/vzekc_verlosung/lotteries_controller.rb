@@ -268,7 +268,12 @@ module VzekcVerlosung
       duration_days = lottery.duration_days || 14
       published_at = lottery.ends_at ? lottery.ends_at - duration_days.days : topic.created_at
 
-      render json: { title: topic.title, timestamp: published_at.iso8601, packets: packets }
+      render json: {
+               title: topic.title,
+               timestamp: published_at.iso8601,
+               packets: packets,
+               drawing_mode: lottery.drawing_mode,
+             }
     end
 
     # POST /vzekc_verlosung/lotteries/:topic_id/draw
@@ -373,6 +378,112 @@ module VzekcVerlosung
       head :no_content
     end
 
+    # POST /vzekc_verlosung/lotteries/:topic_id/draw-manual
+    #
+    # Performs manual drawing by accepting user-selected winners for each packet
+    #
+    # @param topic_id [Integer] Topic ID
+    # @param selections [Hash] Hash of post_id => winner_user_id
+    #
+    # @return [JSON] Success or error
+    def draw_manual
+      topic = Topic.find_by(id: params[:topic_id])
+      return render_json_error("Topic not found", status: :not_found) unless topic
+
+      lottery = Lottery.find_by(topic_id: topic.id)
+      return render_json_error("Lottery not found", status: :not_found) unless lottery
+
+      # Check if user can draw (must be topic owner or staff)
+      unless guardian.is_staff? || topic.user_id == current_user.id
+        return(
+          render_json_error("You don't have permission to draw this lottery", status: :forbidden)
+        )
+      end
+
+      # Check if lottery is manual mode
+      unless lottery.manual_drawing?
+        return(
+          render_json_error(
+            "This lottery is set to automatic drawing mode",
+            status: :unprocessable_entity,
+          )
+        )
+      end
+
+      # Check if already drawn
+      if lottery.results.present?
+        return render_json_error("Lottery has already been drawn", status: :unprocessable_entity)
+      end
+
+      # Get selections from params: { post_id: winner_user_id, ... }
+      selections = params[:selections]&.permit!&.to_h || {}
+
+      # Get all non-Abholerpaket packets with their tickets
+      lottery_packets =
+        lottery
+          .lottery_packets
+          .where(abholerpaket: false)
+          .includes(lottery_tickets: :user)
+
+      # Validate: all packets with participants must have a winner selected
+      packets_with_participants = lottery_packets.select { |p| p.lottery_tickets.any? }
+
+      packets_with_participants.each do |packet|
+        post_id_str = packet.post_id.to_s
+        unless selections.key?(post_id_str) && selections[post_id_str].present?
+          return(
+            render_json_error(
+              "Missing winner selection for packet: #{packet.title}",
+              status: :unprocessable_entity,
+            )
+          )
+        end
+
+        # Validate winner is actually a participant in this packet
+        winner_user_id = selections[post_id_str].to_i
+        unless packet.lottery_tickets.exists?(user_id: winner_user_id)
+          return(
+            render_json_error(
+              "Selected winner is not a participant in packet: #{packet.title}",
+              status: :unprocessable_entity,
+            )
+          )
+        end
+      end
+
+      # All validations passed - mark winners and finish lottery
+      drawn_at = Time.zone.now
+      drawings = []
+
+      packets_with_participants.each do |packet|
+        winner_user_id = selections[packet.post_id.to_s].to_i
+        winner_user = User.find(winner_user_id)
+
+        packet.mark_winner!(winner_user, drawn_at)
+
+        # Build results entry for this drawing
+        drawings << { "text" => packet.title, "winner" => winner_user.username }
+      end
+
+      # Build results hash (simplified version without RNG seed since it's manual)
+      results = { "manual" => true, "drawings" => drawings, "drawn_at" => drawn_at.iso8601 }
+
+      # Update lottery state
+      lottery.finish!
+      lottery.mark_drawn!(results)
+
+      # Notify all participants that winners have been drawn
+      notify_lottery_drawn(topic)
+
+      # Send special notification to winners
+      notify_winners(topic, results)
+
+      # Send notification to participants who didn't win anything
+      notify_non_winners(topic, results)
+
+      head :no_content
+    end
+
     # GET /vzekc_verlosung/lotteries/:topic_id/results.json
     #
     # Downloads the lottery results as a JSON file for verification
@@ -408,6 +519,7 @@ module VzekcVerlosung
         :category_id,
         :has_abholerpaket,
         :abholerpaket_title,
+        :drawing_mode,
         packets: %i[title erhaltungsbericht_required],
       )
     end

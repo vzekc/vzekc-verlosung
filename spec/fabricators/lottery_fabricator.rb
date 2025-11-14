@@ -4,4 +4,5 @@ Fabricator(:lottery, from: "VzekcVerlosung::Lottery") do
   topic { Fabricate(:topic) }
   state "draft"
   duration_days 14
+  drawing_mode "automatic"
 end

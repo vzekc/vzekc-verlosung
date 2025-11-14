@@ -16,6 +16,7 @@ module VzekcVerlosung
     # Validations
     validates :topic_id, presence: true, uniqueness: true
     validates :state, presence: true, inclusion: { in: %w[draft active finished] }
+    validates :drawing_mode, presence: true, inclusion: { in: %w[automatic manual] }
     validates :duration_days,
               numericality: {
                 greater_than_or_equal_to: 7,
@@ -45,6 +46,15 @@ module VzekcVerlosung
 
     def drawn?
       drawn_at.present?
+    end
+
+    # Drawing mode helpers
+    def automatic_drawing?
+      drawing_mode == "automatic"
+    end
+
+    def manual_drawing?
+      drawing_mode == "manual"
     end
 
     # Transition methods
@@ -80,6 +90,7 @@ end
 #
 #  id            :bigint           not null, primary key
 #  drawn_at      :datetime
+#  drawing_mode  :string           default("automatic"), not null
 #  duration_days :integer
 #  ends_at       :datetime
 #  results       :jsonb

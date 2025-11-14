@@ -468,4 +468,171 @@ RSpec.describe VzekcVerlosung::LotteriesController do
       end
     end
   end
+
+  describe "#draw_manual" do
+    before { sign_in(user) }
+
+    fab!(:other_user, :user)
+    fab!(:admin)
+    let!(:lottery_result) do
+      VzekcVerlosung::CreateLottery.call(
+        params: {
+          title: "Manual Test Lottery",
+          category_id: category.id,
+          duration_days: 14,
+          drawing_mode: "manual",
+          has_abholerpaket: false,
+          packets: [{ title: "Packet 1" }],
+        },
+        user: user,
+        guardian: Guardian.new(user),
+      )
+    end
+    let(:topic) { lottery_result.main_topic }
+    let(:lottery) { lottery_result.lottery }
+    let(:packet_post) { lottery.lottery_packets.first.post }
+
+    before do
+      # Publish lottery and set it to ended
+      lottery.update!(state: "active", ends_at: 1.day.ago)
+
+      # Add tickets
+      VzekcVerlosung::LotteryTicket.create!(post_id: packet_post.id, user_id: user.id)
+      VzekcVerlosung::LotteryTicket.create!(post_id: packet_post.id, user_id: other_user.id)
+    end
+
+    context "with valid selections" do
+      it "accepts manual winner selections" do
+        post "/vzekc-verlosung/lotteries/#{topic.id}/draw-manual.json",
+             params: {
+               selections: {
+                 packet_post.id.to_s => user.id,
+               },
+             }
+
+        expect(response.status).to eq(204)
+        lottery.reload
+        expect(lottery.results).to be_present
+        expect(lottery.state).to eq("finished")
+        expect(lottery.drawn_at).to be_present
+      end
+
+      it "marks winner on packet" do
+        post "/vzekc-verlosung/lotteries/#{topic.id}/draw-manual.json",
+             params: {
+               selections: {
+                 packet_post.id.to_s => user.id,
+               },
+             }
+
+        lottery_packet = lottery.lottery_packets.first
+        lottery_packet.reload
+        expect(lottery_packet.winner&.id).to eq(user.id)
+      end
+
+      it "stores results with manual flag" do
+        post "/vzekc-verlosung/lotteries/#{topic.id}/draw-manual.json",
+             params: {
+               selections: {
+                 packet_post.id.to_s => user.id,
+               },
+             }
+
+        lottery.reload
+        expect(lottery.results["manual"]).to be true
+        expect(lottery.results["drawings"]).to be_present
+      end
+    end
+
+    context "with invalid selections" do
+      it "returns error when missing winner for packet with participants" do
+        post "/vzekc-verlosung/lotteries/#{topic.id}/draw-manual.json", params: { selections: {} }
+
+        expect(response.status).to eq(422)
+        json = response.parsed_body
+        expect(json["errors"]).to include(match(/Missing winner selection/))
+      end
+
+      it "returns error when selected user is not a participant" do
+        non_participant = Fabricate(:user)
+
+        post "/vzekc-verlosung/lotteries/#{topic.id}/draw-manual.json",
+             params: {
+               selections: {
+                 packet_post.id.to_s => non_participant.id,
+               },
+             }
+
+        expect(response.status).to eq(422)
+        json = response.parsed_body
+        expect(json["errors"]).to include(match(/not a participant/))
+      end
+    end
+
+    context "when lottery is automatic mode" do
+      before { lottery.update!(drawing_mode: "automatic") }
+
+      it "returns error" do
+        post "/vzekc-verlosung/lotteries/#{topic.id}/draw-manual.json",
+             params: {
+               selections: {
+                 packet_post.id.to_s => user.id,
+               },
+             }
+
+        expect(response.status).to eq(422)
+        json = response.parsed_body
+        expect(json["errors"]).to include(match(/automatic drawing mode/))
+      end
+    end
+
+    context "when user is staff" do
+      before { sign_in(admin) }
+
+      it "allows staff to draw manually" do
+        post "/vzekc-verlosung/lotteries/#{topic.id}/draw-manual.json",
+             params: {
+               selections: {
+                 packet_post.id.to_s => user.id,
+               },
+             }
+
+        expect(response.status).to eq(204)
+      end
+    end
+
+    context "when user is not the owner" do
+      before { sign_in(other_user) }
+
+      it "returns forbidden" do
+        post "/vzekc-verlosung/lotteries/#{topic.id}/draw-manual.json",
+             params: {
+               selections: {
+                 packet_post.id.to_s => user.id,
+               },
+             }
+
+        expect(response.status).to eq(403)
+      end
+    end
+
+    context "when lottery is already drawn" do
+      before do
+        lottery.mark_drawn!({ manual: true, drawings: [{ text: "Packet 1", winner: user.username }] })
+      end
+
+      it "returns error" do
+        post "/vzekc-verlosung/lotteries/#{topic.id}/draw-manual.json",
+             params: {
+               selections: {
+                 packet_post.id.to_s => user.id,
+               },
+             }
+
+        expect(response.status).to eq(422)
+        json = response.parsed_body
+        expect(json["errors"]).to include(match(/already been drawn/))
+      end
+    end
+  end
 end

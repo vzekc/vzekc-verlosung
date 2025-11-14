@@ -58,6 +58,7 @@ Guardian.prepend GuardianExtensions
 - Don't test functionality handled by other classes/components
 - Don't write obvious tests
 - Ruby: use `fab!()` over `let()`, system tests for UI (`spec/system`), use page objects for system spec finders (`spec/system/page_objects`)
+- **ALWAYS skip system tests** unless Playwright browsers are installed - use `--exclude-pattern "**/system/**"`
 
 ### RSpec Style
 - **Context descriptions** MUST start with: `when`, `with`, `without`, `for`, `while`, `if`, `as`, `after`, or `in`
@@ -83,6 +84,11 @@ context "when cascading to lottery tickets" do
 # Ruby tests
 bin/rspec [spec/path/file_spec.rb[:123]]
 LOAD_PLUGINS=1 bin/rspec  # Plugin tests
+
+# IMPORTANT: Skip system tests if Playwright browsers not installed
+# System tests require Playwright browsers which may not be available in all environments
+# Always exclude system tests unless specifically testing UI functionality
+LOAD_PLUGINS=1 bin/rspec plugins/vzekc-verlosung/spec --exclude-pattern "**/system/**"
 
 # JavaScript tests
 bin/rake qunit:test # RUN all non plugin tests
