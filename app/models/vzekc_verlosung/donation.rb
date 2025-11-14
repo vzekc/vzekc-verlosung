@@ -19,6 +19,7 @@ module VzekcVerlosung
 
     belongs_to :topic, optional: true
     belongs_to :facilitator, class_name: "User", foreign_key: :creator_user_id
+    belongs_to :erhaltungsbericht_topic, class_name: "Topic", optional: true
     # Alias for backwards compatibility
     alias_method :creator, :facilitator
     has_many :pickup_offers, dependent: :destroy
@@ -27,6 +28,22 @@ module VzekcVerlosung
     validates :state, presence: true, inclusion: { in: %w[draft open assigned picked_up closed] }
     validates :postcode, presence: true
     validates :creator_user_id, presence: true
+    validate :ensure_exclusive_outcome
+
+    private
+
+    # Ensure a donation can have either a lottery OR an Erhaltungsbericht, but not both
+    def ensure_exclusive_outcome
+      return if lottery.blank? || erhaltungsbericht_topic_id.blank?
+
+      errors.add(
+        :base,
+        "A donation cannot have both a lottery and an Erhaltungsbericht. " \
+          "Please choose one outcome.",
+      )
+    end
+
+    public
 
     # State scopes
     scope :draft, -> { where(state: "draft") }
@@ -143,16 +160,8 @@ module VzekcVerlosung
       # Check if lottery was published (not just draft)
       return true if lottery&.active? || lottery&.finished?
 
-      # Check if an Erhaltungsbericht exists for this donation
-      # (Look for topics in Erhaltungsberichte category with donation_id custom field)
-      erhaltungsberichte_category_id = SiteSetting.vzekc_verlosung_erhaltungsberichte_category_id
-      return false if erhaltungsberichte_category_id.blank?
-
-      Topic
-        .where(category_id: erhaltungsberichte_category_id)
-        .joins(:_custom_fields)
-        .where(topic_custom_fields: { name: "donation_id", value: id.to_s })
-        .exists?
+      # Check if an Erhaltungsbericht exists for this donation (use direct association)
+      erhaltungsbericht_topic_id.present?
     end
 
     private

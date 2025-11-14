@@ -323,3 +323,6 @@ async loadData() {
 - Follow project conventions, prevent knowledge silos
 - Recommend storage locations by info type
 - Inform when this file changes and reloads
+- overall, we want the business logic schema to be separate from posts.  posts can link back to business objects if that is useful when displaying or creating ui
+elements, but the business state should be completely represented in separate tables.  note that deleting posts possibly needs to update the business state, and we need
+ to have proper hooks for that

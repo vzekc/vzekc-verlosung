@@ -29,17 +29,8 @@ module VzekcVerlosung
           { id: donation.lottery.id, topic_id: lottery_topic.id, url: lottery_topic.url }
         end
 
-      # Find Erhaltungsbericht topic for this donation
-      erhaltungsberichte_category_id = SiteSetting.vzekc_verlosung_erhaltungsberichte_category_id
-      erhaltungsbericht_topic =
-        if erhaltungsberichte_category_id.present?
-          Topic
-            .where(category_id: erhaltungsberichte_category_id)
-            .joins(:_custom_fields)
-            .where(topic_custom_fields: { name: "donation_id", value: donation.id.to_s })
-            .first
-        end
-
+      # Use direct association instead of custom field query
+      erhaltungsbericht_topic = donation.erhaltungsbericht_topic
       erhaltungsbericht_data =
         if erhaltungsbericht_topic
           { id: erhaltungsbericht_topic.id, url: erhaltungsbericht_topic.url }

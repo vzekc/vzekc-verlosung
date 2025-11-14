@@ -96,9 +96,34 @@ after_initialize do
   end
 
   on(:topic_destroyed) do |topic, user|
-    # Optional: Log or handle lottery deletion
+    # Log lottery deletion (foreign key cascade will delete the lottery)
     lottery = VzekcVerlosung::Lottery.find_by(topic_id: topic.id)
     Rails.logger.info("Lottery deleted with topic #{topic.id}, state: #{lottery.state}") if lottery
+
+    # Log donation topic deletion (foreign key cascade will delete the donation)
+    donation = VzekcVerlosung::Donation.find_by(topic_id: topic.id)
+    if donation
+      Rails.logger.info(
+        "Donation topic #{topic.id} deleted, cascading to donation #{donation.id}, state: #{donation.state}",
+      )
+    end
+
+    # Log Erhaltungsbericht deletion (foreign key nullify will clear the link)
+    # Check if this topic is an Erhaltungsbericht linked to a donation
+    donation_with_eb = VzekcVerlosung::Donation.find_by(erhaltungsbericht_topic_id: topic.id)
+    if donation_with_eb
+      Rails.logger.info(
+        "Erhaltungsbericht topic #{topic.id} deleted, unlinking from donation #{donation_with_eb.id}",
+      )
+    end
+
+    # Check if this topic is an Erhaltungsbericht linked to a lottery packet
+    packet_with_eb = VzekcVerlosung::LotteryPacket.find_by(erhaltungsbericht_topic_id: topic.id)
+    if packet_with_eb
+      Rails.logger.info(
+        "Erhaltungsbericht topic #{topic.id} deleted, unlinking from packet #{packet_with_eb.id}",
+      )
+    end
   end
 
   # DEPRECATED: Custom fields registrations (replaced by normalized tables)
@@ -366,13 +391,20 @@ after_initialize do
     erhaltungsbericht_donation_id = opts[:erhaltungsbericht_donation_id]&.to_i
 
     if erhaltungsbericht_donation_id.present?
-      # Save donation_id to topic custom fields for linking back
+      # Save donation_id to topic custom fields for UI lookups
       topic.custom_fields["donation_id"] = erhaltungsbericht_donation_id
       topic.save_custom_fields
 
-      Rails.logger.info(
-        "Linked Erhaltungsbericht topic #{topic.id} to donation #{erhaltungsbericht_donation_id}",
-      )
+      # Set business state: Link Erhaltungsbericht topic to donation
+      donation = VzekcVerlosung::Donation.find_by(id: erhaltungsbericht_donation_id)
+      if donation
+        donation.update!(erhaltungsbericht_topic_id: topic.id)
+        Rails.logger.info("Linked Erhaltungsbericht topic #{topic.id} to donation #{donation.id}")
+      else
+        Rails.logger.warn(
+          "Could not find donation #{erhaltungsbericht_donation_id} for Erhaltungsbericht topic #{topic.id}",
+        )
+      end
     end
   end
 
