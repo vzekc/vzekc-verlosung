@@ -244,6 +244,21 @@ after_initialize do
     object.topic.custom_fields["donation_id"]&.to_i
   end
 
+  # Also add to topic serializer so it's available in the post stream
+  add_to_serializer(:topic, :erhaltungsbericht_donation_id) do
+    object.custom_fields["donation_id"]&.to_i
+  end
+
+  add_to_serializer(:topic, :packet_post_id) do
+    packet = VzekcVerlosung::LotteryPacket.find_by(erhaltungsbericht_topic_id: object.id)
+    packet&.post_id
+  end
+
+  add_to_serializer(:topic, :packet_topic_id) do
+    packet = VzekcVerlosung::LotteryPacket.find_by(erhaltungsbericht_topic_id: object.id)
+    packet&.lottery&.topic_id
+  end
+
   # Whitelist packet reference parameters for topic creation
   add_permitted_post_create_param(:packet_post_id)
   add_permitted_post_create_param(:packet_topic_id)
