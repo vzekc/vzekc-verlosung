@@ -618,7 +618,9 @@ RSpec.describe VzekcVerlosung::LotteriesController do
 
     context "when lottery is already drawn" do
       before do
-        lottery.mark_drawn!({ manual: true, drawings: [{ text: "Packet 1", winner: user.username }] })
+        lottery.mark_drawn!(
+          { manual: true, drawings: [{ text: "Packet 1", winner: user.username }] },
+        )
       end
 
       it "returns error" do

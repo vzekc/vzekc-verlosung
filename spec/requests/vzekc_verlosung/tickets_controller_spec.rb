@@ -7,11 +7,7 @@ describe VzekcVerlosung::TicketsController do
   fab!(:admin)
   fab!(:topic) { Fabricate(:topic, user: admin) }
   let!(:lottery) do
-    VzekcVerlosung::Lottery.create!(
-      topic_id: topic.id,
-      state: "active",
-      duration_days: 14,
-    )
+    VzekcVerlosung::Lottery.create!(topic_id: topic.id, state: "active", duration_days: 14)
   end
 
   before { SiteSetting.vzekc_verlosung_enabled = true }
