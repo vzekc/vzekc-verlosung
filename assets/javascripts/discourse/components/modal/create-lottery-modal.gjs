@@ -23,8 +23,6 @@ export default class CreateLotteryModal extends Component {
   @service router;
 
   @tracked title = "";
-  @tracked displayId = "";
-  @tracked displayIdError = "";
   @tracked durationDays = 14;
   @tracked noAbholerpaket = false;
   @tracked abholerpaketTitle = "";
@@ -38,11 +36,8 @@ export default class CreateLotteryModal extends Component {
    * @type {boolean}
    */
   get canSubmit() {
-    const displayIdNum = parseInt(this.displayId, 10);
     return (
       this.title.trim().length >= 3 &&
-      !isNaN(displayIdNum) &&
-      displayIdNum > 400 &&
       this.durationDays >= 7 &&
       this.durationDays <= 28 &&
       this.packets.length > 0 &&
@@ -129,10 +124,6 @@ export default class CreateLotteryModal extends Component {
     } else {
       this[field] = value;
     }
-    // Clear validation error when user starts typing
-    if (field === "displayId") {
-      this.displayIdError = "";
-    }
   }
 
   /**
@@ -143,38 +134,6 @@ export default class CreateLotteryModal extends Component {
   @action
   toggleNoAbholerpaket(event) {
     this.noAbholerpaket = event.target.checked;
-  }
-
-  /**
-   * Validates the display ID field
-   */
-  @action
-  validateDisplayId() {
-    const value = this.displayId.trim();
-
-    if (value === "") {
-      this.displayIdError = i18nFn("vzekc_verlosung.modal.display_id_required");
-      return;
-    }
-
-    const displayIdNum = parseInt(value, 10);
-
-    if (isNaN(displayIdNum)) {
-      this.displayIdError = i18nFn(
-        "vzekc_verlosung.modal.display_id_must_be_number"
-      );
-      return;
-    }
-
-    if (displayIdNum <= 400) {
-      this.displayIdError = i18nFn(
-        "vzekc_verlosung.modal.display_id_must_be_greater_than_400"
-      );
-      return;
-    }
-
-    // Clear error if validation passes
-    this.displayIdError = "";
   }
 
   /**
@@ -249,7 +208,6 @@ export default class CreateLotteryModal extends Component {
         contentType: "application/json",
         data: JSON.stringify({
           title: this.title,
-          display_id: parseInt(this.displayId, 10),
           duration_days: this.durationDays,
           category_id: this.args.model.categoryId,
           has_abholerpaket: !this.noAbholerpaket,
@@ -297,28 +255,6 @@ export default class CreateLotteryModal extends Component {
               placeholder={{i18n "vzekc_verlosung.modal.title_placeholder"}}
               class="lottery-title-input"
             />
-          </div>
-
-          <div class="control-group">
-            <label>{{i18n "vzekc_verlosung.modal.display_id_label"}}</label>
-            <input
-              type="number"
-              {{on "input" (fn this.updateField "displayId")}}
-              {{on "blur" this.validateDisplayId}}
-              {{on "keydown" this.handleKeyDown}}
-              value={{this.displayId}}
-              min="401"
-              class="lottery-display-id-input
-                {{if this.displayIdError 'error'}}"
-            />
-            {{#if this.displayIdError}}
-              <div class="display-id-error">
-                {{this.displayIdError}}
-              </div>
-            {{/if}}
-            <div class="display-id-help">
-              {{i18n "vzekc_verlosung.modal.display_id_help"}}
-            </div>
           </div>
 
           <div class="control-group">

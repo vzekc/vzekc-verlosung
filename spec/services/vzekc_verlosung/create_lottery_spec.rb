@@ -10,7 +10,6 @@ RSpec.describe VzekcVerlosung::CreateLottery do
       guardian: Guardian.new(user),
       params: {
         title: "Hardware Verlosung Januar 2025",
-        display_id: 500,
         duration_days: 14,
         category_id: category.id,
         packets: [

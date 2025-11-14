@@ -87,7 +87,6 @@ module VzekcVerlosung
         packet_url: "#{topic.relative_url}/#{post.post_number}",
         # Lottery info
         lottery_id: topic.id,
-        lottery_display_id: packet.lottery.display_id,
         lottery_title: topic.title,
         lottery_url: topic.relative_url,
         lottery_created_at: topic.created_at,

@@ -15,6 +15,7 @@ module VzekcVerlosung
     belongs_to :topic, optional: true
     belongs_to :creator, class_name: "User", foreign_key: :creator_user_id
     has_many :pickup_offers, dependent: :destroy
+    has_one :lottery, class_name: "VzekcVerlosung::Lottery", dependent: :nullify
 
     validates :state, presence: true, inclusion: { in: %w[draft open assigned picked_up closed] }
     validates :postcode, presence: true
@@ -97,6 +98,8 @@ module VzekcVerlosung
         # Update the assigned offer
         assigned_offer = pickup_offers.find_by(state: "assigned")
         assigned_offer&.update!(state: "picked_up", picked_up_at: Time.zone.now)
+        # Auto-create draft lottery linked to this donation
+        create_lottery_draft! if topic_id.present?
       end
       # Auto-close after pickup
       close_automatically!
@@ -113,15 +116,13 @@ module VzekcVerlosung
 
     # Check if the picker has completed required action after pickup
     # Returns true if either:
-    # - A lottery was created from this donation's topic
+    # - A lottery was created and published (active/finished state)
     # - An Erhaltungsbericht was created for this donation
     #
     # @return [Boolean] true if action completed
     def pickup_action_completed?
-      return false unless topic_id
-
-      # Check if a lottery exists for this topic
-      return true if VzekcVerlosung::Lottery.exists?(topic_id: topic_id)
+      # Check if lottery was published (not just draft)
+      return true if lottery&.active? || lottery&.finished?
 
       # Check if an Erhaltungsbericht exists for this donation
       # (Look for topics in Erhaltungsberichte category with donation_id custom field)
@@ -174,6 +175,19 @@ module VzekcVerlosung
         subtype: TopicSubtype.system_message,
         target_usernames: user.username,
         skip_validations: true,
+      )
+    end
+
+    # Auto-create draft lottery when donation is picked up
+    def create_lottery_draft!
+      # Don't create if lottery already exists
+      return if lottery.present?
+
+      VzekcVerlosung::Lottery.create!(
+        topic_id: topic_id,
+        donation_id: id,
+        state: "draft",
+        duration_days: 14, # Default 14 days
       )
     end
   end

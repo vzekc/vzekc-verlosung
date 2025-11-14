@@ -21,7 +21,6 @@ module VzekcVerlosung
 
     params do
       attribute :title, :string
-      attribute :display_id, :integer
       attribute :duration_days, :integer
       attribute :category_id, :integer
       attribute :packets, :array
@@ -29,7 +28,6 @@ module VzekcVerlosung
       attribute :abholerpaket_title, :string
 
       validates :title, presence: true, length: { minimum: 3, maximum: 255 }
-      validates :display_id, presence: true, numericality: { only_integer: true, greater_than: 400 }
       validates :duration_days,
                 presence: true,
                 numericality: {
@@ -96,7 +94,6 @@ module VzekcVerlosung
       lottery =
         Lottery.create!(
           topic_id: post.topic_id,
-          display_id: params.display_id,
           state: "draft",
           duration_days: params.duration_days,
         )

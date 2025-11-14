@@ -50,12 +50,12 @@ export default class LotteryHistoryTable extends Component {
 
       switch (this.sortColumn) {
         case "packet":
-          // Sort by lottery display_id (respecting direction), then by packet ordinal (always ascending)
-          if (a.lottery_display_id !== b.lottery_display_id) {
+          // Sort by lottery_id (topic id) (respecting direction), then by packet ordinal (always ascending)
+          if (a.lottery_id !== b.lottery_id) {
             if (this.sortDirection === "asc") {
-              return a.lottery_display_id - b.lottery_display_id;
+              return a.lottery_id - b.lottery_id;
             } else {
-              return b.lottery_display_id - a.lottery_display_id;
+              return b.lottery_id - a.lottery_id;
             }
           }
           // Within same lottery, sort by ordinal ascending
@@ -168,8 +168,6 @@ export default class LotteryHistoryTable extends Component {
                 <td class="packet-title-cell">
                   <div class="lottery-info">
                     <a href={{packet.lottery_url}} class="lottery-title-link">
-                      {{i18n "vzekc_verlosung.history.donation_prefix"}}
-                      {{packet.lottery_display_id}}:
                       {{packet.lottery_title}}
                     </a>
                   </div>

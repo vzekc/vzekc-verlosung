@@ -404,7 +404,6 @@ module VzekcVerlosung
     def create_params
       params.permit(
         :title,
-        :display_id,
         :duration_days,
         :category_id,
         :has_abholerpaket,

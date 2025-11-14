@@ -6,6 +6,7 @@ module VzekcVerlosung
 
     # Associations
     belongs_to :topic
+    belongs_to :donation, class_name: "VzekcVerlosung::Donation", optional: true
     has_many :lottery_packets, class_name: "VzekcVerlosung::LotteryPacket", dependent: :destroy
     has_many :lottery_tickets,
              class_name: "VzekcVerlosung::LotteryTicket",
@@ -21,13 +22,6 @@ module VzekcVerlosung
                 less_than_or_equal_to: 28,
               },
               allow_nil: true
-    validates :display_id,
-              presence: true,
-              uniqueness: true,
-              numericality: {
-                only_integer: true,
-                greater_than: 400,
-              }
 
     # Scopes
     scope :draft, -> { where(state: "draft") }
@@ -92,17 +86,18 @@ end
 #  state         :string           default("draft"), not null
 #  created_at    :datetime         not null
 #  updated_at    :datetime         not null
-#  display_id    :integer          not null
+#  donation_id   :bigint
 #  topic_id      :bigint           not null
 #
 # Indexes
 #
-#  index_lotteries_on_state_and_ends_at           (state,ends_at)
-#  index_vzekc_verlosung_lotteries_on_display_id  (display_id) UNIQUE
-#  index_vzekc_verlosung_lotteries_on_state       (state)
-#  index_vzekc_verlosung_lotteries_on_topic_id    (topic_id) UNIQUE
+#  index_lotteries_on_state_and_ends_at            (state,ends_at)
+#  index_vzekc_verlosung_lotteries_on_donation_id  (donation_id) UNIQUE
+#  index_vzekc_verlosung_lotteries_on_state        (state)
+#  index_vzekc_verlosung_lotteries_on_topic_id     (topic_id) UNIQUE
 #
 # Foreign Keys
 #
+#  fk_rails_...  (donation_id => vzekc_verlosung_donations.id) ON DELETE => nullify
 #  fk_rails_...  (topic_id => topics.id) ON DELETE => cascade
 #
