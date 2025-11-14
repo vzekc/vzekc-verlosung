@@ -492,12 +492,18 @@ export default class LotteryIntroSummary extends Component {
                     </span>
                   {{/if}}
                 {{else}}
-                  <TicketCountBadge
-                    @count={{packet.ticket_count}}
-                    @users={{packet.users}}
-                    @packetTitle={{packet.title}}
-                    @hasEnded={{this.hasEnded}}
-                  />
+                  {{#if packet.abholerpaket}}
+                    <span class="packet-abholerpaket-label">
+                      {{i18n "vzekc_verlosung.ticket.abholerpaket"}}
+                    </span>
+                  {{else}}
+                    <TicketCountBadge
+                      @count={{packet.ticket_count}}
+                      @users={{packet.users}}
+                      @packetTitle={{packet.title}}
+                      @hasEnded={{this.hasEnded}}
+                    />
+                  {{/if}}
                 {{/if}}
               </li>
             {{/each}}

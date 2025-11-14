@@ -517,6 +517,19 @@
         }
       }
 
+      .packet-abholerpaket-label {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.35em 0.75em;
+        background: var(--tertiary-low);
+        border: 1px solid var(--tertiary);
+        border-radius: 12px;
+        font-size: 0.9em;
+        font-weight: 500;
+        color: var(--tertiary);
+        margin-left: 1em;
+      }
+
       .packet-winner {
         display: inline-flex;
         align-items: center;
