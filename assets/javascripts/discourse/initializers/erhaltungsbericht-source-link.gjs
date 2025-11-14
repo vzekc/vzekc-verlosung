@@ -4,7 +4,9 @@ import ErhaltungsberichtSourceLink from "../components/erhaltungsbericht-source-
 export default apiInitializer((api) => {
   api.decorateCookedElement(
     (element, helper) => {
-      const topic = helper.getModel()?.topic;
+      const post = helper.getModel();
+      const topic = post?.topic;
+
       if (!topic) {
         return;
       }
@@ -19,7 +21,6 @@ export default apiInitializer((api) => {
       }
 
       // Only render once (on the first post)
-      const post = helper.getModel();
       if (post.post_number !== 1) {
         return;
       }
@@ -29,26 +30,26 @@ export default apiInitializer((api) => {
         return;
       }
 
-      // Prepare data for the component
-      const data = {};
-
-      if (donationSource) {
-        data.donationId = donationSource.id;
-        data.donationTopic = {
-          url: donationSource.url,
-          title: donationSource.title,
-        };
-      } else if (packetSource) {
-        data.packetUrl = packetSource.packet_url;
-        data.lotteryTitle = packetSource.lottery_title;
-      }
-
       // Render component
       const container = document.createElement("div");
       container.className = "erhaltungsbericht-source-container";
       element.prepend(container);
 
-      helper.renderGlimmer(container, ErhaltungsberichtSourceLink, { data });
+      // Pass properties directly - renderGlimmer will wrap them in 'data'
+      if (donationSource) {
+        helper.renderGlimmer(container, ErhaltungsberichtSourceLink, {
+          donationId: donationSource.id,
+          donationTopic: {
+            url: donationSource.url,
+            title: donationSource.title,
+          },
+        });
+      } else if (packetSource) {
+        helper.renderGlimmer(container, ErhaltungsberichtSourceLink, {
+          packetUrl: packetSource.packet_url,
+          lotteryTitle: packetSource.lottery_title,
+        });
+      }
     },
     { onlyStream: true, id: "erhaltungsbericht-source-link" }
   );
