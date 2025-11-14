@@ -34,6 +34,7 @@ module VzekcVerlosung
                  id: donation.id,
                  state: donation.state,
                  postcode: donation.postcode,
+                 topic_id: donation.topic_id,
                  creator_user_id: donation.creator_user_id,
                  published_at: donation.published_at,
                  lottery_id: donation.lottery&.id,
