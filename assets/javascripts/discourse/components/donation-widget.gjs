@@ -609,7 +609,7 @@ export default class DonationWidget extends Component {
             </div>
           {{else if this.hasErhaltungsberichtCreated}}
             <div class="donation-erhaltungsbericht-link">
-              {{icon "file-alt"}}
+              {{icon "file-lines"}}
               <a href={{this.donationData.erhaltungsbericht.url}}>
                 {{i18n "vzekc_verlosung.donation.view_erhaltungsbericht"}}
               </a>

@@ -93,7 +93,7 @@ export default class LotteryHistoryEntry extends Component {
             {{i18n "vzekc_verlosung.history.collected"}}</span>
         </div>
         <div class="stat-item">
-          {{icon "file-alt"}}
+          {{icon "file-lines"}}
           <span>{{this.erhaltungsberichtCount}}
             {{i18n "vzekc_verlosung.history.erhaltungsberichte"}}</span>
         </div>
@@ -154,7 +154,7 @@ export default class LotteryHistoryEntry extends Component {
                       href={{packet.erhaltungsbericht.url}}
                       class="erhaltungsbericht-link"
                     >
-                      {{icon "file-alt"}}
+                      {{icon "file-lines"}}
                       {{i18n "vzekc_verlosung.history.view_report"}}
                     </a>
                   {{else}}

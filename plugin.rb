@@ -19,7 +19,7 @@ register_svg_icon "dice"
 register_svg_icon "clock"
 register_svg_icon "pen"
 register_svg_icon "file"
-register_svg_icon "file-alt"
+# file-lines is available in Discourse core by default (no registration needed)
 register_svg_icon "gift"
 register_svg_icon "hand-point-up"
 register_svg_icon "user-plus"

@@ -318,6 +318,144 @@ async loadData() {
 - Discourse footnote plugin: `/Users/hans/Development/vzekc/discourse/plugins/footnote/assets/javascripts/api-initializers/inline-footnotes.gjs`
 - Discourse poll plugin: `/Users/hans/Development/vzekc/discourse/plugins/poll/assets/javascripts/discourse/initializers/extend-for-poll.gjs`
 
+## Icons
+
+**CRITICAL**: This section prevents recurring icon display issues. Read carefully before using icons.
+
+### How Discourse Icons Work
+
+Discourse uses an SVG sprite system for icons:
+1. **Core Icons**: Discourse includes a curated subset of FontAwesome 6 icons in `/Users/hans/Development/vzekc/discourse/lib/svg_sprite.rb` (SVG_ICONS constant)
+2. **Plugin Icons**: Plugins can register additional icons using `register_svg_icon` which adds them to `DiscoursePluginRegistry.svg_icons`
+3. **Sprite Generation**: All registered icons are bundled into a single sprite at `/svg-sprite/[hostname]/svg-[theme_id]-[version].js`
+4. **Icon Helper**: The `{{icon "name"}}` helper renders `<svg><use href="#name"/></svg>` which references the sprite
+
+### Using Icons in Templates
+
+**Syntax:**
+```gjs
+{{icon "icon-name"}}
+{{icon "icon-name" class="custom-class"}}
+{{icon "icon-name" title="Tooltip text"}}
+```
+
+**Examples:**
+```gjs
+{{icon "file-lines"}}  // File with lines icon
+{{icon "check-circle"}}  // Check mark in circle
+{{icon "far-file-lines"}}  // Regular (outlined) file with lines
+```
+
+### FontAwesome 6 Icon Names
+
+**CRITICAL**: Use FontAwesome 6 names, NOT FontAwesome 5 names.
+
+Common FA5 → FA6 renames:
+- ❌ `file-alt` → ✅ `file-lines`
+- ❌ `edit` → ✅ `pen-to-square`
+- ❌ `trash` → ✅ `trash-can`
+- ❌ `external-link-alt` → ✅ `arrow-up-right-from-square`
+
+**Why this matters**: While Discourse includes some FA5 aliases for backward compatibility, they can be unreliable. Using modern FA6 names prevents display issues.
+
+### Icon Availability
+
+**Check if an icon is available:**
+1. Look in `/Users/hans/Development/vzekc/discourse/lib/svg_sprite.rb` (SVG_ICONS constant)
+2. Check FontAwesome 6 free icon library: https://fontawesome.com/search?o=r&m=free
+3. Verify in Rails console: `SvgSprite.bundle.include?("icon-name")`
+
+**Common available icons** (no registration needed):
+- `file`, `file-lines` (solid file with lines)
+- `check`, `check-circle`
+- `times`, `times-circle`
+- `users`, `user`, `user-plus`
+- `calendar`, `calendar-plus`, `calendar-check`
+- `box`, `gift`, `trophy`
+- `dice`, `clock`, `pen`
+
+**Icon Prefixes:**
+- No prefix = Solid style (default)
+- `far-` = Regular style (outlined)
+- `fab-` = Brands (company logos)
+
+### When to Register Icons
+
+**DO NOT register** if the icon is already in Discourse core (check `lib/svg_sprite.rb` first).
+
+**DO register** if:
+- Icon is in FontAwesome 6 free but NOT in Discourse core
+- Using a custom SVG icon
+
+**How to register:**
+```ruby
+# In plugin.rb
+register_svg_icon "trophy"  # Only if not in core
+```
+
+### Custom SVG Icons
+
+If you need truly custom icons not in FontAwesome:
+
+1. **Create sprite file**: `plugins/vzekc-verlosung/svg-icons/custom.svg`
+2. **Format as SVG sprite**:
+```xml
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="my-custom-icon" viewBox="0 0 512 512">
+    <path d="M..."/>
+  </symbol>
+</svg>
+```
+3. **Register in plugin.rb**:
+```ruby
+register_svg_icon "my-custom-icon"
+```
+
+### Common Pitfalls
+
+❌ **Using old FontAwesome 5 names**
+```gjs
+{{icon "file-alt"}}  // May not render
+```
+✅ **Use FontAwesome 6 names**
+```gjs
+{{icon "file-lines"}}  // Renders correctly
+```
+
+❌ **Registering icons already in core**
+```ruby
+register_svg_icon "file-lines"  // Unnecessary, already in core
+```
+✅ **Only register what's needed**
+```ruby
+# Check lib/svg_sprite.rb first
+register_svg_icon "trophy"  // Only if not in core
+```
+
+❌ **Forgetting icon prefix for regular/brands**
+```gjs
+{{icon "github"}}  // Won't work
+```
+✅ **Use correct prefix**
+```gjs
+{{icon "fab-github"}}  // Brands need fab- prefix
+```
+
+### Troubleshooting
+
+**Icon not showing?**
+1. Check if using FA6 name (not FA5)
+2. Verify icon exists in `/Users/hans/Development/vzekc/discourse/lib/svg_sprite.rb`
+3. Check if registration needed (and added to plugin.rb)
+4. Verify correct prefix (far-, fab-)
+5. Restart server after adding registrations
+6. Clear browser cache
+
+**After adding new icons:**
+- Restart Discourse server
+- Clear browser cache
+- Check browser console for SVG sprite errors
+
 ## Knowledge Sharing
 - ALWAYS persist information for ALL developers (no conversational-only memory)
 - Follow project conventions, prevent knowledge silos
