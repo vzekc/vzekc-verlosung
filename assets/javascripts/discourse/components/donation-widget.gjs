@@ -382,6 +382,7 @@ export default class DonationWidget extends Component {
       reply: template,
       draftKey: `erhaltungsbericht_donation_${this.donationData.id}_${Date.now()}`,
       erhaltungsbericht_donation_id: this.donationData.id,
+      skipSimilarTopics: true,
     });
   }
 
