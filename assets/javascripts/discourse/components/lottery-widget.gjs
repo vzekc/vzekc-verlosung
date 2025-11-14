@@ -467,18 +467,16 @@ export default class LotteryWidget extends Component {
         class="lottery-packet-status
           {{if this.isAbholerpaket 'abholerpaket-widget'}}"
       >
-        {{#if this.isAbholerpaket}}
-          <div class="abholerpaket-badge">
-            {{icon "box-archive"}}
-            <span>Abholerpaket</span>
-          </div>
-        {{/if}}
         {{#if this.isDrawn}}
           {{! Lottery has been drawn - show winner or no winner message }}
           {{#if this.winner}}
             <div class="lottery-packet-winner-notice">
               {{#if this.isAbholerpaket}}
                 {{! Abholerpaket - only show Erhaltungsbericht section }}
+                <div class="abholerpaket-badge">
+                  {{icon "box-archive"}}
+                  <span>Abholerpaket</span>
+                </div>
                 {{#if this.canCreateErhaltungsbericht}}
                   <div class="erhaltungsbericht-section">
                     <DButton
