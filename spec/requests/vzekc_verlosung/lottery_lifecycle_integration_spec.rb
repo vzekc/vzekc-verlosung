@@ -22,7 +22,6 @@ RSpec.describe "Lottery Full Lifecycle Integration" do
     post "/vzekc-verlosung/lotteries.json",
          params: {
            title: "Hardware Verlosung Januar 2025",
-           display_id: 401,
            category_id: category.id,
            duration_days: 14,
            abholerpaket_title: "Mein behalten System",
@@ -429,7 +428,6 @@ RSpec.describe "Lottery Full Lifecycle Integration" do
     post "/vzekc-verlosung/lotteries.json",
          params: {
            title: "Hardware Verlosung Januar 2025 (No Abholerpaket)",
-           display_id: 402,
            category_id: category.id,
            duration_days: 14,
            has_abholerpaket: false,

@@ -9,7 +9,6 @@ describe VzekcVerlosung::TicketsController do
   let!(:lottery) do
     VzekcVerlosung::Lottery.create!(
       topic_id: topic.id,
-      display_id: 500,
       state: "active",
       duration_days: 14,
     )

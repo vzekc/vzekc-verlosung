@@ -44,31 +44,6 @@ RSpec.describe VzekcVerlosung::Lottery do
         expect(lottery).to be_valid
       end
     end
-
-    context "with display_id" do
-      it { is_expected.to validate_presence_of(:display_id) }
-      it { is_expected.to validate_uniqueness_of(:display_id) }
-
-      it "validates minimum value" do
-        topic = Fabricate(:topic)
-        lottery = Fabricate.build(:lottery, topic: topic, display_id: 400)
-        expect(lottery).not_to be_valid
-        expect(lottery.errors[:display_id]).to be_present
-      end
-
-      it "allows values greater than 400" do
-        topic = Fabricate(:topic)
-        lottery = Fabricate.build(:lottery, topic: topic, display_id: 401)
-        expect(lottery).to be_valid
-      end
-
-      it "validates integer only" do
-        topic = Fabricate(:topic)
-        lottery = Fabricate.build(:lottery, topic: topic, display_id: 450.5)
-        expect(lottery).not_to be_valid
-        expect(lottery.errors[:display_id]).to be_present
-      end
-    end
   end
 
   describe "scopes" do

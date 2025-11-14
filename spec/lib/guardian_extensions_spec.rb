@@ -10,7 +10,6 @@ RSpec.describe VzekcVerlosung::GuardianExtensions do
     VzekcVerlosung::CreateLottery.call(
       params: {
         title: "Test Lottery",
-        display_id: 500,
         duration_days: 14,
         category_id: category.id,
         packets: [{ title: "Packet 1", description: "Content" }],
