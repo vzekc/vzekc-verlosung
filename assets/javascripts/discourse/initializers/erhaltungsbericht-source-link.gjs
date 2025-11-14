@@ -35,12 +35,13 @@ export default apiInitializer((api) => {
 
       if (donationId) {
         // Fetch donation data from our API
-        fetch(`/vzekc-verlosung/donations/${donationId}`)
+        fetch(`/vzekc-verlosung/donations/${donationId}.json`)
           .then((response) => response.json())
           .then((donationData) => {
-            if (donationData.topic_id) {
+            if (donationData.donation && donationData.donation.topic_id) {
+              const topicId = donationData.donation.topic_id;
               // Fetch topic data
-              fetch(`/t/${donationData.topic_id}.json`)
+              fetch(`/t/${topicId}.json`)
                 .then((response) => response.json())
                 .then((topicData) => {
                   data.donationId = donationId;
@@ -54,19 +55,11 @@ export default apiInitializer((api) => {
                   container.className = "erhaltungsbericht-source-container";
                   element.prepend(container);
 
-                  helper.renderGlimmer(
-                    container,
-                    ErhaltungsberichtSourceLink,
-                    { data }
-                  );
-                })
-                .catch((error) => {
-                  console.error("Failed to fetch donation topic:", error);
+                  helper.renderGlimmer(container, ErhaltungsberichtSourceLink, {
+                    data,
+                  });
                 });
             }
-          })
-          .catch((error) => {
-            console.error("Failed to fetch donation data:", error);
           });
       } else if (packetPostId && packetTopicId) {
         // Fetch lottery topic data
@@ -86,9 +79,6 @@ export default apiInitializer((api) => {
             helper.renderGlimmer(container, ErhaltungsberichtSourceLink, {
               data,
             });
-          })
-          .catch((error) => {
-            console.error("Failed to fetch lottery topic:", error);
           });
       }
     },
