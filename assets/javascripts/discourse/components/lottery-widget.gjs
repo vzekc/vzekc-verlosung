@@ -463,10 +463,13 @@ export default class LotteryWidget extends Component {
 
   <template>
     {{#if this.shouldShow}}
-      <div class="lottery-packet-status">
+      <div
+        class="lottery-packet-status
+          {{if this.isAbholerpaket 'abholerpaket-widget'}}"
+      >
         {{#if this.isAbholerpaket}}
           <div class="abholerpaket-badge">
-            {{icon "box"}}
+            {{icon "box-archive"}}
             <span>Abholerpaket</span>
           </div>
         {{/if}}

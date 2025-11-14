@@ -753,6 +753,15 @@
     }
   }
 
+  // For Abholerpaket, hide divider lines since there's nothing above
+  &.abholerpaket-widget {
+    .erhaltungsbericht-section,
+    .erhaltungsbericht-link-section {
+      border-top: none;
+      padding-top: 0;
+    }
+  }
+
   .lottery-packet-no-winner-notice {
     background: var(--primary-very-low);
     border: 1px solid var(--primary-low);

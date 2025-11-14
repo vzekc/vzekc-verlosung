@@ -472,16 +472,18 @@ export default class LotteryIntroSummary extends Component {
                         >{{packet.winner.username}}</span>
                       </UserLink>
                       {{#if this.isLotteryOwner}}
-                        {{#if packet.collected_at}}
-                          <span class="collection-indicator collected">
-                            {{icon "check"}}
-                            <span
-                              class="collection-date"
-                            >{{this.formatCollectedDate
-                                packet.collected_at
-                              }}</span>
-                          </span>
-                        {{/if}}
+                        {{#unless packet.abholerpaket}}
+                          {{#if packet.collected_at}}
+                            <span class="collection-indicator collected">
+                              {{icon "check"}}
+                              <span
+                                class="collection-date"
+                              >{{this.formatCollectedDate
+                                  packet.collected_at
+                                }}</span>
+                            </span>
+                          {{/if}}
+                        {{/unless}}
                       {{/if}}
                     </span>
                   {{else}}
