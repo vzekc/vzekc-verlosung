@@ -10,12 +10,11 @@ export default apiInitializer((api) => {
       }
 
       // Check if this is an Erhaltungsbericht with source links
-      const donationId = topic.erhaltungsbericht_donation_id;
-      const packetPostId = topic.packet_post_id;
-      const packetTopicId = topic.packet_topic_id;
+      const donationSource = topic.erhaltungsbericht_source_donation;
+      const packetSource = topic.erhaltungsbericht_source_packet;
 
       // Must have at least one source
-      if (!donationId && !packetPostId) {
+      if (!donationSource && !packetSource) {
         return;
       }
 
@@ -33,54 +32,23 @@ export default apiInitializer((api) => {
       // Prepare data for the component
       const data = {};
 
-      if (donationId) {
-        // Fetch donation data from our API
-        fetch(`/vzekc-verlosung/donations/${donationId}.json`)
-          .then((response) => response.json())
-          .then((donationData) => {
-            if (donationData.donation && donationData.donation.topic_id) {
-              const topicId = donationData.donation.topic_id;
-              // Fetch topic data
-              fetch(`/t/${topicId}.json`)
-                .then((response) => response.json())
-                .then((topicData) => {
-                  data.donationId = donationId;
-                  data.donationTopic = {
-                    url: `/t/${topicData.slug}/${topicData.id}`,
-                    title: topicData.title,
-                  };
-
-                  // Render component
-                  const container = document.createElement("div");
-                  container.className = "erhaltungsbericht-source-container";
-                  element.prepend(container);
-
-                  helper.renderGlimmer(container, ErhaltungsberichtSourceLink, {
-                    data,
-                  });
-                });
-            }
-          });
-      } else if (packetPostId && packetTopicId) {
-        // Fetch lottery topic data
-        fetch(`/t/${packetTopicId}.json`)
-          .then((response) => response.json())
-          .then((topicData) => {
-            data.packetPostId = packetPostId;
-            data.packetTopicId = packetTopicId;
-            data.packetUrl = `/t/${topicData.slug}/${topicData.id}/${packetPostId}`;
-            data.lotteryTitle = topicData.title;
-
-            // Render component
-            const container = document.createElement("div");
-            container.className = "erhaltungsbericht-source-container";
-            element.prepend(container);
-
-            helper.renderGlimmer(container, ErhaltungsberichtSourceLink, {
-              data,
-            });
-          });
+      if (donationSource) {
+        data.donationId = donationSource.id;
+        data.donationTopic = {
+          url: donationSource.url,
+          title: donationSource.title,
+        };
+      } else if (packetSource) {
+        data.packetUrl = packetSource.packet_url;
+        data.lotteryTitle = packetSource.lottery_title;
       }
+
+      // Render component
+      const container = document.createElement("div");
+      container.className = "erhaltungsbericht-source-container";
+      element.prepend(container);
+
+      helper.renderGlimmer(container, ErhaltungsberichtSourceLink, { data });
     },
     { onlyStream: true, id: "erhaltungsbericht-source-link" }
   );
