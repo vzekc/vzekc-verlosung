@@ -380,9 +380,8 @@ after_initialize do
     }
   end
 
-  # Whitelist donation_id and custom_slug parameters for topic creation
+  # Whitelist donation_id parameter for topic creation
   add_permitted_post_create_param(:donation_id)
-  add_permitted_post_create_param(:custom_slug)
 
   # Hook into topic creation to link donation_id from composer
   on(:topic_created) do |topic, opts, user|

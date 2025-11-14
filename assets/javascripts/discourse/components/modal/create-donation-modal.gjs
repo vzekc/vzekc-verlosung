@@ -125,13 +125,7 @@ export default class CreateDonationModal extends Component {
       // Keys must match first parameter of serializeToDraft in donation-composer.js
       const topicTitle = `${this.title.trim()} in ${this.postcode.trim()}`;
 
-      // Generate custom slug with "-spende" suffix to prevent collisions with lottery topics
-      const customSlug = `${this.title
-        .trim()
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/^-+|-+$/g, "")}-spende`;
-
+      // Note: Custom slug with "-spende" suffix is set on backend when donation is published
       this.composer.open({
         action: Composer.CREATE_TOPIC,
         categoryId: this.args.model.categoryId,
@@ -139,7 +133,6 @@ export default class CreateDonationModal extends Component {
         reply: template,
         draftKey: `new_topic_donation_${donationId}_${Date.now()}`,
         donation_id: donationId,
-        custom_slug: customSlug,
         skipSimilarTopics: true,
       });
     } catch (error) {

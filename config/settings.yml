@@ -79,23 +79,15 @@ vzekc_verlosung:
     default: |
       ## Beschreibung der Spende
 
-      [Beschreibe hier die angebotene Hardware - welche Geräte, in welchem Zustand]
+      [Beschreibe hier die angebotene Hardware - welche Geräte, in welchem Zustand, ggf. Fotos]
 
       ## Standort
 
-      PLZ: [POSTCODE]
+      [POSTCODE]
 
       ## Abholung
 
-      [Details zur Abholung: Wann? Bedingungen? Hinweise?]
-
-      ## Versand
-
-      [Ist Versand möglich? Zu welchen Bedingungen?]
-
-      ## Kontakt
-
-      Interessenten können unten auf "Ich möchte abholen" klicken. Ich werde dann den Kontakt zum Spender herstellen.
+      [Details zur Abholung: Bis wann? Bedingungen? Hinweise?]
     type: string
     textarea: true
     client: true

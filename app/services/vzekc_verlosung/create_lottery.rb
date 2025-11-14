@@ -73,16 +73,12 @@ module VzekcVerlosung
       # Get the description template from site settings
       description = SiteSetting.vzekc_verlosung_description_template
 
-      # Generate custom slug with "-verlosung" suffix to prevent collisions with donation topics
-      custom_slug = "#{params.title.parameterize}-verlosung"
-
       post_creator =
         PostCreator.new(
           user,
           title: params.title,
           raw: description,
           category: category.id,
-          custom_slug: custom_slug,
           skip_validations: true,
         )
 
@@ -96,6 +92,11 @@ module VzekcVerlosung
       unless post&.persisted?
         fail!("Failed to create main topic: #{post_creator.errors.full_messages.join(", ")}")
       end
+
+      # Set custom slug with "-verlosung" suffix to prevent URL collisions with donation topics
+      # Must use update_column to bypass Discourse's automatic slug regeneration
+      custom_slug = "#{params.title.parameterize}-verlosung"
+      post.topic.update_column(:slug, custom_slug)
 
       # Create lottery record for this topic
       lottery =
