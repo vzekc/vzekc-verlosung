@@ -206,6 +206,15 @@ export default class DonationWidget extends Component {
   }
 
   /**
+   * Check if lottery was created from this donation
+   *
+   * @type {boolean}
+   */
+  get hasLotteryCreated() {
+    return this.donationData?.lottery_id != null;
+  }
+
+  /**
    * Check if current user picked up the donation and needs to take action
    *
    * @type {boolean}
@@ -221,7 +230,7 @@ export default class DonationWidget extends Component {
     }
 
     // Don't show next steps if lottery already created
-    if (this.donationData.lottery_id) {
+    if (this.hasLotteryCreated) {
       return false;
     }
 
@@ -580,7 +589,21 @@ export default class DonationWidget extends Component {
             </div>
           {{/if}}
 
-          {{#if this.needsPickupAction}}
+          {{#if this.hasLotteryCreated}}
+            <div class="donation-lottery-created">
+              <h4>{{i18n "vzekc_verlosung.donation.lottery_created"}}</h4>
+              <p>{{i18n
+                  "vzekc_verlosung.donation.lottery_created_description"
+                }}</p>
+              <a
+                href={{this.donationData.lottery.url}}
+                class="btn btn-primary lottery-link-button"
+              >
+                {{icon "gift"}}
+                {{i18n "vzekc_verlosung.donation.view_lottery"}}
+              </a>
+            </div>
+          {{else if this.needsPickupAction}}
             <div class="donation-next-steps">
               <h4>{{i18n "vzekc_verlosung.donation.next_steps"}}</h4>
               <p>{{i18n "vzekc_verlosung.donation.next_steps_description"}}</p>

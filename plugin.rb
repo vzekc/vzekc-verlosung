@@ -336,6 +336,12 @@ after_initialize do
     donation = VzekcVerlosung::Donation.find_by(topic_id: object.topic_id)
     next unless donation
 
+    lottery_topic = donation.lottery&.topic
+    lottery_data =
+      if lottery_topic
+        { id: donation.lottery.id, topic_id: lottery_topic.id, url: lottery_topic.url }
+      end
+
     {
       id: donation.id,
       state: donation.state,
@@ -343,6 +349,7 @@ after_initialize do
       creator_user_id: donation.creator_user_id,
       published_at: donation.published_at,
       lottery_id: donation.lottery&.id,
+      lottery: lottery_data,
     }
   end
 
@@ -356,6 +363,12 @@ after_initialize do
     donation = VzekcVerlosung::Donation.find_by(topic_id: object.topic.id)
     return nil unless donation
 
+    lottery_topic = donation.lottery&.topic
+    lottery_data =
+      if lottery_topic
+        { id: donation.lottery.id, topic_id: lottery_topic.id, url: lottery_topic.url }
+      end
+
     {
       id: donation.id,
       state: donation.state,
@@ -363,11 +376,13 @@ after_initialize do
       creator_user_id: donation.creator_user_id,
       published_at: donation.published_at,
       lottery_id: donation.lottery&.id,
+      lottery: lottery_data,
     }
   end
 
-  # Whitelist donation_id parameter for topic creation
+  # Whitelist donation_id and custom_slug parameters for topic creation
   add_permitted_post_create_param(:donation_id)
+  add_permitted_post_create_param(:custom_slug)
 
   # Hook into topic creation to link donation_id from composer
   on(:topic_created) do |topic, opts, user|

@@ -73,12 +73,16 @@ module VzekcVerlosung
       # Get the description template from site settings
       description = SiteSetting.vzekc_verlosung_description_template
 
+      # Generate custom slug with "-verlosung" suffix to prevent collisions with donation topics
+      custom_slug = "#{params.title.parameterize}-verlosung"
+
       post_creator =
         PostCreator.new(
           user,
           title: params.title,
           raw: description,
           category: category.id,
+          custom_slug: custom_slug,
           skip_validations: true,
         )
 
