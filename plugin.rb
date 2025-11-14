@@ -251,6 +251,7 @@ after_initialize do
 
   # Include donation source link for Erhaltungsberichte from donations
   # Returns complete link data to avoid additional HTTP requests in JavaScript
+  # Add to both basic_topic (for lists) and topic_view (for full page)
   add_to_serializer(
     :basic_topic,
     :erhaltungsbericht_source_donation,
@@ -265,8 +266,23 @@ after_initialize do
     { id: donation.topic.id, title: donation.topic.title, url: donation.topic.url }
   end
 
+  add_to_serializer(
+    :topic_view,
+    :erhaltungsbericht_source_donation,
+    include_condition: -> { object.topic.erhaltungsbericht_donation_id.present? },
+  ) do
+    donation_id = object.topic.erhaltungsbericht_donation_id
+    return nil unless donation_id
+
+    donation = VzekcVerlosung::Donation.find_by(id: donation_id)
+    return nil unless donation&.topic
+
+    { id: donation.topic.id, title: donation.topic.title, url: donation.topic.url }
+  end
+
   # Include lottery packet source link for Erhaltungsberichte from lottery packets
   # Returns complete link data to avoid additional HTTP requests in JavaScript
+  # Add to both basic_topic (for lists) and topic_view (for full page)
   add_to_serializer(
     :basic_topic,
     :erhaltungsbericht_source_packet,
@@ -275,6 +291,22 @@ after_initialize do
     end,
   ) do
     packet = VzekcVerlosung::LotteryPacket.find_by(erhaltungsbericht_topic_id: object.id)
+    return nil unless packet&.lottery&.topic
+
+    {
+      lottery_title: packet.lottery.topic.title,
+      packet_url: "/t/#{packet.lottery.topic.slug}/#{packet.lottery.topic.id}/#{packet.post_id}",
+    }
+  end
+
+  add_to_serializer(
+    :topic_view,
+    :erhaltungsbericht_source_packet,
+    include_condition: -> do
+      VzekcVerlosung::LotteryPacket.exists?(erhaltungsbericht_topic_id: object.topic.id)
+    end,
+  ) do
+    packet = VzekcVerlosung::LotteryPacket.find_by(erhaltungsbericht_topic_id: object.topic.id)
     return nil unless packet&.lottery&.topic
 
     {
