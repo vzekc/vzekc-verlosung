@@ -461,7 +461,7 @@ export default class LotteryIntroSummary extends Component {
                             "vzekc_verlosung.ticket.abholerpaket"
                           }}{{else}}{{i18n
                             "vzekc_verlosung.ticket.winner"
-                          }}{{/if}}</span>
+                          }}{{/if}}:</span>
                       <UserLink
                         @username={{packet.winner.username}}
                         class="winner-user-link"

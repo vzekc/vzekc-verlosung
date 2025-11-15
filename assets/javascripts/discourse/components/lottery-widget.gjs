@@ -506,7 +506,7 @@ export default class LotteryWidget extends Component {
                   <div class="participants-display">
                     <span class="participants-label">{{i18n
                         "vzekc_verlosung.ticket.participants"
-                      }}</span>
+                      }}:</span>
                     <TicketCountBadge
                       @count={{this.ticketCount}}
                       @users={{this.users}}
@@ -517,7 +517,7 @@ export default class LotteryWidget extends Component {
                 <div class="winner-message">
                   <span class="participants-label">{{i18n
                       "vzekc_verlosung.ticket.winner"
-                    }}</span>
+                    }}:</span>
                   {{#if this.hasWinnerObject}}
                     <UserLink
                       @username={{this.winnerUsername}}
@@ -607,7 +607,7 @@ export default class LotteryWidget extends Component {
               <div class="participants-display">
                 <span class="participants-label">{{i18n
                     "vzekc_verlosung.ticket.participants"
-                  }}</span>
+                  }}:</span>
                 <TicketCountBadge
                   @count={{this.ticketCount}}
                   @users={{this.users}}
@@ -623,7 +623,7 @@ export default class LotteryWidget extends Component {
               <div class="participants-display">
                 <span class="participants-label">{{i18n
                     "vzekc_verlosung.ticket.participants"
-                  }}</span>
+                  }}:</span>
                 <TicketCountBadge
                   @count={{this.ticketCount}}
                   @users={{this.users}}
