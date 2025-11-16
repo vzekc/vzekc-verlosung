@@ -6,7 +6,7 @@ module VzekcVerlosung
 
     # Associations
     belongs_to :lottery, class_name: "VzekcVerlosung::Lottery"
-    belongs_to :post
+    belongs_to :post, optional: true
     belongs_to :winner, class_name: "User", foreign_key: :winner_user_id, optional: true
     belongs_to :erhaltungsbericht_topic,
                class_name: "Topic",
@@ -19,7 +19,7 @@ module VzekcVerlosung
 
     # Validations
     validates :lottery_id, presence: true
-    validates :post_id, presence: true, uniqueness: true
+    validates :post_id, presence: true, uniqueness: true, unless: :abholerpaket?
     validates :title, presence: true
     validates :ordinal,
               presence: true,

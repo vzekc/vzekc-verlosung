@@ -469,6 +469,86 @@
     }
   }
 
+  .lottery-abholerpaket-section {
+    background: var(--highlight-low);
+    border: 1px solid var(--highlight);
+    border-radius: 6px;
+    padding: 1em;
+    margin-bottom: 1.5em;
+
+    .abholerpaket-title {
+      margin: 0 0 1em 0;
+      font-size: 1.1em;
+      font-weight: 600;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+
+      .d-icon {
+        margin-right: 0.5em;
+        color: var(--highlight);
+      }
+    }
+
+    .abholerpaket-winner-info {
+      display: flex;
+      align-items: center;
+      margin-bottom: 1em;
+      padding: 0.5em;
+      background: var(--success-low);
+      border: 1px solid var(--success);
+      border-radius: 6px;
+
+      .participants-label {
+        margin-right: 0.5em;
+        font-weight: 600;
+        color: var(--primary-medium);
+      }
+
+      .winner-user-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5em;
+        text-decoration: none;
+        color: var(--tertiary);
+        font-weight: 500;
+
+        &:hover {
+          text-decoration: underline;
+        }
+      }
+    }
+
+    .abholerpaket-erhaltungsbericht-link {
+      margin-top: 1em;
+
+      .erhaltungsbericht-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5em;
+        color: var(--tertiary);
+        text-decoration: none;
+        font-weight: 500;
+
+        .d-icon {
+          font-size: 1em;
+        }
+
+        &:hover {
+          text-decoration: underline;
+        }
+      }
+    }
+
+    .abholerpaket-erhaltungsbericht-button {
+      margin-top: 1em;
+
+      .btn {
+        width: 100%;
+      }
+    }
+  }
+
   .lottery-packets-title {
     margin: 0 0 0.75em 0;
     font-size: 1.1em;

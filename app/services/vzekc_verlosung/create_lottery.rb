@@ -26,6 +26,7 @@ module VzekcVerlosung
       attribute :packets, :array
       attribute :has_abholerpaket, :boolean
       attribute :abholerpaket_title, :string
+      attribute :abholerpaket_erhaltungsbericht_required, :boolean
       attribute :drawing_mode, :string
       attribute :donation_id, :integer
 
@@ -117,28 +118,22 @@ module VzekcVerlosung
       if has_abholerpaket
         # Use provided title or default to "Abholerpaket"
         abholerpaket_title = params.abholerpaket_title.presence || "Abholerpaket"
-        display_title = abholerpaket_title
-        raw_content = "# #{display_title}\n\n"
 
-        post_creator =
-          PostCreator.new(user, raw: raw_content, topic_id: main_topic.id, skip_validations: true)
-
-        post = post_creator.create
-
-        unless post&.persisted?
-          fail!(
-            "Failed to create Abholerpaket post: #{post_creator.errors.full_messages.join(", ")}",
-          )
-        end
+        # Determine if Erhaltungsbericht is required (defaults to true if not specified)
+        abholerpaket_erhaltungsbericht_required =
+          params.abholerpaket_erhaltungsbericht_required.nil? ?
+            true :
+            params.abholerpaket_erhaltungsbericht_required
 
         # Create lottery packet record for Abholerpaket with ordinal 0
+        # No post is created - Abholerpaket is tracked in database only
         # Assign winner to creator and mark as won and collected (since creator already has it)
         LotteryPacket.create!(
           lottery_id: lottery.id,
-          post_id: post.id,
+          post_id: nil,
           ordinal: 0,
           title: abholerpaket_title,
-          erhaltungsbericht_required: true,
+          erhaltungsbericht_required: abholerpaket_erhaltungsbericht_required,
           abholerpaket: true,
           winner_user_id: user.id,
           won_at: Time.zone.now,

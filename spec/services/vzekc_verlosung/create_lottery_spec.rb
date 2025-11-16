@@ -25,7 +25,7 @@ RSpec.describe VzekcVerlosung::CreateLottery do
       it "creates main topic and packet posts" do
         expect { described_class.call(**valid_params) }.to change { Topic.count }.by(1).and change {
                 Post.count
-              }.by(4) # intro post + abholerpaket + 2 user packets
+              }.by(3) # intro post + 2 user packets (Abholerpaket has no post)
       end
 
       it "returns success with main topic" do
@@ -72,7 +72,7 @@ RSpec.describe VzekcVerlosung::CreateLottery do
         result = described_class.call(**valid_params)
 
         packet_posts = result.main_topic.posts.where.not(post_number: 1)
-        expect(packet_posts.count).to eq(3) # abholerpaket + 2 user packets
+        expect(packet_posts.count).to eq(2) # 2 user packets (Abholerpaket has no post)
         expect(packet_posts.map(&:raw)).to include(match(/Packet 1/), match(/Packet 2/))
       end
     end
