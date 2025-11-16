@@ -19,6 +19,7 @@
 
       input[type="text"],
       input[type="number"],
+      select,
       textarea {
         width: 100%;
         padding: 0.5em;
@@ -44,6 +45,11 @@
 
       input[type="number"] {
         width: 150px;
+      }
+
+      select {
+        background-color: var(--secondary);
+        cursor: pointer;
       }
 
       .display-id-error {
@@ -731,6 +737,7 @@
     // Erhaltungsbericht link section (visible to all when created)
     .erhaltungsbericht-link-section {
       padding-top: 1em;
+      margin-top: 1em;
       border-top: 1px solid var(--success);
 
       .erhaltungsbericht-link {
