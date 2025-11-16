@@ -29,6 +29,7 @@ export default class CreateLotteryModal extends Component {
   @tracked drawingMode = "automatic";
   @tracked noAbholerpaket = false;
   @tracked abholerpaketTitle = "";
+  @tracked abholerpaketErhaltungsberichtRequired = true;
   @tracked packets = [this.createEmptyPacket()];
   @tracked isSubmitting = false;
   @tracked lastAddedPacketIndex = 0;
@@ -44,6 +45,8 @@ export default class CreateLotteryModal extends Component {
       this.drawingMode = data.drawingMode;
       this.noAbholerpaket = data.noAbholerpaket;
       this.abholerpaketTitle = data.abholerpaketTitle;
+      this.abholerpaketErhaltungsberichtRequired =
+        data.abholerpaketErhaltungsberichtRequired;
       this.packets = data.packets;
     } else if (this.args.model.fromDonation?.topicTitle) {
       // Pre-fill title from donation if creating lottery from donation
@@ -169,6 +172,16 @@ export default class CreateLotteryModal extends Component {
   }
 
   /**
+   * Toggle Abholerpaket Erhaltungsbericht requirement
+   *
+   * @param {Event} event - Change event
+   */
+  @action
+  toggleAbholerpaketErhaltungsbericht(event) {
+    this.abholerpaketErhaltungsberichtRequired = event.target.checked;
+  }
+
+  /**
    * Get packet number for display (1-indexed)
    *
    * @param {number} index - Zero-based index
@@ -219,6 +232,8 @@ export default class CreateLotteryModal extends Component {
       drawingMode: this.drawingMode,
       noAbholerpaket: this.noAbholerpaket,
       abholerpaketTitle: this.abholerpaketTitle,
+      abholerpaketErhaltungsberichtRequired:
+        this.abholerpaketErhaltungsberichtRequired,
       packets: this.packets,
     };
 
@@ -271,6 +286,8 @@ export default class CreateLotteryModal extends Component {
         category_id: this.args.model.categoryId,
         has_abholerpaket: !this.noAbholerpaket,
         abholerpaket_title: this.abholerpaketTitle,
+        abholerpaket_erhaltungsbericht_required:
+          this.abholerpaketErhaltungsberichtRequired,
         packets: this.packets.map((p) => ({
           title: p.title,
           erhaltungsbericht_required: p.erhaltungsberichtRequired,
@@ -389,6 +406,19 @@ export default class CreateLotteryModal extends Component {
               />
               {{i18n "vzekc_verlosung.modal.no_abholerpaket_label"}}
             </label>
+            <div class="packet-checkbox-group">
+              <label class="checkbox-label">
+                <input
+                  type="checkbox"
+                  {{on "change" this.toggleAbholerpaketErhaltungsbericht}}
+                  checked={{this.abholerpaketErhaltungsberichtRequired}}
+                  disabled={{this.noAbholerpaket}}
+                />
+                {{i18n
+                  "vzekc_verlosung.modal.erhaltungsbericht_required_label"
+                }}
+              </label>
+            </div>
             <div class="abholerpaket-help">
               {{i18n "vzekc_verlosung.modal.no_abholerpaket_help"}}
             </div>

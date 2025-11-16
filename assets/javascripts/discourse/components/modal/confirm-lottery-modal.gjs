@@ -114,6 +114,14 @@ export default class ConfirmLotteryModal extends Component {
                 <span
                   class="packet-title"
                 >{{this.lotteryData.abholerpaketTitle}}</span>
+                {{#if this.lotteryData.abholerpaketErhaltungsberichtRequired}}
+                  <span class="packet-meta">
+                    {{icon "file-lines"}}
+                    {{i18n
+                      "vzekc_verlosung.modal.erhaltungsbericht_required_short"
+                    }}
+                  </span>
+                {{/if}}
               </div>
             {{/unless}}
 
