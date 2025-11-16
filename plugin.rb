@@ -235,6 +235,125 @@ after_initialize do
     lottery&.drawing_mode
   end
 
+  # Add all lottery packets data to topic view to prevent AJAX requests
+  # This eliminates the need for lottery-intro-summary to fetch packet data
+  add_to_serializer(:topic_view, :lottery_packets) do
+    lottery = VzekcVerlosung::Lottery.find_by(topic_id: object.topic.id)
+    return [] unless lottery
+
+    # Get lottery packets with eager loading
+    lottery_packets =
+      lottery
+        .lottery_packets
+        .includes(:post, :winner, :erhaltungsbericht_topic, lottery_tickets: :user)
+        .order("posts.post_number")
+
+    lottery_packets.map do |packet|
+      # Get tickets and users for this packet
+      tickets = packet.lottery_tickets
+      ticket_count = tickets.count
+
+      users =
+        tickets.map do |ticket|
+          {
+            id: ticket.user.id,
+            username: ticket.user.username,
+            name: ticket.user.name,
+            avatar_template: ticket.user.avatar_template,
+          }
+        end
+
+      # Get winner user object if winner exists
+      winner_obj = nil
+      if packet.winner
+        winner_obj = {
+          id: packet.winner.id,
+          username: packet.winner.username,
+          name: packet.winner.name,
+          avatar_template: packet.winner.avatar_template,
+        }
+      end
+
+      packet_data = {
+        post_id: packet.post_id,
+        post_number: packet.post.post_number,
+        title: packet.title,
+        ticket_count: ticket_count,
+        winner: winner_obj,
+        users: users,
+        ordinal: packet.ordinal,
+        abholerpaket: packet.abholerpaket,
+        erhaltungsbericht_required: packet.erhaltungsbericht_required,
+      }
+
+      # Include erhaltungsbericht_topic_id only if topic still exists
+      if packet.erhaltungsbericht_topic_id && packet.erhaltungsbericht_topic
+        packet_data[:erhaltungsbericht_topic_id] = packet.erhaltungsbericht_topic_id
+      end
+
+      # Only include collected_at for lottery owner, staff, or winner
+      is_winner = packet.winner_user_id.present? && scope.user&.id == packet.winner_user_id
+      is_authorized = scope.is_staff? || object.topic.user_id == scope.user&.id || is_winner
+      packet_data[:collected_at] = packet.collected_at if is_authorized && packet.collected_at
+
+      packet_data
+    end
+  end
+
+  # Add ticket status to packet posts to prevent AJAX requests
+  # This eliminates the need for lottery-widget to fetch ticket data
+  add_to_serializer(
+    :post,
+    :packet_ticket_status,
+    include_condition: -> { VzekcVerlosung::LotteryPacket.exists?(post_id: object.id) },
+  ) do
+    packet = VzekcVerlosung::LotteryPacket.find_by(post_id: object.id)
+    return nil unless packet
+
+    # Get tickets with user data
+    tickets = VzekcVerlosung::LotteryTicket.where(post_id: object.id).includes(:user)
+    ticket_count = tickets.count
+
+    users =
+      tickets.map do |ticket|
+        {
+          id: ticket.user.id,
+          username: ticket.user.username,
+          name: ticket.user.name,
+          avatar_template: ticket.user.avatar_template,
+        }
+      end
+
+    # Get winner data
+    winner = nil
+    if packet.winner
+      winner = {
+        id: packet.winner.id,
+        username: packet.winner.username,
+        name: packet.winner.name,
+        avatar_template: packet.winner.avatar_template,
+      }
+    end
+
+    response = {
+      has_ticket:
+        scope.user &&
+          VzekcVerlosung::LotteryTicket.exists?(post_id: object.id, user_id: scope.user.id),
+      ticket_count: ticket_count,
+      users: users,
+      winner: winner,
+    }
+
+    # Include collected_at for lottery owner, staff, or winner
+    topic = object.topic
+    is_winner =
+      packet.winner_user_id.present? && scope.user && scope.user.id == packet.winner_user_id
+    is_authorized = scope.is_staff? || topic&.user_id == scope.user&.id || is_winner
+    response[:collected_at] = packet.collected_at if is_authorized && packet.collected_at
+
+    response
+  end
+
   # Preload lottery association for topic lists to prevent N+1 queries
   add_class_method(:topic_list, :preloaded_lottery_data) do
     @preloaded_lottery_data ||=

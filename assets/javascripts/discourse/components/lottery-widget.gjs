@@ -40,7 +40,7 @@ export default class LotteryWidget extends Component {
   constructor() {
     super(...arguments);
     if (this.shouldShow) {
-      this.loadTicketData();
+      this.loadTicketDataFromPost();
       this.appEvents.on("lottery:ticket-changed", this, this.onTicketChanged);
       // Reload data when page becomes visible again
       document.addEventListener("visibilitychange", this.onVisibilityChange);
@@ -61,7 +61,7 @@ export default class LotteryWidget extends Component {
   onVisibilityChange() {
     // Reload data when page becomes visible (user returns from composer)
     if (!document.hidden && this.shouldShow) {
-      this.loadTicketData();
+      this.loadTicketDataFromAjax();
     }
   }
 
@@ -77,14 +77,37 @@ export default class LotteryWidget extends Component {
   @bind
   onTicketChanged(postId) {
     if (postId === this.post?.id) {
-      this.loadTicketData();
+      this.loadTicketDataFromAjax();
     }
   }
 
   /**
-   * Load ticket data for this lottery packet post including user's ticket status and count
+   * Load ticket data from serialized post data (no AJAX request)
    */
-  async loadTicketData() {
+  loadTicketDataFromPost() {
+    try {
+      // Ticket status is already serialized in the post data
+      const status = this.post?.packet_ticket_status;
+      if (status) {
+        this.hasTicket = status.has_ticket || false;
+        this.ticketCount = status.ticket_count || 0;
+        this.users = status.users || [];
+        this.winnerData = status.winner || null;
+        this.collectedAt = status.collected_at || null;
+      }
+
+      // Always sync erhaltungsbericht_topic_id from post (will be null if not set or deleted)
+      this.erhaltungsberichtTopicId =
+        this.post?.erhaltungsbericht_topic_id || null;
+    } finally {
+      this.loading = false;
+    }
+  }
+
+  /**
+   * Reload ticket data via AJAX (only when tickets change)
+   */
+  async loadTicketDataFromAjax() {
     try {
       const result = await ajax(
         `/vzekc-verlosung/tickets/packet-status/${this.post.id}`

@@ -37,7 +37,7 @@ export default class LotteryIntroSummary extends Component {
 
   constructor() {
     super(...arguments);
-    this.loadPackets();
+    this.loadPacketsFromTopic();
     this.appEvents.on("lottery:ticket-changed", this, this.onTicketChanged);
   }
 
@@ -51,14 +51,26 @@ export default class LotteryIntroSummary extends Component {
     // Check if the changed post is one of our packets
     const packet = this.packets.find((p) => p.post_id === postId);
     if (packet) {
-      this.loadPackets();
+      this.loadPacketsFromAjax();
     }
   }
 
   /**
-   * Load the list of packets for this lottery
+   * Load packets from serialized topic data (no AJAX request)
    */
-  async loadPackets() {
+  loadPacketsFromTopic() {
+    try {
+      // Packets are already serialized in the topic data
+      this.packets = this.args.data.post.topic?.lottery_packets || [];
+    } finally {
+      this.loading = false;
+    }
+  }
+
+  /**
+   * Reload packets via AJAX (only when tickets change)
+   */
+  async loadPacketsFromAjax() {
     try {
       const result = await ajax(
         `/vzekc-verlosung/lotteries/${this.args.data.post.topic_id}/packets`
@@ -66,8 +78,6 @@ export default class LotteryIntroSummary extends Component {
       this.packets = result.packets || [];
     } catch (error) {
       popupAjaxError(error);
-    } finally {
-      this.loading = false;
     }
   }
 
