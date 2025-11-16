@@ -60,6 +60,7 @@ de:
         loading: "Lädt..."
         winner: "Gewinner"
         abholerpaket: "Abholerpaket"
+        abholerpaket_description: "Dieses Paket wird von %{username} behalten."
         no_tickets: "Keine Lose beansprucht"
         no_winner: "Kein Gewinner (keine Lose wurden gekauft)"
         tickets_bought_for: "Lose gekauft für"

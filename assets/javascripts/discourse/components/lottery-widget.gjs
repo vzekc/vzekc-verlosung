@@ -463,10 +463,7 @@ export default class LotteryWidget extends Component {
 
   <template>
     {{#if this.shouldShow}}
-      <div
-        class="lottery-packet-status
-          {{if this.isAbholerpaket 'abholerpaket-widget'}}"
-      >
+      <div class="lottery-packet-status">
         {{#if this.isDrawn}}
           {{! Lottery has been drawn - show winner or no winner message }}
           {{#if this.winner}}
@@ -592,46 +589,122 @@ export default class LotteryWidget extends Component {
             </div>
           {{/if}}
         {{else if this.canBuyOrReturn}}
-          {{! Lottery is active - show buy/return button }}
+          {{! Lottery is active - show buy/return button or Abholerpaket message }}
           <div class="lottery-packet-active-notice">
-            <div class="action-section">
-              <DButton
-                @action={{this.toggleTicket}}
-                @label={{this.buttonLabel}}
-                @icon={{this.buttonIcon}}
-                @disabled={{this.loading}}
-                class="btn-primary lottery-ticket-button"
-              />
-            </div>
-            {{#unless this.loading}}
-              <div class="participants-display">
-                <span class="participants-label">{{i18n
-                    "vzekc_verlosung.ticket.participants"
-                  }}:</span>
-                <TicketCountBadge
-                  @count={{this.ticketCount}}
-                  @users={{this.users}}
-                  @packetTitle={{this.packetTitle}}
+            {{#if this.isAbholerpaket}}
+              <div class="abholerpaket-info">
+                <span class="abholerpaket-label">
+                  {{icon "box-archive"}}
+                  {{i18n "vzekc_verlosung.ticket.abholerpaket"}}
+                </span>
+                <p class="abholerpaket-message">
+                  {{i18n
+                    "vzekc_verlosung.ticket.abholerpaket_description"
+                    username=this.winnerUsername
+                  }}
+                </p>
+              </div>
+              {{#if this.canCreateErhaltungsbericht}}
+                <div class="action-section">
+                  <DButton
+                    @action={{this.createErhaltungsbericht}}
+                    @label="vzekc_verlosung.erhaltungsbericht.create_button"
+                    @icon="pen"
+                    class="btn-primary create-erhaltungsbericht-button"
+                  />
+                </div>
+              {{/if}}
+              {{#if this.erhaltungsberichtUrl}}
+                <div class="erhaltungsbericht-link-section">
+                  <a
+                    href={{this.erhaltungsberichtUrl}}
+                    class="erhaltungsbericht-link"
+                  >
+                    {{icon "gift"}}
+                    <span>{{i18n
+                        "vzekc_verlosung.erhaltungsbericht.view_link"
+                      }}</span>
+                  </a>
+                </div>
+              {{/if}}
+            {{else}}
+              <div class="action-section">
+                <DButton
+                  @action={{this.toggleTicket}}
+                  @label={{this.buttonLabel}}
+                  @icon={{this.buttonIcon}}
+                  @disabled={{this.loading}}
+                  class="btn-primary lottery-ticket-button"
                 />
               </div>
-            {{/unless}}
+              {{#unless this.loading}}
+                <div class="participants-display">
+                  <span class="participants-label">{{i18n
+                      "vzekc_verlosung.ticket.participants"
+                    }}:</span>
+                  <TicketCountBadge
+                    @count={{this.ticketCount}}
+                    @users={{this.users}}
+                    @packetTitle={{this.packetTitle}}
+                  />
+                </div>
+              {{/unless}}
+            {{/if}}
           </div>
         {{else if this.hasEnded}}
-          {{! Lottery has ended but not drawn yet - show participants only }}
+          {{! Lottery has ended but not drawn yet }}
           <div class="lottery-packet-ended-notice">
-            {{#unless this.loading}}
-              <div class="participants-display">
-                <span class="participants-label">{{i18n
-                    "vzekc_verlosung.ticket.participants"
-                  }}:</span>
-                <TicketCountBadge
-                  @count={{this.ticketCount}}
-                  @users={{this.users}}
-                  @packetTitle={{this.packetTitle}}
-                  @hasEnded={{true}}
-                />
+            {{#if this.isAbholerpaket}}
+              <div class="abholerpaket-info">
+                <span class="abholerpaket-label">
+                  {{icon "box-archive"}}
+                  {{i18n "vzekc_verlosung.ticket.abholerpaket"}}
+                </span>
+                <p class="abholerpaket-message">
+                  {{i18n
+                    "vzekc_verlosung.ticket.abholerpaket_description"
+                    username=this.winnerUsername
+                  }}
+                </p>
               </div>
-            {{/unless}}
+              {{#if this.canCreateErhaltungsbericht}}
+                <div class="action-section">
+                  <DButton
+                    @action={{this.createErhaltungsbericht}}
+                    @label="vzekc_verlosung.erhaltungsbericht.create_button"
+                    @icon="pen"
+                    class="btn-primary create-erhaltungsbericht-button"
+                  />
+                </div>
+              {{/if}}
+              {{#if this.erhaltungsberichtUrl}}
+                <div class="erhaltungsbericht-link-section">
+                  <a
+                    href={{this.erhaltungsberichtUrl}}
+                    class="erhaltungsbericht-link"
+                  >
+                    {{icon "gift"}}
+                    <span>{{i18n
+                        "vzekc_verlosung.erhaltungsbericht.view_link"
+                      }}</span>
+                  </a>
+                </div>
+              {{/if}}
+            {{else}}
+              {{#unless this.loading}}
+                <div class="participants-display">
+                  <span class="participants-label">{{i18n
+                      "vzekc_verlosung.ticket.participants"
+                    }}:</span>
+                  <TicketCountBadge
+                    @count={{this.ticketCount}}
+                    @users={{this.users}}
+                    @packetTitle={{this.packetTitle}}
+                    @hasEnded={{true}}
+                  />
+                </div>
+              {{/unless}}
+            {{/if}}
           </div>
         {{/if}}
       </div>

@@ -1,6 +1,6 @@
 import Component from "@glimmer/component";
 import { tracked } from "@glimmer/tracking";
-import { concat } from "@ember/helper";
+import { concat, fn } from "@ember/helper";
 import { action } from "@ember/object";
 import { service } from "@ember/service";
 import { and, or } from "truth-helpers";
@@ -283,8 +283,9 @@ export default class LotteryIntroSummary extends Component {
           type: "PUT",
         }
       );
-      // Reload the page to show the published state
-      window.location.reload();
+      // Reload to clean URL (strip any query parameters that might hide posts)
+      const cleanUrl = window.location.pathname;
+      window.location.href = cleanUrl;
     } catch (error) {
       popupAjaxError(error);
       this.publishing = false;
@@ -369,7 +370,7 @@ export default class LotteryIntroSummary extends Component {
       action: "createTopic",
       title: erhaltungsberichtTitle,
       body: template,
-      categoryId: categoryId,
+      categoryId,
       packet_post_id: packet.post_id,
       packet_topic_id: lottery.id,
     });

@@ -60,6 +60,7 @@ en:
         loading: "Loading..."
         winner: "Winner"
         abholerpaket: "Pickup Packet"
+        abholerpaket_description: "This packet is kept by %{username}."
         no_tickets: "No tickets claimed"
         no_winner: "No winner (no tickets were purchased)"
         tickets_bought_for: "Tickets bought for"
