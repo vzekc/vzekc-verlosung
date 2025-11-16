@@ -18,7 +18,13 @@ class BackfillAbholerpaketPosts < ActiveRecord::Migration[7.0]
           raw_content = "# #{display_title}\n\n"
 
           post_creator =
-            PostCreator.new(user, raw: raw_content, topic_id: topic.id, skip_validations: true)
+            PostCreator.new(
+              user,
+              raw: raw_content,
+              topic_id: topic.id,
+              skip_validations: true,
+              skip_rate_limits: true,
+            )
 
           post = post_creator.create
 

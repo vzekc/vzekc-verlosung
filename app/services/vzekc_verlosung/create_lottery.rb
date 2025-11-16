@@ -81,6 +81,7 @@ module VzekcVerlosung
           raw: description,
           category: category.id,
           skip_validations: true,
+          skip_rate_limits: true,
         )
 
       post = post_creator.create
@@ -137,7 +138,13 @@ module VzekcVerlosung
 
         # Create post for Abholerpaket
         post_creator =
-          PostCreator.new(user, raw: raw_content, topic_id: main_topic.id, skip_validations: true)
+          PostCreator.new(
+            user,
+            raw: raw_content,
+            topic_id: main_topic.id,
+            skip_validations: true,
+            skip_rate_limits: true,
+          )
 
         post = post_creator.create
 
@@ -187,7 +194,13 @@ module VzekcVerlosung
         raw_content = "# #{display_title}\n\n"
 
         post_creator =
-          PostCreator.new(user, raw: raw_content, topic_id: main_topic.id, skip_validations: true)
+          PostCreator.new(
+            user,
+            raw: raw_content,
+            topic_id: main_topic.id,
+            skip_validations: true,
+            skip_rate_limits: true,
+          )
 
         post = post_creator.create
 
