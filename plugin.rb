@@ -358,15 +358,12 @@ after_initialize do
   # Whitelist packet reference parameters for topic creation
   add_permitted_post_create_param(:packet_post_id)
   add_permitted_post_create_param(:packet_topic_id)
-  # Whitelist lottery reference parameters for Abholerpaket Erhaltungsberichte
-  add_permitted_post_create_param(:erhaltungsbericht_lottery_id)
-  add_permitted_post_create_param(:erhaltungsbericht_is_abholerpaket)
   # Whitelist erhaltungsbericht_donation_id for Erhaltungsberichte from donations
   add_permitted_post_create_param(:erhaltungsbericht_donation_id)
 
   # Register callback to establish bidirectional link when Erhaltungsbericht is created
   on(:topic_created) do |topic, opts, user|
-    # Handle Erhaltungsbericht from lottery packet (regular packet with post)
+    # Handle Erhaltungsbericht from lottery packet (all packets including Abholerpaket)
     packet_post_id = opts[:packet_post_id]&.to_i
     packet_topic_id = opts[:packet_topic_id]&.to_i
 
@@ -385,28 +382,6 @@ after_initialize do
           if packet.winner_user_id == user.id
             # Establish reverse link from packet to Erhaltungsbericht
             packet.link_report!(topic)
-          end
-        end
-      end
-    end
-
-    # Handle Erhaltungsbericht from Abholerpaket (no post, identified by lottery_id)
-    erhaltungsbericht_lottery_id = opts[:erhaltungsbericht_lottery_id]&.to_i
-    erhaltungsbericht_is_abholerpaket = opts[:erhaltungsbericht_is_abholerpaket]
-
-    if erhaltungsbericht_lottery_id.present? && erhaltungsbericht_is_abholerpaket == "true"
-      # Find the Abholerpaket for this lottery
-      lottery = VzekcVerlosung::Lottery.find_by(id: erhaltungsbericht_lottery_id)
-      if lottery
-        packet = lottery.lottery_packets.find_by(abholerpaket: true)
-        if packet
-          # Verify the user is the winner (lottery creator)
-          if packet.winner_user_id == user.id
-            # Establish reverse link from Abholerpaket to Erhaltungsbericht
-            packet.link_report!(topic)
-            Rails.logger.info(
-              "Linked Abholerpaket (lottery #{lottery.id}) to Erhaltungsbericht topic #{topic.id}",
-            )
           end
         end
       end

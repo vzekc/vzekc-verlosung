@@ -19,7 +19,7 @@ module VzekcVerlosung
 
     # Validations
     validates :lottery_id, presence: true
-    validates :post_id, presence: true, uniqueness: true, unless: :abholerpaket?
+    validates :post_id, presence: true, uniqueness: true
     validates :title, presence: true
     validates :ordinal,
               presence: true,

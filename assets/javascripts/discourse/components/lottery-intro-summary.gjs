@@ -227,24 +227,6 @@ export default class LotteryIntroSummary extends Component {
   }
 
   /**
-   * Get the Abholerpaket from the packets array
-   *
-   * @returns {Object|null} the Abholerpaket or null if none
-   */
-  get abholerpaket() {
-    return this.packets.find((p) => p.abholerpaket) || null;
-  }
-
-  /**
-   * Get regular packets (excluding Abholerpaket)
-   *
-   * @returns {Array} array of regular packets
-   */
-  get regularPackets() {
-    return this.packets.filter((p) => !p.abholerpaket);
-  }
-
-  /**
    * Format collected date for display
    *
    * @param {String|Date} collectedAt - The collection timestamp
@@ -359,32 +341,37 @@ export default class LotteryIntroSummary extends Component {
 
   /**
    * Open Erhaltungsbericht composer for Abholerpaket
+   *
+   * @param {Object} packet - The Abholerpaket object
    */
   @action
-  openErhaltungsberichtComposer() {
-    const abholerpaket = this.abholerpaket;
-    if (!abholerpaket) {
+  openErhaltungsberichtComposer(packet) {
+    if (!packet) {
       return;
     }
 
     const lottery = this.topic;
-    const packetTitle = abholerpaket.title;
+    const packetTitle = packet.title;
     const erhaltungsberichtTitle = `${packetTitle} aus ${lottery.title}`;
 
     // Get template from site settings
     const template =
       this.siteSettings.vzekc_verlosung_erhaltungsbericht_template || "";
 
-    // Open composer with Abholerpaket reference
-    // Use lottery_id and abholerpaket flag instead of post_id
+    // CRITICAL: Category SiteSettings are strings, must parse to integer
+    const categoryId = parseInt(
+      this.siteSettings.vzekc_verlosung_erhaltungsberichte_category_id,
+      10
+    );
+
+    // Abholerpaket now has a post, use same mechanism as regular packets
     this.appEvents.trigger("composer:open", {
       action: "createTopic",
       title: erhaltungsberichtTitle,
       body: template,
-      categoryId:
-        this.siteSettings.vzekc_verlosung_erhaltungsberichte_category_id,
-      erhaltungsbericht_lottery_id: lottery.id,
-      erhaltungsbericht_is_abholerpaket: "true",
+      categoryId: categoryId,
+      packet_post_id: packet.post_id,
+      packet_topic_id: lottery.id,
     });
   }
 
@@ -489,112 +476,86 @@ export default class LotteryIntroSummary extends Component {
           </div>
         {{/if}}
 
-        {{! ========== ABHOLERPAKET SECTION ========== }}
-        {{#if (and this.abholerpaket this.isLotteryOwner)}}
-          <div class="lottery-abholerpaket-section">
-            <h3 class="abholerpaket-title">
-              {{icon "archive"}}
-              {{this.abholerpaket.title}}
-            </h3>
-
-            {{#if this.isFinished}}
-              {{! After lottery is finished, show winner and Erhaltungsbericht link }}
-              <div class="abholerpaket-winner-info">
-                <span class="participants-label">{{i18n
-                    "vzekc_verlosung.ticket.abholerpaket"
-                  }}:</span>
-                {{#if this.abholerpaket.winner}}
-                  <UserLink
-                    @username={{this.abholerpaket.winner.username}}
-                    class="winner-user-link"
-                  >
-                    {{avatar this.abholerpaket.winner imageSize="tiny"}}
-                    <span
-                      class="winner-name"
-                    >{{this.abholerpaket.winner.username}}</span>
-                  </UserLink>
-                {{/if}}
-              </div>
-            {{/if}}
-
-            {{#if this.abholerpaket.erhaltungsbericht_topic_id}}
-              {{! Show link to existing Erhaltungsbericht }}
-              <div class="abholerpaket-erhaltungsbericht-link">
-                <a
-                  href="/t/{{this.abholerpaket.erhaltungsbericht_topic_id}}"
-                  class="erhaltungsbericht-link"
-                >
-                  {{icon "gift"}}
-                  {{i18n "vzekc_verlosung.erhaltungsbericht.view"}}
-                </a>
-              </div>
-            {{else}}
-              {{! Show button to create Erhaltungsbericht }}
-              {{#if this.abholerpaket.erhaltungsbericht_required}}
-                <div class="abholerpaket-erhaltungsbericht-button">
-                  <DButton
-                    @action={{this.openErhaltungsberichtComposer}}
-                    @label="vzekc_verlosung.erhaltungsbericht.create"
-                    @icon="pen"
-                    class="btn-primary"
-                  />
-                </div>
-              {{/if}}
-            {{/if}}
-          </div>
-        {{/if}}
-
-        {{! ========== REGULAR PACKETS LIST ========== }}
-        {{#if this.regularPackets.length}}
+        {{! ========== PACKETS LIST ========== }}
+        {{#if this.packets.length}}
           <h3 class="lottery-packets-title">{{i18n
               "vzekc_verlosung.packets_title"
             }}</h3>
           <ul class="lottery-packets-list">
-            {{#each this.regularPackets as |packet|}}
+            {{#each this.packets as |packet|}}
               <li class="lottery-packet-item">
                 <span class="packet-ordinal">{{packet.ordinal}}:</span>
                 <a
                   href="#post_{{packet.post_number}}"
                   class="packet-title"
                 >{{packet.title}}</a>
-                {{#if this.isFinished}}
-                  {{#if packet.winner}}
-                    <span class="packet-winner">
-                      <span class="participants-label">{{i18n
-                          "vzekc_verlosung.ticket.winner"
-                        }}:</span>
-                      <UserLink
-                        @username={{packet.winner.username}}
-                        class="winner-user-link"
+
+                {{#if packet.abholerpaket}}
+                  {{! Abholerpaket - show label instead of ticket count }}
+                  <span class="abholerpaket-label">{{i18n
+                      "vzekc_verlosung.ticket.abholerpaket"
+                    }}</span>
+
+                  {{! Show Erhaltungsbericht controls only to lottery owner }}
+                  {{#if this.isLotteryOwner}}
+                    {{#if packet.erhaltungsbericht_topic_id}}
+                      <a
+                        href="/t/{{packet.erhaltungsbericht_topic_id}}"
+                        class="erhaltungsbericht-link"
                       >
-                        {{avatar packet.winner imageSize="tiny"}}
-                        <span
-                          class="winner-name"
-                        >{{packet.winner.username}}</span>
-                      </UserLink>
-                      {{#if (this.showCollectionIndicatorForPacket packet)}}
-                        <span class="collection-indicator collected">
-                          {{icon "check"}}
-                          <span
-                            class="collection-date"
-                          >{{this.formatCollectedDate
-                              packet.collected_at
-                            }}</span>
-                        </span>
-                      {{/if}}
-                    </span>
-                  {{else}}
-                    <span class="packet-no-tickets">
-                      {{i18n "vzekc_verlosung.ticket.no_tickets"}}
-                    </span>
+                        {{icon "gift"}}
+                        {{i18n "vzekc_verlosung.erhaltungsbericht.view"}}
+                      </a>
+                    {{else if packet.erhaltungsbericht_required}}
+                      <DButton
+                        @action={{fn this.openErhaltungsberichtComposer packet}}
+                        @label="vzekc_verlosung.erhaltungsbericht.create_button"
+                        @icon="pen"
+                        class="btn-small btn-primary erhaltungsbericht-create-btn"
+                      />
+                    {{/if}}
                   {{/if}}
                 {{else}}
-                  <TicketCountBadge
-                    @count={{packet.ticket_count}}
-                    @users={{packet.users}}
-                    @packetTitle={{packet.title}}
-                    @hasEnded={{this.hasEnded}}
-                  />
+                  {{! Regular packet - show winner or ticket count }}
+                  {{#if this.isFinished}}
+                    {{#if packet.winner}}
+                      <span class="packet-winner">
+                        <span class="participants-label">{{i18n
+                            "vzekc_verlosung.ticket.winner"
+                          }}:</span>
+                        <UserLink
+                          @username={{packet.winner.username}}
+                          class="winner-user-link"
+                        >
+                          {{avatar packet.winner imageSize="tiny"}}
+                          <span
+                            class="winner-name"
+                          >{{packet.winner.username}}</span>
+                        </UserLink>
+                        {{#if (this.showCollectionIndicatorForPacket packet)}}
+                          <span class="collection-indicator collected">
+                            {{icon "check"}}
+                            <span
+                              class="collection-date"
+                            >{{this.formatCollectedDate
+                                packet.collected_at
+                              }}</span>
+                          </span>
+                        {{/if}}
+                      </span>
+                    {{else}}
+                      <span class="packet-no-tickets">
+                        {{i18n "vzekc_verlosung.ticket.no_tickets"}}
+                      </span>
+                    {{/if}}
+                  {{else}}
+                    <TicketCountBadge
+                      @count={{packet.ticket_count}}
+                      @users={{packet.users}}
+                      @packetTitle={{packet.title}}
+                      @hasEnded={{this.hasEnded}}
+                    />
+                  {{/if}}
                 {{/if}}
               </li>
             {{/each}}

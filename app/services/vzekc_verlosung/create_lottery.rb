@@ -121,16 +121,37 @@ module VzekcVerlosung
 
         # Determine if Erhaltungsbericht is required (defaults to true if not specified)
         abholerpaket_erhaltungsbericht_required =
-          params.abholerpaket_erhaltungsbericht_required.nil? ?
-            true :
-            params.abholerpaket_erhaltungsbericht_required
+          (
+            if params.abholerpaket_erhaltungsbericht_required.nil?
+              true
+            else
+              params.abholerpaket_erhaltungsbericht_required
+            end
+          )
+
+        # Build post title (Paket 0 for consistency with other packets)
+        display_title = "Paket 0: #{abholerpaket_title}"
+
+        # Build the post content
+        raw_content = "# #{display_title}\n\n"
+
+        # Create post for Abholerpaket
+        post_creator =
+          PostCreator.new(user, raw: raw_content, topic_id: main_topic.id, skip_validations: true)
+
+        post = post_creator.create
+
+        unless post&.persisted?
+          fail!(
+            "Failed to create Abholerpaket post: #{post_creator.errors.full_messages.join(", ")}",
+          )
+        end
 
         # Create lottery packet record for Abholerpaket with ordinal 0
-        # No post is created - Abholerpaket is tracked in database only
         # Assign winner to creator and mark as won and collected (since creator already has it)
         LotteryPacket.create!(
           lottery_id: lottery.id,
-          post_id: nil,
+          post_id: post.id,
           ordinal: 0,
           title: abholerpaket_title,
           erhaltungsbericht_required: abholerpaket_erhaltungsbericht_required,

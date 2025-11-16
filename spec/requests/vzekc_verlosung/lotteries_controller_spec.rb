@@ -407,15 +407,20 @@ RSpec.describe VzekcVerlosung::LotteriesController do
         expect(abholerpaket_lottery.results).to be_present
         expect(abholerpaket_lottery.state).to eq("finished")
 
-        # Verify only regular packet has winner, not Abholerpaket
+        # Verify regular packet has a winner from the drawing
         regular_packet.reload
         expect(regular_packet.winner).to be_present
 
+        # Verify Abholerpaket still has the original winner (lottery creator)
+        # The drawing should not change the Abholerpaket's winner
         abholerpaket.reload
-        expect(abholerpaket.winner).to be_nil
+        expect(abholerpaket.winner).to eq(user)
       end
 
       it "prevents users from buying tickets for Abholerpaket" do
+        # Set lottery to active (not ended) so we can test Abholerpaket-specific logic
+        abholerpaket_lottery.update!(state: "active", ends_at: 7.days.from_now)
+
         # Try to buy ticket for Abholerpaket - should fail
         post "/vzekc-verlosung/tickets.json", params: { post_id: abholerpaket.post_id }
 
