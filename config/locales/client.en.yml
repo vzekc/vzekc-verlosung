@@ -123,6 +123,7 @@ en:
       erhaltungsbericht:
         create_button: "Write Reception Report"
         view_link: "Reception Report"
+        not_required: "No reception report required"
         packet_notice: "This is a reception report for the packet:"
         category_not_configured: "Reception reports category is not configured. Please contact an administrator."
         from_donation: "Reception report for donation:"

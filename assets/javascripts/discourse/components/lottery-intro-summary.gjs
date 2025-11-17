@@ -520,6 +520,18 @@ export default class LotteryIntroSummary extends Component {
                   class="packet-title"
                 >{{packet.title}}</a>
 
+                {{! Show indicator if no Erhaltungsbericht required }}
+                {{#unless packet.erhaltungsbericht_required}}
+                  <span
+                    class="no-erhaltungsbericht-indicator"
+                    title={{i18n
+                      "vzekc_verlosung.erhaltungsbericht.not_required"
+                    }}
+                  >
+                    {{icon "ban"}}
+                  </span>
+                {{/unless}}
+
                 {{#if packet.abholerpaket}}
                   {{! Abholerpaket - show label instead of ticket count }}
                   <span class="abholerpaket-label">{{i18n

@@ -408,6 +408,16 @@ export default class LotteryWidget extends Component {
   }
 
   /**
+   * Check if Erhaltungsbericht is required for this packet
+   *
+   * @type {boolean}
+   */
+  get erhaltungsberichtRequired() {
+    // Default to true if not explicitly set to false
+    return this.post?.erhaltungsbericht_required !== false;
+  }
+
+  /**
    * Check if Erhaltungsbericht button should be shown
    *
    * @type {boolean}
@@ -487,6 +497,16 @@ export default class LotteryWidget extends Component {
   <template>
     {{#if this.shouldShow}}
       <div class="lottery-packet-status">
+        {{! Show indicator if no Erhaltungsbericht required }}
+        {{#unless this.erhaltungsberichtRequired}}
+          <div class="no-erhaltungsbericht-notice">
+            {{icon "ban"}}
+            <span>{{i18n
+                "vzekc_verlosung.erhaltungsbericht.not_required"
+              }}</span>
+          </div>
+        {{/unless}}
+
         {{#if this.isDrawn}}
           {{! Lottery has been drawn - show winner or no winner message }}
           {{#if this.winner}}

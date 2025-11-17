@@ -23,6 +23,7 @@ register_svg_icon "file"
 register_svg_icon "gift"
 register_svg_icon "hand-point-up"
 register_svg_icon "user-plus"
+register_svg_icon "ticket"
 
 module ::VzekcVerlosung
   PLUGIN_NAME = "vzekc-verlosung"
@@ -242,6 +243,11 @@ after_initialize do
   add_to_serializer(:post, :lottery_packet_ordinal) do
     packet = VzekcVerlosung::LotteryPacket.find_by(post_id: object.id)
     packet&.ordinal
+  end
+
+  add_to_serializer(:post, :erhaltungsbericht_required) do
+    packet = VzekcVerlosung::LotteryPacket.find_by(post_id: object.id)
+    packet&.erhaltungsbericht_required
   end
 
   # Include collection timestamp for lottery owner and winner

@@ -123,6 +123,7 @@ de:
       erhaltungsbericht:
         create_button: "Erhaltungsbericht schreiben"
         view_link: "Erhaltungsbericht"
+        not_required: "Kein Erhaltungsbericht erforderlich"
         packet_notice: "Dies ist ein Erhaltungsbericht für das Paket:"
         category_not_configured: "Die Kategorie für Erhaltungsberichte ist nicht konfiguriert. Bitte kontaktiere einen Administrator."
         from_donation: "Erhaltungsbericht zur Spende:"

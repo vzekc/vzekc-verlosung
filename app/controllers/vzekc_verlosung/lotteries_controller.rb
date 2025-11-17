@@ -125,6 +125,7 @@ module VzekcVerlosung
             users: users,
             ordinal: packet.ordinal,
             abholerpaket: packet.abholerpaket,
+            erhaltungsbericht_required: packet.erhaltungsbericht_required,
           }
 
           # Only include collected_at for lottery owner or staff
