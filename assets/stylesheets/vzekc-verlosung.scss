@@ -566,7 +566,6 @@
 
     .lottery-packet-item {
       display: flex;
-      justify-content: space-between;
       align-items: center;
       padding: 0.75em 1em;
       border-bottom: 1px solid var(--primary-low);
@@ -592,7 +591,6 @@
       }
 
       .packet-title {
-        flex: 1;
         font-weight: 500;
         color: var(--tertiary);
         text-decoration: none;
@@ -628,7 +626,19 @@
         color: var(--primary-medium);
         font-size: var(--font-down-1);
         font-style: italic;
-        margin-left: 1em;
+        margin-left: auto;
+        padding-left: 1em;
+      }
+
+      .packet-no-tickets {
+        margin-left: auto;
+        color: var(--primary-medium);
+        font-size: var(--font-down-1);
+        font-style: italic;
+      }
+
+      .ticket-participants-inline {
+        margin-left: auto;
       }
 
       .packet-winner {
@@ -640,7 +650,8 @@
         border-radius: 12px;
         font-size: 0.9em;
         font-weight: 500;
-        margin-left: 1em;
+        margin-left: auto;
+        padding-left: 1em;
 
         .participants-label {
           margin-right: 0.5em;
