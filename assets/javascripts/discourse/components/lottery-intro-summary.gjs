@@ -228,6 +228,20 @@ export default class LotteryIntroSummary extends Component {
   }
 
   /**
+   * Check if current user has a ticket for a specific packet
+   *
+   * @param {Object} packet - The packet to check
+   * @returns {Boolean} true if user has a ticket for this packet
+   */
+  @action
+  userHasTicket(packet) {
+    if (!this.currentUser || !packet.users) {
+      return false;
+    }
+    return packet.users.some((user) => user.id === this.currentUser.id);
+  }
+
+  /**
    * Check if end early button should be shown
    *
    * @returns {Boolean} true if button should be shown
@@ -494,7 +508,12 @@ export default class LotteryIntroSummary extends Component {
             }}</h3>
           <ul class="lottery-packets-list">
             {{#each this.packets as |packet|}}
-              <li class="lottery-packet-item">
+              <li
+                class={{concat
+                  "lottery-packet-item"
+                  (if (this.userHasTicket packet) " user-has-ticket")
+                }}
+              >
                 <span class="packet-ordinal">{{packet.ordinal}}:</span>
                 <a
                   href="/t/{{this.topic.id}}/{{packet.post_number}}"

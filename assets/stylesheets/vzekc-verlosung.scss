@@ -580,6 +580,11 @@
         border-bottom: none;
       }
 
+      &.user-has-ticket {
+        border-left: 3px solid var(--tertiary);
+        padding-left: calc(1em - 2px); // Compensate for thicker border
+      }
+
       .packet-ordinal {
         margin-right: 0.5em;
         font-weight: 600;
