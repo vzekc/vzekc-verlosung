@@ -62,7 +62,7 @@ class ErhaltungsberichtPacketLink extends Component {
     {{#unless this.loading}}
       {{#if this.packetUrl}}
         <div class="erhaltungsbericht-packet-link">
-          {{icon "box"}}
+          {{icon "cube"}}
           <span>Erhaltungsbericht für
             <a
               href={{this.packetUrl}}

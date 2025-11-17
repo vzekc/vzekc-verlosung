@@ -83,7 +83,7 @@ export default class LotteryHistoryEntry extends Component {
             {{i18n "vzekc_verlosung.history.participants"}}</span>
         </div>
         <div class="stat-item">
-          {{icon "box"}}
+          {{icon "cube"}}
           <span>{{@lottery.packets.length}}
             {{i18n "vzekc_verlosung.history.packets"}}</span>
         </div>
