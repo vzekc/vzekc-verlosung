@@ -29,7 +29,8 @@ module Jobs
               .map do |packet|
                 post = packet.post
                 packet_title =
-                  extract_title_from_markdown(post.raw) || "Packet ##{post.post_number}"
+                  VzekcVerlosung::TitleExtractor.extract_title(post.raw) ||
+                    "Packet ##{post.post_number}"
                 {
                   post_number: post.post_number,
                   title: packet_title,
@@ -80,11 +81,6 @@ module Jobs
         target_usernames: owner.username,
         skip_validations: true,
       )
-    end
-
-    def extract_title_from_markdown(raw)
-      match = raw.match(/^#\s+(.+)$/)
-      match ? match[1].strip : nil
     end
   end
 end

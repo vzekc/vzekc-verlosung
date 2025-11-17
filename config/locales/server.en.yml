@@ -142,3 +142,7 @@ en:
         ---
 
         [View the full lottery post](%{topic_url})
+    errors:
+      packet_title_required: "Packet %{ordinal} title cannot be removed. The post must start with a heading in the format: # Paket %{ordinal}: Title"
+      packet_ordinal_mismatch: "Packet number mismatch. Expected '# Paket %{expected}:' but found '# Paket %{actual}:'. The packet number in the title must match the database."
+      packet_title_too_short: "Packet title must be at least %{minimum} non-whitespace characters long."

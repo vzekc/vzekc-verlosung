@@ -95,6 +95,72 @@ after_initialize do
     Rails.logger.info("Lottery packet deleted with post #{post.id}: #{packet.title}") if packet
   end
 
+  # Add validation to Post model to prevent removing packet titles
+  module PostValidationExtensions
+    def self.prepended(base)
+      base.validate :validate_packet_title_present
+    end
+
+    def validate_packet_title_present
+      packet = VzekcVerlosung::LotteryPacket.find_by(post_id: id)
+      return unless packet
+
+      # Check if the post still has a valid packet title heading
+      unless VzekcVerlosung::TitleExtractor.has_title?(raw)
+        errors.add(
+          :base,
+          I18n.t("vzekc_verlosung.errors.packet_title_required", ordinal: packet.ordinal),
+        )
+        return
+      end
+
+      # Extract ordinal from post content
+      post_ordinal = VzekcVerlosung::TitleExtractor.extract_packet_number(raw)
+      if post_ordinal != packet.ordinal
+        errors.add(
+          :base,
+          I18n.t(
+            "vzekc_verlosung.errors.packet_ordinal_mismatch",
+            expected: packet.ordinal,
+            actual: post_ordinal,
+          ),
+        )
+      end
+
+      # Extract and validate title length
+      title = VzekcVerlosung::TitleExtractor.extract_title(raw)
+      if title.present?
+        # Count non-whitespace characters
+        non_whitespace_count = title.gsub(/\s/, "").length
+        if non_whitespace_count < 3
+          errors.add(:base, I18n.t("vzekc_verlosung.errors.packet_title_too_short", minimum: 3))
+        end
+      end
+    end
+  end
+
+  Post.prepend PostValidationExtensions
+
+  # Sync packet title from post content to database when edited
+  on(:post_edited) do |post, topic_changed, user|
+    packet = VzekcVerlosung::LotteryPacket.find_by(post_id: post.id)
+    next unless packet
+
+    # Extract new title from post markdown
+    new_title = VzekcVerlosung::TitleExtractor.extract_title(post.raw)
+
+    if new_title.present? && new_title != packet.title
+      Rails.logger.info(
+        "Syncing packet #{packet.ordinal} title: '#{packet.title}' → '#{new_title}'",
+      )
+      packet.update!(title: new_title)
+    elsif new_title.blank?
+      Rails.logger.warn(
+        "Could not extract title from packet post #{post.id}, keeping database title: '#{packet.title}'",
+      )
+    end
+  end
+
   on(:topic_destroyed) do |topic, user|
     # Log lottery deletion (foreign key cascade will delete the lottery)
     lottery = VzekcVerlosung::Lottery.find_by(topic_id: topic.id)
@@ -171,6 +237,11 @@ after_initialize do
   add_to_serializer(:post, :lottery_winner) do
     packet = VzekcVerlosung::LotteryPacket.find_by(post_id: object.id)
     packet&.winner&.username
+  end
+
+  add_to_serializer(:post, :lottery_packet_ordinal) do
+    packet = VzekcVerlosung::LotteryPacket.find_by(post_id: object.id)
+    packet&.ordinal
   end
 
   # Include collection timestamp for lottery owner and winner

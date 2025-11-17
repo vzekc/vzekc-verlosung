@@ -49,7 +49,8 @@ module Jobs
 
     def send_erhaltungsbericht_reminder(user, lottery_topic, packet_post, days_since_collected)
       packet_title =
-        extract_title_from_markdown(packet_post.raw) || "Paket ##{packet_post.post_number}"
+        VzekcVerlosung::TitleExtractor.extract_title(packet_post.raw) ||
+          "Paket ##{packet_post.post_number}"
       packet_url =
         "#{Discourse.base_url}/t/#{lottery_topic.slug}/#{lottery_topic.id}/#{packet_post.post_number}"
 
@@ -77,11 +78,6 @@ module Jobs
         target_usernames: user.username,
         skip_validations: true,
       )
-    end
-
-    def extract_title_from_markdown(raw)
-      match = raw.match(/^#\s+(.+)$/)
-      match ? match[1].strip : nil
     end
   end
 end

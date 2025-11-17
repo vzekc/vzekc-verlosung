@@ -207,7 +207,8 @@ module VzekcVerlosung
       end
 
       # Extract packet title
-      packet_title = extract_title_from_markdown(post.raw) || "Paket ##{post.post_number}"
+      packet_title =
+        VzekcVerlosung::TitleExtractor.extract_title(post.raw) || "Paket ##{post.post_number}"
 
       # Get lottery topic title
       lottery_title = post.topic.title
@@ -313,7 +314,8 @@ module VzekcVerlosung
     def notify_ticket_bought(topic, post, buyer)
       return if topic.user_id == buyer.id # Don't notify if creator bought their own ticket
 
-      packet_title = extract_title_from_markdown(post.raw) || "Packet ##{post.post_number}"
+      packet_title =
+        VzekcVerlosung::TitleExtractor.extract_title(post.raw) || "Packet ##{post.post_number}"
 
       Notification.consolidate_or_create!(
         notification_type: Notification.types[:vzekc_verlosung_ticket_bought],
@@ -328,7 +330,8 @@ module VzekcVerlosung
     def notify_ticket_returned(topic, post, returner)
       return if topic.user_id == returner.id # Don't notify if creator returned their own ticket
 
-      packet_title = extract_title_from_markdown(post.raw) || "Packet ##{post.post_number}"
+      packet_title =
+        VzekcVerlosung::TitleExtractor.extract_title(post.raw) || "Packet ##{post.post_number}"
 
       Notification.consolidate_or_create!(
         notification_type: Notification.types[:vzekc_verlosung_ticket_returned],
@@ -337,12 +340,6 @@ module VzekcVerlosung
         post_number: post.post_number,
         data: { display_username: returner.username, packet_title: packet_title }.to_json,
       )
-    end
-
-    # Extract title from markdown (copied from lotteries_controller)
-    def extract_title_from_markdown(raw)
-      match = raw.match(/^#\s+(.+)$/)
-      match ? match[1].strip : nil
     end
   end
 end

@@ -515,7 +515,7 @@ export default class LotteryIntroSummary extends Component {
                         class="erhaltungsbericht-link"
                       >
                         {{icon "gift"}}
-                        {{i18n "vzekc_verlosung.erhaltungsbericht.view"}}
+                        {{i18n "vzekc_verlosung.erhaltungsbericht.view_link"}}
                       </a>
                     {{else if packet.erhaltungsbericht_required}}
                       <DButton

@@ -587,13 +587,6 @@ module VzekcVerlosung
       true
     end
 
-    def extract_title_from_markdown(raw)
-      # Extract first heading from markdown (e.g., "# Title")
-      # Match only the first line, not including any content after the newline
-      match = raw.match(/^#\s+(.+)$/)
-      match ? match[1].strip : nil
-    end
-
     # Notify all users with tickets that the lottery has been published
     def notify_lottery_published(topic)
       participant_user_ids = get_lottery_participant_user_ids(topic)
