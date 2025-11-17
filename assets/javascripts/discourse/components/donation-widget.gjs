@@ -570,7 +570,7 @@ export default class DonationWidget extends Component {
               <DButton
                 @action={{this.retractOffer}}
                 @label="vzekc_verlosung.donation.retract_offer"
-                @icon="undo"
+                @icon="arrow-rotate-left"
                 @disabled={{this.actionInProgress}}
                 class="btn-danger retract-offer-button"
               />
@@ -580,7 +580,7 @@ export default class DonationWidget extends Component {
           {{#if this.isAssignedToUser}}
             <div class="donation-assigned-to-user">
               <div class="assigned-notice">
-                {{icon "check-circle"}}
+                {{icon "circle-check"}}
                 {{i18n "vzekc_verlosung.donation.assigned_to_you"}}
               </div>
               <DButton

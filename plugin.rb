@@ -22,8 +22,10 @@ register_svg_icon "file"
 # file-lines is available in Discourse core by default (no registration needed)
 register_svg_icon "gift"
 register_svg_icon "hand-point-up"
+register_svg_icon "hand-pointer"
 register_svg_icon "user-plus"
 register_svg_icon "ticket"
+register_svg_icon "calendar-check"
 
 module ::VzekcVerlosung
   PLUGIN_NAME = "vzekc-verlosung"

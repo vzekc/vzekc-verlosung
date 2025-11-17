@@ -484,7 +484,7 @@ export default class LotteryIntroSummary extends Component {
         {{#if this.isFinished}}
           <div class="lottery-finished-notice">
             <div class="finished-message">
-              {{icon "check-circle"}}
+              {{icon "circle-check"}}
               <span>{{i18n "vzekc_verlosung.state.finished"}}</span>
             </div>
             <div class="download-results">

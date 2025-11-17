@@ -252,7 +252,7 @@ export default class DrawLotteryModal extends Component {
             </div>
           {{else if this.error}}
             <div class="draw-error">
-              {{icon "exclamation-triangle"}}
+              {{icon "triangle-exclamation"}}
               <p>{{this.error}}</p>
             </div>
           {{else if this.drawing}}
@@ -263,7 +263,7 @@ export default class DrawLotteryModal extends Component {
           {{else if this.showConfirmation}}
             <div class="draw-confirmation">
               <div class="confirmation-message">
-                {{icon "check-circle"}}
+                {{icon "circle-check"}}
                 <h4>{{i18n
                     "vzekc_verlosung.drawing.confirm_selections_title"
                   }}</h4>

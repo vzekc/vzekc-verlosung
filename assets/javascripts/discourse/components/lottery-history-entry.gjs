@@ -88,7 +88,7 @@ export default class LotteryHistoryEntry extends Component {
             {{i18n "vzekc_verlosung.history.packets"}}</span>
         </div>
         <div class="stat-item">
-          {{icon "check-circle"}}
+          {{icon "circle-check"}}
           <span>{{this.collectedCount}}
             {{i18n "vzekc_verlosung.history.collected"}}</span>
         </div>
@@ -143,7 +143,7 @@ export default class LotteryHistoryEntry extends Component {
                     </span>
                   {{else}}
                     <span class="status-not-collected">
-                      {{icon "times"}}
+                      {{icon "xmark"}}
                       {{i18n "vzekc_verlosung.history.not_collected"}}
                     </span>
                   {{/if}}
