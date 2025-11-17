@@ -497,7 +497,7 @@ export default class LotteryIntroSummary extends Component {
               <li class="lottery-packet-item">
                 <span class="packet-ordinal">{{packet.ordinal}}:</span>
                 <a
-                  href="#post_{{packet.post_number}}"
+                  href="/t/{{this.topic.id}}/{{packet.post_number}}"
                   class="packet-title"
                 >{{packet.title}}</a>
 
