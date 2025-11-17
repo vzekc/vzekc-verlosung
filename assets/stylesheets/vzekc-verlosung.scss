@@ -622,12 +622,33 @@
         }
       }
 
-      .packet-abholerpaket-label {
+      .abholerpaket-label {
         color: var(--primary-medium);
         font-size: var(--font-down-1);
         font-style: italic;
         margin-left: auto;
-        padding-left: 1em;
+      }
+
+      .erhaltungsbericht-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5em;
+        margin-left: 0.5em;
+        color: var(--tertiary);
+        text-decoration: none;
+        font-size: var(--font-down-1);
+
+        .d-icon {
+          font-size: 0.9em;
+        }
+
+        &:hover {
+          text-decoration: underline;
+        }
+      }
+
+      .erhaltungsbericht-create-btn {
+        margin-left: 0.5em;
       }
 
       .packet-no-tickets {
