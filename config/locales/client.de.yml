@@ -136,6 +136,10 @@ de:
         hours_remaining: "Noch %{count} Stunden"
         one_day_remaining: "Noch 1 Tag"
         days_remaining: "Noch %{count} Tage"
+        packets: "Pakete"
+        participants: "Teilnehmer"
+        tickets: "Lose"
+        without_tickets: "ohne Lose"
       history:
         title: "Verlosungshistorie"
         description: "Übersicht über alle abgeschlossenen Verlosungen mit Gewinnern und Erhaltungsberichten"

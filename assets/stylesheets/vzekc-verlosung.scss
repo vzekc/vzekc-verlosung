@@ -406,6 +406,37 @@
       margin-left: 1.75em;
     }
 
+    .lottery-status-line {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1em;
+      margin-top: 0.75em;
+      margin-left: 1.75em;
+      font-size: var(--font-down-1);
+      color: var(--primary-medium);
+
+      .status-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35em;
+
+        .d-icon {
+          font-size: 0.9em;
+          opacity: 0.8;
+        }
+
+        &.warning {
+          color: var(--danger);
+          font-weight: 500;
+
+          .d-icon {
+            color: var(--danger);
+            opacity: 1;
+          }
+        }
+      }
+    }
+
     .lottery-end-early-button {
       margin-top: 1em;
       width: 100%;

@@ -251,6 +251,53 @@ export default class LotteryIntroSummary extends Component {
   }
 
   /**
+   * Get regular packets (excluding Abholerpaket)
+   *
+   * @type {Array}
+   */
+  get regularPackets() {
+    return this.packets.filter((p) => !p.abholerpaket);
+  }
+
+  /**
+   * Get total number of participants across all packets
+   *
+   * @type {number}
+   */
+  get totalParticipants() {
+    const uniqueUserIds = new Set();
+    this.packets.forEach((packet) => {
+      if (packet.users) {
+        packet.users.forEach((user) => uniqueUserIds.add(user.id));
+      }
+    });
+    return uniqueUserIds.size;
+  }
+
+  /**
+   * Get total number of tickets across all packets
+   *
+   * @type {number}
+   */
+  get totalTickets() {
+    return this.packets.reduce(
+      (sum, packet) => sum + (packet.ticket_count || 0),
+      0
+    );
+  }
+
+  /**
+   * Get number of regular packets without any tickets
+   *
+   * @type {number}
+   */
+  get packetsWithoutTickets() {
+    return this.regularPackets.filter(
+      (p) => !p.ticket_count || p.ticket_count === 0
+    ).length;
+  }
+
+  /**
    * Format collected date for display
    *
    * @param {String|Date} collectedAt - The collection timestamp
@@ -435,6 +482,36 @@ export default class LotteryIntroSummary extends Component {
               </div>
               <div class="time-remaining">
                 {{this.timeRemaining}}
+              </div>
+              <div class="lottery-status-line">
+                {{#if (gt this.regularPackets.length 1)}}
+                  <span class="status-item">
+                    {{icon "cube"}}
+                    {{this.regularPackets.length}}
+                    {{i18n "vzekc_verlosung.status.packets"}}
+                  </span>
+                {{/if}}
+                {{#if (gt this.totalParticipants 0)}}
+                  <span class="status-item">
+                    {{icon "users"}}
+                    {{this.totalParticipants}}
+                    {{i18n "vzekc_verlosung.status.participants"}}
+                  </span>
+                {{/if}}
+                {{#if (gt this.totalTickets 0)}}
+                  <span class="status-item">
+                    {{icon "ticket"}}
+                    {{this.totalTickets}}
+                    {{i18n "vzekc_verlosung.status.tickets"}}
+                  </span>
+                {{/if}}
+                {{#if (gt this.packetsWithoutTickets 0)}}
+                  <span class="status-item warning">
+                    {{icon "ban"}}
+                    {{this.packetsWithoutTickets}}
+                    {{i18n "vzekc_verlosung.status.without_tickets"}}
+                  </span>
+                {{/if}}
               </div>
               {{#if
                 (and this.isRunning this.canPublish this.showEndEarlyButton)

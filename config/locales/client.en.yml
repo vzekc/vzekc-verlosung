@@ -136,6 +136,10 @@ en:
         hours_remaining: "%{count} hours left"
         one_day_remaining: "1 day left"
         days_remaining: "%{count} days left"
+        packets: "packets"
+        participants: "participants"
+        tickets: "tickets"
+        without_tickets: "without tickets"
       history:
         title: "Lottery History"
         description: "Overview of all completed lotteries with winners and reception reports"
