@@ -59,5 +59,21 @@ module VzekcVerlosung
       # Can't offer if already has an offer (any state)
       !VzekcVerlosung::PickupOffer.exists?(donation_id: donation.id, user_id: @user.id)
     end
+
+    # Override can_delete_post to prevent deletion of lottery packet posts
+    #
+    # @param post [Post] the post to check
+    # @return [Boolean] true if user can delete, false otherwise
+    def can_delete_post?(post)
+      # Check if this is a lottery packet post
+      if VzekcVerlosung::LotteryPacket.exists?(post_id: post.id)
+        # Lottery packet posts cannot be deleted individually
+        # They must be deleted by deleting the entire lottery topic
+        return false
+      end
+
+      # For non-packet posts, use the default Guardian logic
+      super
+    end
   end
 end

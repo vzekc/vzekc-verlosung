@@ -99,9 +99,26 @@ after_initialize do
   end
 
   # Add validation to Post model to prevent removing packet titles
+  # and prevent deletion of lottery packet posts
   module PostValidationExtensions
     def self.prepended(base)
       base.validate :validate_packet_title_present
+      base.before_destroy :prevent_lottery_packet_deletion
+    end
+
+    def prevent_lottery_packet_deletion
+      packet = VzekcVerlosung::LotteryPacket.find_by(post_id: id)
+      if packet
+        errors.add(
+          :base,
+          I18n.t(
+            "vzekc_verlosung.errors.cannot_delete_packet_post",
+            ordinal: packet.ordinal,
+            title: packet.title,
+          ),
+        )
+        throw :abort
+      end
     end
 
     def validate_packet_title_present

@@ -146,3 +146,4 @@ de:
       packet_title_required: "Paket %{ordinal} Titel darf nicht entfernt werden. Der Beitrag muss mit einer Überschrift im Format beginnen: # Paket %{ordinal}: Titel"
       packet_ordinal_mismatch: "Paketnummer stimmt nicht überein. Erwartet '# Paket %{expected}:', aber gefunden '# Paket %{actual}:'. Die Paketnummer im Titel muss mit der Datenbank übereinstimmen."
       packet_title_too_short: "Paket Titel muss mindestens %{minimum} Zeichen (ohne Leerzeichen) lang sein."
+      cannot_delete_packet_post: "Dieser Beitrag kann nicht gelöscht werden. Es ist Paket %{ordinal} (%{title}) in einer Verlosung. Um dieses Paket zu entfernen, lösche das gesamte Verlosungs-Thema."
