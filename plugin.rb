@@ -327,56 +327,61 @@ after_initialize do
         .includes(:post, :winner, :erhaltungsbericht_topic, lottery_tickets: :user)
         .order("posts.post_number")
 
-    lottery_packets.map do |packet|
-      # Get tickets and users for this packet
-      tickets = packet.lottery_tickets
-      ticket_count = tickets.count
+    lottery_packets
+      .map do |packet|
+        # Skip packets where the post has been deleted
+        next if packet.post.nil?
 
-      users =
-        tickets.map do |ticket|
-          {
-            id: ticket.user.id,
-            username: ticket.user.username,
-            name: ticket.user.name,
-            avatar_template: ticket.user.avatar_template,
+        # Get tickets and users for this packet
+        tickets = packet.lottery_tickets
+        ticket_count = tickets.count
+
+        users =
+          tickets.map do |ticket|
+            {
+              id: ticket.user.id,
+              username: ticket.user.username,
+              name: ticket.user.name,
+              avatar_template: ticket.user.avatar_template,
+            }
+          end
+
+        # Get winner user object if winner exists
+        winner_obj = nil
+        if packet.winner
+          winner_obj = {
+            id: packet.winner.id,
+            username: packet.winner.username,
+            name: packet.winner.name,
+            avatar_template: packet.winner.avatar_template,
           }
         end
 
-      # Get winner user object if winner exists
-      winner_obj = nil
-      if packet.winner
-        winner_obj = {
-          id: packet.winner.id,
-          username: packet.winner.username,
-          name: packet.winner.name,
-          avatar_template: packet.winner.avatar_template,
+        packet_data = {
+          post_id: packet.post_id,
+          post_number: packet.post.post_number,
+          title: packet.title,
+          ticket_count: ticket_count,
+          winner: winner_obj,
+          users: users,
+          ordinal: packet.ordinal,
+          abholerpaket: packet.abholerpaket,
+          erhaltungsbericht_required: packet.erhaltungsbericht_required,
         }
+
+        # Include erhaltungsbericht_topic_id only if topic still exists
+        if packet.erhaltungsbericht_topic_id && packet.erhaltungsbericht_topic
+          packet_data[:erhaltungsbericht_topic_id] = packet.erhaltungsbericht_topic_id
+        end
+
+        # Only include collected_at for lottery owner, staff, or winner
+        is_winner = packet.winner_user_id.present? && scope.user&.id == packet.winner_user_id
+        is_authorized = scope.is_staff? || object.topic.user_id == scope.user&.id || is_winner
+        packet_data[:collected_at] = packet.collected_at if is_authorized && packet.collected_at
+
+        packet_data
       end
-
-      packet_data = {
-        post_id: packet.post_id,
-        post_number: packet.post.post_number,
-        title: packet.title,
-        ticket_count: ticket_count,
-        winner: winner_obj,
-        users: users,
-        ordinal: packet.ordinal,
-        abholerpaket: packet.abholerpaket,
-        erhaltungsbericht_required: packet.erhaltungsbericht_required,
-      }
-
-      # Include erhaltungsbericht_topic_id only if topic still exists
-      if packet.erhaltungsbericht_topic_id && packet.erhaltungsbericht_topic
-        packet_data[:erhaltungsbericht_topic_id] = packet.erhaltungsbericht_topic_id
-      end
-
-      # Only include collected_at for lottery owner, staff, or winner
-      is_winner = packet.winner_user_id.present? && scope.user&.id == packet.winner_user_id
-      is_authorized = scope.is_staff? || object.topic.user_id == scope.user&.id || is_winner
-      packet_data[:collected_at] = packet.collected_at if is_authorized && packet.collected_at
-
-      packet_data
-    end
+      .compact
   end
 
   # Add ticket status to packet posts to prevent AJAX requests
