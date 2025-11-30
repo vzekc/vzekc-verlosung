@@ -102,7 +102,7 @@ task "lottery:fix_winners", [:topic_id] => :environment do |_, args|
 
     if expected_winner.nil?
       # No winner expected, clear the winner
-      packet.update!(winner_user_id: nil, drawn_at: nil)
+      packet.update!(winner_user_id: nil, won_at: nil)
       puts "Cleared winner for packet ##{packet.ordinal} '#{change[:packet_title]}'"
     else
       winner_user = User.find_by(username: expected_winner)
@@ -112,7 +112,7 @@ task "lottery:fix_winners", [:topic_id] => :environment do |_, args|
         next
       end
 
-      packet.update!(winner_user_id: winner_user.id, drawn_at: lottery.drawn_at)
+      packet.update!(winner_user_id: winner_user.id, won_at: lottery.drawn_at)
       puts "Set winner for packet ##{packet.ordinal} '#{change[:packet_title]}' -> #{expected_winner}"
     end
   end
