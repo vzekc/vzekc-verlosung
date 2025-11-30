@@ -490,11 +490,14 @@
 
     .download-results {
       display: flex;
+      align-items: center;
       justify-content: flex-start;
 
       .btn {
+        margin-left: 0.5em;
+
         .d-icon {
-          margin-right: 0.5em;
+          margin-right: 0.25em;
         }
       }
     }

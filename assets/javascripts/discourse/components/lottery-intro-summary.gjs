@@ -412,6 +412,38 @@ export default class LotteryIntroSummary extends Component {
   }
 
   /**
+   * Download lottery results as CSV file
+   * Format: packet number; packet name; winner nickname
+   */
+  @action
+  downloadResultsCsv() {
+    // Filter to only regular packets (not Abholerpaket) that have winners
+    const packetsWithWinners = this.packets.filter(
+      (p) => !p.abholerpaket && p.winner
+    );
+
+    // Build CSV content with semicolon separator
+    const header = "Paket-Nr;Paketname;Gewinner";
+    const rows = packetsWithWinners.map(
+      (packet) =>
+        `${packet.ordinal};"${packet.title.replace(/"/g, '""')}";"${packet.winner.username}"`
+    );
+    const csvContent = [header, ...rows].join("\n");
+
+    // Create blob and download
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `lottery-${this.topic.id}-results.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }
+
+  /**
    * Open Erhaltungsbericht composer for Abholerpaket
    *
    * @param {Object} packet - The Abholerpaket object
@@ -565,15 +597,31 @@ export default class LotteryIntroSummary extends Component {
               <span>{{i18n "vzekc_verlosung.state.finished"}}</span>
             </div>
             <div class="download-results">
+              <span class="download-label">{{i18n
+                  "vzekc_verlosung.drawing.download_results_label"
+                }}</span>
               <a
                 href="/vzekc-verlosung/lotteries/{{this.topic.id}}/results.json"
-                class="btn btn-default"
+                class="btn btn-default btn-small"
                 download
-                title={{i18n "vzekc_verlosung.drawing.download_results_help"}}
+                title={{i18n
+                  "vzekc_verlosung.drawing.download_results_json_help"
+                }}
               >
                 {{icon "download"}}
-                {{i18n "vzekc_verlosung.drawing.download_results"}}
+                {{i18n "vzekc_verlosung.drawing.download_results_json"}}
               </a>
+              <DButton
+                @action={{this.downloadResultsCsv}}
+                @translatedLabel={{i18n
+                  "vzekc_verlosung.drawing.download_results_csv"
+                }}
+                @translatedTitle={{i18n
+                  "vzekc_verlosung.drawing.download_results_csv_help"
+                }}
+                @icon="download"
+                class="btn-default btn-small"
+              />
             </div>
           </div>
         {{/if}}
