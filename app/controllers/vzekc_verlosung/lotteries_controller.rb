@@ -360,9 +360,14 @@ module VzekcVerlosung
       lottery.mark_drawn!(results)
 
       # Store winner on each packet
-      results["drawings"].each do |drawing|
-        # Find the packet by title
-        packet = lottery.lottery_packets.find { |p| p.title == drawing["text"] }
+      # Drawings and packets arrays are in the same order, so use index to match
+      results["drawings"].each_with_index do |drawing, index|
+        # Get packet ID from the packets array at the same index
+        packet_data = results["packets"][index]
+        next unless packet_data
+
+        # Find the packet by post_id (stored as "id" in results)
+        packet = lottery.lottery_packets.find { |p| p.post_id == packet_data["id"] }
 
         if packet && drawing["winner"].present?
           # Find winner user
@@ -456,6 +461,7 @@ module VzekcVerlosung
       # All validations passed - mark winners and finish lottery
       drawn_at = Time.zone.now
       drawings = []
+      packets_data = []
 
       packets_with_participants.each do |packet|
         winner_user_id = selections[packet.post_id.to_s].to_i
@@ -465,10 +471,17 @@ module VzekcVerlosung
 
         # Build results entry for this drawing
         drawings << { "text" => packet.title, "winner" => winner_user.username }
+        # Include packet data for notify_winners to match by index
+        packets_data << { "id" => packet.post_id, "title" => packet.title }
       end
 
       # Build results hash (simplified version without RNG seed since it's manual)
-      results = { "manual" => true, "drawings" => drawings, "drawn_at" => drawn_at.iso8601 }
+      results = {
+        "manual" => true,
+        "drawings" => drawings,
+        "packets" => packets_data,
+        "drawn_at" => drawn_at.iso8601,
+      }
 
       # Update lottery state
       lottery.finish!
@@ -645,7 +658,7 @@ module VzekcVerlosung
       # Group drawings by winner to send one message per winner with all packets won
       winners_packets = Hash.new { |h, k| h[k] = [] }
 
-      results["drawings"].each do |drawing|
+      results["drawings"].each_with_index do |drawing, index|
         winner_username = drawing["winner"]
         packet_title = drawing["text"]
         next unless winner_username
@@ -653,8 +666,11 @@ module VzekcVerlosung
         winner_user = User.find_by(username: winner_username)
         next unless winner_user
 
-        # Find the packet by title
-        lottery_packet = lottery.lottery_packets.find { |p| p.title == packet_title }
+        # Find the packet by post_id using index to match with packets array
+        packet_data = results["packets"][index]
+        next unless packet_data
+
+        lottery_packet = lottery.lottery_packets.find { |p| p.post_id == packet_data["id"] }
         next unless lottery_packet
 
         packet_post = lottery_packet.post

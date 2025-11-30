@@ -412,21 +412,58 @@ export default class LotteryIntroSummary extends Component {
   }
 
   /**
+   * Get packets with winners resolved from lottery results JSON
+   *
+   * @returns {Array} packets with winnerUsername from results JSON
+   */
+  get packetsWithWinners() {
+    const results = this.topic?.lottery_results;
+    const regularPackets = this.packets.filter((p) => !p.abholerpaket);
+
+    if (!results?.drawings || !results?.packets) {
+      // No results JSON or missing data, fall back to database winners
+      return regularPackets;
+    }
+
+    // Match packets by post_id using index correspondence between
+    // results.packets and results.drawings arrays
+    return regularPackets.map((packet) => {
+      // Find the index of this packet in the results.packets array by post_id
+      const resultIndex = results.packets.findIndex(
+        (p) => p.id === packet.post_id
+      );
+
+      if (resultIndex >= 0 && results.drawings[resultIndex]) {
+        const drawing = results.drawings[resultIndex];
+        return {
+          ...packet,
+          winnerUsername: drawing.winner,
+        };
+      }
+
+      // Fallback to database winner
+      return {
+        ...packet,
+        winnerUsername: packet.winner?.username,
+      };
+    });
+  }
+
+  /**
    * Download lottery results as CSV file
    * Format: packet number; packet name; winner nickname
    */
   @action
   downloadResultsCsv() {
-    // Filter to only regular packets (not Abholerpaket) that have winners
-    const packetsWithWinners = this.packets.filter(
-      (p) => !p.abholerpaket && p.winner
+    const packetsWithWinners = this.packetsWithWinners.filter(
+      (p) => p.winnerUsername
     );
 
     // Build CSV content with semicolon separator
     const header = "Paket-Nr;Paketname;Gewinner";
     const rows = packetsWithWinners.map(
       (packet) =>
-        `${packet.ordinal};"${packet.title.replace(/"/g, '""')}";"${packet.winner.username}"`
+        `${packet.ordinal};"${packet.title.replace(/"/g, '""')}";"${packet.winnerUsername}"`
     );
     const csvContent = [header, ...rows].join("\n");
 
