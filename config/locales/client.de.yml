@@ -15,7 +15,51 @@ de:
         vzekc_verlosung_did_not_win: "Leider nichts gewonnen"
         vzekc_verlosung_ending_tomorrow: "Verlosung endet morgen"
     vzekc_verlosung:
+      nav:
+        section_title: "Verlosungen"
+        verlosungen: "Aktive Verlosungen"
+        spenden: "Spendenangebote"
+        erhaltungsberichte: "Erhaltungsberichte"
+        historie: "Statistik"
+      active:
+        title: "Aktive Verlosungen"
+        packets: "Pakete"
+        participants: "Teilnehmer"
+        no_lotteries: "Keine aktiven Verlosungen"
       neue_verlosung: "Neue Verlosung"
+      create_lottery: "Verlosung erstellen"
+      create_draft: "Entwurf anlegen"
+      save_as_draft: "Als Entwurf speichern"
+      publish_lottery: "Verlosung veröffentlichen"
+      draft_saved: "Entwurf erfolgreich gespeichert"
+      discard_draft: "Entwurf verwerfen"
+      errors:
+        at_least_one_packet_required: "Bitte geben Sie mindestens einen Pakettitel ein"
+        packet_title_required: "Bitte geben Sie für alle Pakete einen Titel ein"
+      composer:
+        title_label: "Titel"
+        title_placeholder: "Titel der Verlosung"
+        body_label: "Beschreibung"
+        duration_label: "Dauer"
+        duration_hint: "7-28 Tage"
+        drawing_mode_label: "Ziehungsmodus"
+        drawing_mode_hint: "Bei manueller Auswahl bitte in der Beschreibung erklären"
+        drawing_mode_automatic: "Automatisch (deterministischer RNG)"
+        drawing_mode_manual: "Manuell (du wählst die Gewinner aus)"
+        template: |
+          # Verlosungsbeschreibung
+
+          Beschreibe, was du verschenkst und welche wichtigen Details die Teilnehmer wissen sollten.
+
+          ## Bedingungen
+
+          - Liste hier alle Bedingungen oder Anforderungen auf
+          - Zum Beispiel: Bereitschaft, Versandkosten zu übernehmen
+          - Oder: Erhaltungsbericht muss nach Erhalt geschrieben werden
+
+          ## Dauer
+
+          Diese Verlosung läuft {duration} Tage und verwendet {drawing_mode} Gewinnerauswahl.
       notifications:
         lottery_published: "%{topic_title}"
         lottery_drawn: "%{topic_title}"
@@ -36,13 +80,25 @@ de:
         drawing_mode_help: "Wähle, wie die Gewinner ermittelt werden. Bitte erkläre in deiner Verlosungsbeschreibung, wie du die Gewinner auswählen wirst, wenn du den manuellen Modus verwendest."
         drawing_mode_automatic: "Automatisch (deterministischer RNG)"
         drawing_mode_manual: "Manuell (du wählst die Gewinner aus)"
+        paket_setup_label: "Paket-Einrichtung"
+        packet_mode_label: "Modus"
+        packet_mode_ein: "Ein Paket"
+        packet_mode_ein_help: "Erstelle eine Verlosung mit einem Paket. Der Hauptbeitrag beschreibt das Paket."
+        packet_mode_mehrere: "Mehrere Pakete"
+        packet_mode_mehrere_help: "Erstelle eine Verlosung mit mehreren Paketen. Jedes Paket hat seinen eigenen Beitrag."
+        single_packet_erhaltungsbericht_label: "Kein Erhaltungsbericht erforderlich"
+        switch_mode_warning_title: "Paket-Modus wechseln?"
+        switch_mode_warning_message: "Du hast ungespeicherte Änderungen an Pakettiteln oder Inhalten. Das Wechseln des Modus kann zu Datenverlust führen. Möchtest du fortfahren?"
         abholerpaket_title_label: "Titel des Abholerpakets"
         abholerpaket_title_placeholder: "Dieses System behalte ich"
         abholerpaket_badge: "Paket 0"
         no_abholerpaket_label: "Ich behalte kein System"
         no_abholerpaket_help: "Wenn du kein System für dich behältst, wird kein Abholerpaket erstellt. Andernfalls wird das Abholerpaket automatisch erstellt und dir als Ersteller zugewiesen. Du musst auch einen Erhaltungsbericht dafür schreiben."
         packets_label: "Pakete"
-        packet_title_placeholder: "Titel für Paket %{number} (z.B. Hardware-Paket)"
+        packet_title_label: "Titel:"
+        packet_title_placeholder: "Titel (z.B. Commodore C64 mit Floppy)"
+        packet_description_label: "Paketbeschreibung"
+        packet_description_placeholder: "Beschreibe, was in diesem Paket enthalten ist..."
         packet_badge: "Paket %{number}"
         erhaltungsbericht_required_label: "Kein Erhaltungsbericht erforderlich"
         erhaltungsbericht_required_short: "Kein Bericht"
@@ -102,6 +158,9 @@ de:
         download_results_json_help: "Lade die Verlosungsergebnisse als JSON-Datei herunter, um die faire Durchführung zu überprüfen. Die Datei enthält den Zeitstempel, alle Teilnehmer, den RNG-Seed und die Ziehungsergebnisse."
         download_results_csv: "CSV"
         download_results_csv_help: "Lade die Verlosungsergebnisse als CSV-Datei herunter (Paket-Nr; Paketname; Gewinner)."
+        copy_results: "Kopieren"
+        copy_results_copied: "Kopiert!"
+        copy_results_help: "Kopiere die Ergebnisse in die Zwischenablage"
         verification_failed: "Ergebnisüberprüfung fehlgeschlagen. Die Ziehungsergebnisse konnten vom Server nicht verifiziert werden. Bitte versuche es erneut."
         verification_timeout: "Zeitüberschreitung bei der Ziehung. Bitte versuche es erneut."
         verification_error: "Ziehung fehlgeschlagen. Bitte kontaktiere den Support, falls das Problem weiterhin besteht."
@@ -134,23 +193,31 @@ de:
       status:
         finished: "Beendet"
         ready_to_draw: "Ziehung ausstehend"
-        ending_soon: "Endet bald"
+        ended: "Wartet auf Ziehung"
+        one_second_remaining: "Noch 1 Sekunde"
+        seconds_remaining: "Noch %{count} Sekunden"
+        minutes_seconds_remaining: "Noch %{minutes} Min. %{seconds} Sek."
+        one_minute_remaining: "Noch 1 Minute"
+        minutes_remaining: "Noch %{count} Minuten"
         one_hour_remaining: "Noch 1 Stunde"
         hours_remaining: "Noch %{count} Stunden"
         one_day_remaining: "Noch 1 Tag"
         days_remaining: "Noch %{count} Tage"
+        ends_at_tooltip: "Endet am %{date}"
+        ended_at_tooltip: "Endete am %{date}"
         packets: "Pakete"
         participants: "Teilnehmer"
         tickets: "Lose"
         without_tickets: "ohne Lose"
       history:
-        title: "Verlosungshistorie"
+        title: "Statistik"
         description: "Übersicht über alle abgeschlossenen Verlosungen mit Gewinnern und Erhaltungsberichten"
-        sidebar_link_title: "Verlosungshistorie ansehen"
-        sidebar_link_text: "Verlosungshistorie"
+        sidebar_link_title: "Statistik ansehen"
+        sidebar_link_text: "Statistik"
         view_all_lotteries: "Alle Verlosungen ansehen"
         results_count: "%{count} Verlosungen gefunden"
         no_results: "Keine Verlosungen gefunden"
+        load_more: "Mehr laden"
         created: "Erstellt"
         ended: "Beendet"
         drawn: "Gezogen"
@@ -166,6 +233,35 @@ de:
         waiting_for_bericht: "Warten auf Erhaltungsbericht"
         donation_prefix: "Spende"
         packet_prefix: "Paket"
+        tabs:
+          packets: "Pakete"
+          lotteries: "Verlosungen"
+          leaderboard: "Rangliste"
+        stats:
+          lotteries: "Verlosungen"
+          packets: "Pakete"
+          participants: "Teilnehmer"
+          tickets: "Lose"
+          winners: "Gewinner"
+        leaderboard:
+          lotteries: "Verlosungen"
+          lotteries_info: "Zeigt die Benutzer, die die meisten Verlosungen erstellt haben. Die Zahl gibt die Anzahl der erstellten Verlosungen an."
+          tickets: "Lose"
+          tickets_info: "Zeigt die Benutzer, die an den meisten Paketen teilgenommen haben. Pro Paket kann jeder Benutzer nur ein Los kaufen. Die Zahl gibt die Gesamtzahl der Teilnahmen an verschiedenen Paketen an."
+          wins: "Gewinne"
+          wins_info: "Zeigt die Benutzer, die die meisten Pakete gewonnen haben. Die Zahl gibt die Anzahl der gewonnenen Pakete an."
+          luckiest: "Glückspilze"
+          luckiest_info: "Zeigt Benutzer, die mehr gewonnen haben als statistisch erwartet. Der Glücksfaktor wird berechnet als: tatsächliche Gewinne minus erwartete Gewinne. Erwartete Gewinne = Summe der Gewinnwahrscheinlichkeiten (1 / Anzahl Teilnehmer) für jedes Paket, an dem teilgenommen wurde. Beispiel: Bei einem Paket mit 10 Teilnehmern ist die Gewinnchance 1/10 = 0,1. Wer bei 10 solchen Paketen teilnimmt, hat einen erwarteten Gewinn von 1,0. Gewinnt diese Person 3 Pakete, ist der Glücksfaktor +2,0."
+          unluckiest: "Pechvögel"
+          unluckiest_info: "Zeigt Benutzer, die weniger gewonnen haben als statistisch erwartet. Der Pechfaktor wird genauso berechnet wie der Glücksfaktor, zeigt aber negative Werte. Beispiel: Wer statistisch 2 Pakete hätte gewinnen sollen, aber keines gewonnen hat, hat einen Pechfaktor von -2,0."
+          luck_wins: "Gewinne"
+          luck_expected: "erwartet"
+          no_data: "Noch keine Daten"
+        packet_leaderboard:
+          popular: "Beliebteste Pakete"
+          no_tickets: "Pakete ohne Lose"
+          tickets_title: "Anzahl Lose"
+          no_data: "Noch keine Daten"
         filters:
           search: "Suche"
           search_placeholder: "Verlosung suchen..."

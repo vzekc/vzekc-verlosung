@@ -5,7 +5,9 @@ import { action } from "@ember/object";
 export default class LotteryHistoryController extends Controller {
   @tracked search = null;
   @tracked sort = "date_desc";
-  queryParams = ["search", "sort"];
+  @tracked activeTab = "leaderboard";
+
+  queryParams = ["search", "sort", "tab"];
 
   sortOptions = [
     { value: "date_desc", label: "vzekc_verlosung.history.sort.date_desc" },
@@ -16,6 +18,11 @@ export default class LotteryHistoryController extends Controller {
       label: "vzekc_verlosung.history.sort.lottery_desc",
     },
   ];
+
+  @action
+  setActiveTab(tab) {
+    this.activeTab = tab;
+  }
 
   @action
   updateSearch(value) {

@@ -147,3 +147,4 @@ en:
       packet_ordinal_mismatch: "Packet number mismatch. Expected '# Paket %{expected}:' but found '# Paket %{actual}:'. The packet number in the title must match the database."
       packet_title_too_short: "Packet title must be at least %{minimum} non-whitespace characters long."
       cannot_delete_packet_post: "Cannot delete this post. It is Packet %{ordinal} (%{title}) in a lottery. To remove this packet, delete the entire lottery topic."
+      cannot_change_lottery_category: "Cannot change the category of a lottery topic."

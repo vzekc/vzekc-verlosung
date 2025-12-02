@@ -2,7 +2,6 @@ import Component from "@glimmer/component";
 import { action } from "@ember/object";
 import { service } from "@ember/service";
 import DButton from "discourse/components/d-button";
-import CreateLotteryModal from "./modal/create-lottery-modal";
 
 /**
  * Button component to create a new lottery (Verlosung)
@@ -12,7 +11,7 @@ import CreateLotteryModal from "./modal/create-lottery-modal";
  */
 export default class NeueVerlosungButton extends Component {
   @service siteSettings;
-  @service modal;
+  @service router;
 
   /**
    * Check if button should be shown in current category
@@ -38,21 +37,17 @@ export default class NeueVerlosungButton extends Component {
   }
 
   /**
-   * Opens the lottery creation modal
+   * Navigate to new lottery page
    */
   @action
-  openLotteryModal() {
-    this.modal.show(CreateLotteryModal, {
-      model: {
-        categoryId: this.args.category.id,
-      },
-    });
+  openLotteryComposer() {
+    this.router.transitionTo("newLottery");
   }
 
   <template>
     {{#if this.shouldShow}}
       <DButton
-        @action={{this.openLotteryModal}}
+        @action={{this.openLotteryComposer}}
         @label="vzekc_verlosung.neue_verlosung"
         @icon="gift"
         class="btn-primary neue-verlosung-button"

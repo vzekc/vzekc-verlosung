@@ -16,24 +16,29 @@ RSpec.describe "Lottery Full Lifecycle Integration" do
   end
 
   it "completes full lottery lifecycle with all reminders and state transitions" do
-    # STEP 1: Create lottery in draft state with Abholerpaket
+    # STEP 1: Create active lottery with Abholerpaket
     freeze_time(Time.zone.parse("2025-01-15 10:00:00"))
 
     sign_in(owner)
     post "/vzekc-verlosung/lotteries.json",
          params: {
            title: "Hardware Verlosung Januar 2025",
+           raw: "Test lottery main topic content",
            category_id: category.id,
            duration_days: 14,
            abholerpaket_title: "Mein behalten System",
-           packets: [{ title: "GPU Paket" }, { title: "CPU Paket" }, { title: "RAM Paket" }],
+           packets: [
+             { title: "GPU Paket", raw: "GPU packet content" },
+             { title: "CPU Paket", raw: "CPU packet content" },
+             { title: "RAM Paket", raw: "RAM packet content" },
+           ],
          }
 
     expect(response.status).to eq(200), "Expected 200 but got #{response.status}: #{response.body}"
     lottery_topic = Topic.find(response.parsed_body["main_topic"]["id"])
     lottery = VzekcVerlosung::Lottery.find_by(topic_id: lottery_topic.id)
 
-    expect(lottery.state).to eq("draft")
+    expect(lottery.state).to eq("active")
     expect(lottery.duration_days).to eq(14)
 
     # Verify Abholerpaket was created
@@ -56,29 +61,10 @@ RSpec.describe "Lottery Full Lifecycle Integration" do
     # Get user packet posts (excluding Abholerpaket)
     packet_posts = all_posts[1..3]
 
-    # STEP 2: Draft reminder fires next day at 7 AM
-    freeze_time(Time.zone.parse("2025-01-16 07:00:00"))
+    # Lottery is already active with ends_at set
+    expect(lottery.ends_at).to be_present
 
-    expect do Jobs::VzekcVerlosungDraftReminder.new.execute({}) end.to change {
-      Topic.where(archetype: Archetype.private_message).count
-    }.by(1)
-
-    draft_pm = Topic.where(archetype: Archetype.private_message).order(created_at: :desc).first
-    expect(draft_pm.allowed_users).to include(owner)
-    expect(draft_pm.title.downcase).to include("unpublished").or include("draft")
-
-    # STEP 3: Publish lottery
-    freeze_time(Time.zone.parse("2025-01-18 09:00:00"))
-
-    sign_in(owner)
-    put "/vzekc-verlosung/lotteries/#{lottery_topic.id}/publish.json"
-    expect(response.status).to eq(204)
-
-    lottery.reload
-    expect(lottery.state).to eq("active")
-    expect(lottery.ends_at).to be_within(1.minute).of(14.days.from_now)
-
-    # STEP 4: Participants buy tickets for different packets
+    # STEP 2: Participants buy tickets for different packets
     freeze_time(Time.zone.parse("2025-01-19 14:00:00"))
 
     sign_in(participant1)
@@ -99,7 +85,7 @@ RSpec.describe "Lottery Full Lifecycle Integration" do
 
     expect(VzekcVerlosung::LotteryTicket.count).to eq(4)
 
-    # STEP 5: Ending tomorrow reminder (day before lottery ends at 7 AM)
+    # STEP 3: Ending tomorrow reminder (day before lottery ends at 7 AM)
     freeze_time(lottery.ends_at - 1.day)
     freeze_time(Time.zone.parse("#{Date.current} 07:00:00"))
 
@@ -112,13 +98,13 @@ RSpec.describe "Lottery Full Lifecycle Integration" do
     ending_pm = Topic.where(archetype: Archetype.private_message).order(created_at: :desc).first
     expect(ending_pm.title.downcase).to include("tomorrow").or include("ending")
 
-    # STEP 6: Lottery ends
+    # STEP 4: Lottery ends
     freeze_time(lottery.ends_at + 2.hours)
 
     # Lottery is now ready to draw
     expect(VzekcVerlosung::Lottery.ready_to_draw).to include(lottery)
 
-    # STEP 7: Ended reminder (next day at 7 AM)
+    # STEP 5: Ended reminder (next day at 7 AM)
     freeze_time(lottery.ends_at + 1.day)
     freeze_time(Time.zone.parse("#{Date.current} 07:00:00"))
 
@@ -422,24 +408,29 @@ RSpec.describe "Lottery Full Lifecycle Integration" do
   end
 
   it "completes full lottery lifecycle WITHOUT Abholerpaket" do
-    # STEP 1: Create lottery without Abholerpaket
+    # STEP 1: Create active lottery without Abholerpaket
     freeze_time(Time.zone.parse("2025-01-15 10:00:00"))
 
     sign_in(owner)
     post "/vzekc-verlosung/lotteries.json",
          params: {
            title: "Hardware Verlosung Januar 2025 (No Abholerpaket)",
+           raw: "Test lottery content",
            category_id: category.id,
            duration_days: 14,
            has_abholerpaket: false,
-           packets: [{ title: "GPU Paket" }, { title: "CPU Paket" }, { title: "RAM Paket" }],
+           packets: [
+             { title: "GPU Paket", raw: "GPU content" },
+             { title: "CPU Paket", raw: "CPU content" },
+             { title: "RAM Paket", raw: "RAM content" },
+           ],
          }
 
     expect(response.status).to eq(200), "Expected 200 but got #{response.status}: #{response.body}"
     lottery_topic = Topic.find(response.parsed_body["main_topic"]["id"])
     lottery = VzekcVerlosung::Lottery.find_by(topic_id: lottery_topic.id)
 
-    expect(lottery.state).to eq("draft")
+    expect(lottery.state).to eq("active")
     expect(lottery.duration_days).to eq(14)
 
     # Verify NO Abholerpaket was created
@@ -456,17 +447,7 @@ RSpec.describe "Lottery Full Lifecycle Integration" do
 
     packet_posts = all_posts.to_a
 
-    # STEP 2: Publish lottery
-    freeze_time(Time.zone.parse("2025-01-18 09:00:00"))
-
-    sign_in(owner)
-    put "/vzekc-verlosung/lotteries/#{lottery_topic.id}/publish.json"
-    expect(response.status).to eq(204)
-
-    lottery.reload
-    expect(lottery.state).to eq("active")
-
-    # STEP 3: Participants buy tickets for different packets
+    # STEP 2: Participants buy tickets for different packets
     freeze_time(Time.zone.parse("2025-01-19 14:00:00"))
 
     sign_in(participant1)
@@ -617,10 +598,11 @@ RSpec.describe "Lottery Full Lifecycle Integration" do
     post "/vzekc-verlosung/lotteries.json",
          params: {
            title: "Lottery from donation",
+           raw: "Lottery content",
            category_id: category.id,
            duration_days: 7,
            donation_id: donation.id,
-           packets: [{ title: "Hardware Bundle" }],
+           packets: [{ title: "Hardware Bundle", raw: "Hardware bundle content" }],
          }
 
     expect(response.status).to eq(200)

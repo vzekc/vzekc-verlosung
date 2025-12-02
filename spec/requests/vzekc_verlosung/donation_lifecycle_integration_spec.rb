@@ -204,9 +204,13 @@ RSpec.describe "Donation Full Lifecycle Integration" do
       post "/vzekc-verlosung/lotteries.json",
            params: {
              title: "Hardware Verlosung aus Spende",
+             raw: "Lottery content",
              category_id: lotteries_category.id,
              duration_days: 7,
-             packets: [{ title: "GPU Paket" }, { title: "RAM Paket" }],
+             packets: [
+               { title: "GPU Paket", raw: "GPU content" },
+               { title: "RAM Paket", raw: "RAM content" },
+             ],
              donation_id: donation_id, # Link to donation
            }
 
@@ -280,7 +284,7 @@ RSpec.describe "Donation Full Lifecycle Integration" do
       lottery =
         VzekcVerlosung::Lottery.create!(
           topic_id: Fabricate(:topic).id,
-          state: "draft",
+          state: "active",
           donation_id: donation.id,
         )
 

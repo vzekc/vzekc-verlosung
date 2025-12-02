@@ -145,8 +145,8 @@ RSpec.describe VzekcVerlosung::LotteryTicket do
       end
     end
 
-    context "when cascading from topic deletion" do
-      it "deletes all tickets when lottery topic and posts are deleted" do
+    context "when cascading from lottery deletion" do
+      it "deletes all tickets when lottery is deleted" do
         lottery = Fabricate(:lottery)
         topic = lottery.topic
         post1 = Fabricate(:post, topic: topic)
@@ -164,11 +164,10 @@ RSpec.describe VzekcVerlosung::LotteryTicket do
         ticket1_id = ticket1.id
         ticket2_id = ticket2.id
 
-        # Hard delete posts (which triggers CASCADE to tickets)
-        post1.destroy!
-        post2.destroy!
+        # Delete lottery (which CASCADE deletes packets, then triggers post deletion via Rails)
+        lottery.destroy!
 
-        # Tickets should be deleted because posts are deleted via CASCADE
+        # Tickets should be deleted because posts were deleted via lottery.lottery_packets.dependent(:destroy)
         expect(described_class.find_by(id: ticket1_id)).to be_nil
         expect(described_class.find_by(id: ticket2_id)).to be_nil
       end

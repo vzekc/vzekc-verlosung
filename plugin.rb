@@ -21,11 +21,14 @@ register_svg_icon "pen"
 register_svg_icon "file"
 # file-lines is available in Discourse core by default (no registration needed)
 register_svg_icon "gift"
+register_svg_icon "hand-holding-heart"
 register_svg_icon "hand-point-up"
 register_svg_icon "hand-pointer"
 register_svg_icon "user-plus"
 register_svg_icon "ticket"
 register_svg_icon "calendar-check"
+register_svg_icon "clover"
+register_svg_icon "cloud-rain"
 
 module ::VzekcVerlosung
   PLUGIN_NAME = "vzekc-verlosung"
@@ -33,11 +36,16 @@ end
 
 require_relative "lib/vzekc_verlosung/engine"
 require_relative "lib/vzekc_verlosung/guardian_extensions"
+require_relative "lib/vzekc_verlosung/orphan_cleanup"
 
 after_initialize do
-  # Register the lottery history route as a valid Ember route
+  # Clean up orphaned lottery data (lotteries without topics, packets without posts, etc.)
+  VzekcVerlosung::OrphanCleanup.run
+  # Register custom routes
   Discourse::Application.routes.append do
     get "/lottery-history" => "users#index", :constraints => { format: /(json|html)/ }
+    get "/active-lotteries" => "users#index", :constraints => { format: /(json|html)/ }
+    get "/new-lottery" => "list#latest", :constraints => { format: /(json|html)/ }
   end
 
   # Add custom notification types to the Notification.types enum
@@ -54,31 +62,6 @@ after_initialize do
 
   # Extend Guardian with custom permissions and override can_create_post
   Guardian.prepend VzekcVerlosung::GuardianExtensions
-
-  # Filter draft lotteries from topic lists for non-owners
-  TopicQuery.add_custom_filter(:lottery_state) do |results, topic_query|
-    user = topic_query.user
-
-    # Filter out draft lotteries unless user is staff or owner
-    results =
-      results.where(
-        "topics.id NOT IN (
-        SELECT topic_id FROM vzekc_verlosung_lotteries
-        WHERE state = 'draft'
-        AND topic_id NOT IN (
-          SELECT id FROM topics WHERE user_id = ?
-        )
-      )",
-        user&.id || -1,
-      )
-
-    # Staff can see all drafts
-    if user&.staff?
-      results
-    else
-      results
-    end
-  end
 
   # Services and controllers are auto-loaded from app/ directories
   # No manual requires needed
@@ -107,18 +90,26 @@ after_initialize do
     end
 
     def prevent_lottery_packet_deletion
+      # Allow deletion if the topic is being destroyed (cascade delete)
+      return if topic&.destroyed? || topic&.marked_for_destruction?
+
       packet = VzekcVerlosung::LotteryPacket.find_by(post_id: id)
-      if packet
-        errors.add(
-          :base,
-          I18n.t(
-            "vzekc_verlosung.errors.cannot_delete_packet_post",
-            ordinal: packet.ordinal,
-            title: packet.title,
-          ),
-        )
-        throw :abort
-      end
+      return unless packet
+
+      # If the packet's lottery no longer exists, the topic was cascade-deleted
+      # Allow the post deletion to proceed (cleanup)
+      lottery = VzekcVerlosung::Lottery.find_by(id: packet.lottery_id)
+      return unless lottery
+
+      errors.add(
+        :base,
+        I18n.t(
+          "vzekc_verlosung.errors.cannot_delete_packet_post",
+          ordinal: packet.ordinal,
+          title: packet.title,
+        ),
+      )
+      throw :abort
     end
 
     def validate_packet_title_present
@@ -160,6 +151,24 @@ after_initialize do
   end
 
   Post.prepend PostValidationExtensions
+
+  # Add validation to Topic model to prevent category changes for lottery topics
+  module TopicValidationExtensions
+    def self.prepended(base)
+      base.validate :validate_lottery_category_unchanged
+    end
+
+    def validate_lottery_category_unchanged
+      return unless category_id_changed?
+
+      lottery = VzekcVerlosung::Lottery.find_by(topic_id: id)
+      return unless lottery
+
+      errors.add(:category_id, I18n.t("vzekc_verlosung.errors.cannot_change_lottery_category"))
+    end
+  end
+
+  Topic.prepend TopicValidationExtensions
 
   # Sync packet title from post content to database when edited
   on(:post_edited) do |post, topic_changed, user|
@@ -329,6 +338,11 @@ after_initialize do
   add_to_serializer(:topic_view, :lottery_drawing_mode) do
     lottery = VzekcVerlosung::Lottery.find_by(topic_id: object.topic.id)
     lottery&.drawing_mode
+  end
+
+  add_to_serializer(:topic_view, :lottery_packet_mode) do
+    lottery = VzekcVerlosung::Lottery.find_by(topic_id: object.topic.id)
+    lottery&.packet_mode || "mehrere" # Default to "mehrere" for backward compatibility
   end
 
   # Add all lottery packets data to topic view to prevent AJAX requests
@@ -680,6 +694,9 @@ after_initialize do
       end
     end
   end
+
+  # Note: Lottery creation now happens via dedicated endpoint
+  # POST /vzekc-verlosung/lotteries (see LotteriesController#create)
 
   # ========== DONATION SYSTEM ==========
 

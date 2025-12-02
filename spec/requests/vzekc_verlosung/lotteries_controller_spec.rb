@@ -12,10 +12,11 @@ RSpec.describe VzekcVerlosung::LotteriesController do
     let(:valid_params) do
       {
         title: "Hardware Verlosung Januar 2025",
+        raw: "Test lottery main topic content",
         category_id: category.id,
         duration_days: 14,
         has_abholerpaket: false,
-        packets: [{ title: "Packet 1" }, { title: "Packet 2" }],
+        packets: [{ title: "Packet 1", raw: "Packet 1 content" }, { title: "Packet 2", raw: "Packet 2 content" }],
       }
     end
 
@@ -171,116 +172,12 @@ RSpec.describe VzekcVerlosung::LotteriesController do
         post "/vzekc-verlosung/lotteries.json",
              params: {
                title: "Hardware Verlosung Januar 2025",
+               raw: "Test lottery content",
                category_id: category.id,
                duration_days: 14,
                has_abholerpaket: false,
-               packets: [{ title: "Packet 1" }, { title: "Packet 2" }],
+               packets: [{ title: "Packet 1", raw: "Content 1" }, { title: "Packet 2", raw: "Content 2" }],
              }
-
-        expect(response.status).to eq(403)
-      end
-    end
-  end
-
-  describe "#publish" do
-    before { sign_in(user) }
-
-    fab!(:other_user, :user)
-    fab!(:admin)
-    let!(:lottery_result) do
-      VzekcVerlosung::CreateLottery.call(
-        params: {
-          title: "Test Lottery",
-          category_id: category.id,
-          duration_days: 14,
-          has_abholerpaket: false,
-          packets: [{ title: "Packet 1" }],
-        },
-        user: user,
-        guardian: Guardian.new(user),
-      )
-    end
-    let(:topic) { lottery_result.main_topic }
-    let(:lottery) { lottery_result.lottery }
-
-    context "when user is the topic owner" do
-      it "publishes the lottery" do
-        expect(lottery.state).to eq("draft")
-
-        put "/vzekc-verlosung/lotteries/#{topic.id}/publish.json"
-
-        expect(response.status).to eq(204)
-        lottery.reload
-        expect(lottery.state).to eq("active")
-        expect(lottery.ends_at).to be_present
-      end
-    end
-
-    context "when user is staff" do
-      before { sign_in(admin) }
-
-      it "allows staff to publish" do
-        put "/vzekc-verlosung/lotteries/#{topic.id}/publish.json"
-
-        expect(response.status).to eq(204)
-        lottery.reload
-        expect(lottery.state).to eq("active")
-        expect(lottery.ends_at).to be_present
-      end
-    end
-
-    context "when user is not the owner" do
-      before { sign_in(other_user) }
-
-      it "returns forbidden" do
-        put "/vzekc-verlosung/lotteries/#{topic.id}/publish.json"
-
-        expect(response.status).to eq(403)
-        lottery.reload
-        expect(lottery.state).to eq("draft")
-      end
-    end
-
-    context "when topic is already published" do
-      before { lottery.update!(state: "active", ends_at: 14.days.from_now) }
-
-      it "returns error" do
-        put "/vzekc-verlosung/lotteries/#{topic.id}/publish.json"
-
-        expect(response.status).to eq(422)
-        json = response.parsed_body
-        expect(json["errors"]).to include("This lottery is not in draft state")
-      end
-    end
-
-    context "when topic does not exist" do
-      it "returns not found" do
-        put "/vzekc-verlosung/lotteries/999999/publish.json"
-
-        expect(response.status).to eq(404)
-      end
-    end
-  end
-
-  describe "#publish" do
-    context "when user is not logged in" do
-      let!(:lottery_result) do
-        VzekcVerlosung::CreateLottery.call(
-          params: {
-            title: "Test Lottery",
-            category_id: category.id,
-            duration_days: 14,
-            has_abholerpaket: false,
-            packets: [{ title: "Packet 1" }],
-          },
-          user: user,
-          guardian: Guardian.new(user),
-        )
-      end
-      let(:topic) { lottery_result.main_topic }
-
-      it "returns forbidden" do
-        put "/vzekc-verlosung/lotteries/#{topic.id}/publish.json"
 
         expect(response.status).to eq(403)
       end
@@ -296,10 +193,11 @@ RSpec.describe VzekcVerlosung::LotteriesController do
       VzekcVerlosung::CreateLottery.call(
         params: {
           title: "Test Lottery",
+          raw: "Test lottery content",
           category_id: category.id,
           duration_days: 14,
           has_abholerpaket: false,
-          packets: [{ title: "Hardware Bundle" }],
+          packets: [{ title: "Hardware Bundle", raw: "Hardware bundle content" }],
         },
         user: user,
         guardian: Guardian.new(user),
@@ -358,10 +256,11 @@ RSpec.describe VzekcVerlosung::LotteriesController do
         VzekcVerlosung::CreateLottery.call(
           params: {
             title: "Test Lottery with Abholerpaket",
+            raw: "Test lottery content",
             category_id: category.id,
             duration_days: 14,
             has_abholerpaket: true,
-            packets: [{ title: "Regular Packet 1" }],
+            packets: [{ title: "Regular Packet 1", raw: "Regular packet content" }],
           },
           user: user,
           guardian: Guardian.new(user),
@@ -504,10 +403,11 @@ RSpec.describe VzekcVerlosung::LotteriesController do
         VzekcVerlosung::CreateLottery.call(
           params: {
             title: "Test Lottery",
+            raw: "Test lottery content",
             category_id: category.id,
             duration_days: 14,
             has_abholerpaket: false,
-            packets: [{ title: "Hardware Bundle" }],
+            packets: [{ title: "Hardware Bundle", raw: "Hardware bundle content" }],
           },
           user: user,
           guardian: Guardian.new(user),
@@ -558,11 +458,12 @@ RSpec.describe VzekcVerlosung::LotteriesController do
       VzekcVerlosung::CreateLottery.call(
         params: {
           title: "Manual Test Lottery",
+          raw: "Manual test lottery content",
           category_id: category.id,
           duration_days: 14,
           drawing_mode: "manual",
           has_abholerpaket: false,
-          packets: [{ title: "Packet 1" }],
+          packets: [{ title: "Packet 1", raw: "Packet 1 content" }],
         },
         user: user,
         guardian: Guardian.new(user),

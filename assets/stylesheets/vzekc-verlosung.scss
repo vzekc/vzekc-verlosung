@@ -1154,5 +1154,857 @@
   }
 }
 
+// Hide category chooser when lottery params are present
+// Target the composer container that has lottery params
+#reply-control:has(.lottery-params-section) {
+  .category-input,
+  .category-chooser {
+    display: none !important;
+  }
+}
+
+// Lottery parameters in composer
+.lottery-params-section {
+  margin: 1.5em 0;
+  padding: 1.5em;
+  background: var(--primary-very-low);
+  border: 1px solid var(--primary-low);
+  border-radius: 6px;
+
+  .lottery-params-header {
+    margin: 0 0 1em 0;
+    font-size: 1.1em;
+    font-weight: 600;
+    color: var(--primary);
+  }
+
+  .lottery-params-fields {
+    display: flex;
+    gap: 2em;
+    flex-wrap: wrap;
+
+    .control-group {
+      flex: 1;
+      min-width: 250px;
+
+      label {
+        display: block;
+        font-weight: bold;
+        margin-bottom: 0.5em;
+        color: var(--primary-high);
+      }
+
+      input[type="number"],
+      select {
+        width: 100%;
+        padding: 0.5em;
+        border: 1px solid var(--primary-low-mid);
+        border-radius: 3px;
+        background: var(--secondary);
+        color: var(--primary);
+
+        &:focus {
+          outline: none;
+          border-color: var(--tertiary);
+        }
+
+        &:disabled {
+          background-color: var(--primary-very-low);
+          color: var(--primary-medium);
+          cursor: not-allowed;
+          opacity: 0.6;
+        }
+      }
+
+      input[type="number"] {
+        width: 150px;
+      }
+
+      .duration-help,
+      .drawing-mode-help {
+        margin-top: 0.5em;
+        font-size: 0.9em;
+        color: var(--primary-medium);
+      }
+    }
+  }
+}
+
+// New lottery creation page
+.new-lottery-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2em 1em;
+
+  &__header {
+    margin-bottom: 2em;
+
+    h1 {
+      margin: 0;
+      font-size: 1.75em;
+      font-weight: 600;
+      color: var(--primary);
+    }
+  }
+
+  // Title field - full width, no label
+  .lottery-title-field {
+    margin-bottom: 1.5em;
+    width: 100% !important;
+
+    // Hide the FormKit-required label
+    .form-kit__container-title {
+      display: none !important;
+    }
+
+    // Ensure input spans full width - override FormKit defaults
+    .form-kit__field,
+    .form-kit__container,
+    .form-kit__container-content {
+      width: 100% !important;
+      max-width: 100% !important;
+    }
+
+    input[type="text"] {
+      width: 100% !important;
+      max-width: 100% !important;
+    }
+  }
+
+  // Grid for lottery parameters (duration, drawing mode, etc.)
+  .lottery-params-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 1.5em !important;
+    margin-bottom: 1.5em;
+    width: 100%;
+
+    // Direct children should be grid items
+    > .form-kit__field {
+      display: block !important;
+      width: 100% !important;
+    }
+
+    // Wrapper for label + input within each field
+    .lottery-param-wrapper {
+      display: flex !important;
+      flex-direction: column !important;
+      width: 100% !important;
+    }
+
+    // Override FormKit's row layout - make contents of wrapper span full width
+    .form-kit__row {
+      display: block !important;
+      width: 100% !important;
+    }
+
+    // Each column within the row should be full width
+    .form-kit__col {
+      width: 100% !important;
+      max-width: 100% !important;
+      flex: none !important;
+    }
+
+    // Custom label with tooltip icon
+    .field-title-with-tooltip {
+      display: flex;
+      align-items: center;
+      gap: 0.5em;
+      margin-bottom: 0.5em;
+
+      label {
+        font-weight: 600;
+        color: var(--primary);
+        margin: 0;
+      }
+
+      .field-tooltip {
+        display: inline-flex;
+        align-items: center;
+        color: var(--primary-medium);
+        cursor: help;
+        font-size: 0.9em;
+
+        .d-icon {
+          font-size: 1em;
+        }
+
+        &:hover {
+          color: var(--tertiary);
+        }
+      }
+    }
+
+    // Hide FormKit's auto-generated title since we're providing our own
+    .form-kit__container-title {
+      display: none !important;
+    }
+
+    // Ensure inputs take full width of their column
+    .form-kit__container,
+    .form-kit__container-content {
+      width: 100% !important;
+    }
+
+    input[type="number"],
+    select {
+      width: 100% !important;
+    }
+  }
+
+  .form-kit {
+    .form-kit__section-title {
+      font-size: 1.1em;
+      font-weight: 600;
+      color: var(--primary);
+      margin-bottom: 1em;
+    }
+
+    // Override FormKit's fixed width constraint (325px) on composer field
+    // This is the root cause fix - without this, the container is locked to 325px
+    .form-kit__field-composer {
+      width: 100% !important;
+      max-width: 100% !important;
+
+      .form-kit__container-content {
+        width: 100% !important;
+        max-width: 100% !important;
+      }
+    }
+
+    .form-kit__control-composer {
+      width: 100% !important;
+      max-width: 100% !important;
+
+      // Override any CSS variables that might control width
+      --composer-width: 100% !important;
+      --d-editor-width: 100% !important;
+
+      // Force full width on all editor containers at every level
+      .d-editor {
+        width: 100% !important;
+        max-width: none !important;
+        min-width: 100% !important;
+      }
+
+      .d-editor-container {
+        width: 100% !important;
+        max-width: none !important;
+        min-width: 100% !important;
+      }
+
+      .d-editor-textarea-column {
+        width: 100% !important;
+        max-width: none !important;
+        min-width: 100% !important;
+      }
+
+      .d-editor-textarea-wrapper {
+        width: 100% !important;
+        max-width: none !important;
+        min-width: 100% !important;
+      }
+
+      .ProseMirror-container {
+        width: 100% !important;
+        max-width: none !important;
+        min-width: 100% !important;
+      }
+
+      .d-editor-input,
+      .ProseMirror {
+        width: 100% !important;
+        max-width: none !important;
+        min-width: 100% !important;
+        min-height: 500px;
+        resize: vertical;
+      }
+
+      // Hide preview panel since we only want the editor
+      .d-editor-preview-wrapper {
+        display: none !important;
+      }
+
+      // Target the button bar to ensure it's also full width
+      .d-editor-button-bar {
+        width: 100% !important;
+        max-width: none !important;
+      }
+
+      // Override any inline styles
+      .d-editor[style],
+      .d-editor-container[style],
+      .d-editor-textarea-column[style],
+      .d-editor-textarea-wrapper[style],
+      .ProseMirror-container[style],
+      .ProseMirror[style] {
+        width: 100% !important;
+        max-width: none !important;
+      }
+
+      // Target the rich editor container specifically
+      .--rich-editor-enabled {
+        width: 100% !important;
+        max-width: none !important;
+        contain: none !important;
+      }
+
+      // Override loading container
+      .loading-container {
+        width: 100% !important;
+        max-width: none !important;
+      }
+    }
+  }
+
+  // Packet editors section
+  .lottery-packets-section {
+    margin-bottom: 2em;
+    width: 100% !important;
+    max-width: 100% !important;
+
+    h3 {
+      font-size: 1.1em;
+      font-weight: 600;
+      color: var(--primary);
+      margin-bottom: 1em;
+    }
+
+    .packets-list {
+      margin-bottom: 1em;
+      width: 100% !important;
+      max-width: 100% !important;
+
+      .packet-item {
+        margin-bottom: 2em;
+        padding: 1.5em;
+        background: var(--primary-very-low);
+        border: 1px solid var(--primary-low);
+        border-radius: 6px;
+        width: 100% !important;
+        max-width: 100% !important;
+        display: block !important;
+        overflow: visible !important;
+
+        // Abholerpaket gets special highlighting
+        &.is-abholerpaket {
+          background: var(--tertiary-very-low);
+          border-color: var(--tertiary-low);
+
+          .packet-header h4 {
+            color: var(--tertiary);
+          }
+        }
+
+        .packet-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: 1em;
+          width: 100% !important;
+
+          h4 {
+            margin: 0;
+            font-size: 1em;
+            font-weight: 600;
+            color: var(--primary);
+          }
+        }
+
+        .packet-title-input {
+          width: 100% !important;
+          margin-bottom: 1em;
+
+          .packet-title-field {
+            width: 100% !important;
+            padding: 0.5em;
+            border: 1px solid var(--primary-low-mid);
+            border-radius: 3px;
+            font-size: 1em;
+
+            &:focus {
+              outline: none;
+              border-color: var(--tertiary);
+            }
+          }
+        }
+
+        .packet-editor {
+          width: 100% !important;
+          margin-bottom: 1em;
+          display: block !important;
+
+          // Override any CSS variables that might control width
+          --composer-width: 100% !important;
+          --d-editor-width: 100% !important;
+
+          // Force full width on all editor containers at every level
+          .d-editor {
+            width: 100% !important;
+            max-width: none !important;
+            min-width: 100% !important;
+            display: block !important;
+          }
+
+          .d-editor-container {
+            width: 100% !important;
+            max-width: none !important;
+            min-width: 100% !important;
+            display: block !important;
+            flex: none !important;
+          }
+
+          .d-editor-textarea-column {
+            width: 100% !important;
+            max-width: none !important;
+            min-width: 100% !important;
+            flex: none !important;
+            display: block !important;
+          }
+
+          .d-editor-textarea-wrapper {
+            width: 100% !important;
+            max-width: none !important;
+            min-width: 100% !important;
+          }
+
+          .ProseMirror-container {
+            width: 100% !important;
+            max-width: none !important;
+            min-width: 100% !important;
+          }
+
+          .d-editor-input,
+          .ProseMirror {
+            width: 100% !important;
+            max-width: none !important;
+            min-width: 100% !important;
+            min-height: 200px;
+            resize: vertical;
+          }
+
+          // Hide preview panel for packet editors
+          .d-editor-preview-wrapper {
+            display: none !important;
+          }
+
+          // Target the button bar to ensure it's also full width
+          .d-editor-button-bar {
+            width: 100% !important;
+            max-width: none !important;
+          }
+
+          // Override any inline styles
+          .d-editor[style],
+          .d-editor-container[style],
+          .d-editor-textarea-column[style],
+          .d-editor-textarea-wrapper[style],
+          .ProseMirror-container[style],
+          .ProseMirror[style] {
+            width: 100% !important;
+            max-width: none !important;
+          }
+
+          // Target the rich editor container specifically
+          .--rich-editor-enabled {
+            width: 100% !important;
+            max-width: none !important;
+            contain: none !important;
+          }
+
+          // Override loading container
+          .loading-container {
+            width: 100% !important;
+            max-width: none !important;
+          }
+        }
+
+        .packet-checkbox-group {
+          .checkbox-label {
+            display: flex;
+            align-items: center;
+            font-weight: normal;
+            cursor: pointer;
+
+            input[type="checkbox"] {
+              margin-right: 0.5em;
+              cursor: pointer;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Packet setup section (mode selection + Abholerpaket settings)
+  .lottery-paket-setup-section {
+    margin-bottom: 2em;
+    padding: 1.5em;
+    background: var(--primary-very-low);
+    border: 1px solid var(--primary-low);
+    border-radius: 6px;
+
+    h3 {
+      font-size: 1.1em;
+      font-weight: 600;
+      color: var(--primary);
+      margin-top: 0;
+      margin-bottom: 1em;
+    }
+
+    // Packet mode selection (radio buttons)
+    .packet-mode-selection {
+      margin-bottom: 1.5em;
+
+      .packet-mode-label {
+        display: block;
+        font-weight: 600;
+        color: var(--primary);
+        margin-bottom: 0.75em;
+      }
+
+      .packet-mode-options {
+        display: flex;
+        flex-direction: column;
+        gap: 1em;
+
+        .radio-label {
+          display: flex;
+          flex-direction: column;
+          padding: 1em;
+          border: 2px solid var(--primary-low);
+          border-radius: 6px;
+          cursor: pointer;
+          transition: all 0.2s;
+
+          &:hover {
+            border-color: var(--primary-low-mid);
+            background: var(--primary-very-low);
+          }
+
+          input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+
+            &:checked + .radio-content {
+              .radio-header {
+                color: var(--tertiary);
+
+                &::before {
+                  border-color: var(--tertiary);
+                  background: var(--tertiary);
+                  box-shadow: inset 0 0 0 3px var(--secondary);
+                }
+              }
+            }
+          }
+
+          &:has(input:checked) {
+            border-color: var(--tertiary);
+            background: var(--tertiary-very-low);
+          }
+
+          .radio-content {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5em;
+          }
+
+          .radio-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75em;
+            font-weight: 600;
+            color: var(--primary);
+            transition: color 0.2s;
+
+            &::before {
+              content: "";
+              display: inline-block;
+              width: 20px;
+              height: 20px;
+              border: 2px solid var(--primary-low-mid);
+              border-radius: 50%;
+              flex-shrink: 0;
+              transition: all 0.2s;
+            }
+          }
+
+          .radio-text {
+            font-weight: 600;
+          }
+
+          .radio-help {
+            font-size: 0.9em;
+            color: var(--primary-medium);
+            margin-left: 30px;
+          }
+        }
+      }
+    }
+
+    // Single packet mode settings
+    .single-packet-settings {
+      padding: 1em;
+      background: var(--secondary);
+      border: 1px solid var(--primary-low);
+      border-radius: 6px;
+
+      .checkbox-label {
+        display: flex;
+        align-items: center;
+        font-weight: normal;
+        cursor: pointer;
+        margin: 0;
+
+        input[type="checkbox"] {
+          margin-right: 0.5em;
+          cursor: pointer;
+        }
+      }
+    }
+
+    // Multiple packets mode settings
+    .multiple-packets-settings {
+      padding: 1em;
+      background: var(--secondary);
+      border: 1px solid var(--primary-low);
+      border-radius: 6px;
+
+      .checkbox-label {
+        display: flex;
+        align-items: center;
+        font-weight: normal;
+        cursor: pointer;
+        margin-bottom: 0.75em;
+
+        input[type="checkbox"] {
+          margin-right: 0.5em;
+          cursor: pointer;
+        }
+      }
+
+      .abholerpaket-help {
+        margin-top: 0.5em;
+        font-size: 0.9em;
+        color: var(--primary-medium);
+        line-height: 1.4;
+      }
+
+      .abholerpaket-input-group {
+        margin-top: 1em;
+
+        input[type="text"] {
+          width: 100%;
+          padding: 0.5em;
+          border: 1px solid var(--primary-low-mid);
+          border-radius: 3px;
+
+          &:disabled {
+            background-color: var(--primary-very-low);
+            color: var(--primary-medium);
+            cursor: not-allowed;
+            opacity: 0.6;
+          }
+        }
+      }
+    }
+  }
+
+  // Form actions
+  .lottery-form-actions {
+    margin-top: 2em;
+    padding-top: 1.5em;
+    border-top: 1px solid var(--primary-low);
+
+    .lottery-draft-saved-notice {
+      padding: 0.75em 1em;
+      margin-bottom: 1em;
+      background: var(--success-low);
+      border: 1px solid var(--success);
+      border-radius: 6px;
+      color: var(--success);
+      font-weight: 500;
+      text-align: center;
+    }
+
+    .lottery-action-buttons {
+      display: flex;
+      gap: 1em;
+      justify-content: flex-end;
+
+      .btn {
+        min-width: 120px;
+      }
+    }
+  }
+}
+
+// Active Lotteries Page
+.active-lotteries-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1em;
+
+  .active-lotteries-header {
+    margin-bottom: 1.5em;
+
+    h1 {
+      margin: 0;
+      font-size: 1.8em;
+    }
+  }
+}
+
+.active-lotteries-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+}
+
+.active-lottery-card {
+  background: var(--secondary);
+  border: 1px solid var(--primary-low);
+  border-radius: 8px;
+  padding: 1em;
+
+  .active-lottery-header {
+    margin-bottom: 0.75em;
+
+    .active-lottery-title {
+      margin: 0 0 0.5em 0;
+      font-size: 1.2em;
+
+      a {
+        color: var(--primary);
+        text-decoration: none;
+
+        &:hover {
+          color: var(--tertiary);
+        }
+      }
+    }
+
+    .active-lottery-meta {
+      display: flex;
+      align-items: center;
+      font-size: 0.9em;
+
+      .names {
+        display: flex;
+        align-items: center;
+        gap: 0.5em;
+
+        .avatar {
+          margin-right: 0.25em;
+        }
+
+        .username {
+          a {
+            color: var(--primary);
+            text-decoration: none;
+
+            &:hover {
+              color: var(--tertiary);
+            }
+          }
+
+          &.staff a {
+            color: var(--primary);
+            font-weight: bold;
+          }
+
+          .svg-icon-title {
+            margin-left: 0.25em;
+
+            .d-icon {
+              color: var(--tertiary);
+            }
+          }
+        }
+
+        .user-title {
+          color: var(--primary-medium);
+          font-size: 0.9em;
+        }
+      }
+    }
+  }
+
+  .active-lottery-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 1em;
+  }
+
+  .active-lottery-dates {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+
+    .lottery-date {
+      display: flex;
+      align-items: center;
+      gap: 0.5em;
+      font-size: 0.9em;
+      color: var(--primary-high);
+
+      .d-icon {
+        color: var(--primary-medium);
+      }
+
+      .date-label {
+        color: var(--primary-medium);
+      }
+
+      &.lottery-ends-at {
+        font-weight: bold;
+
+        .date-value {
+          color: var(--tertiary);
+        }
+      }
+    }
+  }
+
+  .active-lottery-stats {
+    display: flex;
+    gap: 1.5em;
+
+    .stat-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5em;
+      font-size: 0.9em;
+      color: var(--primary-high);
+
+      .d-icon {
+        color: var(--primary-medium);
+      }
+    }
+  }
+}
+
+.no-active-lotteries {
+  text-align: center;
+  padding: 3em;
+  color: var(--primary-medium);
+  font-size: 1.1em;
+}
+
+// Sidebar navigation - move Verlosungen section to top
+.sidebar-sections {
+  display: flex;
+  flex-direction: column;
+
+  // Move the API sections container (which contains our section) to the top
+  .sidebar-section-wrapper[data-section-name="verlosung"] {
+    order: -1;
+  }
+}
+
 // Import component styles
 @import "components/lottery-status-chip";

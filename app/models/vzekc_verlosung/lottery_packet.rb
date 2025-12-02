@@ -15,7 +15,8 @@ module VzekcVerlosung
     has_many :lottery_tickets,
              class_name: "VzekcVerlosung::LotteryTicket",
              foreign_key: :post_id,
-             primary_key: :post_id
+             primary_key: :post_id,
+             dependent: :destroy
 
     # Validations
     validates :lottery_id, presence: true

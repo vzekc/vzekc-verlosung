@@ -173,8 +173,6 @@ export default class LotteryHistoryTable extends Component {
                   </div>
                   <div class="packet-title">
                     <a href={{packet.packet_url}}>
-                      {{i18n "vzekc_verlosung.history.packet_prefix"}}
-                      {{packet.ordinal}}:
                       {{packet.title}}
                     </a>
                   </div>

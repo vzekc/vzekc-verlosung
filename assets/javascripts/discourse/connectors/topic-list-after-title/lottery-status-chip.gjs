@@ -1,6 +1,7 @@
 import Component from "@glimmer/component";
 import dIcon from "discourse/helpers/d-icon";
-import { i18n } from "discourse-i18n";
+import I18n, { i18n } from "discourse-i18n";
+import { timeRemaining } from "../../lib/time-remaining";
 
 /**
  * Component that displays a status chip for lottery topics in topic lists.
@@ -71,60 +72,79 @@ export default class LotteryStatusChip extends Component {
   }
 
   /**
-   * Calculate time remaining for active lottery
+   * Format the end date for tooltip display
    *
    * @type {string | null}
    */
-  get timeRemaining() {
-    if (!this.isActive || !this.args.topic.lottery_ends_at) {
+  get endDateTooltip() {
+    if (!this.args.topic.lottery_ends_at) {
       return null;
     }
 
-    const now = new Date();
     const endsAt = new Date(this.args.topic.lottery_ends_at);
-    const diffMs = endsAt - now;
+    const now = new Date();
+    const locale = I18n.locale || "en";
 
-    if (diffMs <= 0) {
-      return i18n("vzekc_verlosung.status.ending_soon");
-    }
+    const formattedDate = endsAt.toLocaleDateString(locale, {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
 
-    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-    const diffDays = Math.floor(diffHours / 24);
-
-    if (diffDays > 1) {
-      return i18n("vzekc_verlosung.status.days_remaining", { count: diffDays });
-    } else if (diffDays === 1) {
-      return i18n("vzekc_verlosung.status.one_day_remaining");
-    } else if (diffHours > 1) {
-      return i18n("vzekc_verlosung.status.hours_remaining", {
-        count: diffHours,
+    if (endsAt > now) {
+      return i18n("vzekc_verlosung.status.ends_at_tooltip", {
+        date: formattedDate,
       });
-    } else if (diffHours === 1) {
-      return i18n("vzekc_verlosung.status.one_hour_remaining");
     } else {
-      return i18n("vzekc_verlosung.status.ending_soon");
+      return i18n("vzekc_verlosung.status.ended_at_tooltip", {
+        date: formattedDate,
+      });
     }
+  }
+
+  /**
+   * Calculate time remaining for active lottery
+   *
+   * @returns {string | null}
+   */
+  get timeRemaining() {
+    if (!this.isActive) {
+      return null;
+    }
+    return timeRemaining(this.args.topic.lottery_ends_at);
   }
 
   <template>
     {{#if this.isLottery}}
       <span class="lottery-status-chip">
         {{#if this.isActive}}
-          <span class="lottery-status-chip__active">
+          <span
+            class="lottery-status-chip__active"
+            title={{this.endDateTooltip}}
+          >
             {{dIcon "clock"}}
             <span
               class="lottery-status-chip__text"
             >{{this.timeRemaining}}</span>
           </span>
         {{else if this.isReadyToDraw}}
-          <span class="lottery-status-chip__ready-to-draw">
+          <span
+            class="lottery-status-chip__ready-to-draw"
+            title={{this.endDateTooltip}}
+          >
             {{dIcon "dice"}}
             <span class="lottery-status-chip__text">{{i18n
                 "vzekc_verlosung.status.ready_to_draw"
               }}</span>
           </span>
         {{else if this.isFinished}}
-          <span class="lottery-status-chip__finished">
+          <span
+            class="lottery-status-chip__finished"
+            title={{this.endDateTooltip}}
+          >
             {{dIcon "trophy"}}
             <span class="lottery-status-chip__text">{{i18n
                 "vzekc_verlosung.status.finished"

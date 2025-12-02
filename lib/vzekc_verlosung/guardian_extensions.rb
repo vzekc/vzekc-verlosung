@@ -11,17 +11,22 @@ module VzekcVerlosung
       can_create_post_in_lottery_draft?(topic)
     end
 
-    # Check if user can create a post in a lottery draft topic
+    # Check if user can create a post in a lottery topic
+    # Now that draft state is removed, this just checks if the topic is a lottery
+    # and allows posts (lottery posting is controlled elsewhere)
     #
     # @param topic [Topic] the topic to check
     # @return [Boolean] true if user can post, false otherwise
     def can_create_post_in_lottery_draft?(topic)
       lottery = VzekcVerlosung::Lottery.find_by(topic_id: topic&.id)
-      return true unless lottery&.draft?
+      return true unless lottery
+
+      # Active lotteries: staff and lottery owner can post
       return true if is_staff?
       return true if @user && !is_anonymous? && topic.user_id == @user.id
 
-      false
+      # For active lotteries, regular users can post (e.g., lottery tickets via likes)
+      true
     end
 
     # Check if user can manage lottery packets (mark as collected, etc.)

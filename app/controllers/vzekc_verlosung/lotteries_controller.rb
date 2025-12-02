@@ -139,47 +139,6 @@ module VzekcVerlosung
       render json: { packets: packets }
     end
 
-    # PUT /vzekc_verlosung/lotteries/:topic_id/publish
-    #
-    # Publishes a lottery draft topic, making it visible to all users
-    # Sets the lottery to active state and schedules it to end based on duration_days
-    #
-    # @param topic_id [Integer] Topic ID to publish
-    #
-    # @return [JSON] Success or error
-    def publish
-      topic = Topic.find_by(id: params[:topic_id])
-      return render_json_error("Topic not found", status: :not_found) unless topic
-
-      lottery = Lottery.find_by(topic_id: topic.id)
-      return render_json_error("Lottery not found", status: :not_found) unless lottery
-
-      # Check if user can publish (must be topic owner or staff)
-      unless guardian.is_staff? || topic.user_id == current_user.id
-        return(
-          render_json_error("You don't have permission to publish this lottery", status: :forbidden)
-        )
-      end
-
-      # Check if it's actually a draft
-      unless lottery.draft?
-        return(
-          render_json_error("This lottery is not in draft state", status: :unprocessable_entity)
-        )
-      end
-
-      # Get duration (default to 14 days if not set)
-      duration_days = lottery.duration_days || 14
-
-      # Activate lottery and set end time based on duration
-      lottery.publish!(duration_days.days.from_now)
-
-      # Notify all users who have tickets in this lottery
-      notify_lottery_published(topic)
-
-      head :no_content
-    end
-
     # PUT /vzekc_verlosung/lotteries/:topic_id/end-early
     #
     # TESTING ONLY: Ends an active lottery early by setting the end time to now
@@ -530,13 +489,17 @@ module VzekcVerlosung
     def create_params
       params.permit(
         :title,
+        :raw,
         :duration_days,
         :category_id,
+        :packet_mode,
+        :single_packet_erhaltungsbericht_required,
         :has_abholerpaket,
         :abholerpaket_title,
+        :abholerpaket_erhaltungsbericht_required,
         :drawing_mode,
         :donation_id,
-        packets: %i[title erhaltungsbericht_required],
+        packets: %i[title raw erhaltungsbericht_required ordinal is_abholerpaket],
       )
     end
 
@@ -599,27 +562,6 @@ module VzekcVerlosung
       end
 
       true
-    end
-
-    # Notify all users with tickets that the lottery has been published
-    def notify_lottery_published(topic)
-      participant_user_ids = get_lottery_participant_user_ids(topic)
-
-      participant_user_ids.each do |user_id|
-        user = User.find_by(id: user_id)
-        next unless user
-
-        Notification.consolidate_or_create!(
-          notification_type: Notification.types[:vzekc_verlosung_published],
-          user_id: user.id,
-          topic_id: topic.id,
-          post_number: 1,
-          data: {
-            topic_title: topic.title,
-            message: "vzekc_verlosung.notifications.lottery_published",
-          }.to_json,
-        )
-      end
     end
 
     # Notify all users with tickets that winners have been drawn

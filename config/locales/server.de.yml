@@ -147,3 +147,4 @@ de:
       packet_ordinal_mismatch: "Paketnummer stimmt nicht überein. Erwartet '# Paket %{expected}:', aber gefunden '# Paket %{actual}:'. Die Paketnummer im Titel muss mit der Datenbank übereinstimmen."
       packet_title_too_short: "Paket Titel muss mindestens %{minimum} Zeichen (ohne Leerzeichen) lang sein."
       cannot_delete_packet_post: "Dieser Beitrag kann nicht gelöscht werden. Es ist Paket %{ordinal} (%{title}) in einer Verlosung. Um dieses Paket zu entfernen, lösche das gesamte Verlosungs-Thema."
+      cannot_change_lottery_category: "Die Kategorie eines Verlosungs-Themas kann nicht geändert werden."

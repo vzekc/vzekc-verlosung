@@ -3,7 +3,7 @@ import { tracked } from "@glimmer/tracking";
 import { concat, fn } from "@ember/helper";
 import { action } from "@ember/object";
 import { service } from "@ember/service";
-import { and, gt, or } from "truth-helpers";
+import { and, eq, gt, or } from "truth-helpers";
 import DButton from "discourse/components/d-button";
 import UserLink from "discourse/components/user-link";
 import avatar from "discourse/helpers/avatar";
@@ -34,6 +34,7 @@ export default class LotteryIntroSummary extends Component {
   @tracked publishing = false;
   @tracked ending = false;
   @tracked openingDrawModal = false;
+  @tracked resultsCopied = false;
 
   constructor() {
     super(...arguments);
@@ -132,6 +133,15 @@ export default class LotteryIntroSummary extends Component {
   }
 
   /**
+   * Get the packet mode for this lottery
+   *
+   * @returns {String} "ein" or "mehrere" (default: "mehrere")
+   */
+  get packetMode() {
+    return this.topic?.lottery_packet_mode || "mehrere";
+  }
+
+  /**
    * Check if lottery has ended
    *
    * @returns {Boolean} true if the lottery has ended
@@ -193,6 +203,40 @@ export default class LotteryIntroSummary extends Component {
     } else {
       return i18n("vzekc_verlosung.state.time_remaining_minutes", {
         minutes,
+      });
+    }
+  }
+
+  /**
+   * Format the end date for tooltip display
+   *
+   * @returns {String} formatted end date tooltip
+   */
+  get endDateTooltip() {
+    if (!this.topic?.lottery_ends_at) {
+      return null;
+    }
+
+    const endsAt = new Date(this.topic.lottery_ends_at);
+    const now = new Date();
+    const locale = I18n.locale || "en";
+
+    const formattedDate = endsAt.toLocaleDateString(locale, {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+    if (endsAt > now) {
+      return i18n("vzekc_verlosung.status.ends_at_tooltip", {
+        date: formattedDate,
+      });
+    } else {
+      return i18n("vzekc_verlosung.status.ended_at_tooltip", {
+        date: formattedDate,
       });
     }
   }
@@ -481,6 +525,66 @@ export default class LotteryIntroSummary extends Component {
   }
 
   /**
+   * Copy lottery results to clipboard
+   * Format: #<packet no> <packet title>: @<winner> <celebratory emoji>
+   * Packets without tickets show "keine Lose gezogen"
+   */
+  @action
+  async copyResultsToClipboard() {
+    const celebratoryEmojis = [
+      "🎉",
+      "🎊",
+      "🥳",
+      "🏆",
+      "⭐",
+      "🌟",
+      "✨",
+      "🎈",
+      "🎁",
+      "👏",
+    ];
+
+    const lines = this.packetsWithWinners.map((packet) => {
+      if (packet.winnerUsername) {
+        const emoji =
+          celebratoryEmojis[
+            Math.floor(Math.random() * celebratoryEmojis.length)
+          ];
+        return `#${packet.ordinal} ${packet.title}: @${packet.winnerUsername} ${emoji}`;
+      } else {
+        return `#${packet.ordinal} ${packet.title}: keine Lose gezogen`;
+      }
+    });
+
+    // Add link to lottery at the end
+    const lotteryUrl = `${window.location.origin}${this.topic.url}`;
+    lines.push("");
+    lines.push(`Details zur Verlosung: ${lotteryUrl}`);
+
+    const text = lines.join("\n");
+
+    try {
+      await navigator.clipboard.writeText(text);
+      this.resultsCopied = true;
+      setTimeout(() => {
+        this.resultsCopied = false;
+      }, 2000);
+    } catch {
+      // Fallback for older browsers
+      const textarea = document.createElement("textarea");
+      textarea.value = text;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textarea);
+      this.resultsCopied = true;
+      setTimeout(() => {
+        this.resultsCopied = false;
+      }, 2000);
+    }
+  }
+
+  /**
    * Open Erhaltungsbericht composer for Abholerpaket
    *
    * @param {Object} packet - The Abholerpaket object
@@ -549,7 +653,7 @@ export default class LotteryIntroSummary extends Component {
                 {{icon "clock"}}
                 <span>{{i18n "vzekc_verlosung.state.active"}}</span>
               </div>
-              <div class="time-remaining">
+              <div class="time-remaining" title={{this.endDateTooltip}}>
                 {{this.timeRemaining}}
               </div>
               <div class="lottery-status-line">
@@ -659,12 +763,26 @@ export default class LotteryIntroSummary extends Component {
                 @icon="download"
                 class="btn-default btn-small"
               />
+              <DButton
+                @action={{this.copyResultsToClipboard}}
+                @translatedLabel={{if
+                  this.resultsCopied
+                  (i18n "vzekc_verlosung.drawing.copy_results_copied")
+                  (i18n "vzekc_verlosung.drawing.copy_results")
+                }}
+                @translatedTitle={{i18n
+                  "vzekc_verlosung.drawing.copy_results_help"
+                }}
+                @icon={{if this.resultsCopied "check" "copy"}}
+                class="btn-default btn-small"
+              />
             </div>
           </div>
         {{/if}}
 
         {{! ========== PACKETS LIST ========== }}
-        {{#if this.packets.length}}
+        {{! Only show packet list in "mehrere" mode - in "ein" mode, the main post is the packet }}
+        {{#if (and this.packets.length (eq this.packetMode "mehrere"))}}
           <h3 class="lottery-packets-title">{{i18n
               "vzekc_verlosung.packets_title"
             }}</h3>

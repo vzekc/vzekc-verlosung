@@ -15,7 +15,51 @@ en:
         vzekc_verlosung_did_not_win: "Unfortunately not won"
         vzekc_verlosung_ending_tomorrow: "Lottery ending tomorrow"
     vzekc_verlosung:
+      nav:
+        section_title: "Lotteries"
+        verlosungen: "Active Lotteries"
+        spenden: "Donation Offers"
+        erhaltungsberichte: "Reception Reports"
+        historie: "Lottery History"
+      active:
+        title: "Active Lotteries"
+        packets: "Packets"
+        participants: "Participants"
+        no_lotteries: "No active lotteries"
       neue_verlosung: "New Lottery"
+      create_lottery: "Create Lottery"
+      create_draft: "Create Draft"
+      save_as_draft: "Save as Draft"
+      publish_lottery: "Publish Lottery"
+      draft_saved: "Draft saved successfully"
+      discard_draft: "Discard Draft"
+      errors:
+        at_least_one_packet_required: "Please enter at least one packet title"
+        packet_title_required: "Please enter a title for all packets"
+      composer:
+        title_label: "Title"
+        title_placeholder: "Lottery Title"
+        body_label: "Description"
+        duration_label: "Duration"
+        duration_hint: "7-28 days"
+        drawing_mode_label: "Drawing Mode"
+        drawing_mode_hint: "For manual selection, explain in description how you'll choose"
+        drawing_mode_automatic: "Automatic (deterministic RNG)"
+        drawing_mode_manual: "Manual (you select winners)"
+        template: |
+          # Lottery Description
+
+          Describe what you're giving away and any important details participants should know.
+
+          ## Conditions
+
+          - List any conditions or requirements here
+          - For example: must be willing to pay shipping
+          - Or: must write a reception report after receiving
+
+          ## Duration
+
+          This lottery will run for {duration} days and use {drawing_mode} winner selection.
       notifications:
         lottery_published: "%{topic_title}"
         lottery_drawn: "%{topic_title}"
@@ -36,13 +80,25 @@ en:
         drawing_mode_help: "Choose how winners will be selected. In your lottery description, please explain how you will select winners if using manual mode."
         drawing_mode_automatic: "Automatic (deterministic RNG)"
         drawing_mode_manual: "Manual (you select winners)"
+        paket_setup_label: "Packet Setup"
+        packet_mode_label: "Mode"
+        packet_mode_ein: "Single Packet"
+        packet_mode_ein_help: "Create a lottery with one packet. The main post describes the packet."
+        packet_mode_mehrere: "Multiple Packets"
+        packet_mode_mehrere_help: "Create a lottery with multiple packets. Each packet has its own post."
+        single_packet_erhaltungsbericht_label: "No reception report required"
+        switch_mode_warning_title: "Switch Packet Mode?"
+        switch_mode_warning_message: "You have unsaved changes to packet titles or content. Switching modes may lose this data. Do you want to continue?"
         abholerpaket_title_label: "Pickup packet title"
         abholerpaket_title_placeholder: "I'm keeping this system"
         abholerpaket_badge: "Packet 0"
         no_abholerpaket_label: "I'm not keeping a system"
         no_abholerpaket_help: "If you're not keeping a system for yourself, no pickup packet will be created. Otherwise, the pickup packet will be automatically created and assigned to you as the creator. You must also write a reception report for it."
         packets_label: "Packets"
-        packet_title_placeholder: "Packet %{number} title (e.g., Hardware Bundle)"
+        packet_title_label: "Title:"
+        packet_title_placeholder: "Title (e.g., Commodore C64)"
+        packet_description_label: "Packet description"
+        packet_description_placeholder: "Describe what's in this packet..."
         packet_badge: "Packet %{number}"
         erhaltungsbericht_required_label: "No reception report required"
         erhaltungsbericht_required_short: "No report"
@@ -102,6 +158,9 @@ en:
         download_results_json_help: "Download the lottery results as a JSON file to verify the drawing was fair. The file contains the timestamp, all participants, the RNG seed, and the drawing results."
         download_results_csv: "CSV"
         download_results_csv_help: "Download the lottery results as a CSV file (packet no; packet name; winner)."
+        copy_results: "Copy"
+        copy_results_copied: "Copied!"
+        copy_results_help: "Copy the results to clipboard"
         verification_failed: "Results verification failed. The drawing results could not be verified by the server. Please try drawing again."
         verification_timeout: "Drawing timed out. Please try again."
         verification_error: "Drawing failed. Please contact support if this persists."
@@ -134,11 +193,18 @@ en:
       status:
         finished: "Finished"
         ready_to_draw: "Ready to draw"
-        ending_soon: "Ending soon"
+        ended: "Awaiting draw"
+        one_second_remaining: "1 second left"
+        seconds_remaining: "%{count} seconds left"
+        minutes_seconds_remaining: "%{minutes} min %{seconds} sec left"
+        one_minute_remaining: "1 minute left"
+        minutes_remaining: "%{count} minutes left"
         one_hour_remaining: "1 hour left"
         hours_remaining: "%{count} hours left"
         one_day_remaining: "1 day left"
         days_remaining: "%{count} days left"
+        ends_at_tooltip: "Ends on %{date}"
+        ended_at_tooltip: "Ended on %{date}"
         packets: "packets"
         participants: "participants"
         tickets: "tickets"

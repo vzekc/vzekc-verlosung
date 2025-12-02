@@ -277,32 +277,34 @@ RSpec.describe VzekcVerlosung::LotteryPacket do
       end
     end
 
-    context "when post is hard deleted (destroyed)" do
-      it "CASCADE deletes the packet record" do
+    context "when topic is hard deleted (destroyed)" do
+      it "CASCADE deletes the packet record via topic → post → packet" do
         lottery = Fabricate(:lottery)
-        post = Fabricate(:post, topic: lottery.topic)
+        topic = lottery.topic
+        post = Fabricate(:post, topic: topic)
         packet = Fabricate(:lottery_packet, lottery: lottery, post: post)
         packet_id = packet.id
 
-        # Hard delete triggers CASCADE
-        post.destroy!
+        # Hard delete topic triggers CASCADE to posts, then to packets
+        topic.destroy!
 
         expect(described_class.find_by(id: packet_id)).to be_nil
       end
 
-      it "deletes packet when post is permanently deleted after soft delete" do
+      it "deletes packet when topic is permanently deleted after soft delete" do
         lottery = Fabricate(:lottery)
-        post = Fabricate(:post, topic: lottery.topic)
+        topic = lottery.topic
+        post = Fabricate(:post, topic: topic)
         packet = Fabricate(:lottery_packet, lottery: lottery, post: post)
         packet_id = packet.id
-        post_id = post.id
+        topic_id = topic.id
 
         # Soft delete first
-        PostDestroyer.new(lottery.topic.user, post).destroy
+        topic.trash!(topic.user)
         expect(described_class.find_by(id: packet_id)).to be_present
 
         # Then hard delete
-        Post.with_deleted.find(post_id).destroy!
+        Topic.with_deleted.find(topic_id).destroy!
 
         expect(described_class.find_by(id: packet_id)).to be_nil
       end
@@ -324,9 +326,10 @@ RSpec.describe VzekcVerlosung::LotteryPacket do
     end
 
     context "when cascading to lottery tickets" do
-      it "deletes associated tickets when packet post is deleted" do
+      it "deletes associated tickets when lottery is deleted" do
         lottery = Fabricate(:lottery)
-        post = Fabricate(:post, topic: lottery.topic)
+        topic = lottery.topic
+        post = Fabricate(:post, topic: topic)
         packet = Fabricate(:lottery_packet, lottery: lottery, post: post)
         user1 = Fabricate(:user)
         user2 = Fabricate(:user)
@@ -334,8 +337,8 @@ RSpec.describe VzekcVerlosung::LotteryPacket do
         ticket1 = Fabricate(:lottery_ticket, post: post, user: user1)
         ticket2 = Fabricate(:lottery_ticket, post: post, user: user2)
 
-        # Hard delete triggers CASCADE
-        post.destroy!
+        # Delete lottery triggers CASCADE to packets, then dependent: :destroy to tickets
+        lottery.destroy!
 
         expect(VzekcVerlosung::LotteryTicket.find_by(id: ticket1.id)).to be_nil
         expect(VzekcVerlosung::LotteryTicket.find_by(id: ticket2.id)).to be_nil

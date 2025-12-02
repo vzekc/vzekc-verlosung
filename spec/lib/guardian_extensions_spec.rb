@@ -10,78 +10,74 @@ RSpec.describe VzekcVerlosung::GuardianExtensions do
     VzekcVerlosung::CreateLottery.call(
       params: {
         title: "Test Lottery",
+        raw: "Test lottery content",
         duration_days: 14,
         category_id: category.id,
-        packets: [{ title: "Packet 1", description: "Content" }],
+        packets: [{ title: "Packet 1", raw: "Content" }],
       },
       user: user,
       guardian: Guardian.new(user),
     )
   end
-  let(:draft_topic) { lottery_result.main_topic }
-  let!(:published_topic) do
+  let(:lottery_topic) { lottery_result.main_topic }
+  let!(:regular_topic) do
     topic = Fabricate(:topic, user: user, category: category)
     topic
   end
 
   # Force lottery creation before tests
-  before { draft_topic }
+  before { lottery_topic }
 
   describe "setup" do
-    it "creates a draft lottery" do
+    it "creates an active lottery" do
       expect(lottery_result).to be_success
-      lottery = VzekcVerlosung::Lottery.find_by(topic_id: draft_topic.id)
+      lottery = VzekcVerlosung::Lottery.find_by(topic_id: lottery_topic.id)
       expect(lottery).to be_present
-      expect(lottery.state).to eq("draft")
+      expect(lottery.state).to eq("active")
     end
   end
 
   describe "#can_create_post_in_lottery_draft?" do
-    context "when topic is not a draft" do
+    context "when topic is not a lottery" do
       it "allows any user to post" do
         guardian = Guardian.new(other_user)
-        expect(guardian.can_create_post_in_lottery_draft?(published_topic)).to eq(true)
+        expect(guardian.can_create_post_in_lottery_draft?(regular_topic)).to eq(true)
       end
     end
 
-    context "when topic is a draft" do
+    context "when topic is an active lottery" do
       it "allows the owner to post" do
         guardian = Guardian.new(user)
-        expect(guardian.can_create_post_in_lottery_draft?(draft_topic)).to eq(true)
+        expect(guardian.can_create_post_in_lottery_draft?(lottery_topic)).to eq(true)
       end
 
       it "allows staff to post" do
         guardian = Guardian.new(admin)
-        expect(guardian.can_create_post_in_lottery_draft?(draft_topic)).to eq(true)
+        expect(guardian.can_create_post_in_lottery_draft?(lottery_topic)).to eq(true)
       end
 
-      it "prevents other users from posting" do
+      it "allows other users to post" do
         guardian = Guardian.new(other_user)
-        expect(guardian.can_create_post_in_lottery_draft?(draft_topic)).to eq(false)
-      end
-
-      it "prevents anonymous users from posting" do
-        guardian = Guardian.new(nil)
-        expect(guardian.can_create_post_in_lottery_draft?(draft_topic)).to eq(false)
+        expect(guardian.can_create_post_in_lottery_draft?(lottery_topic)).to eq(true)
       end
     end
   end
 
   describe "#can_create_post?" do
-    context "when topic is a lottery draft" do
-      it "prevents non-owners from creating posts" do
+    context "when topic is an active lottery" do
+      it "allows other users to create posts" do
         guardian = Guardian.new(other_user)
-        expect(guardian.can_create_post?(draft_topic)).to eq(false)
+        expect(guardian.can_create_post?(lottery_topic)).to eq(true)
       end
 
       it "allows owners to create posts" do
         guardian = Guardian.new(user)
-        expect(guardian.can_create_post?(draft_topic)).to eq(true)
+        expect(guardian.can_create_post?(lottery_topic)).to eq(true)
       end
 
       it "allows staff to create posts" do
         guardian = Guardian.new(admin)
-        expect(guardian.can_create_post?(draft_topic)).to eq(true)
+        expect(guardian.can_create_post?(lottery_topic)).to eq(true)
       end
     end
   end

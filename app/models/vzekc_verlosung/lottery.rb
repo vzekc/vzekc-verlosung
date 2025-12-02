@@ -15,7 +15,7 @@ module VzekcVerlosung
 
     # Validations
     validates :topic_id, presence: true, uniqueness: true
-    validates :state, presence: true, inclusion: { in: %w[draft active finished] }
+    validates :state, presence: true, inclusion: { in: %w[active finished] }
     validates :drawing_mode, presence: true, inclusion: { in: %w[automatic manual] }
     validates :duration_days,
               numericality: {
@@ -25,17 +25,12 @@ module VzekcVerlosung
               allow_nil: true
 
     # Scopes
-    scope :draft, -> { where(state: "draft") }
     scope :active, -> { where(state: "active") }
     scope :finished, -> { where(state: "finished") }
     scope :ending_soon, -> { active.where("ends_at <= ?", 1.day.from_now) }
     scope :ready_to_draw, -> { active.where("ends_at <= ?", Time.zone.now).where(drawn_at: nil) }
 
     # State helpers
-    def draft?
-      state == "draft"
-    end
-
     def active?
       state == "active"
     end
@@ -58,10 +53,6 @@ module VzekcVerlosung
     end
 
     # Transition methods
-    def publish!(ends_at_time)
-      update!(state: "active", ends_at: ends_at_time)
-    end
-
     def finish!
       update!(state: "finished")
     end
@@ -89,10 +80,11 @@ end
 # Table name: vzekc_verlosung_lotteries
 #
 #  id            :bigint           not null, primary key
-#  drawn_at      :datetime
 #  drawing_mode  :string           default("automatic"), not null
+#  drawn_at      :datetime
 #  duration_days :integer
 #  ends_at       :datetime
+#  packet_mode   :string           default("mehrere"), not null
 #  results       :jsonb
 #  state         :string           default("draft"), not null
 #  created_at    :datetime         not null
@@ -104,6 +96,7 @@ end
 #
 #  index_lotteries_on_state_and_ends_at            (state,ends_at)
 #  index_vzekc_verlosung_lotteries_on_donation_id  (donation_id) UNIQUE
+#  index_vzekc_verlosung_lotteries_on_packet_mode  (packet_mode)
 #  index_vzekc_verlosung_lotteries_on_state        (state)
 #  index_vzekc_verlosung_lotteries_on_topic_id     (topic_id) UNIQUE
 #

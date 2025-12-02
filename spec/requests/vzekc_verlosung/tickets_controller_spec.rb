@@ -52,20 +52,6 @@ describe VzekcVerlosung::TicketsController do
         expect(response.status).to eq(404)
       end
 
-      context "when lottery is in draft state" do
-        before { lottery.update!(state: "draft") }
-
-        it "prevents ticket purchase" do
-          expect {
-            post "/vzekc-verlosung/tickets.json", params: { post_id: lottery_post.id }
-          }.not_to change { VzekcVerlosung::LotteryTicket.count }
-
-          expect(response.status).to eq(422)
-          json = response.parsed_body
-          expect(json["errors"]).to include("Lottery is not active")
-        end
-      end
-
       context "when lottery is finished" do
         before { lottery.update!(state: "finished") }
 
@@ -172,20 +158,6 @@ describe VzekcVerlosung::TicketsController do
       it "returns error if ticket not found" do
         delete "/vzekc-verlosung/tickets/999999.json"
         expect(response.status).to eq(404)
-      end
-
-      context "when lottery is in draft state" do
-        before { lottery.update!(state: "draft") }
-
-        it "prevents ticket return" do
-          expect { delete "/vzekc-verlosung/tickets/#{lottery_post.id}.json" }.not_to change {
-            VzekcVerlosung::LotteryTicket.count
-          }
-
-          expect(response.status).to eq(422)
-          json = response.parsed_body
-          expect(json["errors"]).to include("Lottery is not active")
-        end
       end
 
       context "when lottery is finished" do

@@ -15,7 +15,7 @@ RSpec.describe VzekcVerlosung::Lottery do
     it { is_expected.to validate_presence_of(:topic_id) }
     it { is_expected.to validate_uniqueness_of(:topic_id) }
     it { is_expected.to validate_presence_of(:state) }
-    it { is_expected.to validate_inclusion_of(:state).in_array(%w[draft active finished]) }
+    it { is_expected.to validate_inclusion_of(:state).in_array(%w[active finished]) }
     it { is_expected.to validate_presence_of(:drawing_mode) }
     it { is_expected.to validate_inclusion_of(:drawing_mode).in_array(%w[automatic manual]) }
 
@@ -49,7 +49,6 @@ RSpec.describe VzekcVerlosung::Lottery do
   end
 
   describe "scopes" do
-    let!(:draft_lottery) { Fabricate(:lottery, state: "draft") }
     let!(:active_lottery) { Fabricate(:lottery, state: "active", ends_at: 2.days.from_now) }
     let!(:finished_lottery) { Fabricate(:lottery, state: "finished") }
     let!(:ready_lottery) do
@@ -57,13 +56,6 @@ RSpec.describe VzekcVerlosung::Lottery do
     end
     let!(:drawn_lottery) do
       Fabricate(:lottery, state: "active", ends_at: 1.hour.ago, drawn_at: Time.zone.now)
-    end
-
-    describe ".draft" do
-      it "returns only draft lotteries" do
-        results = described_class.draft.where(id: draft_lottery.id)
-        expect(results).to contain_exactly(draft_lottery)
-      end
     end
 
     describe ".active" do
@@ -104,24 +96,15 @@ RSpec.describe VzekcVerlosung::Lottery do
   end
 
   describe "state helpers" do
-    it "#draft? returns true for draft state" do
-      lottery = Fabricate(:lottery, state: "draft")
-      expect(lottery.draft?).to be true
-      expect(lottery.active?).to be false
-      expect(lottery.finished?).to be false
-    end
-
     it "#active? returns true for active state" do
       lottery = Fabricate(:lottery, state: "active")
       expect(lottery.active?).to be true
-      expect(lottery.draft?).to be false
       expect(lottery.finished?).to be false
     end
 
     it "#finished? returns true for finished state" do
       lottery = Fabricate(:lottery, state: "finished")
       expect(lottery.finished?).to be true
-      expect(lottery.draft?).to be false
       expect(lottery.active?).to be false
     end
 
@@ -151,29 +134,6 @@ RSpec.describe VzekcVerlosung::Lottery do
   end
 
   describe "state transitions" do
-    describe "#publish!" do
-      it "changes state from draft to active" do
-        lottery = Fabricate(:lottery, state: "draft")
-        ends_at = 7.days.from_now
-
-        lottery.publish!(ends_at)
-
-        expect(lottery.state).to eq("active")
-        expect(lottery.ends_at).to be_within(1.second).of(ends_at)
-      end
-
-      it "updates the record in database" do
-        lottery = Fabricate(:lottery, state: "draft")
-        ends_at = 7.days.from_now
-
-        lottery.publish!(ends_at)
-        lottery.reload
-
-        expect(lottery.state).to eq("active")
-        expect(lottery.ends_at).to be_within(1.second).of(ends_at)
-      end
-    end
-
     describe "#finish!" do
       it "changes state from active to finished" do
         lottery = Fabricate(:lottery, state: "active")
