@@ -5,10 +5,9 @@ import { on } from "@ember/modifier";
 import { action } from "@ember/object";
 import avatar from "discourse/helpers/avatar";
 import icon from "discourse/helpers/d-icon";
-import formatDate from "discourse/helpers/format-date";
 import { ajax } from "discourse/lib/ajax";
 import { includes } from "discourse/truth-helpers";
-import { i18n } from "discourse-i18n";
+import I18n, { i18n } from "discourse-i18n";
 
 /**
  * Displays lotteries grouped with collapsible packet details
@@ -68,6 +67,26 @@ export default class LotteryHistoryLotteries extends Component {
     }
   }
 
+  /**
+   * Format a date as absolute date string
+   *
+   * @param {String|Date} dateValue - The date to format
+   * @returns {String} formatted date string
+   */
+  @action
+  formatAbsoluteDate(dateValue) {
+    if (!dateValue) {
+      return "-";
+    }
+    const date = new Date(dateValue);
+    const locale = I18n.locale || "de";
+    return date.toLocaleDateString(locale, {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
+  }
+
   <template>
     <div class="lottery-history-lotteries">
       {{#if this.isLoading}}
@@ -107,10 +126,10 @@ export default class LotteryHistoryLotteries extends Component {
                 <div class="lottery-meta">
                   <span
                     class="meta-item"
-                    title={{i18n "vzekc_verlosung.history.drawn"}}
+                    title={{i18n "vzekc_verlosung.history.ended"}}
                   >
                     {{icon "calendar"}}
-                    {{formatDate lottery.drawn_at format="medium"}}
+                    {{this.formatAbsoluteDate lottery.ends_at}}
                   </span>
                   <span
                     class="meta-item"
@@ -173,10 +192,15 @@ export default class LotteryHistoryLotteries extends Component {
                             {{/if}}
                           </td>
                           <td class="packet-bericht">
-                            {{#if packet.has_bericht}}
-                              <span class="status-yes">{{icon "check"}}</span>
-                            {{else}}
-                              <span class="status-no">{{icon "minus"}}</span>
+                            {{#if packet.erhaltungsbericht_required}}
+                              {{#if packet.bericht_url}}
+                                <a
+                                  href={{packet.bericht_url}}
+                                  class="bericht-link"
+                                >{{icon "file-lines"}}</a>
+                              {{else}}
+                                <span class="status-no">{{icon "minus"}}</span>
+                              {{/if}}
                             {{/if}}
                           </td>
                         </tr>

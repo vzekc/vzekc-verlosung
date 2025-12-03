@@ -92,7 +92,7 @@ module VzekcVerlosung
           .where(state: "finished")
           .joins(:topic)
           .includes(:lottery_packets, topic: %i[category user])
-          .order("topics.created_at DESC")
+          .order("vzekc_verlosung_lotteries.ends_at DESC")
           .limit(per_page)
           .offset((page - 1) * per_page)
 
@@ -230,12 +230,17 @@ module VzekcVerlosung
       winner_ids = packets_with_winners.map(&:winner_user_id).compact
       winners_by_id = User.where(id: winner_ids).index_by(&:id)
 
+      # Preload erhaltungsbericht topics
+      bericht_topic_ids = packets_with_winners.map(&:erhaltungsbericht_topic_id).compact
+      bericht_topics_by_id = Topic.where(id: bericht_topic_ids).index_by(&:id)
+
       {
         id: lottery.id,
         topic_id: topic.id,
         title: topic.title,
         url: topic.relative_url,
         created_at: topic.created_at,
+        ends_at: lottery.ends_at,
         drawn_at: lottery.drawn_at,
         participant_count: lottery.participant_count,
         packet_count: packets_with_winners.size,
@@ -255,6 +260,7 @@ module VzekcVerlosung
         packets:
           packets_with_winners.map do |packet|
             winner = winners_by_id[packet.winner_user_id]
+            bericht_topic = bericht_topics_by_id[packet.erhaltungsbericht_topic_id]
             {
               ordinal: packet.ordinal,
               title: packet.title,
@@ -267,7 +273,8 @@ module VzekcVerlosung
                   }
                 end,
               collected_at: packet.collected_at,
-              has_bericht: packet.erhaltungsbericht_topic_id.present?,
+              erhaltungsbericht_required: packet.erhaltungsbericht_required,
+              bericht_url: bericht_topic&.relative_url,
             }
           end,
       }
@@ -361,15 +368,10 @@ module VzekcVerlosung
 
       # Get ticket counts per packet
       post_ids = finished_packets.map { |_, post_id, _| post_id }.compact
-      ticket_counts_by_post =
-        LotteryTicket.where(post_id: post_ids).group(:post_id).count
+      ticket_counts_by_post = LotteryTicket.where(post_id: post_ids).group(:post_id).count
 
       # Get user ticket counts per packet
-      user_tickets =
-        LotteryTicket
-          .where(post_id: post_ids)
-          .group(:post_id, :user_id)
-          .count
+      user_tickets = LotteryTicket.where(post_id: post_ids).group(:post_id, :user_id).count
 
       # Calculate expected wins and actual wins per user
       user_stats = Hash.new { |h, k| h[k] = { expected: 0.0, wins: 0 } }
@@ -523,7 +525,11 @@ module VzekcVerlosung
     def popular_packets(limit)
       # Get packets from finished lotteries
       finished_packet_post_ids =
-        LotteryPacket.joins(:lottery).where(vzekc_verlosung_lotteries: { state: "finished" }).pluck(:post_id).compact
+        LotteryPacket
+          .joins(:lottery)
+          .where(vzekc_verlosung_lotteries: { state: "finished" })
+          .pluck(:post_id)
+          .compact
 
       # Count tickets per post_id
       ticket_counts_by_post =
@@ -552,6 +558,7 @@ module VzekcVerlosung
     end
 
     # Get packets with no tickets from finished lotteries, newest first
+    # Excludes Abholerpakete since they never have tickets by design
     #
     # @param limit [Integer] Number of results to return
     # @return [Array<Hash>] Array of packet data
@@ -564,6 +571,7 @@ module VzekcVerlosung
           .joins(:post, lottery: :topic)
           .includes(lottery: { topic: :category })
           .where(vzekc_verlosung_lotteries: { state: "finished" })
+          .where(abholerpaket: false)
           .where.not(post_id: post_ids_with_tickets)
           .order("topics.created_at DESC")
           .limit(limit)

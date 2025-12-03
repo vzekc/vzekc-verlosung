@@ -38,6 +38,7 @@ export default class LotteryIntroSummary extends Component {
 
   constructor() {
     super(...arguments);
+    // Load from serialized/cached topic data (updated when tickets change)
     this.loadPacketsFromTopic();
     this.appEvents.on("lottery:ticket-changed", this, this.onTicketChanged);
   }
@@ -48,11 +49,37 @@ export default class LotteryIntroSummary extends Component {
   }
 
   @bind
-  onTicketChanged(postId) {
-    // Check if the changed post is one of our packets
-    const packet = this.packets.find((p) => p.post_id === postId);
-    if (packet) {
-      this.loadPacketsFromAjax();
+  onTicketChanged(eventData) {
+    // Find the packet that changed
+    const packetIndex = this.packets.findIndex(
+      (p) => p.post_id === eventData.postId
+    );
+    if (packetIndex === -1) {
+      return;
+    }
+
+    // Update the packet data in our local array
+    const updatedPackets = [...this.packets];
+    updatedPackets[packetIndex] = {
+      ...updatedPackets[packetIndex],
+      ticket_count: eventData.ticketCount,
+      users: eventData.users || [],
+    };
+    this.packets = updatedPackets;
+
+    // Update the cached topic data so it persists across component recreation
+    const topic = this.args.data.post.topic;
+    if (topic?.lottery_packets) {
+      const topicPacketIndex = topic.lottery_packets.findIndex(
+        (p) => p.post_id === eventData.postId
+      );
+      if (topicPacketIndex !== -1) {
+        topic.lottery_packets[topicPacketIndex] = {
+          ...topic.lottery_packets[topicPacketIndex],
+          ticket_count: eventData.ticketCount,
+          users: eventData.users || [],
+        };
+      }
     }
   }
 

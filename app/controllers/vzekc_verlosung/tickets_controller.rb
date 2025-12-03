@@ -50,7 +50,11 @@ module VzekcVerlosung
         )
 
         # Notify the lottery creator that a ticket was bought
-        notify_ticket_bought(topic, post, current_user)
+        begin
+          notify_ticket_bought(topic, post, current_user)
+        rescue => e
+          Rails.logger.error "notify_ticket_bought failed: #{e.class}: #{e.message}"
+        end
 
         render json: success_json.merge(ticket_packet_status_response(post.id))
       else
@@ -87,7 +91,11 @@ module VzekcVerlosung
       ticket.destroy
 
       # Notify the lottery creator that a ticket was returned
-      notify_ticket_returned(post.topic, post, current_user) if post
+      begin
+        notify_ticket_returned(post.topic, post, current_user) if post
+      rescue => e
+        Rails.logger.error "notify_ticket_returned failed: #{e.class}: #{e.message}"
+      end
 
       render json: success_json.merge(ticket_packet_status_response(params[:post_id]))
     end

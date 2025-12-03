@@ -40,6 +40,7 @@ export default class LotteryWidget extends Component {
   constructor() {
     super(...arguments);
     if (this.shouldShow) {
+      // Load from serialized/cached post data (updated when tickets change)
       this.loadTicketDataFromPost();
       this.appEvents.on("lottery:ticket-changed", this, this.onTicketChanged);
       // Reload data when page becomes visible again
@@ -75,9 +76,24 @@ export default class LotteryWidget extends Component {
   }
 
   @bind
-  onTicketChanged(postId) {
-    if (postId === this.post?.id) {
-      this.loadTicketDataFromAjax();
+  onTicketChanged(eventData) {
+    // Only update if triggered by another component for this post
+    // The current component already updates its state directly from the API response
+    if (eventData.postId === this.post?.id && !this._isToggling) {
+      // Update local state from event data (no AJAX needed)
+      this.hasTicket = eventData.hasTicket;
+      this.ticketCount = eventData.ticketCount;
+      this.users = eventData.users || [];
+
+      // Update cached post data
+      if (this.post) {
+        this.post.packet_ticket_status = {
+          ...this.post.packet_ticket_status,
+          has_ticket: eventData.hasTicket,
+          ticket_count: eventData.ticketCount,
+          users: eventData.users || [],
+        };
+      }
     }
   }
 
@@ -138,28 +154,68 @@ export default class LotteryWidget extends Component {
     }
 
     this.loading = true;
+    this._isToggling = true;
 
     try {
+      let result;
       if (this.hasTicket) {
         // Return ticket
-        await ajax(`/vzekc-verlosung/tickets/${this.post.id}`, {
+        result = await ajax(`/vzekc-verlosung/tickets/${this.post.id}`, {
           type: "DELETE",
         });
-        this.hasTicket = false;
       } else {
         // Buy ticket
-        await ajax("/vzekc-verlosung/tickets", {
+        result = await ajax("/vzekc-verlosung/tickets", {
           type: "POST",
           data: { post_id: this.post.id },
         });
-        this.hasTicket = true;
       }
 
-      // Emit event to update ticket count display
-      this.appEvents.trigger("lottery:ticket-changed", this.post.id);
+      // Update local component state from API response
+      this.hasTicket = result.has_ticket;
+      this.ticketCount = result.ticket_count;
+      this.users = result.users || [];
+      this.winnerData = result.winner || null;
+      this.collectedAt = result.collected_at || null;
+
+      // Update the cached post data so it persists across component recreation (scroll)
+      if (this.post) {
+        this.post.packet_ticket_status = {
+          has_ticket: result.has_ticket,
+          ticket_count: result.ticket_count,
+          users: result.users || [],
+          winner: result.winner || null,
+          collected_at: result.collected_at || null,
+        };
+
+        // Also update the topic's lottery_packets cache (for lottery-intro-summary)
+        // This ensures the cache is updated even if intro-summary is destroyed
+        const topic = this.post.topic;
+        if (topic?.lottery_packets) {
+          const packetIndex = topic.lottery_packets.findIndex(
+            (p) => p.post_id === this.post.id
+          );
+          if (packetIndex !== -1) {
+            topic.lottery_packets[packetIndex] = {
+              ...topic.lottery_packets[packetIndex],
+              ticket_count: result.ticket_count,
+              users: result.users || [],
+            };
+          }
+        }
+      }
+
+      // Emit event to update other LIVE widgets on the page
+      this.appEvents.trigger("lottery:ticket-changed", {
+        postId: this.post.id,
+        ticketCount: result.ticket_count,
+        users: result.users || [],
+        hasTicket: result.has_ticket,
+      });
     } catch (error) {
       popupAjaxError(error);
     } finally {
+      this._isToggling = false;
       this.loading = false;
     }
   }
@@ -680,18 +736,16 @@ export default class LotteryWidget extends Component {
                   class="btn-primary lottery-ticket-button"
                 />
               </div>
-              {{#unless this.loading}}
-                <div class="participants-display">
-                  <span class="participants-label">{{i18n
-                      "vzekc_verlosung.ticket.participants"
-                    }}:</span>
-                  <TicketCountBadge
-                    @count={{this.ticketCount}}
-                    @users={{this.users}}
-                    @packetTitle={{this.packetTitle}}
-                  />
-                </div>
-              {{/unless}}
+              <div class="participants-display">
+                <span class="participants-label">{{i18n
+                    "vzekc_verlosung.ticket.participants"
+                  }}:</span>
+                <TicketCountBadge
+                  @count={{this.ticketCount}}
+                  @users={{this.users}}
+                  @packetTitle={{this.packetTitle}}
+                />
+              </div>
             {{/if}}
           </div>
         {{else if this.hasEnded}}

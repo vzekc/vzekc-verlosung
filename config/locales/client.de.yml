@@ -91,7 +91,7 @@ de:
         switch_mode_warning_message: "Du hast ungespeicherte Änderungen an Pakettiteln oder Inhalten. Das Wechseln des Modus kann zu Datenverlust führen. Möchtest du fortfahren?"
         abholerpaket_title_label: "Titel des Abholerpakets"
         abholerpaket_title_placeholder: "Dieses System behalte ich"
-        abholerpaket_badge: "Paket 0"
+        abholerpaket_badge: "Paket 0 (Abholerpaket)"
         no_abholerpaket_label: "Ich behalte kein System"
         no_abholerpaket_help: "Wenn du kein System für dich behältst, wird kein Abholerpaket erstellt. Andernfalls wird das Abholerpaket automatisch erstellt und dir als Ersteller zugewiesen. Du musst auch einen Erhaltungsbericht dafür schreiben."
         packets_label: "Pakete"

@@ -9,7 +9,7 @@ import { service } from "@ember/service";
 import { eq, gt } from "truth-helpers";
 import DButton from "discourse/components/d-button";
 import DEditor from "discourse/components/d-editor";
-import DTooltip from "discourse/components/d-tooltip";
+import DTooltip from "discourse/float-kit/components/d-tooltip";
 import Form from "discourse/components/form";
 import { ajax } from "discourse/lib/ajax";
 import { popupAjaxError } from "discourse/lib/ajax-error";

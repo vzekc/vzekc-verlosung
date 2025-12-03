@@ -397,7 +397,7 @@
         font-weight: normal;
         color: var(--primary-high);
         line-height: 1.5;
-        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+        box-shadow: 0 4px 14px rgb(0, 0, 0, 0.15);
 
         &::before {
           content: "";
@@ -426,50 +426,54 @@
     list-style: none;
     padding: 0;
     margin: 0;
+  }
 
-    .leaderboard-entry {
+  ul.leaderboard-list > li.leaderboard-entry {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5em;
+    border-radius: 4px;
+
+    &:hover {
+      background: var(--primary-very-low);
+    }
+
+    > span.user-info {
       display: flex;
       align-items: center;
-      padding: 0.5em;
-      border-radius: 4px;
+      gap: 0.5em;
+      margin: 0;
 
-      &:hover {
-        background: var(--primary-very-low);
+      > img.avatar {
+        flex-shrink: 0;
+        margin: 0;
       }
 
-      .user-info {
-        flex: 1;
-        display: flex;
-        align-items: center;
-        gap: 0.5em;
+      > a.username {
+        color: var(--primary);
+        text-decoration: none;
+        margin: 0;
 
-        .avatar {
-          flex-shrink: 0;
-        }
-
-        .username {
-          color: var(--primary);
-          text-decoration: none;
-
-          &:hover {
-            color: var(--tertiary);
-          }
+        &:hover {
+          color: var(--tertiary);
         }
       }
+    }
 
-      .count {
-        font-weight: bold;
-        color: var(--tertiary);
-        min-width: 2em;
-        text-align: right;
+    > span.count {
+      font-weight: bold;
+      color: var(--tertiary);
+      min-width: 2em;
+      text-align: right;
+      margin: 0;
 
-        &.luck-positive {
-          color: var(--success);
-        }
+      &.luck-positive {
+        color: var(--success);
+      }
 
-        &.luck-negative {
-          color: var(--danger);
-        }
+      &.luck-negative {
+        color: var(--danger);
       }
     }
   }
@@ -660,14 +664,22 @@
 
       .lottery-meta {
         display: flex;
-        gap: 1em;
+        gap: 0.5em;
         color: var(--primary-medium);
         font-size: 0.85em;
 
         .meta-item {
           display: flex;
           align-items: center;
+          justify-content: flex-start;
           gap: 0.25em;
+          min-width: 3.5em;
+
+          // Date column needs more width and spacing
+          &:first-child {
+            min-width: 6em;
+            margin-right: 1em;
+          }
         }
       }
     }

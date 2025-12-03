@@ -91,7 +91,7 @@ en:
         switch_mode_warning_message: "You have unsaved changes to packet titles or content. Switching modes may lose this data. Do you want to continue?"
         abholerpaket_title_label: "Pickup packet title"
         abholerpaket_title_placeholder: "I'm keeping this system"
-        abholerpaket_badge: "Packet 0"
+        abholerpaket_badge: "Packet 0 (Pickup Packet)"
         no_abholerpaket_label: "I'm not keeping a system"
         no_abholerpaket_help: "If you're not keeping a system for yourself, no pickup packet will be created. Otherwise, the pickup packet will be automatically created and assigned to you as the creator. You must also write a reception report for it."
         packets_label: "Packets"
