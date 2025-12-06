@@ -3,7 +3,6 @@ import { tracked } from "@glimmer/tracking";
 import { concat, fn } from "@ember/helper";
 import { action } from "@ember/object";
 import { service } from "@ember/service";
-import { eq, gt } from "truth-helpers";
 import DButton from "discourse/components/d-button";
 import avatar from "discourse/helpers/avatar";
 import icon from "discourse/helpers/d-icon";
@@ -12,9 +11,9 @@ import { ajax } from "discourse/lib/ajax";
 import { popupAjaxError } from "discourse/lib/ajax-error";
 import { bind } from "discourse/lib/decorators";
 import Composer from "discourse/models/composer";
+import { eq, gt } from "discourse/truth-helpers";
 import { i18n } from "discourse-i18n";
 import AssignOfferModal from "./modal/assign-offer-modal";
-import CreateLotteryModal from "./modal/create-lottery-modal";
 
 /**
  * Donation widget component for managing pickup offers
@@ -33,6 +32,7 @@ export default class DonationWidget extends Component {
   @service appEvents;
   @service composer;
   @service modal;
+  @service router;
   @service siteSettings;
 
   @tracked donationData = null;
@@ -401,28 +401,20 @@ export default class DonationWidget extends Component {
   }
 
   /**
-   * Open lottery creation modal
+   * Navigate to lottery creation page with donation data
    */
   @action
   createLottery() {
-    const lotteryCategoryId = parseInt(
-      this.siteSettings.vzekc_verlosung_category_id,
-      10
-    );
-
-    if (!lotteryCategoryId) {
+    if (!this.siteSettings.vzekc_verlosung_enabled) {
       return;
     }
 
     const topic = this.post.topic;
 
-    this.modal.show(CreateLotteryModal, {
-      model: {
-        categoryId: lotteryCategoryId,
-        fromDonation: {
-          id: this.donationData.id,
-          topicTitle: topic.title,
-        },
+    this.router.transitionTo("newLottery", {
+      queryParams: {
+        donation_id: this.donationData.id,
+        donation_title: topic.title,
       },
     });
   }

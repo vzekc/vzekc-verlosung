@@ -1,3 +1,3 @@
 import NewLotteryPage from "../components/new-lottery-page";
 
-<template><NewLotteryPage /></template>
+<template><NewLotteryPage @model={{@model}} /></template>

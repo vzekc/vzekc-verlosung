@@ -6,20 +6,25 @@ import { action } from "@ember/object";
 // eslint-disable-next-line no-unused-vars
 import { readonly } from "@ember/object/computed";
 import { service } from "@ember/service";
-import { eq, gt } from "truth-helpers";
 import DButton from "discourse/components/d-button";
 import DEditor from "discourse/components/d-editor";
-import DTooltip from "discourse/float-kit/components/d-tooltip";
 import Form from "discourse/components/form";
+import DTooltip from "discourse/float-kit/components/d-tooltip";
 import { ajax } from "discourse/lib/ajax";
 import { popupAjaxError } from "discourse/lib/ajax-error";
 import Draft from "discourse/models/draft";
+import { eq, gt } from "discourse/truth-helpers";
 import { i18n } from "discourse-i18n";
 
 /**
  * Full-page lottery creation form
  * Uses DEditor for post body with image upload support
  * Creates topic directly via API without using composer
+ *
+ * @component NewLotteryPage
+ * @param {Object} [model] - Route model with optional donation data
+ * @param {number} [model.donationId] - ID of donation to link lottery to
+ * @param {string} [model.donationTitle] - Title from donation to pre-fill
  */
 export default class NewLotteryPage extends Component {
   @service router;
@@ -40,6 +45,7 @@ export default class NewLotteryPage extends Component {
   @tracked draftSequence = 0;
   @tracked draftSaved = false;
   @tracked draftLoaded = false;
+  @tracked donationId = null;
 
   formApi = null;
 
@@ -50,8 +56,21 @@ export default class NewLotteryPage extends Component {
     this.initializePackets();
     // Set initial body to template
     this.body = this.template;
-    // Load draft asynchronously
-    this.loadDraft();
+
+    // Pre-fill from donation if provided via route model
+    if (this.args.model?.donationId) {
+      this.donationId = this.args.model.donationId;
+    }
+    if (this.args.model?.donationTitle) {
+      this.title = this.args.model.donationTitle;
+    }
+
+    // Load draft asynchronously (only if not creating from donation)
+    if (!this.donationId) {
+      this.loadDraft();
+    } else {
+      this.draftLoaded = true;
+    }
   }
 
   /**
@@ -480,6 +499,11 @@ export default class NewLotteryPage extends Component {
         // Mehrere Pakete mode: send abholerpaket settings
         requestData.has_abholerpaket = !this.noAbholerpaket;
         // Abholerpaket title is now part of the packets array if it exists
+      }
+
+      // Include donation_id if creating lottery from donation
+      if (this.donationId) {
+        requestData.donation_id = this.donationId;
       }
 
       const response = await ajax("/vzekc-verlosung/lotteries", {
