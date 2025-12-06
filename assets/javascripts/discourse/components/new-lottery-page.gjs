@@ -5,13 +5,17 @@ import { on } from "@ember/modifier";
 import { action } from "@ember/object";
 // eslint-disable-next-line no-unused-vars
 import { readonly } from "@ember/object/computed";
+import { getOwner } from "@ember/owner";
 import { service } from "@ember/service";
 import DButton from "discourse/components/d-button";
 import DEditor from "discourse/components/d-editor";
 import Form from "discourse/components/form";
+import PickFilesButton from "discourse/components/pick-files-button";
 import DTooltip from "discourse/float-kit/components/d-tooltip";
 import { ajax } from "discourse/lib/ajax";
 import { popupAjaxError } from "discourse/lib/ajax-error";
+import { authorizesOneOrMoreImageExtensions } from "discourse/lib/uploads";
+import UppyUpload from "discourse/lib/uppy/uppy-upload";
 import Draft from "discourse/models/draft";
 import { eq, gt } from "discourse/truth-helpers";
 import { i18n } from "discourse-i18n";
@@ -31,6 +35,7 @@ export default class NewLotteryPage extends Component {
   @service siteSettings;
   @service currentUser;
   @service dialog;
+  @service site;
 
   @tracked title = "";
   @tracked body = "";
@@ -48,6 +53,10 @@ export default class NewLotteryPage extends Component {
   @tracked donationId = null;
 
   formApi = null;
+  bodyFileInputId = "lottery-body-file-uploader";
+
+  // Packet uploaders - one per packet index
+  _packetUploaders = {};
 
   constructor() {
     super(...arguments);
@@ -70,6 +79,127 @@ export default class NewLotteryPage extends Component {
       this.loadDraft();
     } else {
       this.draftLoaded = true;
+    }
+
+    // Set up upload handler for body editor
+    this.uppyUpload = new UppyUpload(getOwner(this), {
+      id: "lottery-body-uploader",
+      type: "composer",
+      uploadDone: (upload) => {
+        this.insertUploadMarkdown(upload);
+      },
+    });
+  }
+
+  get allowUpload() {
+    return authorizesOneOrMoreImageExtensions(
+      this.currentUser?.staff,
+      this.siteSettings
+    );
+  }
+
+  get uploadIcon() {
+    return authorizesOneOrMoreImageExtensions(
+      this.currentUser?.staff,
+      this.siteSettings
+    )
+      ? "far-image"
+      : "upload";
+  }
+
+  insertUploadMarkdown(upload) {
+    const markdown = this.buildUploadMarkdown(upload);
+    if (this.body && !this.body.endsWith("\n")) {
+      this.body = this.body + "\n" + markdown + "\n";
+    } else {
+      this.body = (this.body || "") + markdown + "\n";
+    }
+  }
+
+  buildUploadMarkdown(upload) {
+    const ext = upload.extension || upload.url.split(".").pop();
+    const imageExts = ["jpg", "jpeg", "png", "gif", "webp", "avif", "svg"];
+
+    if (imageExts.includes(ext?.toLowerCase())) {
+      return `![${upload.original_filename}|${upload.width}x${upload.height}](${upload.short_url})`;
+    } else {
+      return `[${upload.original_filename}|attachment](${upload.short_url}) (${upload.human_filesize})`;
+    }
+  }
+
+  @action
+  extraButtons(toolbar) {
+    if (this.allowUpload && this.site.desktopView) {
+      toolbar.addButton({
+        id: "upload",
+        group: "insertions",
+        icon: this.uploadIcon,
+        title: "upload",
+        sendAction: () => this.showUploadModal(),
+      });
+    }
+  }
+
+  @action
+  showUploadModal() {
+    document.getElementById(this.bodyFileInputId)?.click();
+  }
+
+  // ===== PACKET UPLOAD METHODS =====
+
+  getPacketFileInputId(index) {
+    return `lottery-packet-${index}-file-uploader`;
+  }
+
+  @action
+  packetExtraButtons(index) {
+    return (toolbar) => {
+      if (this.allowUpload && this.site.desktopView) {
+        toolbar.addButton({
+          id: "upload",
+          group: "insertions",
+          icon: this.uploadIcon,
+          title: "upload",
+          sendAction: () => this.showPacketUploadModal(index),
+        });
+      }
+    };
+  }
+
+  @action
+  showPacketUploadModal(index) {
+    const inputId = this.getPacketFileInputId(index);
+    document.getElementById(inputId)?.click();
+  }
+
+  @action
+  registerPacketFileInput(index, fileInputEl) {
+    if (!this._packetUploaders[index]) {
+      this._packetUploaders[index] = new UppyUpload(getOwner(this), {
+        id: `lottery-packet-${index}-uploader`,
+        type: "composer",
+        uploadDone: (upload) => {
+          this.insertPacketUploadMarkdown(index, upload);
+        },
+      });
+    }
+    this._packetUploaders[index].setup(fileInputEl);
+  }
+
+  insertPacketUploadMarkdown(index, upload) {
+    const markdown = this.buildUploadMarkdown(upload);
+    const packet = this.packets[index];
+    if (packet) {
+      const currentRaw = packet.raw || "";
+      const newRaw =
+        currentRaw && !currentRaw.endsWith("\n")
+          ? currentRaw + "\n" + markdown + "\n"
+          : currentRaw + markdown + "\n";
+
+      // Create new packet object to trigger Glimmer reactivity
+      this.packets = this.packets.map((p, i) =>
+        i === index ? { ...p, raw: newRaw } : p
+      );
     }
   }
 
@@ -617,7 +747,20 @@ export default class NewLotteryPage extends Component {
           @validation="required"
           as |field|
         >
-          <field.Composer @height={{500}} @preview={{false}} />
+          <div class="lottery-body-editor">
+            <DEditor
+              @value={{readonly field.value}}
+              @change={{field.set}}
+              @extraButtons={{this.extraButtons}}
+              class="form-kit__control-composer"
+              style="height: 500px"
+            />
+            <PickFilesButton
+              @registerFileInput={{this.uppyUpload.setup}}
+              @fileInputId={{this.bodyFileInputId}}
+              @acceptedFormatsOverride="image/*"
+            />
+          </div>
         </form.Field>
 
         <div class="lottery-paket-setup-section">
@@ -734,8 +877,17 @@ export default class NewLotteryPage extends Component {
                     <DEditor
                       @value={{readonly packet.raw}}
                       @change={{fn this.updatePacketRaw index}}
+                      @extraButtons={{this.packetExtraButtons index}}
                       @preview={{false}}
                       @placeholder="vzekc_verlosung.modal.packet_description_placeholder"
+                    />
+                    <PickFilesButton
+                      @registerFileInput={{fn
+                        this.registerPacketFileInput
+                        index
+                      }}
+                      @fileInputId={{this.getPacketFileInputId index}}
+                      @acceptedFormatsOverride="image/*"
                     />
                   </div>
                   <div class="packet-checkbox-group">

@@ -1132,6 +1132,35 @@
       }
     }
 
+    // Body editor with upload support
+    .lottery-body-editor {
+      width: 100%;
+
+      // Hide the file input - it's triggered by toolbar button
+      .pick-files-button {
+        position: absolute;
+        left: -9999px;
+
+        input[type="file"] {
+          position: absolute;
+          left: -9999px;
+        }
+      }
+    }
+
+    // Packet editors with upload support
+    .packet-editor {
+      .pick-files-button {
+        position: absolute;
+        left: -9999px;
+
+        input[type="file"] {
+          position: absolute;
+          left: -9999px;
+        }
+      }
+    }
+
     .form-kit__control-composer {
       width: 100% !important;
       max-width: 100% !important;
