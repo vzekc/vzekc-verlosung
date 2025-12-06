@@ -6,6 +6,7 @@ import { action } from "@ember/object";
 // eslint-disable-next-line no-unused-vars
 import { readonly } from "@ember/object/computed";
 import { getOwner } from "@ember/owner";
+import { cancel } from "@ember/runloop";
 import { service } from "@ember/service";
 import DButton from "discourse/components/d-button";
 import DEditor from "discourse/components/d-editor";
@@ -14,6 +15,7 @@ import PickFilesButton from "discourse/components/pick-files-button";
 import DTooltip from "discourse/float-kit/components/d-tooltip";
 import { ajax } from "discourse/lib/ajax";
 import { popupAjaxError } from "discourse/lib/ajax-error";
+import discourseDebounce from "discourse/lib/debounce";
 import { authorizesOneOrMoreImageExtensions } from "discourse/lib/uploads";
 import UppyUpload from "discourse/lib/uppy/uppy-upload";
 import Draft from "discourse/models/draft";
@@ -31,6 +33,9 @@ import { i18n } from "discourse-i18n";
  * @param {string} [model.donationTitle] - Title from donation to pre-fill
  */
 export default class NewLotteryPage extends Component {
+  // Auto-save delay in milliseconds
+  static DRAFT_SAVE_DELAY = 2000;
+
   @service router;
   @service siteSettings;
   @service currentUser;
@@ -48,7 +53,7 @@ export default class NewLotteryPage extends Component {
   @tracked packets = [];
   @tracked isSubmitting = false;
   @tracked draftSequence = 0;
-  @tracked draftSaved = false;
+  @tracked draftSaving = false;
   @tracked draftLoaded = false;
   @tracked donationId = null;
 
@@ -57,6 +62,10 @@ export default class NewLotteryPage extends Component {
 
   // Packet uploaders - one per packet index
   _packetUploaders = {};
+
+  // Auto-save debounce timer
+  _saveDraftDebounce = null;
+  _saveDraftPromise = null;
 
   constructor() {
     super(...arguments);
@@ -91,6 +100,12 @@ export default class NewLotteryPage extends Component {
     });
   }
 
+  willDestroy() {
+    super.willDestroy(...arguments);
+    // Cancel any pending draft save
+    cancel(this._saveDraftDebounce);
+  }
+
   get allowUpload() {
     return authorizesOneOrMoreImageExtensions(
       this.currentUser?.staff,
@@ -114,6 +129,7 @@ export default class NewLotteryPage extends Component {
     } else {
       this.body = (this.body || "") + markdown + "\n";
     }
+    this._scheduleDraftSave();
   }
 
   buildUploadMarkdown(upload) {
@@ -200,6 +216,7 @@ export default class NewLotteryPage extends Component {
       this.packets = this.packets.map((p, i) =>
         i === index ? { ...p, raw: newRaw } : p
       );
+      this._scheduleDraftSave();
     }
   }
 
@@ -317,6 +334,24 @@ export default class NewLotteryPage extends Component {
   @action
   handleBodyChange(value) {
     this.body = value;
+    this._scheduleDraftSave();
+  }
+
+  /**
+   * Wrapper for body editor changes - updates form field and triggers auto-save
+   */
+  @action
+  handleBodyFieldChange(fieldSetter, event) {
+    fieldSetter(event);
+    this._scheduleDraftSave();
+  }
+
+  /**
+   * Trigger auto-save when FormKit fields change
+   */
+  @action
+  onFormFieldChange() {
+    this._scheduleDraftSave();
   }
 
   @action
@@ -336,12 +371,14 @@ export default class NewLotteryPage extends Component {
     const maxOrdinal = Math.max(...this.packets.map((p) => p.ordinal || 0), 0);
     const nextOrdinal = maxOrdinal + 1;
     this.packets = [...this.packets, this.createEmptyPacket(nextOrdinal)];
+    this._scheduleDraftSave();
   }
 
   @action
   removePacket(index) {
     if (this.packets.length > 1) {
       this.packets = this.packets.filter((_, i) => i !== index);
+      this._scheduleDraftSave();
     }
   }
 
@@ -353,6 +390,7 @@ export default class NewLotteryPage extends Component {
         : event.target.value;
     this.packets[index][field] = value;
     this.packets = [...this.packets];
+    this._scheduleDraftSave();
   }
 
   @action
@@ -360,11 +398,13 @@ export default class NewLotteryPage extends Component {
     // DEditor passes the event object - extract the value
     this.packets[index].raw = event.target.value;
     this.packets = [...this.packets];
+    this._scheduleDraftSave();
   }
 
   @action
   updateField(field, event) {
     this[field] = event.target.value;
+    this._scheduleDraftSave();
   }
 
   @action
@@ -372,11 +412,13 @@ export default class NewLotteryPage extends Component {
     this.noAbholerpaket = event.target.checked;
     // Reinitialize packets when Abholerpaket toggle changes
     this.initializePackets();
+    this._scheduleDraftSave();
   }
 
   @action
   toggleSinglePacketErhaltungsbericht(event) {
     this.singlePacketErhaltungsberichtNotRequired = event.target.checked;
+    this._scheduleDraftSave();
   }
 
   /**
@@ -403,6 +445,7 @@ export default class NewLotteryPage extends Component {
     this.packetMode = newMode;
     // Reinitialize packets for new mode
     this.initializePackets();
+    this._scheduleDraftSave();
   }
 
   /**
@@ -486,11 +529,40 @@ export default class NewLotteryPage extends Component {
   }
 
   /**
-   * Save current form state as draft
+   * Schedule a draft save with debouncing
+   * Called automatically when form data changes
    */
-  @action
-  async saveDraft() {
-    this.isSubmitting = true;
+  _scheduleDraftSave() {
+    // Don't auto-save if creating from donation (no draft needed)
+    if (this.donationId) {
+      return;
+    }
+
+    // Don't schedule if draft hasn't loaded yet
+    if (!this.draftLoaded) {
+      return;
+    }
+
+    cancel(this._saveDraftDebounce);
+    this._saveDraftDebounce = discourseDebounce(
+      this,
+      this._performDraftSave,
+      NewLotteryPage.DRAFT_SAVE_DELAY
+    );
+  }
+
+  /**
+   * Perform the actual draft save
+   */
+  async _performDraftSave() {
+    // Don't save if already saving
+    if (this._saveDraftPromise) {
+      // Re-schedule if a change happened during save
+      this._scheduleDraftSave();
+      return;
+    }
+
+    this.draftSaving = true;
 
     try {
       // Get current form values from the form API
@@ -526,21 +598,19 @@ export default class NewLotteryPage extends Component {
         },
       };
 
-      await Draft.save(
+      this._saveDraftPromise = Draft.save(
         "new_topic",
         this.draftSequence,
         draftData,
         this.currentUser.id
       );
 
-      this.draftSaved = true;
-      setTimeout(() => {
-        this.draftSaved = false;
-      }, 3000);
-    } catch (error) {
-      popupAjaxError(error);
+      await this._saveDraftPromise;
+    } catch {
+      // Silently fail for auto-save - don't interrupt user
     } finally {
-      this.isSubmitting = false;
+      this._saveDraftPromise = null;
+      this.draftSaving = false;
     }
   }
 
@@ -688,6 +758,7 @@ export default class NewLotteryPage extends Component {
           >
             <field.Input
               placeholder={{i18n "vzekc_verlosung.composer.title_placeholder"}}
+              {{on "input" this.onFormFieldChange}}
             />
           </form.Field>
         </div>
@@ -710,7 +781,10 @@ export default class NewLotteryPage extends Component {
                   @content={{i18n "vzekc_verlosung.composer.duration_hint"}}
                 />
               </div>
-              <field.Input @type="number" />
+              <field.Input
+                @type="number"
+                {{on "input" this.onFormFieldChange}}
+              />
             </div>
           </form.Field>
 
@@ -730,7 +804,7 @@ export default class NewLotteryPage extends Component {
                   @content={{i18n "vzekc_verlosung.composer.drawing_mode_hint"}}
                 />
               </div>
-              <field.Select as |select|>
+              <field.Select {{on "change" this.onFormFieldChange}} as |select|>
                 {{#each this.drawingModeOptions as |option|}}
                   <select.Option @value={{option.value}}>
                     {{option.name}}
@@ -750,7 +824,7 @@ export default class NewLotteryPage extends Component {
           <div class="lottery-body-editor">
             <DEditor
               @value={{readonly field.value}}
-              @change={{field.set}}
+              @change={{fn this.handleBodyFieldChange field.set}}
               @extraButtons={{this.extraButtons}}
               class="form-kit__control-composer"
               style="height: 500px"
@@ -923,20 +997,13 @@ export default class NewLotteryPage extends Component {
         {{/if}}
 
         <div class="lottery-form-actions">
-          {{#if this.draftSaved}}
-            <div class="lottery-draft-saved-notice">
-              {{i18n "vzekc_verlosung.draft_saved"}}
+          {{#if this.draftSaving}}
+            <div class="lottery-draft-saving-notice">
+              {{i18n "vzekc_verlosung.draft_saving"}}
             </div>
           {{/if}}
 
           <div class="lottery-action-buttons">
-            <DButton
-              @action={{this.saveDraft}}
-              @label="vzekc_verlosung.save_as_draft"
-              @disabled={{this.isSubmitting}}
-              class="btn-default"
-            />
-
             <form.Submit
               @label="vzekc_verlosung.publish_lottery"
               @disabled={{this.isSubmitting}}

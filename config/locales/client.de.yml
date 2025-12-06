@@ -32,6 +32,7 @@ de:
       save_as_draft: "Als Entwurf speichern"
       publish_lottery: "Verlosung veröffentlichen"
       draft_saved: "Entwurf erfolgreich gespeichert"
+      draft_saving: "Speichert..."
       discard_draft: "Entwurf verwerfen"
       errors:
         at_least_one_packet_required: "Bitte geben Sie mindestens einen Pakettitel ein"

@@ -1618,6 +1618,13 @@
       text-align: center;
     }
 
+    .lottery-draft-saving-notice {
+      color: var(--primary-medium);
+      font-size: var(--font-down-1);
+      font-style: italic;
+      margin-bottom: 0.5em;
+    }
+
     .lottery-action-buttons {
       display: flex;
       gap: 1em;
