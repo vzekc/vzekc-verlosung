@@ -7,20 +7,29 @@ import DButton from "discourse/components/d-button";
  * Button component to create a new lottery (Verlosung)
  *
  * @component NeueVerlosungButton
- * Displays a button in the configured category to start lottery creation
+ * @param {Object} [category] - Current category (from outlet)
+ * @param {boolean} [forceShow] - Force button to show regardless of category
  */
 export default class NeueVerlosungButton extends Component {
   @service siteSettings;
   @service router;
 
   /**
-   * Check if button should be shown in current category
+   * Check if button should be shown
+   *
+   * Shows when:
+   * - @forceShow is true (for pages like active-lotteries), or
+   * - We're in the configured lottery category
    *
    * @type {boolean}
    */
   get shouldShow() {
     if (!this.siteSettings.vzekc_verlosung_enabled) {
       return false;
+    }
+
+    if (this.args.forceShow) {
+      return true;
     }
 
     const configuredCategoryId = parseInt(

@@ -1848,6 +1848,9 @@
   padding: 1em;
 
   .active-lotteries-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: 1.5em;
 
     h1 {
