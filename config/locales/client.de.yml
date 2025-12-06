@@ -59,7 +59,7 @@ de:
 
           ## Dauer
 
-          Diese Verlosung läuft {duration} Tage und verwendet {drawing_mode} Gewinnerauswahl.
+          Diese Verlosung läuft {duration} Tage und verwendet die Gewinnerauswahl: {drawing_mode}
       notifications:
         lottery_published: "%{topic_title}"
         lottery_drawn: "%{topic_title}"
