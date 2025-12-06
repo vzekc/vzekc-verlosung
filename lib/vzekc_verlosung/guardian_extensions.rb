@@ -21,8 +21,7 @@ module VzekcVerlosung
       lottery = VzekcVerlosung::Lottery.find_by(topic_id: topic&.id)
       return true unless lottery
 
-      # Active lotteries: staff and lottery owner can post
-      return true if is_staff?
+      # Lottery owner can always post
       return true if @user && !is_anonymous? && topic.user_id == @user.id
 
       # For active lotteries, regular users can post (e.g., lottery tickets via likes)
@@ -32,25 +31,19 @@ module VzekcVerlosung
     # Check if user can manage lottery packets (mark as collected, etc.)
     #
     # @param topic [Topic] the lottery topic
-    # @return [Boolean] true if user is lottery owner or staff
+    # @return [Boolean] true if user is lottery owner
     def can_manage_lottery_packets?(topic)
       return false unless topic
-      return true if is_staff?
-      return true if topic.user_id == @user&.id
-
-      false
+      topic.user_id == @user&.id
     end
 
     # Check if user can manage a donation
     #
     # @param donation [Donation] the donation to check
-    # @return [Boolean] true if user is donation creator or staff
+    # @return [Boolean] true if user is donation creator (facilitator)
     def can_manage_donation?(donation)
       return false unless donation
-      return true if is_staff?
-      return true if donation.creator_user_id == @user&.id
-
-      false
+      donation.creator_user_id == @user&.id
     end
 
     # Check if user can offer to pick up a donation

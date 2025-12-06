@@ -126,13 +126,6 @@ module VzekcVerlosung
       lottery = packet.lottery
       return render_json_error("Lottery not found", status: :not_found) unless lottery
 
-      # Check permissions - only lottery owner or staff
-      unless guardian.can_manage_lottery_packets?(topic)
-        return(
-          render_json_error("You don't have permission to manage this lottery", status: :forbidden)
-        )
-      end
-
       # Check if lottery is finished and drawn
       unless lottery.finished? && lottery.drawn?
         return(
@@ -146,6 +139,13 @@ module VzekcVerlosung
       # Check if there's a winner
       unless packet.has_winner?
         return(render_json_error("No winner for this packet", status: :unprocessable_entity))
+      end
+
+      # Check permissions - only the winner can mark as collected
+      unless packet.winner_user_id == current_user.id
+        return(
+          render_json_error("Only the winner can mark a packet as collected", status: :forbidden)
+        )
       end
 
       # Check if already collected
@@ -307,11 +307,11 @@ module VzekcVerlosung
         winner: winner,
       }
 
-      # Include collected_at for lottery owner, staff, or winner
+      # Include collected_at for lottery owner or winner
       topic = post.topic
       is_winner = packet&.winner_user_id.present? && user && user.id == packet.winner_user_id
 
-      if topic && packet && (guardian.is_staff? || topic.user_id == user.id || is_winner)
+      if topic && packet && (topic.user_id == user.id || is_winner)
         response[:collected_at] = packet.collected_at if packet.collected_at
       end
 

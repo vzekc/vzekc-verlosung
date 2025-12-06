@@ -277,24 +277,19 @@ export default class LotteryIntroSummary extends Component {
     if (!this.currentUser) {
       return false;
     }
-    if (this.currentUser.staff) {
-      return true;
-    }
     return this.args.data.post.user_id === this.currentUser.id;
   }
 
   /**
    * Check if current user is the lottery owner
    *
-   * @returns {Boolean} true if user is lottery owner or staff
+   * @returns {Boolean} true if user is lottery owner
    */
   get isLotteryOwner() {
     return (
       this.currentUser &&
       this.topic &&
-      (this.currentUser.admin ||
-        this.currentUser.staff ||
-        this.topic.user_id === this.currentUser.id)
+      this.topic.user_id === this.currentUser.id
     );
   }
 

@@ -173,7 +173,9 @@ export default class LotteryHistoryLotteries extends Component {
                     <tbody>
                       {{#each lottery.packets as |packet|}}
                         <tr>
-                          <td class="packet-title">{{packet.title}}</td>
+                          <td class="packet-title">
+                            <a href={{packet.url}}>{{packet.title}}</a>
+                          </td>
                           <td class="packet-winner">
                             {{#if packet.winner}}
                               {{avatar packet.winner imageSize="tiny"}}

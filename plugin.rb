@@ -287,12 +287,12 @@ after_initialize do
     packet = VzekcVerlosung::LotteryPacket.find_by(post_id: object.id)
     return nil unless packet
 
-    # Show to lottery owner, staff, or winner
+    # Show to lottery owner or winner
     topic = object.topic
     return nil unless topic
 
     is_winner = packet.winner_user_id.present? && scope.user&.id == packet.winner_user_id
-    is_authorized = scope.is_staff? || topic.user_id == scope.user&.id || is_winner
+    is_authorized = topic.user_id == scope.user&.id || is_winner
     return nil unless is_authorized
 
     packet.collected_at
@@ -405,9 +405,9 @@ after_initialize do
           packet_data[:erhaltungsbericht_topic_id] = packet.erhaltungsbericht_topic_id
         end
 
-        # Only include collected_at for lottery owner, staff, or winner
+        # Only include collected_at for lottery owner or winner
         is_winner = packet.winner_user_id.present? && scope.user&.id == packet.winner_user_id
-        is_authorized = scope.is_staff? || object.topic.user_id == scope.user&.id || is_winner
+        is_authorized = object.topic.user_id == scope.user&.id || is_winner
         packet_data[:collected_at] = packet.collected_at if is_authorized && packet.collected_at
 
         packet_data
@@ -459,11 +459,11 @@ after_initialize do
       winner: winner,
     }
 
-    # Include collected_at for lottery owner, staff, or winner
+    # Include collected_at for lottery owner or winner
     topic = object.topic
     is_winner =
       packet.winner_user_id.present? && scope.user && scope.user.id == packet.winner_user_id
-    is_authorized = scope.is_staff? || topic&.user_id == scope.user&.id || is_winner
+    is_authorized = topic&.user_id == scope.user&.id || is_winner
     response[:collected_at] = packet.collected_at if is_authorized && packet.collected_at
 
     response
@@ -820,11 +820,6 @@ after_initialize do
         user&.id || -1,
       )
 
-    # Staff can see all drafts
-    if user&.staff?
-      results
-    else
-      results
-    end
+    results
   end
 end

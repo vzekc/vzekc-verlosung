@@ -370,24 +370,17 @@ export default class LotteryWidget extends Component {
    */
   get isLotteryOwner() {
     const topic = this.post?.topic;
-    return (
-      this.currentUser &&
-      topic &&
-      (this.currentUser.admin ||
-        this.currentUser.staff ||
-        topic.user_id === this.currentUser.id)
-    );
+    return this.currentUser && topic && topic.user_id === this.currentUser.id;
   }
 
   /**
    * Check if the "Mark as Collected" button should be shown
+   * Only the winner can mark their packet as collected
    *
    * @type {boolean}
    */
   get canMarkAsCollected() {
-    return (
-      this.isLotteryOwner && this.winner && !this.collectedAt && !this.loading
-    );
+    return this.isWinner && !this.collectedAt && !this.loading;
   }
 
   /**
@@ -631,8 +624,8 @@ export default class LotteryWidget extends Component {
                     </UserLink>
                   {{/if}}
                 </div>
-                {{! Collection tracking - only visible to lottery owner }}
-                {{#if this.isLotteryOwner}}
+                {{! Collection tracking - only visible to winner }}
+                {{#if this.isWinner}}
                   <div class="collection-tracking">
                     {{#if this.collectedAt}}
                       <div class="collection-status collected">

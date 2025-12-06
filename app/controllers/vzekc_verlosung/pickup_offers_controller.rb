@@ -50,7 +50,7 @@ module VzekcVerlosung
     def destroy
       offer = PickupOffer.find(params[:id])
 
-      unless offer.user_id == current_user.id || current_user.staff?
+      unless offer.user_id == current_user.id
         return(
           render_json_error("You don't have permission to retract this offer", status: :forbidden)
         )

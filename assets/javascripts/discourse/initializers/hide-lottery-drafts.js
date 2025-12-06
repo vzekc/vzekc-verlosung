@@ -22,13 +22,9 @@ export default apiInitializer((api) => {
         return this._super(...arguments);
       }
 
-      // If it's a draft, only show to owner or staff
+      // If it's a draft, only show to owner
       if (!currentUser) {
         return false;
-      }
-
-      if (currentUser.staff) {
-        return this._super(...arguments);
       }
 
       if (this.user_id === currentUser.id) {

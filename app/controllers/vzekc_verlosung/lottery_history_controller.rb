@@ -264,6 +264,7 @@ module VzekcVerlosung
             {
               ordinal: packet.ordinal,
               title: packet.title,
+              url: "#{topic.relative_url}/#{packet.post.post_number}",
               winner:
                 if winner
                   {

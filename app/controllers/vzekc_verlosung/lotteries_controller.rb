@@ -128,8 +128,8 @@ module VzekcVerlosung
             erhaltungsbericht_required: packet.erhaltungsbericht_required,
           }
 
-          # Only include collected_at for lottery owner or staff
-          if guardian.is_staff? || topic.user_id == current_user&.id
+          # Only include collected_at for lottery owner
+          if topic.user_id == current_user&.id
             packet_data[:collected_at] = packet.collected_at if packet.collected_at
           end
 
@@ -153,8 +153,8 @@ module VzekcVerlosung
       lottery = Lottery.find_by(topic_id: topic.id)
       return render_json_error("Lottery not found", status: :not_found) unless lottery
 
-      # Check if user can end early (must be topic owner or staff)
-      unless guardian.is_staff? || topic.user_id == current_user.id
+      # Check if user can end early (must be topic owner)
+      unless topic.user_id == current_user.id
         return(
           render_json_error("You don't have permission to end this lottery", status: :forbidden)
         )
@@ -185,8 +185,8 @@ module VzekcVerlosung
       lottery = Lottery.find_by(topic_id: topic.id)
       return render_json_error("Lottery not found", status: :not_found) unless lottery
 
-      # Check if user can draw (must be topic owner or staff)
-      unless guardian.is_staff? || topic.user_id == current_user.id
+      # Check if user can draw (must be topic owner)
+      unless topic.user_id == current_user.id
         return(
           render_json_error("You don't have permission to draw this lottery", status: :forbidden)
         )
@@ -255,8 +255,8 @@ module VzekcVerlosung
       lottery = Lottery.find_by(topic_id: topic.id)
       return render_json_error("Lottery not found", status: :not_found) unless lottery
 
-      # Check if user can draw (must be topic owner or staff)
-      unless guardian.is_staff? || topic.user_id == current_user.id
+      # Check if user can draw (must be topic owner)
+      unless topic.user_id == current_user.id
         return(
           render_json_error("You don't have permission to draw this lottery", status: :forbidden)
         )
@@ -362,8 +362,8 @@ module VzekcVerlosung
       lottery = Lottery.find_by(topic_id: topic.id)
       return render_json_error("Lottery not found", status: :not_found) unless lottery
 
-      # Check if user can draw (must be topic owner or staff)
-      unless guardian.is_staff? || topic.user_id == current_user.id
+      # Check if user can draw (must be topic owner)
+      unless topic.user_id == current_user.id
         return(
           render_json_error("You don't have permission to draw this lottery", status: :forbidden)
         )
