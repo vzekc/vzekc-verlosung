@@ -802,276 +802,283 @@ export default class NewLotteryPage extends Component {
           @data={{this.formData}}
           as |form|
         >
-        <div class="lottery-title-field">
+          <div class="lottery-title-field">
+            <form.Field
+              @name="title"
+              @title={{i18n "vzekc_verlosung.composer.title_label"}}
+              @validation="required"
+              as |field|
+            >
+              <field.Input
+                placeholder={{i18n
+                  "vzekc_verlosung.composer.title_placeholder"
+                }}
+                {{on "input" this.onFormFieldChange}}
+              />
+            </form.Field>
+          </div>
+
+          <div class="lottery-params-grid">
+            <form.Field
+              @name="durationDays"
+              @title={{i18n "vzekc_verlosung.composer.duration_label"}}
+              @validation="required|integer"
+              @validate={{this.validateDuration}}
+              as |field|
+            >
+              <div class="lottery-param-wrapper">
+                <div class="field-title-with-tooltip">
+                  <label>{{i18n
+                      "vzekc_verlosung.composer.duration_label"
+                    }}</label>
+                  <DTooltip
+                    @icon="circle-question"
+                    @content={{i18n "vzekc_verlosung.composer.duration_hint"}}
+                  />
+                </div>
+                <field.Input
+                  @type="number"
+                  {{on "input" this.onFormFieldChange}}
+                />
+              </div>
+            </form.Field>
+
+            <form.Field
+              @name="drawingMode"
+              @title={{i18n "vzekc_verlosung.composer.drawing_mode_label"}}
+              @validation="required"
+              as |field|
+            >
+              <div class="lottery-param-wrapper">
+                <div class="field-title-with-tooltip">
+                  <label>{{i18n
+                      "vzekc_verlosung.composer.drawing_mode_label"
+                    }}</label>
+                  <DTooltip
+                    @icon="circle-question"
+                    @content={{i18n
+                      "vzekc_verlosung.composer.drawing_mode_hint"
+                    }}
+                  />
+                </div>
+                <field.Select
+                  {{on "change" this.onFormFieldChange}}
+                  as |select|
+                >
+                  {{#each this.drawingModeOptions as |option|}}
+                    <select.Option @value={{option.value}}>
+                      {{option.name}}
+                    </select.Option>
+                  {{/each}}
+                </field.Select>
+              </div>
+            </form.Field>
+          </div>
+
           <form.Field
-            @name="title"
-            @title={{i18n "vzekc_verlosung.composer.title_label"}}
+            @name="body"
+            @title={{i18n "vzekc_verlosung.composer.body_label"}}
             @validation="required"
             as |field|
           >
-            <field.Input
-              placeholder={{i18n "vzekc_verlosung.composer.title_placeholder"}}
-              {{on "input" this.onFormFieldChange}}
-            />
-          </form.Field>
-        </div>
-
-        <div class="lottery-params-grid">
-          <form.Field
-            @name="durationDays"
-            @title={{i18n "vzekc_verlosung.composer.duration_label"}}
-            @validation="required|integer"
-            @validate={{this.validateDuration}}
-            as |field|
-          >
-            <div class="lottery-param-wrapper">
-              <div class="field-title-with-tooltip">
-                <label>{{i18n
-                    "vzekc_verlosung.composer.duration_label"
-                  }}</label>
-                <DTooltip
-                  @icon="circle-question"
-                  @content={{i18n "vzekc_verlosung.composer.duration_hint"}}
-                />
-              </div>
-              <field.Input
-                @type="number"
-                {{on "input" this.onFormFieldChange}}
+            <div class="lottery-body-editor">
+              <DEditor
+                @value={{readonly field.value}}
+                @change={{fn this.handleBodyFieldChange field.set}}
+                @extraButtons={{this.extraButtons}}
+                class="form-kit__control-composer"
+                style="height: 500px"
+              />
+              <PickFilesButton
+                @registerFileInput={{this.uppyUpload.setup}}
+                @fileInputId={{this.bodyFileInputId}}
+                @acceptedFormatsOverride="image/*"
               />
             </div>
           </form.Field>
 
-          <form.Field
-            @name="drawingMode"
-            @title={{i18n "vzekc_verlosung.composer.drawing_mode_label"}}
-            @validation="required"
-            as |field|
-          >
-            <div class="lottery-param-wrapper">
-              <div class="field-title-with-tooltip">
-                <label>{{i18n
-                    "vzekc_verlosung.composer.drawing_mode_label"
-                  }}</label>
-                <DTooltip
-                  @icon="circle-question"
-                  @content={{i18n "vzekc_verlosung.composer.drawing_mode_hint"}}
-                />
-              </div>
-              <field.Select {{on "change" this.onFormFieldChange}} as |select|>
-                {{#each this.drawingModeOptions as |option|}}
-                  <select.Option @value={{option.value}}>
-                    {{option.name}}
-                  </select.Option>
-                {{/each}}
-              </field.Select>
-            </div>
-          </form.Field>
-        </div>
+          <div class="lottery-paket-setup-section">
+            <h3>{{i18n "vzekc_verlosung.modal.paket_setup_label"}}</h3>
 
-        <form.Field
-          @name="body"
-          @title={{i18n "vzekc_verlosung.composer.body_label"}}
-          @validation="required"
-          as |field|
-        >
-          <div class="lottery-body-editor">
-            <DEditor
-              @value={{readonly field.value}}
-              @change={{fn this.handleBodyFieldChange field.set}}
-              @extraButtons={{this.extraButtons}}
-              class="form-kit__control-composer"
-              style="height: 500px"
-            />
-            <PickFilesButton
-              @registerFileInput={{this.uppyUpload.setup}}
-              @fileInputId={{this.bodyFileInputId}}
-              @acceptedFormatsOverride="image/*"
-            />
-          </div>
-        </form.Field>
-
-        <div class="lottery-paket-setup-section">
-          <h3>{{i18n "vzekc_verlosung.modal.paket_setup_label"}}</h3>
-
-          <div class="packet-mode-selection">
-            <label class="packet-mode-label">
-              {{i18n "vzekc_verlosung.modal.packet_mode_label"}}
-            </label>
-            <div class="packet-mode-options">
-              <label class="radio-label">
-                <input
-                  type="radio"
-                  name="packetMode"
-                  value="ein"
-                  checked={{eq this.packetMode "ein"}}
-                  {{on "click" (fn this.switchPacketMode "ein")}}
-                />
-                <span class="radio-text">
-                  {{i18n "vzekc_verlosung.modal.packet_mode_ein"}}
-                </span>
-                <span class="radio-help">
-                  {{i18n "vzekc_verlosung.modal.packet_mode_ein_help"}}
-                </span>
+            <div class="packet-mode-selection">
+              <label class="packet-mode-label">
+                {{i18n "vzekc_verlosung.modal.packet_mode_label"}}
               </label>
-              {{#if (eq this.packetMode "ein")}}
-                <div class="single-packet-settings">
-                  <label class="checkbox-label">
-                    <input
-                      type="checkbox"
-                      {{on "change" this.toggleSinglePacketErhaltungsbericht}}
-                      checked={{this.singlePacketErhaltungsberichtNotRequired}}
-                    />
-                    {{i18n
-                      "vzekc_verlosung.modal.single_packet_erhaltungsbericht_label"
-                    }}
-                  </label>
-                </div>
-              {{/if}}
-              <label class="radio-label">
-                <input
-                  type="radio"
-                  name="packetMode"
-                  value="mehrere"
-                  checked={{eq this.packetMode "mehrere"}}
-                  {{on "click" (fn this.switchPacketMode "mehrere")}}
-                />
-                <span class="radio-text">
-                  {{i18n "vzekc_verlosung.modal.packet_mode_mehrere"}}
-                </span>
-                <span class="radio-help">
-                  {{i18n "vzekc_verlosung.modal.packet_mode_mehrere_help"}}
-                </span>
-              </label>
-            </div>
-          </div>
-
-          {{#if (eq this.packetMode "mehrere")}}
-            <div class="multiple-packets-settings">
-              <label class="checkbox-label">
-                <input
-                  type="checkbox"
-                  {{on "change" this.toggleNoAbholerpaket}}
-                  checked={{this.noAbholerpaket}}
-                />
-                {{i18n "vzekc_verlosung.modal.no_abholerpaket_label"}}
-              </label>
-              <div class="abholerpaket-help">
-                {{i18n "vzekc_verlosung.modal.no_abholerpaket_help"}}
-              </div>
-            </div>
-          {{/if}}
-        </div>
-
-        {{#if (eq this.packetMode "mehrere")}}
-          <div class="lottery-packets-section">
-            <h3>{{i18n "vzekc_verlosung.modal.packets_label"}}</h3>
-            <div class="packets-list">
-              {{#each this.packets as |packet index|}}
-                <div
-                  class="packet-item
-                    {{if packet.isAbholerpaket 'is-abholerpaket'}}"
-                >
-                  <div class="packet-header">
-                    {{#if packet.isAbholerpaket}}
-                      <h4>
-                        {{i18n "vzekc_verlosung.modal.abholerpaket_badge"}}
-                      </h4>
-                    {{else}}
-                      <h4>Paket {{packet.ordinal}}</h4>
-                    {{/if}}
-                    {{#if (this.canRemovePacket packet)}}
-                      <DButton
-                        @action={{fn this.removePacket index}}
-                        @icon="trash-can"
-                        @title="vzekc_verlosung.modal.remove_packet"
-                        class="btn-danger btn-small"
-                      />
-                    {{/if}}
-                  </div>
-                  <div class="packet-title-input">
-                    <input
-                      type="text"
-                      value={{packet.title}}
-                      {{on "input" (fn this.updatePacket index "title")}}
-                      placeholder={{i18n
-                        "vzekc_verlosung.modal.packet_title_placeholder"
-                        number=(this.getPacketNumber index)
-                      }}
-                      class="packet-title-field"
-                    />
-                  </div>
-                  <div class="packet-editor">
-                    <DEditor
-                      @value={{readonly packet.raw}}
-                      @change={{fn this.updatePacketRaw index}}
-                      @extraButtons={{this.packetExtraButtons index}}
-                      @preview={{false}}
-                      @placeholder="vzekc_verlosung.modal.packet_description_placeholder"
-                    />
-                    <PickFilesButton
-                      @registerFileInput={{fn
-                        this.registerPacketFileInput
-                        index
-                      }}
-                      @fileInputId={{this.getPacketFileInputId index}}
-                      @acceptedFormatsOverride="image/*"
-                    />
-                  </div>
-                  <div class="packet-checkbox-group">
+              <div class="packet-mode-options">
+                <label class="radio-label">
+                  <input
+                    type="radio"
+                    name="packetMode"
+                    value="ein"
+                    checked={{eq this.packetMode "ein"}}
+                    {{on "click" (fn this.switchPacketMode "ein")}}
+                  />
+                  <span class="radio-text">
+                    {{i18n "vzekc_verlosung.modal.packet_mode_ein"}}
+                  </span>
+                  <span class="radio-help">
+                    {{i18n "vzekc_verlosung.modal.packet_mode_ein_help"}}
+                  </span>
+                </label>
+                {{#if (eq this.packetMode "ein")}}
+                  <div class="single-packet-settings">
                     <label class="checkbox-label">
                       <input
                         type="checkbox"
-                        {{on
-                          "change"
-                          (fn
-                            this.updatePacket
-                            index
-                            "erhaltungsberichtNotRequired"
-                          )
-                        }}
-                        checked={{packet.erhaltungsberichtNotRequired}}
+                        {{on "change" this.toggleSinglePacketErhaltungsbericht}}
+                        checked={{this.singlePacketErhaltungsberichtNotRequired}}
                       />
                       {{i18n
-                        "vzekc_verlosung.modal.erhaltungsbericht_required_label"
+                        "vzekc_verlosung.modal.single_packet_erhaltungsbericht_label"
                       }}
                     </label>
                   </div>
-                </div>
-              {{/each}}
+                {{/if}}
+                <label class="radio-label">
+                  <input
+                    type="radio"
+                    name="packetMode"
+                    value="mehrere"
+                    checked={{eq this.packetMode "mehrere"}}
+                    {{on "click" (fn this.switchPacketMode "mehrere")}}
+                  />
+                  <span class="radio-text">
+                    {{i18n "vzekc_verlosung.modal.packet_mode_mehrere"}}
+                  </span>
+                  <span class="radio-help">
+                    {{i18n "vzekc_verlosung.modal.packet_mode_mehrere_help"}}
+                  </span>
+                </label>
+              </div>
             </div>
 
-            <DButton
-              @action={{this.addPacket}}
-              @icon="plus"
-              @label="vzekc_verlosung.modal.add_packet"
-              class="btn-default"
-            />
+            {{#if (eq this.packetMode "mehrere")}}
+              <div class="multiple-packets-settings">
+                <label class="checkbox-label">
+                  <input
+                    type="checkbox"
+                    {{on "change" this.toggleNoAbholerpaket}}
+                    checked={{this.noAbholerpaket}}
+                  />
+                  {{i18n "vzekc_verlosung.modal.no_abholerpaket_label"}}
+                </label>
+                <div class="abholerpaket-help">
+                  {{i18n "vzekc_verlosung.modal.no_abholerpaket_help"}}
+                </div>
+              </div>
+            {{/if}}
           </div>
-        {{/if}}
 
-        <div class="lottery-form-actions">
-          {{#if this.draftSaving}}
-            <div class="lottery-draft-saving-notice">
-              {{i18n "vzekc_verlosung.draft_saving"}}
+          {{#if (eq this.packetMode "mehrere")}}
+            <div class="lottery-packets-section">
+              <h3>{{i18n "vzekc_verlosung.modal.packets_label"}}</h3>
+              <div class="packets-list">
+                {{#each this.packets as |packet index|}}
+                  <div
+                    class="packet-item
+                      {{if packet.isAbholerpaket 'is-abholerpaket'}}"
+                  >
+                    <div class="packet-header">
+                      {{#if packet.isAbholerpaket}}
+                        <h4>
+                          {{i18n "vzekc_verlosung.modal.abholerpaket_badge"}}
+                        </h4>
+                      {{else}}
+                        <h4>Paket {{packet.ordinal}}</h4>
+                      {{/if}}
+                      {{#if (this.canRemovePacket packet)}}
+                        <DButton
+                          @action={{fn this.removePacket index}}
+                          @icon="trash-can"
+                          @title="vzekc_verlosung.modal.remove_packet"
+                          class="btn-danger btn-small"
+                        />
+                      {{/if}}
+                    </div>
+                    <div class="packet-title-input">
+                      <input
+                        type="text"
+                        value={{packet.title}}
+                        {{on "input" (fn this.updatePacket index "title")}}
+                        placeholder={{i18n
+                          "vzekc_verlosung.modal.packet_title_placeholder"
+                          number=(this.getPacketNumber index)
+                        }}
+                        class="packet-title-field"
+                      />
+                    </div>
+                    <div class="packet-editor">
+                      <DEditor
+                        @value={{readonly packet.raw}}
+                        @change={{fn this.updatePacketRaw index}}
+                        @extraButtons={{this.packetExtraButtons index}}
+                        @preview={{false}}
+                        @placeholder="vzekc_verlosung.modal.packet_description_placeholder"
+                      />
+                      <PickFilesButton
+                        @registerFileInput={{fn
+                          this.registerPacketFileInput
+                          index
+                        }}
+                        @fileInputId={{this.getPacketFileInputId index}}
+                        @acceptedFormatsOverride="image/*"
+                      />
+                    </div>
+                    <div class="packet-checkbox-group">
+                      <label class="checkbox-label">
+                        <input
+                          type="checkbox"
+                          {{on
+                            "change"
+                            (fn
+                              this.updatePacket
+                              index
+                              "erhaltungsberichtNotRequired"
+                            )
+                          }}
+                          checked={{packet.erhaltungsberichtNotRequired}}
+                        />
+                        {{i18n
+                          "vzekc_verlosung.modal.erhaltungsbericht_required_label"
+                        }}
+                      </label>
+                    </div>
+                  </div>
+                {{/each}}
+              </div>
+
+              <DButton
+                @action={{this.addPacket}}
+                @icon="plus"
+                @label="vzekc_verlosung.modal.add_packet"
+                class="btn-default"
+              />
             </div>
           {{/if}}
 
-          <div class="lottery-action-buttons">
-            <form.Submit
-              @label="vzekc_verlosung.publish_lottery"
-              @disabled={{this.isSubmitting}}
-            />
-
-            {{#if (gt this.draftSequence 0)}}
-              <DButton
-                @action={{this.discardDraft}}
-                @label="vzekc_verlosung.discard_draft"
-                @disabled={{this.isSubmitting}}
-                class="btn-danger"
-              />
+          <div class="lottery-form-actions">
+            {{#if this.draftSaving}}
+              <div class="lottery-draft-saving-notice">
+                {{i18n "vzekc_verlosung.draft_saving"}}
+              </div>
             {{/if}}
+
+            <div class="lottery-action-buttons">
+              <form.Submit
+                @label="vzekc_verlosung.publish_lottery"
+                @disabled={{this.isSubmitting}}
+              />
+
+              {{#if (gt this.draftSequence 0)}}
+                <DButton
+                  @action={{this.discardDraft}}
+                  @label="vzekc_verlosung.discard_draft"
+                  @disabled={{this.isSubmitting}}
+                  class="btn-danger"
+                />
+              {{/if}}
+            </div>
           </div>
-        </div>
         </Form>
       {{/if}}
     </div>
