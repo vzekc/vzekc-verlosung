@@ -162,7 +162,7 @@ export default class LotteryHistoryLotteries extends Component {
                     class="meta-item"
                     title={{i18n "vzekc_verlosung.history.ended"}}
                   >
-                    {{icon "calendar"}}
+                    {{icon "calendar-days"}}
                     {{this.formatAbsoluteDate lottery.ends_at}}
                   </span>
                   <span
