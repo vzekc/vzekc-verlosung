@@ -76,7 +76,7 @@ module VzekcVerlosung
     end
 
     def can_create_topics(guardian:, category:)
-      guardian.can_create_topic_on_category?(category)
+      guardian.can_create_lottery?(category)
     end
 
     def create_main_topic(user:, params:, category:)

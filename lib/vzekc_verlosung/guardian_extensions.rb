@@ -2,6 +2,39 @@
 
 module VzekcVerlosung
   module GuardianExtensions
+    # Check if user can create a lottery in the given category
+    # This bypasses the normal category topic creation block
+    #
+    # @param category [Category] the category to check
+    # @return [Boolean] true if user can create lottery
+    def can_create_lottery?(category)
+      return false unless @user
+      return false unless category
+
+      # Check if user has general topic creation ability
+      @user.has_trust_level?(SiteSetting.min_trust_to_create_topic)
+    end
+
+    # Override to block normal topic creation in lottery categories
+    # Users must use the lottery creation flow instead
+    #
+    # @param category [Category] the category to check
+    # @return [Boolean] true if user can create topic
+    def can_create_topic_on_category?(category)
+      return super unless category
+
+      lottery_category_id = SiteSetting.vzekc_verlosung_category_id.to_i
+      return super if lottery_category_id <= 0
+
+      # Block topic creation in lottery category
+      return false if category.id == lottery_category_id
+
+      # Block topic creation in subcategories of lottery category
+      return false if category.parent_category_id == lottery_category_id
+
+      super
+    end
+
     # Override can_create_post to check lottery draft status
     #
     # @param topic [Topic] the topic to check

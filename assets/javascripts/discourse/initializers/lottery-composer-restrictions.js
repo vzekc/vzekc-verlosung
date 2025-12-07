@@ -2,15 +2,18 @@ import { withPluginApi } from "discourse/lib/plugin-api";
 import { EDIT } from "discourse/models/composer";
 
 /**
- * Hide the category chooser when editing a lottery topic's first post.
- * This prevents users from attempting to change the category, which is
- * blocked by server-side validation.
+ * Lottery composer restrictions:
+ * 1. Hide category chooser when editing lottery topics
+ * 2. Hide lottery category from category selector (users must use /new-lottery)
  */
 export default {
   name: "lottery-composer-restrictions",
 
-  initialize() {
+  initialize(container) {
+    const siteSettings = container.lookup("service:site-settings");
+
     withPluginApi((api) => {
+      // Hide category chooser when editing lottery topics
       api.modifyClass("model:composer", {
         pluginId: "vzekc-verlosung-composer",
 
@@ -28,6 +31,27 @@ export default {
           return !isPrivateMessage && (hasOptions || manyCategories);
         },
       });
+
+      // Hide all lottery-related categories from category chooser
+      // Users must use dedicated pages (/new-lottery, donation widget, etc.)
+      const hiddenCategoryIds = [
+        parseInt(siteSettings.vzekc_verlosung_category_id, 10),
+        parseInt(
+          siteSettings.vzekc_verlosung_erhaltungsberichte_category_id,
+          10
+        ),
+        parseInt(siteSettings.vzekc_verlosung_donation_category_id, 10),
+      ].filter((id) => id > 0);
+
+      if (hiddenCategoryIds.length > 0) {
+        api
+          .modifySelectKit("category-chooser")
+          .replaceContent((component, categories) => {
+            return categories.filter(
+              (category) => !hiddenCategoryIds.includes(category.id)
+            );
+          });
+      }
     });
   },
 };
