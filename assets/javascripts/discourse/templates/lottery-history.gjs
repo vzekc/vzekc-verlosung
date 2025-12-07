@@ -50,7 +50,10 @@ import LotteryStatsCards from "../components/lottery-stats-cards";
       {{#if (eq @controller.activeTab "packets")}}
         <LotteryPacketLeaderboard />
       {{else if (eq @controller.activeTab "lotteries")}}
-        <LotteryHistoryLotteries />
+        <LotteryHistoryLotteries
+          @expanded={{@controller.expanded}}
+          @onExpandedChange={{@controller.updateExpanded}}
+        />
       {{else if (eq @controller.activeTab "leaderboard")}}
         <LotteryLeaderboard />
       {{/if}}

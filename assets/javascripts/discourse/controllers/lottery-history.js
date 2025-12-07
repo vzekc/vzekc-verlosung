@@ -6,8 +6,9 @@ export default class LotteryHistoryController extends Controller {
   @tracked search = null;
   @tracked sort = "date_desc";
   @tracked activeTab = "leaderboard";
+  @tracked expanded = "";
 
-  queryParams = ["search", "sort", "tab"];
+  queryParams = ["search", "sort", "tab", "expanded"];
 
   sortOptions = [
     { value: "date_desc", label: "vzekc_verlosung.history.sort.date_desc" },
@@ -38,5 +39,10 @@ export default class LotteryHistoryController extends Controller {
   clearFilters() {
     this.search = null;
     this.sort = "date_desc";
+  }
+
+  @action
+  updateExpanded(expandedIds) {
+    this.expanded = expandedIds.join(",");
   }
 }

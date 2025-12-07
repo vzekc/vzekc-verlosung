@@ -1,8 +1,11 @@
 import Component from "@glimmer/component";
 import { tracked } from "@glimmer/tracking";
+import { service } from "@ember/service";
 import icon from "discourse/helpers/d-icon";
 import { ajax } from "discourse/lib/ajax";
 import { i18n } from "discourse-i18n";
+
+const CACHE_KEY = "lottery-stats";
 
 /**
  * Displays statistics cards for lottery history
@@ -10,11 +13,19 @@ import { i18n } from "discourse-i18n";
  * @component LotteryStatsCards
  */
 export default class LotteryStatsCards extends Component {
+  @service historyStore;
+
   @tracked stats = null;
   @tracked isLoading = true;
 
   constructor() {
     super(...arguments);
+    // Check cache first for instant restore on back navigation
+    const cached = this.historyStore.get(CACHE_KEY);
+    if (cached) {
+      this.stats = cached;
+      this.isLoading = false;
+    }
     this.loadStats();
   }
 
@@ -22,6 +33,8 @@ export default class LotteryStatsCards extends Component {
     try {
       const result = await ajax("/vzekc-verlosung/history/stats.json");
       this.stats = result;
+      // Cache for back navigation
+      this.historyStore.set(CACHE_KEY, result);
     } finally {
       this.isLoading = false;
     }

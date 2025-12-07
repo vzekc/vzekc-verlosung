@@ -3,11 +3,14 @@ import { tracked } from "@glimmer/tracking";
 import { fn } from "@ember/helper";
 import { on } from "@ember/modifier";
 import { action } from "@ember/object";
+import { service } from "@ember/service";
 import avatar from "discourse/helpers/avatar";
 import icon from "discourse/helpers/d-icon";
 import { ajax } from "discourse/lib/ajax";
 import { includes } from "discourse/truth-helpers";
 import I18n, { i18n } from "discourse-i18n";
+
+const CACHE_KEY = "lottery-history-lotteries";
 
 /**
  * Displays lotteries grouped with collapsible packet details
@@ -15,6 +18,8 @@ import I18n, { i18n } from "discourse-i18n";
  * @component LotteryHistoryLotteries
  */
 export default class LotteryHistoryLotteries extends Component {
+  @service historyStore;
+
   @tracked lotteries = [];
   @tracked isLoading = true;
   @tracked expandedIds = [];
@@ -24,6 +29,21 @@ export default class LotteryHistoryLotteries extends Component {
 
   constructor() {
     super(...arguments);
+    // Parse comma-separated IDs from query param to restore expanded state
+    if (this.args.expanded) {
+      this.expandedIds = this.args.expanded
+        .split(",")
+        .map(Number)
+        .filter(Boolean);
+    }
+    // Check cache first for instant restore on back navigation
+    const cached = this.historyStore.get(CACHE_KEY);
+    if (cached) {
+      this.lotteries = cached.lotteries;
+      this.page = cached.page;
+      this.hasMore = cached.hasMore;
+      this.isLoading = false;
+    }
     this.loadLotteries();
   }
 
@@ -34,6 +54,12 @@ export default class LotteryHistoryLotteries extends Component {
       });
       this.lotteries = result.lotteries;
       this.hasMore = result.lotteries.length === 20;
+      // Cache for back navigation
+      this.historyStore.set(CACHE_KEY, {
+        lotteries: this.lotteries,
+        page: this.page,
+        hasMore: this.hasMore,
+      });
     } finally {
       this.isLoading = false;
     }
@@ -53,6 +79,12 @@ export default class LotteryHistoryLotteries extends Component {
       });
       this.lotteries = [...this.lotteries, ...result.lotteries];
       this.hasMore = result.lotteries.length === 20;
+      // Update cache with new data
+      this.historyStore.set(CACHE_KEY, {
+        lotteries: this.lotteries,
+        page: this.page,
+        hasMore: this.hasMore,
+      });
     } finally {
       this.isLoadingMore = false;
     }
@@ -65,6 +97,8 @@ export default class LotteryHistoryLotteries extends Component {
     } else {
       this.expandedIds = [...this.expandedIds, lotteryId];
     }
+    // Sync expanded state to controller/URL
+    this.args.onExpandedChange?.(this.expandedIds);
   }
 
   /**

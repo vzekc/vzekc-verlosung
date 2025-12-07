@@ -6,6 +6,8 @@ export default class LotteryHistory extends DiscourseRoute {
   queryParams = {
     search: { refreshModel: true },
     sort: { refreshModel: true },
+    expanded: { refreshModel: false },
+    tab: { refreshModel: false },
   };
 
   model(params) {
