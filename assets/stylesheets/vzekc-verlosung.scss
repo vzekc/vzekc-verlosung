@@ -1180,18 +1180,22 @@
         width: 100% !important;
         max-width: none !important;
         min-width: 100% !important;
+        min-height: 0; // Allow flex children to shrink
       }
 
       .d-editor-textarea-column {
         width: 100% !important;
         max-width: none !important;
         min-width: 100% !important;
+        min-height: 0; // Allow flex children to shrink
       }
 
       .d-editor-textarea-wrapper {
         width: 100% !important;
         max-width: none !important;
         min-width: 100% !important;
+        // Ensure flex children can shrink and grow properly
+        min-height: 0;
       }
 
       .ProseMirror-container {
@@ -1205,7 +1209,9 @@
         width: 100% !important;
         max-width: none !important;
         min-width: 100% !important;
-        min-height: 500px;
+        // Height is controlled by the container's inline style
+        // Don't set min-height here as it conflicts with flex layout
+        flex: 1;
         resize: vertical;
       }
 
