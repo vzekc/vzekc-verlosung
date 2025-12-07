@@ -39,6 +39,17 @@ export function timeRemaining(endsAt) {
     });
   } else if (diffMinutes >= 1) {
     const remainingSeconds = diffSeconds % 60;
+    if (diffMinutes === 1 && remainingSeconds === 1) {
+      return i18n("vzekc_verlosung.status.one_minute_one_second_remaining");
+    } else if (diffMinutes === 1) {
+      return i18n("vzekc_verlosung.status.one_minute_seconds_remaining", {
+        seconds: remainingSeconds,
+      });
+    } else if (remainingSeconds === 1) {
+      return i18n("vzekc_verlosung.status.minutes_one_second_remaining", {
+        minutes: diffMinutes,
+      });
+    }
     return i18n("vzekc_verlosung.status.minutes_seconds_remaining", {
       minutes: diffMinutes,
       seconds: remainingSeconds,

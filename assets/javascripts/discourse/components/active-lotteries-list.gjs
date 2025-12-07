@@ -1,7 +1,7 @@
 import avatar from "discourse/helpers/avatar";
 import icon from "discourse/helpers/d-icon";
 import { i18n } from "discourse-i18n";
-import { timeRemaining } from "../lib/time-remaining";
+import TimeRemaining from "./time-remaining";
 
 /**
  * Formats a date as absolute date string for tooltip
@@ -108,9 +108,9 @@ function titleClass(creator) {
                 title={{formatAbsoluteDate lottery.ends_at}}
               >
                 {{icon "clock"}}
-                <span class="date-value">{{timeRemaining
-                    lottery.ends_at
-                  }}</span>
+                <span class="date-value"><TimeRemaining
+                    @endsAt={{lottery.ends_at}}
+                  /></span>
               </div>
             </div>
 

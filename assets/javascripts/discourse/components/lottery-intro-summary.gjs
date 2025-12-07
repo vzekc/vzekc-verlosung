@@ -14,6 +14,7 @@ import { bind } from "discourse/lib/decorators";
 import I18n, { i18n } from "discourse-i18n";
 import DrawLotteryModal from "./modal/draw-lottery-modal";
 import TicketCountBadge from "./ticket-count-badge";
+import TimeRemaining from "./time-remaining";
 
 /**
  * Component to display lottery packet summary on lottery intro posts
@@ -196,42 +197,12 @@ export default class LotteryIntroSummary extends Component {
   }
 
   /**
-   * Get the time remaining until the lottery ends
+   * Check if the lottery has an end date set
    *
-   * @returns {String} formatted time remaining
+   * @returns {Boolean} true if end date is set
    */
-  get timeRemaining() {
-    if (!this.topic?.lottery_ends_at) {
-      return null;
-    }
-
-    const endsAt = new Date(this.topic.lottery_ends_at);
-    const now = new Date();
-    const diff = endsAt - now;
-
-    if (diff <= 0) {
-      return i18n("vzekc_verlosung.state.ended");
-    }
-
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-
-    if (days > 0) {
-      return i18n("vzekc_verlosung.state.time_remaining_days", {
-        days,
-        hours,
-      });
-    } else if (hours > 0) {
-      return i18n("vzekc_verlosung.state.time_remaining_hours", {
-        hours,
-        minutes,
-      });
-    } else {
-      return i18n("vzekc_verlosung.state.time_remaining_minutes", {
-        minutes,
-      });
-    }
+  get hasEndsAt() {
+    return !!this.topic?.lottery_ends_at;
   }
 
   /**
@@ -669,14 +640,14 @@ export default class LotteryIntroSummary extends Component {
         {{/if}}
 
         {{#if this.isActive}}
-          {{#if this.timeRemaining}}
+          {{#if this.hasEndsAt}}
             <div class="lottery-active-notice">
               <div class="active-message">
                 {{icon "clock"}}
                 <span>{{i18n "vzekc_verlosung.state.active"}}</span>
               </div>
               <div class="time-remaining" title={{this.endDateTooltip}}>
-                {{this.timeRemaining}}
+                <TimeRemaining @endsAt={{this.topic.lottery_ends_at}} />
               </div>
               <div class="lottery-status-line">
                 {{#if (gt this.regularPackets.length 1)}}

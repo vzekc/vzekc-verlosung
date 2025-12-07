@@ -1,7 +1,7 @@
 import Component from "@glimmer/component";
 import dIcon from "discourse/helpers/d-icon";
 import I18n, { i18n } from "discourse-i18n";
-import { timeRemaining } from "../../lib/time-remaining";
+import TimeRemaining from "../../components/time-remaining";
 
 /**
  * Component that displays a status chip for lottery topics in topic lists.
@@ -105,18 +105,6 @@ export default class LotteryStatusChip extends Component {
     }
   }
 
-  /**
-   * Calculate time remaining for active lottery
-   *
-   * @returns {string | null}
-   */
-  get timeRemaining() {
-    if (!this.isActive) {
-      return null;
-    }
-    return timeRemaining(this.args.topic.lottery_ends_at);
-  }
-
   <template>
     {{#if this.isLottery}}
       <span class="lottery-status-chip">
@@ -126,9 +114,9 @@ export default class LotteryStatusChip extends Component {
             title={{this.endDateTooltip}}
           >
             {{dIcon "clock"}}
-            <span
-              class="lottery-status-chip__text"
-            >{{this.timeRemaining}}</span>
+            <span class="lottery-status-chip__text"><TimeRemaining
+                @endsAt={{@topic.lottery_ends_at}}
+              /></span>
           </span>
         {{else if this.isReadyToDraw}}
           <span
