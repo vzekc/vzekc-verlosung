@@ -126,9 +126,15 @@ RSpec.describe "Lottery Full Lifecycle Integration" do
 
     # Mock the JavaScript lottery drawer to return consistent results
     # Note: "text" must match the packet title (without "Paket X:" prefix)
+    # The "packets" array must match the "drawings" array (same order, with post IDs)
     mock_results = {
       "rngSeed" => "test-seed-12345",
       "drawingTimestamp" => Time.zone.now.iso8601,
+      "packets" => [
+        { "id" => packet_posts[0].id, "title" => "GPU Paket" },
+        { "id" => packet_posts[1].id, "title" => "CPU Paket" },
+        { "id" => packet_posts[2].id, "title" => "RAM Paket" },
+      ],
       "drawings" => [
         {
           "text" => "GPU Paket",
@@ -258,8 +264,8 @@ RSpec.describe "Lottery Full Lifecycle Integration" do
     expect(uncollected_pm.title).to include("3") # 3 uncollected user packets
     expect(uncollected_pm.title.downcase).to include("received").or include("collected")
 
-    # STEP 13: Mark first packet as collected
-    sign_in(owner)
+    # STEP 13: Mark first packet as collected (by the winner)
+    sign_in(participant1)
     post "/vzekc-verlosung/packets/#{packet_posts[0].id}/mark-collected.json"
     expect(response.status).to eq(200)
 
@@ -333,13 +339,14 @@ RSpec.describe "Lottery Full Lifecycle Integration" do
     expect(packet_with_bericht["erhaltungsbericht"]).to be_present
     expect(packet_with_bericht["erhaltungsbericht"]["topic_id"]).to eq(erhaltungsbericht_topic.id)
 
-    # STEP 17: Collect remaining packets
+    # STEP 17: Collect remaining packets (by their respective winners)
     freeze_time(lottery.drawn_at + 15.days)
 
-    sign_in(owner)
+    sign_in(participant2)
     post "/vzekc-verlosung/packets/#{packet_posts[1].id}/mark-collected.json"
     expect(response.status).to eq(200)
 
+    sign_in(participant3)
     post "/vzekc-verlosung/packets/#{packet_posts[2].id}/mark-collected.json"
     expect(response.status).to eq(200)
 
@@ -477,9 +484,15 @@ RSpec.describe "Lottery Full Lifecycle Integration" do
     expect(response.status).to eq(200)
 
     # Note: "text" must match the packet title (without "Paket X:" prefix)
+    # The "packets" array must match the "drawings" array (same order, with post IDs)
     mock_results = {
       "rngSeed" => "test-seed-67890",
       "drawingTimestamp" => Time.zone.now.iso8601,
+      "packets" => [
+        { "id" => packet_posts[0].id, "title" => "GPU Paket" },
+        { "id" => packet_posts[1].id, "title" => "CPU Paket" },
+        { "id" => packet_posts[2].id, "title" => "RAM Paket" },
+      ],
       "drawings" => [
         {
           "text" => "GPU Paket",
@@ -530,11 +543,12 @@ RSpec.describe "Lottery Full Lifecycle Integration" do
     # Owner should not have received new PM for Erhaltungsbericht
     expect(owner_pms_after_job).to eq(0)
 
-    # STEP 7: Mark all packets as collected
+    # STEP 7: Mark all packets as collected (each by their respective winner)
     freeze_time(lottery.drawn_at + 8.days)
 
-    sign_in(owner)
-    packet_posts.each do |packet_post|
+    winners = [participant1, participant2, participant3]
+    packet_posts.each_with_index do |packet_post, index|
+      sign_in(winners[index])
       post "/vzekc-verlosung/packets/#{packet_post.id}/mark-collected.json"
       expect(response.status).to eq(200)
     end

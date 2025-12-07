@@ -364,16 +364,6 @@ RSpec.describe VzekcVerlosung::LotteriesController do
       end
     end
 
-    context "when user is staff" do
-      before { sign_in(admin) }
-
-      it "allows staff to draw" do
-        post "/vzekc-verlosung/lotteries/#{topic.id}/draw.json", params: { results: valid_results }
-
-        expect(response.status).to eq(204)
-      end
-    end
-
     context "when user is not the owner" do
       before { sign_in(other_user) }
 
@@ -564,21 +554,6 @@ RSpec.describe VzekcVerlosung::LotteriesController do
         expect(response.status).to eq(422)
         json = response.parsed_body
         expect(json["errors"]).to include(match(/automatic drawing mode/))
-      end
-    end
-
-    context "when user is staff" do
-      before { sign_in(admin) }
-
-      it "allows staff to draw manually" do
-        post "/vzekc-verlosung/lotteries/#{topic.id}/draw-manual.json",
-             params: {
-               selections: {
-                 packet_post.id.to_s => user.id,
-               },
-             }
-
-        expect(response.status).to eq(204)
       end
     end
 
