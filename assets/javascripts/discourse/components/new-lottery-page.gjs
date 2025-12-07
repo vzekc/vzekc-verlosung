@@ -60,12 +60,27 @@ export default class NewLotteryPage extends Component {
   formApi = null;
   bodyFileInputId = "lottery-body-file-uploader";
 
+  // Stable form data object - avoids re-initialization on tracked property changes
+  _formData = null;
+
   // Packet uploaders - one per packet index
   _packetUploaders = {};
 
   // Auto-save debounce timer
   _saveDraftDebounce = null;
   _saveDraftPromise = null;
+
+  get formData() {
+    if (!this._formData) {
+      this._formData = {
+        title: this.title,
+        body: this.body,
+        durationDays: this.durationDays,
+        drawingMode: this.drawingMode,
+      };
+    }
+    return this._formData;
+  }
 
   constructor() {
     super(...arguments);
@@ -102,8 +117,11 @@ export default class NewLotteryPage extends Component {
 
   willDestroy() {
     super.willDestroy(...arguments);
-    // Cancel any pending draft save
-    cancel(this._saveDraftDebounce);
+    // Cancel debounce timer and save draft immediately if there are pending changes
+    if (this._saveDraftDebounce) {
+      cancel(this._saveDraftDebounce);
+      this._performDraftSave();
+    }
   }
 
   get allowUpload() {
@@ -124,11 +142,20 @@ export default class NewLotteryPage extends Component {
 
   insertUploadMarkdown(upload) {
     const markdown = this.buildUploadMarkdown(upload);
-    if (this.body && !this.body.endsWith("\n")) {
-      this.body = this.body + "\n" + markdown + "\n";
+    // Get current body from form API (preferred) or tracked property
+    const currentBody = this.formApi?.get("body") || this.body || "";
+    let newBody;
+    if (currentBody && !currentBody.endsWith("\n")) {
+      newBody = currentBody + "\n" + markdown + "\n";
     } else {
-      this.body = (this.body || "") + markdown + "\n";
+      newBody = currentBody + markdown + "\n";
     }
+    // Only update via formApi to avoid triggering form re-initialization
+    if (this.formApi) {
+      this.formApi.set("body", newBody);
+    }
+    // Keep tracked property in sync for draft saving
+    this.body = newBody;
     this._scheduleDraftSave();
   }
 
@@ -394,9 +421,9 @@ export default class NewLotteryPage extends Component {
   }
 
   @action
-  updatePacketRaw(index, event) {
-    // DEditor passes the event object - extract the value
-    this.packets[index].raw = event.target.value;
+  updatePacketRaw(index, value) {
+    // DEditor passes the new value directly (not an event object)
+    this.packets[index].raw = value;
     this.packets = [...this.packets];
     this._scheduleDraftSave();
   }
@@ -426,17 +453,24 @@ export default class NewLotteryPage extends Component {
    * Warns user if they have unsaved content
    */
   @action
-  async switchPacketMode(newMode) {
+  async switchPacketMode(newMode, event) {
+    // Don't switch if already in this mode
+    if (this.packetMode === newMode) {
+      return;
+    }
+
     // Check if user has made changes that would be lost
     const hasChanges = this.hasUnsavedPacketChanges();
 
     if (hasChanges) {
+      // Prevent the radio button from changing before confirmation
+      event?.preventDefault();
+
       const confirmed = await this.dialog.confirm({
         message: i18n("vzekc_verlosung.modal.switch_mode_warning_message"),
         title: i18n("vzekc_verlosung.modal.switch_mode_warning_title"),
       });
       if (!confirmed) {
-        // Revert the radio button selection
         return;
       }
     }
@@ -449,15 +483,11 @@ export default class NewLotteryPage extends Component {
   }
 
   /**
-   * Check if user has unsaved packet changes
+   * Check if user has unsaved packet changes in "mehrere pakete" mode
+   * Only checks packets, not main body - the main body is shared between modes
    */
   hasUnsavedPacketChanges() {
-    // Check main body
-    if (this.body !== this.template) {
-      return true;
-    }
-
-    // Check if any packet has title or content
+    // Check all packets for user-entered content
     return this.packets.some(
       (packet) =>
         (packet.title && packet.title.trim().length > 0) ||
@@ -482,10 +512,22 @@ export default class NewLotteryPage extends Component {
         // Check if this is a lottery draft by looking for lottery metadata
         if (draft.metaData && draft.metaData.lottery_duration_days) {
           this.title = draft.title || "";
-          this.body = draft.reply || this.template;
+          // Ensure body is always a string
+          this.body =
+            typeof draft.reply === "string" && draft.reply
+              ? draft.reply
+              : this.template;
           this.durationDays = draft.metaData.lottery_duration_days || 14;
           this.drawingMode = draft.metaData.lottery_drawing_mode || "automatic";
           this.draftSequence = result.draft_sequence || 0;
+
+          // Update the stable form data object
+          if (this._formData) {
+            this._formData.title = this.title;
+            this._formData.body = this.body;
+            this._formData.durationDays = this.durationDays;
+            this._formData.drawingMode = this.drawingMode;
+          }
 
           // Load packet mode (default to "mehrere" for backward compatibility)
           this.packetMode = draft.metaData.packet_mode || "mehrere";
@@ -602,10 +644,15 @@ export default class NewLotteryPage extends Component {
         "new_topic",
         this.draftSequence,
         draftData,
-        this.currentUser.id
+        this.currentUser.id,
+        { forceSave: true }
       );
 
-      await this._saveDraftPromise;
+      const result = await this._saveDraftPromise;
+      // Update sequence number from response to avoid conflicts on next save
+      if (result && result.draft_sequence !== undefined) {
+        this.draftSequence = result.draft_sequence;
+      }
     } catch {
       // Silently fail for auto-save - don't interrupt user
     } finally {
@@ -620,7 +667,11 @@ export default class NewLotteryPage extends Component {
   @action
   async discardDraft() {
     try {
-      await Draft.clear("new_topic", this.draftSequence);
+      // Fetch the current draft to get the correct sequence number
+      const draftResult = await Draft.get("new_topic");
+      if (draftResult && draftResult.draft_sequence !== undefined) {
+        await Draft.clear("new_topic", draftResult.draft_sequence);
+      }
       this.draftSequence = 0;
       // Reset form to defaults
       this.title = "";
@@ -712,9 +763,15 @@ export default class NewLotteryPage extends Component {
         data: JSON.stringify(requestData),
       });
 
-      // Clear the draft after successful publish
-      if (this.draftSequence > 0) {
-        await Draft.clear("new_topic", this.draftSequence);
+      // Always clear the draft after successful publish
+      // Fetch the current draft to get the correct sequence number
+      try {
+        const draftResult = await Draft.get("new_topic");
+        if (draftResult && draftResult.draft_sequence !== undefined) {
+          await Draft.clear("new_topic", draftResult.draft_sequence);
+        }
+      } catch {
+        // Ignore errors when clearing draft
       }
 
       // Navigate to the created topic
@@ -738,17 +795,13 @@ export default class NewLotteryPage extends Component {
         <h1>{{i18n "vzekc_verlosung.neue_verlosung"}}</h1>
       </div>
 
-      <Form
-        @onSubmit={{this.submit}}
-        @onRegisterApi={{this.registerFormApi}}
-        @data={{hash
-          title=this.title
-          body=this.body
-          durationDays=this.durationDays
-          drawingMode=this.drawingMode
-        }}
-        as |form|
-      >
+      {{#if this.draftLoaded}}
+        <Form
+          @onSubmit={{this.submit}}
+          @onRegisterApi={{this.registerFormApi}}
+          @data={{this.formData}}
+          as |form|
+        >
         <div class="lottery-title-field">
           <form.Field
             @name="title"
@@ -851,7 +904,7 @@ export default class NewLotteryPage extends Component {
                   name="packetMode"
                   value="ein"
                   checked={{eq this.packetMode "ein"}}
-                  {{on "change" (fn this.switchPacketMode "ein")}}
+                  {{on "click" (fn this.switchPacketMode "ein")}}
                 />
                 <span class="radio-text">
                   {{i18n "vzekc_verlosung.modal.packet_mode_ein"}}
@@ -880,7 +933,7 @@ export default class NewLotteryPage extends Component {
                   name="packetMode"
                   value="mehrere"
                   checked={{eq this.packetMode "mehrere"}}
-                  {{on "change" (fn this.switchPacketMode "mehrere")}}
+                  {{on "click" (fn this.switchPacketMode "mehrere")}}
                 />
                 <span class="radio-text">
                   {{i18n "vzekc_verlosung.modal.packet_mode_mehrere"}}
@@ -1019,7 +1072,8 @@ export default class NewLotteryPage extends Component {
             {{/if}}
           </div>
         </div>
-      </Form>
+        </Form>
+      {{/if}}
     </div>
   </template>
 }
