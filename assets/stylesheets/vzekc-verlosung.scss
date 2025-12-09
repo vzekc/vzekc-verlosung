@@ -1813,3 +1813,247 @@
 
 // Import component styles
 @import "components/lottery-status-chip";
+
+// User lottery statistics page
+.user-verlosungen-stats {
+  padding: 1em 0;
+
+  .loading-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    padding: 2em;
+    color: var(--primary-medium);
+  }
+
+  .stats-tabs {
+    display: flex;
+    gap: 0.5em;
+    margin-bottom: 1.5em;
+    border-bottom: 1px solid var(--primary-low);
+    padding-bottom: 0.5em;
+    flex-wrap: wrap;
+
+    .btn-flat {
+      padding: 0.5em 1em;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      gap: 0.5em;
+
+      &.active {
+        background: var(--primary-low);
+        font-weight: 600;
+      }
+
+      .tab-count {
+        background: var(--primary-low);
+        padding: 0.1em 0.5em;
+        border-radius: 10px;
+        font-size: 0.85em;
+      }
+
+      &.active .tab-count {
+        background: var(--primary-very-low);
+      }
+    }
+  }
+
+  .stats-overview {
+    .stats-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 1em;
+      margin-bottom: 2em;
+    }
+
+    .stat-card {
+      display: flex;
+      align-items: center;
+      gap: 1em;
+      padding: 1em;
+      background: var(--primary-very-low);
+      border-radius: 8px;
+      border: 1px solid var(--primary-low);
+
+      .stat-icon {
+        font-size: 1.5em;
+        color: var(--primary-medium);
+      }
+
+      .stat-content {
+        .stat-value {
+          font-size: 1.5em;
+          font-weight: 700;
+          color: var(--primary);
+        }
+
+        .stat-label {
+          font-size: 0.85em;
+          color: var(--primary-medium);
+        }
+      }
+    }
+  }
+
+  .luck-section {
+    margin-top: 2em;
+
+    h3 {
+      margin-bottom: 1em;
+      font-size: 1.1em;
+      color: var(--primary);
+    }
+
+    .luck-display {
+      display: flex;
+      align-items: center;
+      gap: 2em;
+      padding: 1.5em;
+      background: var(--primary-very-low);
+      border-radius: 8px;
+      border: 1px solid var(--primary-low);
+      flex-wrap: wrap;
+
+      &.luck-positive {
+        border-color: var(--success);
+        background: var(--success-low);
+      }
+
+      &.luck-negative {
+        border-color: var(--danger);
+        background: var(--danger-low);
+      }
+
+      .luck-badge {
+        display: flex;
+        align-items: center;
+        gap: 0.5em;
+        font-size: 1.5em;
+        font-weight: 700;
+
+        .d-icon {
+          font-size: 1.2em;
+        }
+      }
+
+      &.luck-positive .luck-badge {
+        color: var(--success);
+      }
+
+      &.luck-negative .luck-badge {
+        color: var(--danger);
+      }
+
+      .luck-details {
+        display: flex;
+        gap: 1.5em;
+        flex-wrap: wrap;
+      }
+
+      .luck-stat {
+        display: flex;
+        flex-direction: column;
+
+        .luck-stat-label {
+          font-size: 0.8em;
+          color: var(--primary-medium);
+        }
+
+        .luck-stat-value {
+          font-size: 1.2em;
+          font-weight: 600;
+
+          &.luck-positive {
+            color: var(--success);
+          }
+
+          &.luck-negative {
+            color: var(--danger);
+          }
+        }
+      }
+
+      .luck-factor {
+        padding-left: 1em;
+        border-left: 2px solid var(--primary-low);
+      }
+    }
+  }
+
+  .user-verlosungen-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1em;
+
+    th,
+    td {
+      padding: 0.75em;
+      text-align: left;
+      border-bottom: 1px solid var(--primary-low);
+    }
+
+    th {
+      font-weight: 600;
+      color: var(--primary-medium);
+      font-size: 0.9em;
+    }
+
+    td {
+      color: var(--primary);
+    }
+
+    .status-cell {
+      text-align: center;
+      width: 60px;
+    }
+
+    .status-yes {
+      color: var(--success);
+    }
+
+    .status-no {
+      color: var(--danger);
+    }
+
+    .status-pending,
+    .status-na {
+      color: var(--primary-medium);
+    }
+
+    a {
+      color: var(--tertiary);
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+
+    .bericht-link,
+    .outcome-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25em;
+    }
+  }
+
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 3em;
+    color: var(--primary-medium);
+    text-align: center;
+
+    .d-icon {
+      font-size: 3em;
+      margin-bottom: 1em;
+      opacity: 0.5;
+    }
+
+    p {
+      margin: 0;
+      font-size: 1.1em;
+    }
+  }
+}

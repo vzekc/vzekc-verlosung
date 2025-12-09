@@ -2,6 +2,7 @@
 
 VzekcVerlosung::Engine.routes.draw do
   get "/examples" => "examples#index"
+  get "/users/:username" => "user_stats#show"
   get "/history" => "lottery_history#index"
   get "/history/stats" => "lottery_history#stats"
   get "/history/leaderboard" => "lottery_history#leaderboard"

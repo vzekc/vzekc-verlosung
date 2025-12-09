@@ -78,7 +78,7 @@ function titleClass(creator) {
                 {{avatar lottery.creator imageSize="tiny"}}
                 <span class={{usernameClass lottery.creator}}>
                   <a
-                    href="/u/{{lottery.creator.username}}"
+                    href="/u/{{lottery.creator.username}}/verlosungen"
                     data-user-card={{lottery.creator.username}}
                   >
                     {{lottery.creator.username}}

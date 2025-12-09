@@ -101,7 +101,7 @@ export default class LotteryLeaderboard extends Component {
                   <li class="leaderboard-entry">
                     <span class="user-info">
                       {{avatar entry.user imageSize="small"}}
-                      <a href="/u/{{entry.user.username}}" class="username">
+                      <a href="/u/{{entry.user.username}}/verlosungen" class="username">
                         {{entry.user.username}}
                       </a>
                     </span>
@@ -138,7 +138,7 @@ export default class LotteryLeaderboard extends Component {
                   <li class="leaderboard-entry">
                     <span class="user-info">
                       {{avatar entry.user imageSize="small"}}
-                      <a href="/u/{{entry.user.username}}" class="username">
+                      <a href="/u/{{entry.user.username}}/verlosungen" class="username">
                         {{entry.user.username}}
                       </a>
                     </span>
@@ -175,7 +175,7 @@ export default class LotteryLeaderboard extends Component {
                   <li class="leaderboard-entry">
                     <span class="user-info">
                       {{avatar entry.user imageSize="small"}}
-                      <a href="/u/{{entry.user.username}}" class="username">
+                      <a href="/u/{{entry.user.username}}/verlosungen" class="username">
                         {{entry.user.username}}
                       </a>
                     </span>
@@ -212,7 +212,7 @@ export default class LotteryLeaderboard extends Component {
                   <li class="leaderboard-entry">
                     <span class="user-info">
                       {{avatar entry.user imageSize="small"}}
-                      <a href="/u/{{entry.user.username}}" class="username">
+                      <a href="/u/{{entry.user.username}}/verlosungen" class="username">
                         {{entry.user.username}}
                       </a>
                     </span>
@@ -258,7 +258,7 @@ export default class LotteryLeaderboard extends Component {
                   <li class="leaderboard-entry">
                     <span class="user-info">
                       {{avatar entry.user imageSize="small"}}
-                      <a href="/u/{{entry.user.username}}" class="username">
+                      <a href="/u/{{entry.user.username}}/verlosungen" class="username">
                         {{entry.user.username}}
                       </a>
                     </span>

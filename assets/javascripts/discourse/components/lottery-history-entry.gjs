@@ -36,7 +36,7 @@ export default class LotteryHistoryEntry extends Component {
           {{htmlSafe (categoryBadgeHTML @lottery.category)}}
           <span class="lottery-history-entry-creator">
             {{avatar @lottery.creator imageSize="tiny"}}
-            <a href="/u/{{@lottery.creator.username}}">
+            <a href="/u/{{@lottery.creator.username}}/verlosungen">
               {{@lottery.creator.username}}
             </a>
           </span>
@@ -126,7 +126,7 @@ export default class LotteryHistoryEntry extends Component {
                 <td class="packet-winner">
                   {{#if packet.winner}}
                     {{avatar packet.winner imageSize="tiny"}}
-                    <a href="/u/{{packet.winner.username}}">
+                    <a href="/u/{{packet.winner.username}}/verlosungen">
                       {{packet.winner.username}}
                     </a>
                   {{else}}

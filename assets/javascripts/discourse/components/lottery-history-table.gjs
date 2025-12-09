@@ -179,7 +179,7 @@ export default class LotteryHistoryTable extends Component {
                 </td>
                 <td class="winner-cell">
                   {{avatar packet.winner imageSize="tiny"}}
-                  <a href="/u/{{packet.winner.username}}">
+                  <a href="/u/{{packet.winner.username}}/verlosungen">
                     {{packet.winner.username}}
                   </a>
                 </td>

@@ -46,6 +46,7 @@ after_initialize do
     get "/lottery-history" => "users#index", :constraints => { format: /(json|html)/ }
     get "/active-lotteries" => "users#index", :constraints => { format: /(json|html)/ }
     get "/new-lottery" => "list#latest", :constraints => { format: /(json|html)/ }
+    get "u/:username/verlosungen" => "users#show", :constraints => { username: USERNAME_ROUTE_FORMAT }
   end
 
   # Add custom notification types to the Notification.types enum
