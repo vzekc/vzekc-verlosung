@@ -14,6 +14,8 @@ import I18n, { i18n } from "discourse-i18n";
  *
  * @component UserVerlosungenStats
  * @param {Object} user - The user object
+ * @param {String} activeTab - Currently active tab
+ * @param {Function} onTabChange - Callback when tab changes
  */
 export default class UserVerlosungenStats extends Component {
   @tracked isLoading = true;
@@ -22,11 +24,19 @@ export default class UserVerlosungenStats extends Component {
   @tracked wonPackets = [];
   @tracked lotteriesCreated = [];
   @tracked pickups = [];
-  @tracked activeTab = "stats";
 
   constructor() {
     super(...arguments);
     this.loadData();
+  }
+
+  /**
+   * Get the currently active tab
+   *
+   * @returns {String} Active tab identifier
+   */
+  get activeTab() {
+    return this.args.activeTab || "stats";
   }
 
   /**
@@ -54,7 +64,7 @@ export default class UserVerlosungenStats extends Component {
    */
   @action
   switchTab(tab) {
-    this.activeTab = tab;
+    this.args.onTabChange?.(tab);
   }
 
   /**
