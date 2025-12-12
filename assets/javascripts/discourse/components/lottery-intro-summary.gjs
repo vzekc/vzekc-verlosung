@@ -1,9 +1,9 @@
 import Component from "@glimmer/component";
 import { tracked } from "@glimmer/tracking";
+import { registerDestructor } from "@ember/destroyable";
 import { concat, fn } from "@ember/helper";
 import { action } from "@ember/object";
 import { service } from "@ember/service";
-import { and, eq, gt, or } from "truth-helpers";
 import DButton from "discourse/components/d-button";
 import UserLink from "discourse/components/user-link";
 import avatar from "discourse/helpers/avatar";
@@ -11,10 +11,10 @@ import icon from "discourse/helpers/d-icon";
 import { ajax } from "discourse/lib/ajax";
 import { popupAjaxError } from "discourse/lib/ajax-error";
 import { bind } from "discourse/lib/decorators";
+import { and, eq, gt, or } from "discourse/truth-helpers";
 import I18n, { i18n } from "discourse-i18n";
 import DrawLotteryModal from "./modal/draw-lottery-modal";
 import TicketCountBadge from "./ticket-count-badge";
-import TimeRemaining from "./time-remaining";
 
 /**
  * Component to display lottery packet summary on lottery intro posts
@@ -36,17 +36,35 @@ export default class LotteryIntroSummary extends Component {
   @tracked ending = false;
   @tracked openingDrawModal = false;
   @tracked resultsCopied = false;
+  @tracked now = new Date();
+
+  _timer = null;
 
   constructor() {
     super(...arguments);
     // Load from serialized/cached topic data (updated when tickets change)
     this.loadPacketsFromTopic();
     this.appEvents.on("lottery:ticket-changed", this, this.onTicketChanged);
+    this._startTimer();
+    registerDestructor(this, () => this._stopTimer());
   }
 
   willDestroy() {
     super.willDestroy(...arguments);
     this.appEvents.off("lottery:ticket-changed", this, this.onTicketChanged);
+  }
+
+  _startTimer() {
+    this._timer = setInterval(() => {
+      this.now = new Date();
+    }, 1000);
+  }
+
+  _stopTimer() {
+    if (this._timer) {
+      clearInterval(this._timer);
+      this._timer = null;
+    }
   }
 
   @bind
@@ -179,7 +197,112 @@ export default class LotteryIntroSummary extends Component {
       return false;
     }
     const endsAt = new Date(this.topic.lottery_ends_at);
-    return endsAt <= new Date();
+    return endsAt <= this.now;
+  }
+
+  /**
+   * Get the end date as Date object
+   *
+   * @returns {Date|null} the end date
+   */
+  get endDate() {
+    if (!this.topic?.lottery_ends_at) {
+      return null;
+    }
+    return new Date(this.topic.lottery_ends_at);
+  }
+
+  /**
+   * Format the end date and time display
+   * Format: "Endet am <datum> um <uhrzeit> (<verbleibende zeit>)"
+   * When ended: "Wartet auf Ziehung (Endete am <datum> um <uhrzeit>)"
+   *
+   * @returns {String} formatted end date/time string with relative time
+   */
+  get endDateTimeDisplay() {
+    if (!this.endDate) {
+      return "";
+    }
+
+    const dateStr = this.endDate.toLocaleDateString("de-DE", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+
+    const timeStr = this.endDate.toLocaleTimeString("de-DE", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+    if (this.hasEnded) {
+      return `Wartet auf Ziehung (Endete am ${dateStr} um ${timeStr})`;
+    }
+
+    const relativeTime = this.relativeTimeRemaining;
+
+    return `Endet am ${dateStr} um ${timeStr} (${relativeTime})`;
+  }
+
+  /**
+   * Get relative time remaining
+   *
+   * @returns {String} relative time string
+   */
+  get relativeTimeRemaining() {
+    if (!this.endDate) {
+      return "";
+    }
+
+    const diffMs = this.endDate - this.now;
+
+    if (diffMs <= 0) {
+      return i18n("vzekc_verlosung.status.ended");
+    }
+
+    const diffSeconds = Math.floor(diffMs / 1000);
+    const diffMinutes = Math.floor(diffSeconds / 60);
+    const diffHours = Math.floor(diffMinutes / 60);
+    const diffDays = Math.floor(diffHours / 24);
+
+    if (diffDays > 1) {
+      return i18n("vzekc_verlosung.status.days_remaining", { count: diffDays });
+    } else if (diffDays === 1) {
+      return i18n("vzekc_verlosung.status.one_day_remaining");
+    } else if (diffHours > 1) {
+      return i18n("vzekc_verlosung.status.hours_remaining", {
+        count: diffHours,
+      });
+    } else if (diffHours === 1) {
+      return i18n("vzekc_verlosung.status.one_hour_remaining");
+    } else if (diffMinutes > 5) {
+      return i18n("vzekc_verlosung.status.minutes_remaining", {
+        count: diffMinutes,
+      });
+    } else if (diffMinutes >= 1) {
+      const remainingSeconds = diffSeconds % 60;
+      if (diffMinutes === 1 && remainingSeconds === 1) {
+        return i18n("vzekc_verlosung.status.one_minute_one_second_remaining");
+      } else if (diffMinutes === 1) {
+        return i18n("vzekc_verlosung.status.one_minute_seconds_remaining", {
+          seconds: remainingSeconds,
+        });
+      } else if (remainingSeconds === 1) {
+        return i18n("vzekc_verlosung.status.minutes_one_second_remaining", {
+          minutes: diffMinutes,
+        });
+      }
+      return i18n("vzekc_verlosung.status.minutes_seconds_remaining", {
+        minutes: diffMinutes,
+        seconds: remainingSeconds,
+      });
+    } else if (diffSeconds > 1) {
+      return i18n("vzekc_verlosung.status.seconds_remaining", {
+        count: diffSeconds,
+      });
+    } else {
+      return i18n("vzekc_verlosung.status.one_second_remaining");
+    }
   }
 
   /**
@@ -203,40 +326,6 @@ export default class LotteryIntroSummary extends Component {
    */
   get hasEndsAt() {
     return !!this.topic?.lottery_ends_at;
-  }
-
-  /**
-   * Format the end date for tooltip display
-   *
-   * @returns {String} formatted end date tooltip
-   */
-  get endDateTooltip() {
-    if (!this.topic?.lottery_ends_at) {
-      return null;
-    }
-
-    const endsAt = new Date(this.topic.lottery_ends_at);
-    const now = new Date();
-    const locale = I18n.locale || "en";
-
-    const formattedDate = endsAt.toLocaleDateString(locale, {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-
-    if (endsAt > now) {
-      return i18n("vzekc_verlosung.status.ends_at_tooltip", {
-        date: formattedDate,
-      });
-    } else {
-      return i18n("vzekc_verlosung.status.ended_at_tooltip", {
-        date: formattedDate,
-      });
-    }
   }
 
   /**
@@ -646,8 +735,8 @@ export default class LotteryIntroSummary extends Component {
                 {{icon "clock"}}
                 <span>{{i18n "vzekc_verlosung.state.active"}}</span>
               </div>
-              <div class="time-remaining" title={{this.endDateTooltip}}>
-                <TimeRemaining @endsAt={{this.topic.lottery_ends_at}} />
+              <div class="time-remaining">
+                {{this.endDateTimeDisplay}}
               </div>
               <div class="lottery-status-line">
                 {{#if (gt this.regularPackets.length 1)}}

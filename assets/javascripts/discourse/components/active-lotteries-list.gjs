@@ -1,29 +1,7 @@
 import avatar from "discourse/helpers/avatar";
 import icon from "discourse/helpers/d-icon";
 import { i18n } from "discourse-i18n";
-import TimeRemaining from "./time-remaining";
-
-/**
- * Formats a date as absolute date string for tooltip
- *
- * @param {string|Date} dateValue - Date to format
- * @returns {string} Formatted date string
- */
-function formatAbsoluteDate(dateValue) {
-  if (!dateValue) {
-    return "";
-  }
-
-  const date = new Date(dateValue);
-  return date.toLocaleDateString("de-DE", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
+import LotteryEndDate from "./lottery-end-date";
 
 /**
  * Builds CSS class for username based on user roles
@@ -103,15 +81,7 @@ function titleClass(creator) {
 
           <div class="active-lottery-info">
             <div class="active-lottery-dates">
-              <div
-                class="lottery-date lottery-ends-at"
-                title={{formatAbsoluteDate lottery.ends_at}}
-              >
-                {{icon "clock"}}
-                <span class="date-value"><TimeRemaining
-                    @endsAt={{lottery.ends_at}}
-                  /></span>
-              </div>
+              <LotteryEndDate @endsAt={{lottery.ends_at}} />
             </div>
 
             <div class="active-lottery-stats">
