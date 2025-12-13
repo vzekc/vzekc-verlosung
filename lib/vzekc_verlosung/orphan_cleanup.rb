@@ -9,6 +9,9 @@ module VzekcVerlosung
   # - LotteryTickets exist but their post was deleted
   module OrphanCleanup
     def self.run
+      # Skip if tables don't exist yet (during initial migration)
+      return unless tables_exist?
+
       Rails.logger.info "[VzekcVerlosung] Running orphan cleanup..."
 
       tickets_deleted = cleanup_orphaned_tickets
@@ -23,6 +26,17 @@ module VzekcVerlosung
       else
         Rails.logger.info "[VzekcVerlosung] Orphan cleanup complete: no orphans found"
       end
+    end
+
+    # Check if all required tables exist
+    #
+    # @return [Boolean] true if all tables exist
+    def self.tables_exist?
+      %w[
+        vzekc_verlosung_lotteries
+        vzekc_verlosung_lottery_packets
+        vzekc_verlosung_lottery_tickets
+      ].all? { |table| ActiveRecord::Base.connection.table_exists?(table) }
     end
 
     # Delete lottery tickets where the post no longer exists
