@@ -117,10 +117,23 @@ export default class LotteryEndDate extends Component {
     const diffHours = Math.floor(diffMinutes / 60);
     const diffDays = Math.floor(diffHours / 24);
 
-    if (diffDays > 1) {
-      return i18n("vzekc_verlosung.status.days_remaining", { count: diffDays });
-    } else if (diffDays === 1) {
-      return i18n("vzekc_verlosung.status.one_day_remaining");
+    if (diffDays >= 1) {
+      const remainingHours = diffHours % 24;
+      if (diffDays === 1 && remainingHours === 1) {
+        return i18n("vzekc_verlosung.status.one_day_one_hour_remaining");
+      } else if (diffDays === 1) {
+        return i18n("vzekc_verlosung.status.one_day_hours_remaining", {
+          hours: remainingHours,
+        });
+      } else if (remainingHours === 1) {
+        return i18n("vzekc_verlosung.status.days_one_hour_remaining", {
+          days: diffDays,
+        });
+      }
+      return i18n("vzekc_verlosung.status.days_hours_remaining", {
+        days: diffDays,
+        hours: remainingHours,
+      });
     } else if (diffHours > 1) {
       return i18n("vzekc_verlosung.status.hours_remaining", {
         count: diffHours,
