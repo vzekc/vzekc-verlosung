@@ -1,6 +1,7 @@
 import Component from "@glimmer/component";
 import { tracked } from "@glimmer/tracking";
 import { registerDestructor } from "@ember/destroyable";
+import { service } from "@ember/service";
 import icon from "discourse/helpers/d-icon";
 import { i18n } from "discourse-i18n";
 
@@ -12,6 +13,8 @@ import { i18n } from "discourse-i18n";
  * @param {string|Date} endsAt - The end date
  */
 export default class LotteryEndDate extends Component {
+  @service lotteryDisplayMode;
+
   @tracked now = new Date();
 
   _timer = null;
@@ -154,14 +157,36 @@ export default class LotteryEndDate extends Component {
     }
   }
 
+  /**
+   * Get the primary display text based on display mode
+   *
+   * @returns {string} Primary display text
+   */
+  get primaryDisplay() {
+    return this.lotteryDisplayMode.isAbsoluteMode
+      ? this.absoluteDate
+      : this.relativeTime;
+  }
+
+  /**
+   * Get the tooltip text based on display mode
+   *
+   * @returns {string} Tooltip text
+   */
+  get tooltipText() {
+    return this.lotteryDisplayMode.isAbsoluteMode
+      ? this.relativeTime
+      : this.absoluteDate;
+  }
+
   <template>
-    <div class="lottery-date lottery-ends-at" title={{this.relativeTime}}>
+    <div class="lottery-date lottery-ends-at" title={{this.tooltipText}}>
       {{icon "clock"}}
       <span class="date-value">
         {{#if this.hasEnded}}
           {{this.endedMessage}}
         {{else}}
-          {{this.absoluteDate}}
+          {{this.primaryDisplay}}
         {{/if}}
       </span>
     </div>

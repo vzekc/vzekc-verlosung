@@ -1643,6 +1643,60 @@
   }
 }
 
+// Lottery list controls (sort and display mode)
+.lottery-list-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.75em;
+
+  .lottery-control-group {
+    display: inline-flex;
+    gap: 0;
+
+    .btn {
+      border-radius: 0;
+      padding: 0.3em 0.6em;
+      font-size: var(--font-down-2);
+      min-height: unset;
+      line-height: 1.2;
+
+      &:first-child {
+        border-radius: 3px 0 0 3px;
+      }
+
+      &:last-child {
+        border-radius: 0 3px 3px 0;
+        margin-left: -1px;
+      }
+
+      &.btn-default {
+        background: var(--secondary);
+        border: 1px solid var(--primary-low-mid);
+        color: var(--primary-medium);
+
+        &:hover {
+          background: var(--primary-very-low);
+          color: var(--primary);
+          border-color: var(--primary-low);
+        }
+      }
+
+      &.btn-primary {
+        z-index: 1;
+      }
+
+      &.btn-icon {
+        padding: 0.3em 0.5em;
+
+        .d-icon {
+          margin: 0;
+          font-size: 0.85em;
+        }
+      }
+    }
+  }
+}
+
 // Active Lotteries Page
 .active-lotteries-page {
   max-width: 1200px;
@@ -1658,6 +1712,12 @@
     h1 {
       margin: 0;
       font-size: 1.8em;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 1em;
     }
   }
 }
@@ -1770,6 +1830,15 @@
 
         .date-value {
           color: var(--tertiary);
+        }
+      }
+
+      &.lottery-created-at {
+        font-size: var(--font-down-1);
+        color: var(--primary-medium);
+
+        .d-icon {
+          opacity: 0.7;
         }
       }
     }

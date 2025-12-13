@@ -213,7 +213,9 @@ export default class LotteryHistoryLotteries extends Component {
                           <td class="packet-winner">
                             {{#if packet.winner}}
                               {{avatar packet.winner imageSize="tiny"}}
-                              <a href="/u/{{packet.winner.username}}/verlosungen">
+                              <a
+                                href="/u/{{packet.winner.username}}/verlosungen"
+                              >
                                 {{packet.winner.username}}
                               </a>
                             {{else}}

@@ -46,7 +46,10 @@ after_initialize do
     get "/lottery-history" => "users#index", :constraints => { format: /(json|html)/ }
     get "/active-lotteries" => "users#index", :constraints => { format: /(json|html)/ }
     get "/new-lottery" => "list#latest", :constraints => { format: /(json|html)/ }
-    get "u/:username/verlosungen" => "users#show", :constraints => { username: USERNAME_ROUTE_FORMAT }
+    get "u/:username/verlosungen" => "users#show",
+        :constraints => {
+          username: USERNAME_ROUTE_FORMAT,
+        }
   end
 
   # Add custom notification types to the Notification.types enum
@@ -221,6 +224,15 @@ after_initialize do
       )
     end
   end
+
+  # User preferences: Lottery list display settings
+  register_user_custom_field_type("vzekc_lottery_list_date_mode", :string, max_length: 10)
+  register_editable_user_custom_field("vzekc_lottery_list_date_mode")
+  DiscoursePluginRegistry.serialized_current_user_fields << "vzekc_lottery_list_date_mode"
+
+  register_user_custom_field_type("vzekc_lottery_list_sort_mode", :string, max_length: 10)
+  register_editable_user_custom_field("vzekc_lottery_list_sort_mode")
+  DiscoursePluginRegistry.serialized_current_user_fields << "vzekc_lottery_list_sort_mode"
 
   # DEPRECATED: Custom fields registrations (replaced by normalized tables)
   # Register custom fields still used for Erhaltungsberichte (cross-plugin references)

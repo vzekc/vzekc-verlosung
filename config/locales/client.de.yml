@@ -15,6 +15,12 @@ de:
         vzekc_verlosung_did_not_win: "Leider nichts gewonnen"
         vzekc_verlosung_ending_tomorrow: "Verlosung endet morgen"
     vzekc_verlosung:
+      display_mode:
+        datum: "Datum"
+        countdown: "Countdown"
+      list_controls:
+        ends_soon: "Endet bald"
+        newest: "Neueste"
       nav:
         section_title: "Verlosungen"
         verlosungen: "Aktive Verlosungen"

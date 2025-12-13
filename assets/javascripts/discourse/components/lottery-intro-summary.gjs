@@ -29,6 +29,7 @@ export default class LotteryIntroSummary extends Component {
   @service appEvents;
   @service modal;
   @service siteSettings;
+  @service lotteryDisplayMode;
 
   @tracked packets = [];
   @tracked loading = true;
@@ -214,7 +215,9 @@ export default class LotteryIntroSummary extends Component {
 
   /**
    * Format the end date and time display
-   * Format: "Endet am <datum> um <uhrzeit> (<verbleibende zeit>)"
+   * Format depends on display mode:
+   * - Absolute: "Endet am <datum> um <uhrzeit> (<verbleibende zeit>)"
+   * - Relative: "<verbleibende zeit> (am <datum> um <uhrzeit>)"
    * When ended: "Wartet auf Ziehung (Endete am <datum> um <uhrzeit>)"
    *
    * @returns {String} formatted end date/time string with relative time
@@ -241,7 +244,11 @@ export default class LotteryIntroSummary extends Component {
 
     const relativeTime = this.relativeTimeRemaining;
 
-    return `Endet am ${dateStr} um ${timeStr} (${relativeTime})`;
+    if (this.lotteryDisplayMode.isAbsoluteMode) {
+      return `Endet am ${dateStr} um ${timeStr} (${relativeTime})`;
+    } else {
+      return `${relativeTime} (am ${dateStr} um ${timeStr})`;
+    }
   }
 
   /**
