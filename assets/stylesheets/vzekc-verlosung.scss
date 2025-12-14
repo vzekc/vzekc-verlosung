@@ -815,14 +815,16 @@
   }
 
   .lottery-packet-no-winner-notice {
-    background: var(--primary-very-low);
-    border: 1px solid var(--primary-low);
+    background: var(--highlight-low);
+    border: 2px solid var(--highlight-medium);
     border-radius: 6px;
     padding: 1em;
+    text-align: center;
 
     .no-winner-message {
-      color: var(--primary-medium);
-      font-style: italic;
+      color: var(--primary-high);
+      font-weight: 600;
+      font-size: 1.1em;
     }
   }
 }
