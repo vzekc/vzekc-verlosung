@@ -6,6 +6,8 @@ import { action } from "@ember/object";
 // eslint-disable-next-line no-unused-vars
 import { readonly } from "@ember/object/computed";
 import { getOwner } from "@ember/owner";
+import didInsert from "@ember/render-modifiers/modifiers/did-insert";
+import willDestroy from "@ember/render-modifiers/modifiers/will-destroy";
 import { cancel } from "@ember/runloop";
 import { service } from "@ember/service";
 import DButton from "discourse/components/d-button";
@@ -18,6 +20,7 @@ import { popupAjaxError } from "discourse/lib/ajax-error";
 import discourseDebounce from "discourse/lib/debounce";
 import { authorizesOneOrMoreImageExtensions } from "discourse/lib/uploads";
 import UppyUpload from "discourse/lib/uppy/uppy-upload";
+import { clipboardHelpers } from "discourse/lib/utilities";
 import Draft from "discourse/models/draft";
 import { eq, gt } from "discourse/truth-helpers";
 import { i18n } from "discourse-i18n";
@@ -70,6 +73,17 @@ export default class NewLotteryPage extends Component {
   _saveDraftDebounce = null;
   _saveDraftPromise = null;
 
+  // Packet paste handlers - keyed by packet index
+  _packetPasteHandlers = {};
+
+  // TextManipulation objects from DEditor for placeholder handling
+  _bodyTextManipulation = null;
+  _packetTextManipulations = {};
+
+  // Track Uppy files by name to match with upload completion
+  _bodyUppyFiles = new Map();
+  _packetUppyFiles = {};
+
   constructor() {
     super(...arguments);
     // Initialize packets based on mode
@@ -112,6 +126,93 @@ export default class NewLotteryPage extends Component {
     }
   }
 
+  /**
+   * Set up paste event listener to handle image uploads from clipboard
+   * Uses capture phase to intercept before ProseMirror handles the paste
+   */
+  @action
+  setupBodyPasteHandler(element) {
+    this._bodyEditorElement = element;
+    this._bodyPasteHandler = this._handlePaste.bind(this);
+    element.addEventListener("paste", this._bodyPasteHandler, {
+      capture: true,
+    });
+  }
+
+  /**
+   * Clean up paste event listener
+   */
+  @action
+  cleanupBodyPasteHandler(element) {
+    if (this._bodyPasteHandler) {
+      element.removeEventListener("paste", this._bodyPasteHandler, {
+        capture: true,
+      });
+    }
+  }
+
+  /**
+   * Capture textManipulation from DEditor for placeholder handling
+   */
+  @action
+  onBodyEditorSetup(textManipulation) {
+    this._bodyTextManipulation = textManipulation;
+  }
+
+  /**
+   * Register file input and set up placeholder handlers for body editor
+   */
+  @action
+  registerBodyFileInput(fileInputEl) {
+    this.uppyUpload.setup(fileInputEl);
+    this._setupBodyPlaceholderHandlers();
+  }
+
+  /**
+   * Set up Uppy event handlers for placeholder insertion
+   */
+  _setupBodyPlaceholderHandlers() {
+    const uppy = this.uppyUpload.uppyWrapper?.uppyInstance;
+    if (!uppy) {
+      return;
+    }
+
+    uppy.on("file-added", (file) => {
+      this._bodyUppyFiles.set(file.name, file);
+      if (this._bodyTextManipulation?.placeholder) {
+        this._bodyTextManipulation.placeholder.insert(file);
+      }
+    });
+  }
+
+  /**
+   * Handle paste events - upload image files instead of using URLs
+   * Mimics the behavior of UppyComposerUpload._pasteEventListener
+   */
+  _handlePaste(event) {
+    if (!this.allowUpload) {
+      return;
+    }
+
+    const { canUpload, canPasteHtml } = clipboardHelpers(event, {
+      siteSettings: this.siteSettings,
+      canUpload: true,
+    });
+
+    // If we can upload files and clipboard has image files, handle them
+    if (canUpload && !canPasteHtml && event.clipboardData?.files?.length > 0) {
+      const files = [...event.clipboardData.files];
+      const imageFiles = files.filter((f) => f.type.startsWith("image/"));
+
+      if (imageFiles.length > 0) {
+        event.preventDefault();
+        event.stopPropagation();
+        // Add files to Uppy for upload
+        this.uppyUpload.addFiles(imageFiles, { pasted: true });
+      }
+    }
+  }
+
   get formData() {
     if (!this._formData) {
       this._formData = {
@@ -142,7 +243,17 @@ export default class NewLotteryPage extends Component {
 
   insertUploadMarkdown(upload) {
     const markdown = this.buildUploadMarkdown(upload);
-    // Get current body from form API (preferred) or tracked property
+
+    // Try to find the original Uppy file to replace placeholder at cursor position
+    const uppyFile = this._bodyUppyFiles.get(upload.file_name);
+    if (uppyFile && this._bodyTextManipulation?.placeholder) {
+      this._bodyTextManipulation.placeholder.success(uppyFile, markdown);
+      this._bodyUppyFiles.delete(upload.file_name);
+      this._scheduleDraftSave();
+      return;
+    }
+
+    // Fallback: append to end of body
     const currentBody = this.formApi?.get("body") || this.body || "";
     let newBody;
     if (currentBody && !currentBody.endsWith("\n")) {
@@ -150,11 +261,9 @@ export default class NewLotteryPage extends Component {
     } else {
       newBody = currentBody + markdown + "\n";
     }
-    // Only update via formApi to avoid triggering form re-initialization
     if (this.formApi) {
       this.formApi.set("body", newBody);
     }
-    // Keep tracked property in sync for draft saving
     this.body = newBody;
     this._scheduleDraftSave();
   }
@@ -227,24 +336,122 @@ export default class NewLotteryPage extends Component {
       });
     }
     this._packetUploaders[index].setup(fileInputEl);
+    this._setupPacketPlaceholderHandlers(index);
+  }
+
+  /**
+   * Capture textManipulation from packet DEditor for placeholder handling
+   */
+  @action
+  onPacketEditorSetup(index, textManipulation) {
+    this._packetTextManipulations[index] = textManipulation;
+  }
+
+  /**
+   * Set up Uppy event handlers for placeholder insertion in packet editors
+   */
+  _setupPacketPlaceholderHandlers(index) {
+    const uploader = this._packetUploaders[index];
+    const uppy = uploader?.uppyWrapper?.uppyInstance;
+    if (!uppy) {
+      return;
+    }
+
+    if (!this._packetUppyFiles[index]) {
+      this._packetUppyFiles[index] = new Map();
+    }
+
+    uppy.on("file-added", (file) => {
+      this._packetUppyFiles[index].set(file.name, file);
+      const textManipulation = this._packetTextManipulations[index];
+      if (textManipulation?.placeholder) {
+        textManipulation.placeholder.insert(file);
+      }
+    });
+  }
+
+  /**
+   * Set up paste handler for a specific packet editor
+   */
+  @action
+  setupPacketPasteHandler(index, element) {
+    const handler = (event) => this._handlePacketPaste(event, index);
+    this._packetPasteHandlers[index] = handler;
+    element.addEventListener("paste", handler, { capture: true });
+  }
+
+  /**
+   * Clean up paste handler for a specific packet editor
+   */
+  @action
+  cleanupPacketPasteHandler(index, element) {
+    const handler = this._packetPasteHandlers[index];
+    if (handler) {
+      element.removeEventListener("paste", handler, { capture: true });
+      delete this._packetPasteHandlers[index];
+    }
+  }
+
+  /**
+   * Handle paste events for packet editors
+   */
+  _handlePacketPaste(event, index) {
+    if (!this.allowUpload) {
+      return;
+    }
+
+    const { canUpload, canPasteHtml } = clipboardHelpers(event, {
+      siteSettings: this.siteSettings,
+      canUpload: true,
+    });
+
+    if (canUpload && !canPasteHtml && event.clipboardData?.files?.length > 0) {
+      const files = [...event.clipboardData.files];
+      const imageFiles = files.filter((f) => f.type.startsWith("image/"));
+
+      if (imageFiles.length > 0) {
+        event.preventDefault();
+        event.stopPropagation();
+        // Add files to the packet's Uppy uploader
+        const uploader = this._packetUploaders[index];
+        if (uploader) {
+          uploader.addFiles(imageFiles);
+        }
+      }
+    }
   }
 
   insertPacketUploadMarkdown(index, upload) {
     const markdown = this.buildUploadMarkdown(upload);
     const packet = this.packets[index];
-    if (packet) {
-      const currentRaw = packet.raw || "";
-      const newRaw =
-        currentRaw && !currentRaw.endsWith("\n")
-          ? currentRaw + "\n" + markdown + "\n"
-          : currentRaw + markdown + "\n";
-
-      // Create new packet object to trigger Glimmer reactivity
-      this.packets = this.packets.map((p, i) =>
-        i === index ? { ...p, raw: newRaw } : p
-      );
-      this._scheduleDraftSave();
+    if (!packet) {
+      return;
     }
+
+    // Try to find the original Uppy file to replace placeholder at cursor position
+    const uppyFiles = this._packetUppyFiles[index];
+    const uppyFile = uppyFiles?.get(upload.file_name);
+    const textManipulation = this._packetTextManipulations[index];
+
+    if (uppyFile && textManipulation?.placeholder) {
+      textManipulation.placeholder.success(uppyFile, markdown);
+      uppyFiles.delete(upload.file_name);
+      this._scheduleDraftSave();
+      return;
+    }
+
+    // Fallback: append to end
+    const currentRaw = packet.raw || "";
+    const newRaw =
+      currentRaw && !currentRaw.endsWith("\n")
+        ? currentRaw + "\n" + markdown + "\n"
+        : currentRaw + markdown + "\n";
+
+    // Create new packet object to trigger Glimmer reactivity
+    this.packets = this.packets.map((p, i) =>
+      i === index ? { ...p, raw: newRaw } : p
+    );
+    this._scheduleDraftSave();
   }
 
   /**
@@ -366,10 +573,11 @@ export default class NewLotteryPage extends Component {
 
   /**
    * Wrapper for body editor changes - updates form field and triggers auto-save
+   * DEditor passes an event-like object { target: { value } } to @change
    */
   @action
   handleBodyFieldChange(fieldSetter, event) {
-    fieldSetter(event);
+    fieldSetter(event.target.value);
     this._scheduleDraftSave();
   }
 
@@ -421,9 +629,9 @@ export default class NewLotteryPage extends Component {
   }
 
   @action
-  updatePacketRaw(index, value) {
-    // DEditor passes the new value directly (not an event object)
-    this.packets[index].raw = value;
+  updatePacketRaw(index, event) {
+    // DEditor passes an event-like object { target: { value } } to @change
+    this.packets[index].raw = event.target.value;
     this.packets = [...this.packets];
     this._scheduleDraftSave();
   }
@@ -881,16 +1089,21 @@ export default class NewLotteryPage extends Component {
             @validation="required"
             as |field|
           >
-            <div class="lottery-body-editor">
+            <div
+              class="lottery-body-editor"
+              {{didInsert this.setupBodyPasteHandler}}
+              {{willDestroy this.cleanupBodyPasteHandler}}
+            >
               <DEditor
                 @value={{readonly field.value}}
                 @change={{fn this.handleBodyFieldChange field.set}}
                 @extraButtons={{this.extraButtons}}
+                @onSetup={{this.onBodyEditorSetup}}
                 class="form-kit__control-composer"
                 style="height: 500px"
               />
               <PickFilesButton
-                @registerFileInput={{this.uppyUpload.setup}}
+                @registerFileInput={{this.registerBodyFileInput}}
                 @fileInputId={{this.bodyFileInputId}}
                 @acceptedFormatsOverride="image/*"
               />
@@ -1007,11 +1220,16 @@ export default class NewLotteryPage extends Component {
                         class="packet-title-field"
                       />
                     </div>
-                    <div class="packet-editor">
+                    <div
+                      class="packet-editor"
+                      {{didInsert (fn this.setupPacketPasteHandler index)}}
+                      {{willDestroy (fn this.cleanupPacketPasteHandler index)}}
+                    >
                       <DEditor
                         @value={{readonly packet.raw}}
                         @change={{fn this.updatePacketRaw index}}
                         @extraButtons={{this.packetExtraButtons index}}
+                        @onSetup={{fn this.onPacketEditorSetup index}}
                         @preview={{false}}
                         @placeholder="vzekc_verlosung.modal.packet_description_placeholder"
                       />
