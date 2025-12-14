@@ -16,7 +16,10 @@ RSpec.describe VzekcVerlosung::LotteriesController do
         category_id: category.id,
         duration_days: 14,
         has_abholerpaket: false,
-        packets: [{ title: "Packet 1", raw: "Packet 1 content" }, { title: "Packet 2", raw: "Packet 2 content" }],
+        packets: [
+          { title: "Packet 1", raw: "Packet 1 content" },
+          { title: "Packet 2", raw: "Packet 2 content" },
+        ],
       }
     end
 
@@ -176,7 +179,10 @@ RSpec.describe VzekcVerlosung::LotteriesController do
                category_id: category.id,
                duration_days: 14,
                has_abholerpaket: false,
-               packets: [{ title: "Packet 1", raw: "Content 1" }, { title: "Packet 2", raw: "Content 2" }],
+               packets: [
+                 { title: "Packet 1", raw: "Content 1" },
+                 { title: "Packet 2", raw: "Content 2" },
+               ],
              }
 
         expect(response.status).to eq(403)

@@ -34,7 +34,8 @@ module VzekcVerlosung
       # Count packets and participants
       packet_count = lottery.lottery_packets.count
       packet_post_ids = lottery.lottery_packets.pluck(:post_id)
-      participant_count = LotteryTicket.where(post_id: packet_post_ids).select(:user_id).distinct.count
+      participant_count =
+        LotteryTicket.where(post_id: packet_post_ids).select(:user_id).distinct.count
 
       {
         id: lottery.id,

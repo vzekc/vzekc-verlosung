@@ -45,7 +45,8 @@ module VzekcVerlosung
           .where(vzekc_verlosung_lotteries: { state: "finished" })
           .pluck(:post_id)
 
-      tickets_count = LotteryTicket.where(user_id: @user.id, post_id: finished_packet_post_ids).count
+      tickets_count =
+        LotteryTicket.where(user_id: @user.id, post_id: finished_packet_post_ids).count
 
       # Count packets won
       packets_won =
@@ -217,45 +218,47 @@ module VzekcVerlosung
           .order("vzekc_verlosung_pickup_offers.picked_up_at DESC")
           .limit(50)
 
-      pickup_offers.map do |offer|
-        donation = offer.donation
-        topic = donation.topic
-        next unless topic
+      pickup_offers
+        .map do |offer|
+          donation = offer.donation
+          topic = donation.topic
+          next unless topic
 
-        lottery = donation.lottery
-        {
-          id: offer.id,
-          picked_up_at: offer.picked_up_at,
-          donation: {
-            id: donation.id,
-            topic_id: topic.id,
-            title: topic.title,
-            url: topic.relative_url,
-          },
-          category: {
-            id: topic.category&.id,
-            name: topic.category&.name,
-            color: topic.category&.color,
-          },
-          outcome:
-            if lottery&.active? || lottery&.finished?
-              {
-                type: "lottery",
-                id: lottery.topic_id,
-                title: lottery.topic&.title,
-                url: lottery.topic&.relative_url,
-              }
-            elsif donation.erhaltungsbericht_topic_id.present?
-              bericht_topic = donation.erhaltungsbericht_topic
-              {
-                type: "erhaltungsbericht",
-                id: bericht_topic&.id,
-                title: bericht_topic&.title,
-                url: bericht_topic&.relative_url,
-              }
-            end,
-        }
-      end.compact
+          lottery = donation.lottery
+          {
+            id: offer.id,
+            picked_up_at: offer.picked_up_at,
+            donation: {
+              id: donation.id,
+              topic_id: topic.id,
+              title: topic.title,
+              url: topic.relative_url,
+            },
+            category: {
+              id: topic.category&.id,
+              name: topic.category&.name,
+              color: topic.category&.color,
+            },
+            outcome:
+              if lottery&.active? || lottery&.finished?
+                {
+                  type: "lottery",
+                  id: lottery.topic_id,
+                  title: lottery.topic&.title,
+                  url: lottery.topic&.relative_url,
+                }
+              elsif donation.erhaltungsbericht_topic_id.present?
+                bericht_topic = donation.erhaltungsbericht_topic
+                {
+                  type: "erhaltungsbericht",
+                  id: bericht_topic&.id,
+                  title: bericht_topic&.title,
+                  url: bericht_topic&.relative_url,
+                }
+              end,
+          }
+        end
+        .compact
     end
   end
 end

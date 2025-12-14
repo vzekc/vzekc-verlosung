@@ -62,11 +62,11 @@ task "lottery:fix_winners", [:topic_id] => :environment do |_, args|
     expected_winner = winner_username
 
     if current_winner == expected_winner
-      puts "OK: Packet ##{lottery_packet.ordinal} '#{packet_title}' -> #{expected_winner || '(no winner)'}"
+      puts "OK: Packet ##{lottery_packet.ordinal} '#{packet_title}' -> #{expected_winner || "(no winner)"}"
     else
       puts "MISMATCH: Packet ##{lottery_packet.ordinal} '#{packet_title}'"
-      puts "  Current:  #{current_winner || '(none)'}"
-      puts "  Expected: #{expected_winner || '(no winner)'}"
+      puts "  Current:  #{current_winner || "(none)"}"
+      puts "  Expected: #{expected_winner || "(no winner)"}"
 
       changes << {
         packet: lottery_packet,

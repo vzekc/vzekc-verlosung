@@ -159,17 +159,20 @@ module VzekcVerlosung
 
         # Determine if Abholerpaket should be created
         has_abholerpaket = params.has_abholerpaket.nil? ? true : params.has_abholerpaket
-        abholerpaket_in_packets = params.packets.any? do |p|
-          p[:is_abholerpaket] || p["is_abholerpaket"]
-        end
+        abholerpaket_in_packets =
+          params.packets.any? { |p| p[:is_abholerpaket] || p["is_abholerpaket"] }
 
         # If has_abholerpaket is true but not included in packets, create it
         if has_abholerpaket && !abholerpaket_in_packets
           abholerpaket_title = params.abholerpaket_title || "Abholerpaket"
           abholerpaket_erhaltungsbericht =
-            params.abholerpaket_erhaltungsbericht_required.nil? ?
-              true :
-              params.abholerpaket_erhaltungsbericht_required
+            (
+              if params.abholerpaket_erhaltungsbericht_required.nil?
+                true
+              else
+                params.abholerpaket_erhaltungsbericht_required
+              end
+            )
 
           # Create Abholerpaket post
           raw_content = "# Paket 0: #{abholerpaket_title}\n\nReserviert für den Abholer."
@@ -184,7 +187,9 @@ module VzekcVerlosung
           post = post_creator.create
 
           unless post&.persisted?
-            fail!("Failed to create Abholerpaket post: #{post_creator.errors.full_messages.join(", ")}")
+            fail!(
+              "Failed to create Abholerpaket post: #{post_creator.errors.full_messages.join(", ")}",
+            )
           end
 
           # Create Abholerpaket record
