@@ -41,20 +41,13 @@ export default {
             }
           };
 
-          const SpendenCategoryLink = class extends BaseCustomSidebarSectionLink {
+          const ActiveDonationsLink = class extends BaseCustomSidebarSectionLink {
             get name() {
-              return "spenden-category";
+              return "active-donations";
             }
 
-            get href() {
-              const categoryId = parseInt(
-                siteSettings.vzekc_verlosung_donation_category_id,
-                10
-              );
-              const category = site.categories?.find(
-                (c) => c.id === categoryId
-              );
-              return category?.url;
+            get route() {
+              return "activeDonations";
             }
 
             get text() {
@@ -150,9 +143,7 @@ export default {
               const links = [];
 
               // Spendenangebote
-              if (siteSettings.vzekc_verlosung_donation_category_id) {
-                links.push(new SpendenCategoryLink());
-              }
+              links.push(new ActiveDonationsLink());
 
               // Verlosungen (active lotteries)
               links.push(new ActiveLotteriesLink());

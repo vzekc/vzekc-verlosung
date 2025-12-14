@@ -1892,6 +1892,230 @@
   font-size: 1.1em;
 }
 
+// Active Donations Page
+.active-donations-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1em;
+
+  .active-donations-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5em;
+
+    h1 {
+      margin: 0;
+      font-size: 1.8em;
+    }
+  }
+}
+
+.active-donations-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+}
+
+.active-donation-card {
+  background: var(--secondary);
+  border: 1px solid var(--primary-low);
+  border-radius: 8px;
+  padding: 1em;
+
+  &.has-picker {
+    border-left: 3px solid var(--success);
+  }
+
+  .active-donation-header {
+    margin-bottom: 0.75em;
+
+    .active-donation-title {
+      margin: 0 0 0.5em 0;
+      font-size: 1.2em;
+
+      a {
+        color: var(--primary);
+        text-decoration: none;
+
+        &:hover {
+          color: var(--tertiary);
+        }
+      }
+    }
+
+    .active-donation-meta {
+      display: flex;
+      align-items: center;
+      font-size: 0.9em;
+
+      .names {
+        display: flex;
+        align-items: center;
+        gap: 0.5em;
+
+        .avatar {
+          margin-right: 0.25em;
+        }
+
+        .username {
+          a {
+            color: var(--primary);
+            text-decoration: none;
+
+            &:hover {
+              color: var(--tertiary);
+            }
+          }
+
+          &.staff a {
+            color: var(--primary);
+            font-weight: bold;
+          }
+
+          .svg-icon-title {
+            margin-left: 0.25em;
+
+            .d-icon {
+              color: var(--tertiary);
+            }
+          }
+        }
+
+        .user-title {
+          color: var(--primary-medium);
+          font-size: 0.9em;
+        }
+      }
+    }
+  }
+
+  .active-donation-info {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1em;
+    align-items: center;
+  }
+
+  .active-donation-details {
+    display: flex;
+    gap: 1em;
+    flex-wrap: wrap;
+  }
+
+  .donation-detail {
+    display: flex;
+    align-items: center;
+    gap: 0.4em;
+    font-size: 0.9em;
+    color: var(--primary-high);
+
+    .d-icon {
+      color: var(--primary-medium);
+    }
+  }
+
+  .active-donation-status {
+    display: flex;
+    gap: 1em;
+    align-items: center;
+    margin-left: auto;
+  }
+
+  .donation-state {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+    padding: 0.25em 0.6em;
+    border-radius: 12px;
+    font-size: 0.85em;
+    font-weight: 500;
+
+    &--open {
+      background: var(--tertiary-low);
+      color: var(--tertiary);
+
+      .d-icon {
+        color: var(--tertiary);
+      }
+    }
+
+    &--assigned {
+      background: var(--tertiary-low);
+      color: var(--tertiary-high);
+
+      .d-icon {
+        color: var(--tertiary-high);
+      }
+    }
+
+    &--picked_up,
+    &--closed {
+      background: var(--success-low);
+      color: var(--success);
+
+      .d-icon {
+        color: var(--success);
+      }
+    }
+  }
+
+  .active-donation-picker {
+    flex: 0 0 100%;
+    margin-top: 0.5em;
+    padding-top: 0.75em;
+    border-top: 1px solid var(--primary-low);
+
+    .picker-info {
+      display: flex;
+      align-items: center;
+      gap: 0.5em;
+      font-size: 0.9em;
+
+      .d-icon {
+        color: var(--success);
+      }
+
+      .picker-label {
+        color: var(--primary-medium);
+        font-weight: 500;
+      }
+
+      .picker-username {
+        color: var(--tertiary);
+        font-weight: 500;
+        text-decoration: none;
+
+        &:hover {
+          text-decoration: underline;
+        }
+      }
+    }
+  }
+
+  .active-donation-outcome {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+    font-size: 0.85em;
+    color: var(--primary-medium);
+    padding: 0.25em 0.6em;
+    background: var(--primary-very-low);
+    border-radius: 12px;
+
+    .d-icon {
+      color: var(--primary-medium);
+    }
+  }
+}
+
+.no-active-donations {
+  text-align: center;
+  padding: 3em;
+  color: var(--primary-medium);
+  font-size: 1.1em;
+}
+
 // Sidebar navigation - move Verlosungen section to top
 .sidebar-sections {
   display: flex;

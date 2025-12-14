@@ -32,6 +32,15 @@ de:
         packets: "Pakete"
         participants: "Teilnehmer"
         no_lotteries: "Keine aktiven Verlosungen"
+      active_donations:
+        title: "Spendenangebote"
+        offers:
+          one: "Angebot"
+          other: "Angebote"
+        picker: "Abholer"
+        no_donations: "Keine Spendenangebote"
+        lottery_created: "Verlosung erstellt"
+        erhaltungsbericht_created: "Erhaltungsbericht geschrieben"
       neue_verlosung: "Neue Verlosung"
       create_lottery: "Verlosung erstellen"
       create_draft: "Entwurf anlegen"

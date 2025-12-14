@@ -29,6 +29,8 @@ register_svg_icon "ticket"
 register_svg_icon "calendar-check"
 register_svg_icon "clover"
 register_svg_icon "cloud-rain"
+register_svg_icon "truck"
+register_svg_icon "hand-paper"
 
 module ::VzekcVerlosung
   PLUGIN_NAME = "vzekc-verlosung"
@@ -45,6 +47,7 @@ after_initialize do
   Discourse::Application.routes.append do
     get "/lottery-history" => "users#index", :constraints => { format: /(json|html)/ }
     get "/active-lotteries" => "users#index", :constraints => { format: /(json|html)/ }
+    get "/active-donations" => "users#index", :constraints => { format: /(json|html)/ }
     get "/new-lottery" => "list#latest", :constraints => { format: /(json|html)/ }
     get "u/:username/verlosungen" => "users#show",
         :constraints => {

@@ -9,6 +9,7 @@ VzekcVerlosung::Engine.routes.draw do
   get "/history/packets" => "lottery_history#packets"
   get "/history/lotteries" => "lottery_history#lotteries"
   get "/active" => "active_lotteries#index"
+  get "/active-donations" => "active_donations#index"
   post "/lotteries" => "lotteries#create"
   get "/lotteries/:topic_id/packets" => "lotteries#packets"
   put "/lotteries/:topic_id/end-early" => "lotteries#end_early"
