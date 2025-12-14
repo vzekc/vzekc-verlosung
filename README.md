@@ -5,7 +5,7 @@ A Discourse plugin for creating and managing lotteries with ticket-based partici
 ## Features
 
 - **Lottery Creation**: Single-step modal for creating lotteries with multiple packets
-- **Ticket System**: Users can buy tickets for individual packets
+- **Ticket System**: Users can draw tickets for individual packets
 - **Draft Mode**: Create lotteries as drafts before publishing
 - **Time-Based State Management**: Automatic state transitions (draft → active → finished)
 - **Deterministic Drawing**: Browser-based drawing using seeded PRNG for verifiable results
@@ -217,6 +217,6 @@ This ensures:
 - `CreateLotteryModal` - Single-step lottery creation modal
 - `DrawLotteryModal` - Drawing interface
 - `LotteryIntroSummary` - Status display and actions
-- `LotteryWidget` - Ticket buying interface
+- `LotteryWidget` - Ticket drawing interface
 - `lottery.js` - Deterministic drawing library
 - `prng.js` - Seeded random number generator

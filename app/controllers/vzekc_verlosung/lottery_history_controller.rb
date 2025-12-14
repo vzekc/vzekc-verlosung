@@ -478,7 +478,7 @@ module VzekcVerlosung
         .compact
     end
 
-    # Get top ticket buyers by total tickets purchased across all finished lotteries
+    # Get top ticket participants by total tickets drawn across all finished lotteries
     #
     # @param limit [Integer] Number of results to return
     # @return [Array<Hash>] Array of { user: {...}, count: Integer }

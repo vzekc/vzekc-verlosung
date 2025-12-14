@@ -64,7 +64,7 @@ RSpec.describe "Lottery Full Lifecycle Integration" do
     # Lottery is already active with ends_at set
     expect(lottery.ends_at).to be_present
 
-    # STEP 2: Participants buy tickets for different packets
+    # STEP 2: Participants draw tickets for different packets
     freeze_time(Time.zone.parse("2025-01-19 14:00:00"))
 
     sign_in(participant1)
@@ -454,7 +454,7 @@ RSpec.describe "Lottery Full Lifecycle Integration" do
 
     packet_posts = all_posts.to_a
 
-    # STEP 2: Participants buy tickets for different packets
+    # STEP 2: Participants draw tickets for different packets
     freeze_time(Time.zone.parse("2025-01-19 14:00:00"))
 
     sign_in(participant1)

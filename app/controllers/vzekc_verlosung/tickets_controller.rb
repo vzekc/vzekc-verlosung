@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module VzekcVerlosung
-  # Controller for handling lottery ticket purchases and returns
+  # Controller for handling lottery ticket draws and returns
   class TicketsController < ::ApplicationController
     requires_plugin VzekcVerlosung::PLUGIN_NAME
 
@@ -27,12 +27,12 @@ module VzekcVerlosung
         return render_json_error("Lottery has ended", status: :unprocessable_entity)
       end
 
-      # Prevent buying tickets for Abholerpaket (packet 0)
+      # Prevent drawing tickets for Abholerpaket (packet 0)
       packet = LotteryPacket.find_by(post_id: post.id)
       if packet&.abholerpaket?
         return(
           render_json_error(
-            "Cannot buy tickets for the Abholerpaket",
+            "Cannot draw tickets for the Abholerpaket",
             status: :unprocessable_entity,
           )
         )
@@ -49,7 +49,7 @@ module VzekcVerlosung
           notifications_reason_id: TopicUser.notification_reasons[:user_interacted],
         )
 
-        # Notify the lottery creator that a ticket was bought
+        # Notify the lottery creator that a ticket was drawn
         begin
           notify_ticket_bought(topic, post, current_user)
         rescue => e
@@ -318,9 +318,9 @@ module VzekcVerlosung
       response
     end
 
-    # Notify the lottery creator that a ticket was bought
+    # Notify the lottery creator that a ticket was drawn
     def notify_ticket_bought(topic, post, buyer)
-      return if topic.user_id == buyer.id # Don't notify if creator bought their own ticket
+      return if topic.user_id == buyer.id # Don't notify if creator drew their own ticket
 
       packet_title =
         VzekcVerlosung::TitleExtractor.extract_title(post.raw) || "Packet ##{post.post_number}"

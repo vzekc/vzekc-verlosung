@@ -17,7 +17,7 @@ import TicketCountBadge from "./ticket-count-badge";
  * Lottery widget component combining ticket button and count display
  *
  * @component LotteryWidget
- * Shows a button to buy/return lottery tickets and displays the ticket count with participants
+ * Shows a button to draw/return lottery tickets and displays the ticket count with participants
  *
  * @param {Object} args.data.post - The post object (passed via renderGlimmer)
  */
@@ -145,7 +145,7 @@ export default class LotteryWidget extends Component {
   }
 
   /**
-   * Toggle ticket status (buy or return)
+   * Toggle ticket status (draw or return)
    */
   @action
   async toggleTicket() {
@@ -164,7 +164,7 @@ export default class LotteryWidget extends Component {
           type: "DELETE",
         });
       } else {
-        // Buy ticket
+        // Draw ticket
         result = await ajax("/vzekc-verlosung/tickets", {
           type: "POST",
           data: { post_id: this.post.id },
@@ -231,7 +231,7 @@ export default class LotteryWidget extends Component {
   }
 
   /**
-   * Check if user can buy or return tickets
+   * Check if user can draw or return tickets
    * Returns false if lottery is not active or has ended
    *
    * @type {boolean}
@@ -681,7 +681,7 @@ export default class LotteryWidget extends Component {
             </div>
           {{/if}}
         {{else if this.canBuyOrReturn}}
-          {{! Lottery is active - show buy/return button or Abholerpaket message }}
+          {{! Lottery is active - show draw/return button or Abholerpaket message }}
           <div class="lottery-packet-active-notice">
             {{#if this.isAbholerpaket}}
               <div class="abholerpaket-info">

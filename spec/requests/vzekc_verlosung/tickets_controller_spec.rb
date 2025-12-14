@@ -55,7 +55,7 @@ describe VzekcVerlosung::TicketsController do
       context "when lottery is finished" do
         before { lottery.update!(state: "finished") }
 
-        it "prevents ticket purchase" do
+        it "prevents ticket drawing" do
           expect {
             post "/vzekc-verlosung/tickets.json", params: { post_id: lottery_post.id }
           }.not_to change { VzekcVerlosung::LotteryTicket.count }
@@ -69,7 +69,7 @@ describe VzekcVerlosung::TicketsController do
       context "when lottery has ended" do
         before { lottery.update!(ends_at: 1.day.ago) }
 
-        it "prevents ticket purchase" do
+        it "prevents ticket drawing" do
           expect {
             post "/vzekc-verlosung/tickets.json", params: { post_id: lottery_post.id }
           }.not_to change { VzekcVerlosung::LotteryTicket.count }
@@ -80,7 +80,7 @@ describe VzekcVerlosung::TicketsController do
         end
       end
 
-      context "when trying to buy ticket for Abholerpaket" do
+      context "when trying to draw ticket for Abholerpaket" do
         let!(:abholerpaket_post) { Fabricate(:post, topic: topic, user: admin) }
         let!(:abholerpaket) do
           VzekcVerlosung::LotteryPacket.create!(
@@ -93,14 +93,14 @@ describe VzekcVerlosung::TicketsController do
           )
         end
 
-        it "prevents ticket purchase for Abholerpaket" do
+        it "prevents ticket drawing for Abholerpaket" do
           expect {
             post "/vzekc-verlosung/tickets.json", params: { post_id: abholerpaket_post.id }
           }.not_to change { VzekcVerlosung::LotteryTicket.count }
 
           expect(response.status).to eq(422)
           json = response.parsed_body
-          expect(json["errors"]).to include("Cannot buy tickets for the Abholerpaket")
+          expect(json["errors"]).to include("Cannot draw tickets for the Abholerpaket")
         end
       end
 

@@ -273,14 +273,14 @@ RSpec.describe VzekcVerlosung::Lottery do
       user2 = Fabricate(:user)
       user3 = Fabricate(:user)
 
-      # User1 buys tickets for both packets
+      # User1 draws tickets for both packets
       Fabricate(:lottery_ticket, post: post1, user: user1)
       Fabricate(:lottery_ticket, post: post2, user: user1)
 
-      # User2 buys ticket for packet1
+      # User2 draws ticket for packet1
       Fabricate(:lottery_ticket, post: post1, user: user2)
 
-      # User3 buys ticket for packet2
+      # User3 draws ticket for packet2
       Fabricate(:lottery_ticket, post: post2, user: user3)
 
       participants = lottery.participants

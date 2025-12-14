@@ -26,7 +26,7 @@ RSpec.describe VzekcVerlosung::LotteryTicket do
         expect(duplicate_ticket.errors[:post_id]).to be_present
       end
 
-      it "allows same user to buy tickets for different posts" do
+      it "allows same user to draw tickets for different posts" do
         user = Fabricate(:user)
         post1 = Fabricate(:post)
         post2 = Fabricate(:post)
@@ -37,7 +37,7 @@ RSpec.describe VzekcVerlosung::LotteryTicket do
         expect(ticket2).to be_valid
       end
 
-      it "allows different users to buy tickets for same post" do
+      it "allows different users to draw tickets for same post" do
         post = Fabricate(:post)
         user1 = Fabricate(:user)
         user2 = Fabricate(:user)

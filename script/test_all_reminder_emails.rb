@@ -151,13 +151,13 @@ if tomorrow_result.success?
   tomorrow_topic.save_custom_fields
   tomorrow_topic.reload
 
-  # Buy tickets from other users
+  # Draw tickets from other users
   buyer = test_users[3]
   packet_posts = tomorrow_topic.posts.where.not(post_number: 1)
   if packet_posts.any?
     packet_post = packet_posts.first
     VzekcVerlosung::LotteryTicket.create!(post_id: packet_post.id, user_id: buyer.id)
-    puts "  ✓ User #{buyer.username} bought ticket"
+    puts "  ✓ User #{buyer.username} drew ticket"
   end
 
   puts "  ✓ Created lottery ending tomorrow: #{tomorrow_topic.title} (id: #{tomorrow_topic.id})"
@@ -193,7 +193,7 @@ if uncollected_result.success?
   uncollected_topic.save_custom_fields
   uncollected_topic.reload
 
-  # Buy ticket from winner
+  # Draw ticket from winner
   packet_posts = uncollected_topic.posts.where.not(post_number: 1)
   if packet_posts.any?
     packet_post = packet_posts.first
@@ -261,7 +261,7 @@ if erb_result.success?
   erb_topic.save_custom_fields
   erb_topic.reload
 
-  # Buy ticket from winner
+  # Draw ticket from winner
   packet_posts = erb_topic.posts.where.not(post_number: 1)
   if packet_posts.any?
     packet_post = packet_posts.first

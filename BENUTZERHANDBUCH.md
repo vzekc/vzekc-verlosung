@@ -1,6 +1,6 @@
 # VzEkC Hardwareverlosung – Benutzerhandbuch
 
-Das Verlosungssystem ermöglicht es Vereinsmitgliedern, Hardware-Spenden transparent und fair zu verlosen. Jede Verlosung besteht aus mehreren Paketen, für die Mitglieder Lose kaufen können. Nach Ablauf der Frist werden die Gewinner durch einen nachvollziehbaren, deterministischen Zufallsalgorithmus ermittelt.
+Das Verlosungssystem ermöglicht es Vereinsmitgliedern, Hardware-Spenden transparent und fair zu verlosen. Jede Verlosung besteht aus mehreren Paketen, für die Mitglieder Lose ziehen können. Nach Ablauf der Frist werden die Gewinner durch einen nachvollziehbaren, deterministischen Zufallsalgorithmus ermittelt.
 
 ---
 
@@ -20,13 +20,13 @@ Unter dem Text des Hauptbeitrags gibt es eine Statusanzeige mit der verbleibende
 
 <img src="docs/images/01-verlosung-hauptbeitrag-status.png" alt="Verlosungs-Status" width="700">
 
-### Lose kaufen
+### Lose ziehen
 
 Um an einer Verlosung teilzunehmen, scrollst du zum gewünschten Paket im Beitrag. Jedes Paket ist als separater Beitrag angelegt und zeigt eine Beschreibung sowie Fotos der enthaltenen Hardware.
 
-<img src="docs/images/02-paket-los-kaufen-button.png" alt="Paket-Beitrag mit &quot;Los kaufen&quot; Button" width="700">
+<img src="docs/images/02-paket-los-kaufen-button.png" alt="Paket-Beitrag mit &quot;Los ziehen&quot; Button" width="700">
 
-Unter jedem Paket findest du einen "Los kaufen" Button sowie die aktuelle Anzahl der verkauften Lose. Du kannst pro Paket genau ein Los kaufen. Die Teilnehmerliste zeigt alle Nutzer, die für dieses Paket ein Los gekauft haben. Diese Liste ist für alle Mitglieder sichtbar.
+Unter jedem Paket findest du einen "Los ziehen" Button sowie die aktuelle Anzahl der gezogenen Lose. Du kannst pro Paket genau ein Los ziehen. Die Teilnehmerliste zeigt alle Nutzer, die für dieses Paket ein Los gezogen haben. Diese Liste ist für alle Mitglieder sichtbar.
 
 <img src="docs/images/03-teilnehmerliste.png" alt="Teilnehmerliste unter einem Paket" width="357">
 
@@ -192,13 +192,13 @@ Diese Erinnerungen helfen dir, den Verlosungsprozess zeitnah abzuschließen und 
 ## Häufig gestellte Fragen
 
 **Kann ich ein Los wieder zurückgeben?**
-Ja, solange die Verlosung noch läuft, kannst du dein Los jederzeit zurückgeben. Der Button ändert sich nach dem Kauf von "Los kaufen" zu "Los zurückgeben".
+Ja, solange die Verlosung noch läuft, kannst du dein Los jederzeit zurückgeben. Der Button ändert sich nach dem Ziehen von "Los ziehen" zu "Los zurückgeben".
 
-**Kann ich Lose für mehrere Pakete kaufen?**
+**Kann ich Lose für mehrere Pakete ziehen?**
 Ja, du kannst an beliebig vielen Paketen einer Verlosung teilnehmen. Jedes Paket wird unabhängig verlost.
 
-**Kann ich mehrere Lose für dasselbe Paket kaufen?**
-Nein, pro Paket kannst du genau ein Los kaufen. Alle Teilnehmer haben die gleiche Gewinnchance bei jedem Paket.
+**Kann ich mehrere Lose für dasselbe Paket ziehen?**
+Nein, pro Paket kannst du genau ein Los ziehen. Alle Teilnehmer haben die gleiche Gewinnchance bei jedem Paket.
 
 **Wie wird der Gewinner ermittelt?**
 Der Gewinner wird durch einen deterministischen Zufallsalgorithmus ermittelt, der im Browser läuft. Der Seed basiert auf dem Startzeitpunkt und allen Teilnehmernamen. Dadurch ist das Ergebnis nachvollziehbar und kann nicht manipuliert werden.

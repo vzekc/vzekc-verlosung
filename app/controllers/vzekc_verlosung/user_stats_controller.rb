@@ -38,7 +38,7 @@ module VzekcVerlosung
     #
     # @return [Hash] Statistics including ticket count, wins, lotteries, pickups
     def build_stats
-      # Count tickets purchased (in finished lotteries)
+      # Count tickets drawn (in finished lotteries)
       finished_packet_post_ids =
         LotteryPacket
           .joins(:lottery)

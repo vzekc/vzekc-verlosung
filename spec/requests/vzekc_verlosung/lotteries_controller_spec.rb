@@ -322,16 +322,16 @@ RSpec.describe VzekcVerlosung::LotteriesController do
         expect(abholerpaket.winner).to eq(user)
       end
 
-      it "prevents users from buying tickets for Abholerpaket" do
+      it "prevents users from drawing tickets for Abholerpaket" do
         # Set lottery to active (not ended) so we can test Abholerpaket-specific logic
         abholerpaket_lottery.update!(state: "active", ends_at: 7.days.from_now)
 
-        # Try to buy ticket for Abholerpaket - should fail
+        # Try to draw ticket for Abholerpaket - should fail
         post "/vzekc-verlosung/tickets.json", params: { post_id: abholerpaket.post_id }
 
         expect(response.status).to eq(422)
         json = response.parsed_body
-        expect(json["errors"]).to include(/Cannot buy tickets for the Abholerpaket/)
+        expect(json["errors"]).to include(/Cannot draw tickets for the Abholerpaket/)
 
         # Verify no ticket was created
         expect(VzekcVerlosung::LotteryTicket.where(post_id: abholerpaket.post_id).count).to eq(0)

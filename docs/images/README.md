@@ -8,7 +8,7 @@ Die Screenshots sind durchnummeriert (01-15) in der Reihenfolge ihres Auftretens
 
 ### Teilnehmer-Sektion (01-06)
 - `01-verlosung-uebersicht-widget.png` - Verlosungs-Übersicht mit Status-Widget
-- `02-paket-los-kaufen-button.png` - Paket-Beitrag mit "Los kaufen" Button
+- `02-paket-los-kaufen-button.png` - Paket-Beitrag mit "Los ziehen" Button
 - `03-teilnehmerliste.png` - Teilnehmerliste unter einem Paket
 - `04-gewinner-benachrichtigung.png` - Persönliche Nachricht bei Gewinn
 - `05-gewinner-anzeige-paket.png` - Gewinner-Anzeige bei einem Paket

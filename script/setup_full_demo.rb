@@ -36,7 +36,7 @@ module FullDemoHelper
 
     excluded = packet_posts.sample
     title = excluded.raw.lines.first.to_s.gsub(/^#\s*/, "").strip
-    puts "  ⚠ Excluding packet ##{excluded.post_number} (#{title}) from ticket sales"
+    puts "  ⚠ Excluding packet ##{excluded.post_number} (#{title}) from ticket drawing"
     excluded
   end
 

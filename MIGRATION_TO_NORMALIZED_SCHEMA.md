@@ -399,7 +399,7 @@ All serializer JSON output remains **identical** to ensure frontend compatibilit
 
 ✅ Lottery creation
 ✅ Lottery publishing
-✅ Ticket buying/returning
+✅ Ticket drawing/returning
 ✅ Drawing winners
 ✅ Marking packets as collected
 ✅ Creating Erhaltungsberichte
@@ -542,7 +542,7 @@ However, since custom_fields were not migrated (no existing data), rollback woul
 - [x] Update plugin.rb (TopicQuery, associations, hooks)
 - [x] Update Guardian extensions
 - [x] Test lottery creation and publishing
-- [x] Test ticket buying/returning
+- [x] Test ticket drawing/returning
 - [x] Test drawing winners
 - [x] Test marking as collected
 - [x] Test Erhaltungsbericht creation

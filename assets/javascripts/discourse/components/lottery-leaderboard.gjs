@@ -10,7 +10,7 @@ import { eq } from "discourse/truth-helpers";
 import { i18n } from "discourse-i18n";
 
 /**
- * Displays leaderboards for lottery creators, ticket buyers, winners, and luck
+ * Displays leaderboards for lottery creators, ticket participants, winners, and luck
  *
  * @component LotteryLeaderboard
  */
