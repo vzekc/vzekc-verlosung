@@ -16,7 +16,7 @@ import Form from "discourse/components/form";
 import PickFilesButton from "discourse/components/pick-files-button";
 import DTooltip from "discourse/float-kit/components/d-tooltip";
 import { ajax } from "discourse/lib/ajax";
-import { popupAjaxError } from "discourse/lib/ajax-error";
+import { extractError } from "discourse/lib/ajax-error";
 import discourseDebounce from "discourse/lib/debounce";
 import { authorizesOneOrMoreImageExtensions } from "discourse/lib/uploads";
 import UppyUpload from "discourse/lib/uppy/uppy-upload";
@@ -893,7 +893,8 @@ export default class NewLotteryPage extends Component {
         { raw: "# Paket 1\n\n", erhaltungsberichtNotRequired: false },
       ];
     } catch (error) {
-      popupAjaxError(error);
+      const errorMessage = extractError(error);
+      this.dialog.alert(errorMessage);
     }
   }
 
@@ -910,8 +911,8 @@ export default class NewLotteryPage extends Component {
           (packet) => !packet.title || packet.title.trim().length === 0
         );
         if (invalidPacket) {
-          popupAjaxError(
-            new Error(i18n("vzekc_verlosung.errors.packet_title_required"))
+          this.dialog.alert(
+            i18n("vzekc_verlosung.errors.packet_title_required")
           );
           this.isSubmitting = false;
           return;
@@ -928,10 +929,8 @@ export default class NewLotteryPage extends Component {
 
         // Validate that at least one packet has content (title is required, raw is optional)
         if (packets.length === 0) {
-          popupAjaxError(
-            new Error(
-              i18n("vzekc_verlosung.errors.at_least_one_packet_required")
-            )
+          this.dialog.alert(
+            i18n("vzekc_verlosung.errors.at_least_one_packet_required")
           );
           this.isSubmitting = false;
           return;
@@ -991,7 +990,9 @@ export default class NewLotteryPage extends Component {
         );
       }
     } catch (error) {
-      popupAjaxError(error);
+      // Extract and display the actual error message from AJAX response
+      const errorMessage = extractError(error);
+      this.dialog.alert(errorMessage);
     } finally {
       this.isSubmitting = false;
     }
