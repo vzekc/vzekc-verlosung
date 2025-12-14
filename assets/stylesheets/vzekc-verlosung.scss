@@ -45,6 +45,7 @@
   align-items: center;
   margin-left: 0.5em;
   gap: 4px;
+  flex-shrink: 0; // Prevent shrinking to ensure consistent display
 
   .ticket-participant-avatar {
     display: inline-block;
@@ -82,6 +83,7 @@
     color: var(--primary-medium);
     font-size: var(--font-down-1);
     font-style: italic;
+    white-space: nowrap; // Always display on one line
   }
 }
 
@@ -457,6 +459,7 @@
 
     .lottery-packet-item {
       display: flex;
+      flex-wrap: wrap;
       align-items: center;
       padding: 0.75em 1em;
       border-bottom: 1px solid var(--primary-low);
@@ -475,10 +478,19 @@
         padding-left: calc(1em - 2px); // Compensate for thicker border
       }
 
+      // First row: ordinal + title + icon (stays on one line)
+      .packet-title-row {
+        flex: 0 0 100%;
+        display: flex;
+        align-items: center;
+        min-width: 0; // Allow text truncation
+      }
+
       .packet-ordinal {
         margin-right: 0.5em;
         font-weight: 600;
         color: var(--primary-medium);
+        flex-shrink: 0;
       }
 
       .packet-title {
@@ -486,6 +498,10 @@
         color: var(--tertiary);
         text-decoration: none;
         transition: color 0.2s;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        min-width: 0; // Allow text truncation within flex
 
         &:hover {
           color: var(--tertiary-hover);
@@ -498,11 +514,12 @@
       }
 
       .no-erhaltungsbericht-indicator {
-        margin-left: 0.5em;
+        margin-left: 0.35em;
         color: var(--primary-medium);
         font-size: var(--font-down-1);
         cursor: help;
         opacity: 0.8;
+        flex-shrink: 0;
 
         &:hover {
           opacity: 1;
@@ -511,6 +528,14 @@
         svg {
           vertical-align: middle;
         }
+      }
+
+      // Second row: participants (right-aligned)
+      .packet-participants-row {
+        flex: 0 0 100%;
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 0.35em;
       }
 
       .abholerpaket-label {
@@ -543,14 +568,9 @@
       }
 
       .packet-no-tickets {
-        margin-left: auto;
         color: var(--primary-medium);
         font-size: var(--font-down-1);
         font-style: italic;
-      }
-
-      .ticket-participants-inline {
-        margin-left: auto;
       }
 
       .packet-winner {
@@ -562,7 +582,6 @@
         border-radius: 12px;
         font-size: 0.9em;
         font-weight: 500;
-        margin-left: auto;
         padding-left: 1em;
 
         .participants-label {

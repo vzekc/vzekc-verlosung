@@ -912,23 +912,20 @@ export default class LotteryIntroSummary extends Component {
                   (if (this.userHasTicket packet) " user-has-ticket")
                 }}
               >
-                <span class="packet-ordinal">{{packet.ordinal}}:</span>
-                <a
-                  href="/t/{{this.topic.id}}/{{packet.post_number}}"
-                  class="packet-title"
-                >{{packet.title}}</a>
-
-                {{! Show indicator if no Erhaltungsbericht required }}
-                {{#unless packet.erhaltungsbericht_required}}
-                  <span
-                    class="no-erhaltungsbericht-indicator"
-                    title={{i18n
-                      "vzekc_verlosung.erhaltungsbericht.not_required"
-                    }}
-                  >
-                    {{icon "ban"}}
-                  </span>
-                {{/unless}}
+                <div class="packet-title-row">
+                  <span class="packet-ordinal">{{packet.ordinal}}:</span>
+                  <a
+                    href="/t/{{this.topic.id}}/{{packet.post_number}}"
+                    class="packet-title"
+                  >{{packet.title}}</a>{{! Show indicator if no Erhaltungsbericht required }}{{#unless
+                    packet.erhaltungsbericht_required
+                  }}<span
+                      class="no-erhaltungsbericht-indicator"
+                      title={{i18n
+                        "vzekc_verlosung.erhaltungsbericht.not_required"
+                      }}
+                    >{{icon "ban"}}</span>{{/unless}}
+                </div>
 
                 {{#if packet.abholerpaket}}
                   {{! Abholerpaket - show label instead of ticket count }}
@@ -956,46 +953,48 @@ export default class LotteryIntroSummary extends Component {
                     {{/if}}
                   {{/if}}
                 {{else}}
-                  {{! Regular packet - show winner or ticket count }}
-                  {{#if this.isFinished}}
-                    {{#if packet.winner}}
-                      <span class="packet-winner">
-                        <span class="participants-label">{{i18n
-                            "vzekc_verlosung.ticket.winner"
-                          }}:</span>
-                        <UserLink
-                          @username={{packet.winner.username}}
-                          class="winner-user-link"
-                        >
-                          {{avatar packet.winner imageSize="tiny"}}
-                          <span
-                            class="winner-name"
-                          >{{packet.winner.username}}</span>
-                        </UserLink>
-                        {{#if (this.showCollectionIndicatorForPacket packet)}}
-                          <span class="collection-indicator collected">
-                            {{icon "check"}}
+                  {{! Regular packet - show winner or ticket count on second row }}
+                  <div class="packet-participants-row">
+                    {{#if this.isFinished}}
+                      {{#if packet.winner}}
+                        <span class="packet-winner">
+                          <span class="participants-label">{{i18n
+                              "vzekc_verlosung.ticket.winner"
+                            }}:</span>
+                          <UserLink
+                            @username={{packet.winner.username}}
+                            class="winner-user-link"
+                          >
+                            {{avatar packet.winner imageSize="tiny"}}
                             <span
-                              class="collection-date"
-                            >{{this.formatCollectedDate
-                                packet.collected_at
-                              }}</span>
-                          </span>
-                        {{/if}}
-                      </span>
+                              class="winner-name"
+                            >{{packet.winner.username}}</span>
+                          </UserLink>
+                          {{#if (this.showCollectionIndicatorForPacket packet)}}
+                            <span class="collection-indicator collected">
+                              {{icon "check"}}
+                              <span
+                                class="collection-date"
+                              >{{this.formatCollectedDate
+                                  packet.collected_at
+                                }}</span>
+                            </span>
+                          {{/if}}
+                        </span>
+                      {{else}}
+                        <span class="packet-no-tickets">
+                          {{i18n "vzekc_verlosung.ticket.no_tickets"}}
+                        </span>
+                      {{/if}}
                     {{else}}
-                      <span class="packet-no-tickets">
-                        {{i18n "vzekc_verlosung.ticket.no_tickets"}}
-                      </span>
+                      <TicketCountBadge
+                        @count={{packet.ticket_count}}
+                        @users={{packet.users}}
+                        @packetTitle={{packet.title}}
+                        @hasEnded={{this.hasEnded}}
+                      />
                     {{/if}}
-                  {{else}}
-                    <TicketCountBadge
-                      @count={{packet.ticket_count}}
-                      @users={{packet.users}}
-                      @packetTitle={{packet.title}}
-                      @hasEnded={{this.hasEnded}}
-                    />
-                  {{/if}}
+                  </div>
                 {{/if}}
               </li>
             {{/each}}
