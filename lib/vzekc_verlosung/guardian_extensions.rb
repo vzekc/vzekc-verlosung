@@ -12,7 +12,7 @@ module VzekcVerlosung
       return false unless category
 
       # Check if user has general topic creation ability
-      @user.has_trust_level?(SiteSetting.min_trust_to_create_topic)
+      @user.in_any_groups?(SiteSetting.create_topic_allowed_groups_map)
     end
 
     # Override to block normal topic creation in lottery categories
