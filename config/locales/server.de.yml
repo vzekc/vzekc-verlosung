@@ -54,6 +54,16 @@ de:
           Die Verlosung endete am %{ended_at}.
 
           [Verlosung öffnen und Gewinner ziehen](%{topic_url})
+      no_participants:
+        title: "Verlosung ohne Teilnehmer beendet"
+        body: |
+          Hallo %{username},
+
+          Deine Verlosung **%{topic_title}** ist am %{ended_at} beendet.
+
+          Leider hat sich niemand für die Pakete angemeldet, daher wurde die Verlosung automatisch als beendet markiert.
+
+          [Verlosung ansehen](%{topic_url})
       ending_tomorrow:
         title: "Deine Verlosung endet morgen"
         body: |

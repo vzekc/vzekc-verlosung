@@ -72,6 +72,26 @@ module VzekcVerlosung
       post_ids = lottery_packets.pluck(:post_id)
       VzekcVerlosung::LotteryTicket.where(post_id: post_ids).distinct.count(:user_id)
     end
+
+    # Check if any drawable packets (non-abholerpaket) have tickets
+    #
+    # @return [Boolean] true if at least one drawable packet has tickets
+    def has_drawable_tickets?
+      lottery_packets.where(abholerpaket: false).joins(:lottery_tickets).exists?
+    end
+
+    # Finish lottery without drawing (no participants)
+    # Sets drawn_at and results to indicate no drawing was needed
+    def finish_without_participants!
+      update!(
+        state: "finished",
+        drawn_at: Time.zone.now,
+        results: {
+          no_participants: true,
+          finished_at: Time.zone.now.iso8601,
+        },
+      )
+    end
   end
 end
 
