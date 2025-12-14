@@ -4,8 +4,8 @@ require "rails_helper"
 
 RSpec.describe VzekcVerlosung::UserStatsController do
   fab!(:user)
-  fab!(:another_user) { Fabricate(:user) }
-  fab!(:lottery_category) { Fabricate(:category) }
+  fab!(:another_user, :user)
+  fab!(:lottery_category, :category)
 
   before do
     SiteSetting.vzekc_verlosung_enabled = true
@@ -57,9 +57,7 @@ RSpec.describe VzekcVerlosung::UserStatsController do
         )
       end
 
-      before do
-        VzekcVerlosung::LotteryTicket.create!(user: another_user, post: packet_post)
-      end
+      before { VzekcVerlosung::LotteryTicket.create!(user: another_user, post: packet_post) }
 
       it "returns correct stats for lottery creator" do
         get "/vzekc-verlosung/users/#{user.username}.json"

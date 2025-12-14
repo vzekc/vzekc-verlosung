@@ -1196,6 +1196,7 @@
         width: 100% !important;
         max-width: none !important;
         min-width: 100% !important;
+
         // Ensure flex children can shrink and grow properly
         min-height: 0;
       }
@@ -1211,6 +1212,7 @@
         width: 100% !important;
         max-width: none !important;
         min-width: 100% !important;
+
         // Height is controlled by the container's inline style
         // Don't set min-height here as it conflicts with flex layout
         flex: 1;

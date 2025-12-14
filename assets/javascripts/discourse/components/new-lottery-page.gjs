@@ -1,6 +1,6 @@
 import Component from "@glimmer/component";
 import { tracked } from "@glimmer/tracking";
-import { fn, hash } from "@ember/helper";
+import { fn } from "@ember/helper";
 import { on } from "@ember/modifier";
 import { action } from "@ember/object";
 // eslint-disable-next-line no-unused-vars
@@ -70,18 +70,6 @@ export default class NewLotteryPage extends Component {
   _saveDraftDebounce = null;
   _saveDraftPromise = null;
 
-  get formData() {
-    if (!this._formData) {
-      this._formData = {
-        title: this.title,
-        body: this.body,
-        durationDays: this.durationDays,
-        drawingMode: this.drawingMode,
-      };
-    }
-    return this._formData;
-  }
-
   constructor() {
     super(...arguments);
     // Initialize packets based on mode
@@ -122,6 +110,18 @@ export default class NewLotteryPage extends Component {
       cancel(this._saveDraftDebounce);
       this._performDraftSave();
     }
+  }
+
+  get formData() {
+    if (!this._formData) {
+      this._formData = {
+        title: this.title,
+        body: this.body,
+        durationDays: this.durationDays,
+        drawingMode: this.drawingMode,
+      };
+    }
+    return this._formData;
   }
 
   get allowUpload() {

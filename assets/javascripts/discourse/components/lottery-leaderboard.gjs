@@ -6,7 +6,7 @@ import { action } from "@ember/object";
 import avatar from "discourse/helpers/avatar";
 import icon from "discourse/helpers/d-icon";
 import { ajax } from "discourse/lib/ajax";
-import { eq } from "truth-helpers";
+import { eq } from "discourse/truth-helpers";
 import { i18n } from "discourse-i18n";
 
 /**
