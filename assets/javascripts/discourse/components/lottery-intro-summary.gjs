@@ -180,6 +180,20 @@ export default class LotteryIntroSummary extends Component {
   }
 
   /**
+   * Check if lottery has downloadable results (finished with actual winners)
+   *
+   * @returns {Boolean} true if results can be downloaded
+   */
+  get hasDownloadableResults() {
+    if (!this.isFinished) {
+      return false;
+    }
+    const results = this.topic?.lottery_results;
+    // No results or marked as no_participants means no downloadable results
+    return results && !results.no_participants;
+  }
+
+  /**
    * Get the packet mode for this lottery
    *
    * @returns {String} "ein" or "mehrere" (default: "mehrere")
@@ -839,46 +853,48 @@ export default class LotteryIntroSummary extends Component {
               {{icon "circle-check"}}
               <span>{{i18n "vzekc_verlosung.state.finished"}}</span>
             </div>
-            <div class="download-results">
-              <span class="download-label">{{i18n
-                  "vzekc_verlosung.drawing.download_results_label"
-                }}</span>
-              <a
-                href="/vzekc-verlosung/lotteries/{{this.topic.id}}/results.json"
-                class="btn btn-default btn-small"
-                download
-                title={{i18n
-                  "vzekc_verlosung.drawing.download_results_json_help"
-                }}
-              >
-                {{icon "download"}}
-                {{i18n "vzekc_verlosung.drawing.download_results_json"}}
-              </a>
-              <DButton
-                @action={{this.downloadResultsCsv}}
-                @translatedLabel={{i18n
-                  "vzekc_verlosung.drawing.download_results_csv"
-                }}
-                @translatedTitle={{i18n
-                  "vzekc_verlosung.drawing.download_results_csv_help"
-                }}
-                @icon="download"
-                class="btn-default btn-small"
-              />
-              <DButton
-                @action={{this.copyResultsToClipboard}}
-                @translatedLabel={{if
-                  this.resultsCopied
-                  (i18n "vzekc_verlosung.drawing.copy_results_copied")
-                  (i18n "vzekc_verlosung.drawing.copy_results")
-                }}
-                @translatedTitle={{i18n
-                  "vzekc_verlosung.drawing.copy_results_help"
-                }}
-                @icon={{if this.resultsCopied "check" "copy"}}
-                class="btn-default btn-small"
-              />
-            </div>
+            {{#if this.hasDownloadableResults}}
+              <div class="download-results">
+                <span class="download-label">{{i18n
+                    "vzekc_verlosung.drawing.download_results_label"
+                  }}</span>
+                <a
+                  href="/vzekc-verlosung/lotteries/{{this.topic.id}}/results.json"
+                  class="btn btn-default btn-small"
+                  download
+                  title={{i18n
+                    "vzekc_verlosung.drawing.download_results_json_help"
+                  }}
+                >
+                  {{icon "download"}}
+                  {{i18n "vzekc_verlosung.drawing.download_results_json"}}
+                </a>
+                <DButton
+                  @action={{this.downloadResultsCsv}}
+                  @translatedLabel={{i18n
+                    "vzekc_verlosung.drawing.download_results_csv"
+                  }}
+                  @translatedTitle={{i18n
+                    "vzekc_verlosung.drawing.download_results_csv_help"
+                  }}
+                  @icon="download"
+                  class="btn-default btn-small"
+                />
+                <DButton
+                  @action={{this.copyResultsToClipboard}}
+                  @translatedLabel={{if
+                    this.resultsCopied
+                    (i18n "vzekc_verlosung.drawing.copy_results_copied")
+                    (i18n "vzekc_verlosung.drawing.copy_results")
+                  }}
+                  @translatedTitle={{i18n
+                    "vzekc_verlosung.drawing.copy_results_help"
+                  }}
+                  @icon={{if this.resultsCopied "check" "copy"}}
+                  class="btn-default btn-small"
+                />
+              </div>
+            {{/if}}
           </div>
         {{/if}}
 
