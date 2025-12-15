@@ -204,6 +204,34 @@ export default class DonationWidget extends Component {
   }
 
   /**
+   * Format the assigned_at date as "Zugewiesen am <datum> um <uhrzeit>"
+   *
+   * @type {string}
+   */
+  get formattedAssignedAt() {
+    const assignedAt = this.assignedOffer?.assigned_at;
+    if (!assignedAt) {
+      return i18n("vzekc_verlosung.donation.state.assigned");
+    }
+
+    const date = new Date(assignedAt);
+    const dateStr = date.toLocaleDateString("de-DE", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+    const timeStr = date.toLocaleTimeString("de-DE", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+    return i18n("vzekc_verlosung.donation.assigned_at_datetime", {
+      date: dateStr,
+      time: timeStr,
+    });
+  }
+
+  /**
    * Check if donation is in a finalized state (assigned, picked_up, or closed)
    *
    * @type {boolean}
@@ -461,10 +489,10 @@ export default class DonationWidget extends Component {
                       {{formatUsername this.assignedOffer.user.username}}
                     </span>
                   </a>
-                  {{! Only show "Zugewiesen" badge when donation is in assigned state }}
+                  {{! Only show "Zugewiesen am <datum> um <uhrzeit>" badge when donation is in assigned state }}
                   {{#if (eq this.donationData.state "assigned")}}
                     <span class="offer-state-badge assigned">
-                      ({{i18n "vzekc_verlosung.donation.state.assigned"}})
+                      ({{this.formattedAssignedAt}})
                     </span>
                   {{/if}}
                 </div>
