@@ -431,9 +431,9 @@ module VzekcVerlosung
               name: user.name,
               avatar_template: user.avatar_template,
             },
-            luck: entry[:luck].round(2),
+            luck: entry[:luck].round(1),
             wins: entry[:wins],
-            expected: entry[:expected].round(2),
+            expected: entry[:expected].round(1),
           }
         end
         .compact

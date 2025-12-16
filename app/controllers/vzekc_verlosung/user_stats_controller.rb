@@ -121,9 +121,9 @@ module VzekcVerlosung
       end
 
       {
-        luck: (actual_wins - expected_wins).round(2),
+        luck: (actual_wins - expected_wins).round(1),
         wins: actual_wins,
-        expected: expected_wins.round(2),
+        expected: expected_wins.round(1),
         participated: packets_participated,
       }
     end
