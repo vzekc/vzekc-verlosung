@@ -18,7 +18,7 @@ de:
         body: |
           Hallo %{username},
 
-          Dein Abholangebot für die Spende **[%{topic_title}](%{topic_url})** wurde vom Vermittler @%{facilitator_username} angenommen!
+          ich habe dein Abholangebot für die Spende **[%{topic_title}](%{topic_url})** angenommen!
 
           ## Kontaktinformationen des Spenders
 
@@ -30,7 +30,7 @@ de:
           2. Nachdem du die Spende abgeholt hast, markiere sie bitte als "Abgeholt" im Spendenangebot
           3. Du musst dann entweder einen Erhaltungsbericht schreiben oder eine Verlosung erstellen
 
-          Bei Fragen kannst du den Vermittler @%{facilitator_username} kontaktieren.
+          Bei Fragen kannst du mir gerne antworten.
 
           **[→ Spendenangebot öffnen](%{topic_url})**
     reminders:

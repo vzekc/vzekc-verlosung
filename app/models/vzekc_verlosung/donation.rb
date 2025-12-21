@@ -166,9 +166,9 @@ module VzekcVerlosung
       picker = pickup_offer.user
       return unless picker
 
-      # Send PM to picker with donor's contact information
+      # Send PM to picker with donor's contact information (from facilitator, not system)
       PostCreator.create!(
-        Discourse.system_user,
+        facilitator,
         title:
           I18n.t(
             "vzekc_verlosung.notifications.donation_assigned.title",
@@ -183,10 +183,8 @@ module VzekcVerlosung
             topic_title: topic.title,
             topic_url: "#{Discourse.base_url}#{topic.relative_url}",
             contact_info: contact_info,
-            facilitator_username: facilitator.username,
           ),
         archetype: Archetype.private_message,
-        subtype: TopicSubtype.system_message,
         target_usernames: picker.username,
         skip_validations: true,
       )
