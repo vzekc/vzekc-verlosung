@@ -15,6 +15,11 @@ en:
         vzekc_verlosung_did_not_win: "Unfortunately not won"
         vzekc_verlosung_ending_tomorrow: "Lottery ending tomorrow"
     vzekc_verlosung:
+      map_providers:
+        google: "Google Maps"
+        openstreetmap: "OpenStreetMap"
+        apple: "Apple Maps"
+        bing: "Bing Maps"
       nav:
         section_title: "Lotteries"
         verlosungen: "Active Lotteries"

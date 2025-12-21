@@ -13,6 +13,7 @@ import { bind } from "discourse/lib/decorators";
 import Composer from "discourse/models/composer";
 import { eq, gt } from "discourse/truth-helpers";
 import { i18n } from "discourse-i18n";
+import LocationMapLink from "./location-map-link";
 import AssignOfferModal from "./modal/assign-offer-modal";
 
 /**
@@ -471,6 +472,11 @@ export default class DonationWidget extends Component {
                 )
               }}
             </div>
+            {{#if this.donationData.postcode}}
+              <div class="donation-location">
+                <LocationMapLink @postcode={{this.donationData.postcode}} />
+              </div>
+            {{/if}}
           </div>
 
           {{! Restructured view for assigned/picked_up/closed states }}

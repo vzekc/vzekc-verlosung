@@ -2,6 +2,7 @@ import avatar from "discourse/helpers/avatar";
 import icon from "discourse/helpers/d-icon";
 import { eq } from "discourse/truth-helpers";
 import { i18n } from "discourse-i18n";
+import LocationMapLink from "./location-map-link";
 
 /**
  * Builds CSS class for username based on user roles
@@ -129,8 +130,7 @@ function stateClass(state) {
               </div>
               {{#if donation.postcode}}
                 <div class="donation-detail donation-location">
-                  {{icon "location-dot"}}
-                  <span class="detail-value">{{donation.postcode}}</span>
+                  <LocationMapLink @postcode={{donation.postcode}} />
                 </div>
               {{/if}}
             </div>

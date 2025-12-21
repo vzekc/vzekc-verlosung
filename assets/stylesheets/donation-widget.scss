@@ -1,22 +1,35 @@
+// Override Discourse's .cooked overflow to allow our dropdown to extend
+.cooked:has(.donation-widget-container) {
+  overflow: visible !important;
+}
+
 .donation-widget-container {
   margin: 20px 0;
   padding: 15px;
   border: 2px solid var(--primary-medium);
   border-radius: 8px;
   background: var(--primary-very-low);
+  overflow: visible; // Allow dropdown to extend beyond container
 
   .donation-widget {
+    overflow: visible; // Allow dropdown to extend beyond widget
+
     .donation-header {
       margin-bottom: 15px;
       display: flex;
       gap: 20px;
       flex-wrap: wrap;
+      overflow: visible; // Allow dropdown to extend beyond header
 
       .donation-id {
         font-size: 1.1em;
       }
 
       .donation-state {
+        font-size: 1.1em;
+      }
+
+      .donation-location {
         font-size: 1.1em;
       }
     }

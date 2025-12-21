@@ -2116,6 +2116,110 @@
   font-size: 1.1em;
 }
 
+// Location map link with dropdown
+.location-map-link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+
+  .location-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+    color: var(--primary-high);
+    text-decoration: none;
+    cursor: pointer;
+
+    .d-icon {
+      color: var(--primary-medium);
+    }
+
+    .postcode-value {
+      border-bottom: 1px dotted var(--primary-medium);
+    }
+
+    &:hover {
+      color: var(--tertiary);
+
+      .d-icon {
+        color: var(--tertiary);
+      }
+
+      .postcode-value {
+        border-bottom-color: var(--tertiary);
+      }
+    }
+  }
+
+  .map-providers-dropdown {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: 1000;
+    min-width: 160px;
+    padding-top: 0.5em; // Use padding instead of margin to maintain hover area
+    background: transparent;
+
+    .dropdown-content {
+      background: var(--secondary);
+      border: 1px solid var(--primary-low);
+      border-radius: 6px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      position: relative;
+    }
+
+    .dropdown-arrow {
+      position: absolute;
+      top: -6px;
+      left: 12px;
+      width: 12px;
+      height: 12px;
+      background: var(--secondary);
+      border-left: 1px solid var(--primary-low);
+      border-top: 1px solid var(--primary-low);
+      transform: rotate(45deg);
+    }
+
+    .map-providers-list {
+      list-style: none;
+      margin: 0;
+      padding: 0.5em 0;
+
+      li {
+        margin: 0;
+
+        a {
+          display: flex;
+          align-items: center;
+          gap: 0.5em;
+          padding: 0.5em 1em;
+          color: var(--primary);
+          text-decoration: none;
+          font-size: 0.9em;
+
+          .d-icon {
+            color: var(--primary-medium);
+          }
+
+          &:hover {
+            background: var(--tertiary-low);
+            color: var(--tertiary);
+
+            .d-icon {
+              color: var(--tertiary);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  &:hover .map-providers-dropdown {
+    display: block;
+  }
+}
+
 // Sidebar navigation - move Verlosungen section to top
 .sidebar-sections {
   display: flex;
