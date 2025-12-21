@@ -234,6 +234,11 @@ module VzekcVerlosung
       bericht_topic_ids = packets_with_winners.map(&:erhaltungsbericht_topic_id).compact
       bericht_topics_by_id = Topic.where(id: bericht_topic_ids).index_by(&:id)
 
+      # Preload tickets with users for highlighting current user's participation
+      packet_post_ids = packets_with_winners.map(&:post_id)
+      tickets_by_post =
+        LotteryTicket.where(post_id: packet_post_ids).includes(:user).group_by(&:post_id)
+
       {
         id: lottery.id,
         topic_id: topic.id,
@@ -261,6 +266,7 @@ module VzekcVerlosung
           packets_with_winners.map do |packet|
             winner = winners_by_id[packet.winner_user_id]
             bericht_topic = bericht_topics_by_id[packet.erhaltungsbericht_topic_id]
+            tickets = tickets_by_post[packet.post_id] || []
             {
               ordinal: packet.ordinal,
               title: packet.title,
@@ -276,6 +282,8 @@ module VzekcVerlosung
               collected_at: packet.collected_at,
               erhaltungsbericht_required: packet.erhaltungsbericht_required,
               bericht_url: bericht_topic&.relative_url,
+              users:
+                tickets.map { |ticket| { id: ticket.user.id, username: ticket.user.username } },
             }
           end,
       }

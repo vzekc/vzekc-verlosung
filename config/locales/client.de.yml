@@ -39,6 +39,9 @@ de:
           finished: "Beendet"
         packets: "Pakete"
         participants: "Teilnehmer"
+        tickets_drawn:
+          one: "%{count} Los gezogen"
+          other: "%{count} Lose gezogen"
         no_lotteries: "Keine aktiven Verlosungen"
         no_finished_lotteries: "Keine beendeten Verlosungen"
       active_donations:
@@ -215,6 +218,17 @@ de:
         category_not_configured: "Die Kategorie für Erhaltungsberichte ist nicht konfiguriert. Bitte kontaktiere einen Administrator."
         from_donation: "Erhaltungsbericht zur Spende:"
         from_lottery: "Erhaltungsbericht zum Paket aus:"
+      time:
+        just_now: "Gerade eben"
+        minutes_ago:
+          one: "Vor 1 Minute"
+          other: "Vor %{count} Minuten"
+        hours_ago:
+          one: "Vor 1 Stunde"
+          other: "Vor %{count} Stunden"
+        days_ago:
+          one: "Vor 1 Tag"
+          other: "Vor %{count} Tagen"
       status:
         finished: "Beendet"
         ready_to_draw: "Ziehung ausstehend"
@@ -374,8 +388,8 @@ de:
           created: "Verlosungen erstellt"
           won: "Pakete gewonnen"
         tickets_drawn:
-          one: "Los gezogen"
-          other: "Lose gezogen"
+          one: "%{count} Los gezogen"
+          other: "%{count} Lose gezogen"
         packets_won:
           one: "Paket gewonnen"
           other: "Pakete gewonnen"

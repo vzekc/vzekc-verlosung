@@ -33,6 +33,9 @@ en:
           finished: "Finished"
         packets: "Packets"
         participants: "Participants"
+        tickets_drawn:
+          one: "%{count} Ticket drawn"
+          other: "%{count} Tickets drawn"
         no_lotteries: "No active lotteries"
         no_finished_lotteries: "No finished lotteries"
       neue_verlosung: "New Lottery"
@@ -200,6 +203,17 @@ en:
         category_not_configured: "Reception reports category is not configured. Please contact an administrator."
         from_donation: "Reception report for donation:"
         from_lottery: "Reception report for packet from:"
+      time:
+        just_now: "Just now"
+        minutes_ago:
+          one: "1 minute ago"
+          other: "%{count} minutes ago"
+        hours_ago:
+          one: "1 hour ago"
+          other: "%{count} hours ago"
+        days_ago:
+          one: "1 day ago"
+          other: "%{count} days ago"
       status:
         finished: "Finished"
         ready_to_draw: "Ready to draw"
@@ -327,8 +341,8 @@ en:
           created: "Lotteries created"
           won: "Packets won"
         tickets_drawn:
-          one: "Ticket drawn"
-          other: "Tickets drawn"
+          one: "%{count} Ticket drawn"
+          other: "%{count} Tickets drawn"
         packets_won:
           one: "Packet won"
           other: "Packets won"

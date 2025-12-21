@@ -1745,24 +1745,240 @@
   }
 }
 
-.active-lotteries-list {
+// Unified lottery card list
+.lottery-card-list {
   display: flex;
   flex-direction: column;
   gap: 1em;
 }
 
-.active-lottery-card {
+// Unified lottery card component
+.lottery-card {
   background: var(--secondary);
   border: 1px solid var(--primary-low);
   border-radius: 8px;
   padding: 1em;
 
-  .active-lottery-header {
-    margin-bottom: 0.75em;
+  // Title row
+  .lottery-card__title {
+    margin: 0 0 0.75em 0;
+    font-size: 1.2em;
 
-    .active-lottery-title {
-      margin: 0 0 0.5em 0;
-      font-size: 1.2em;
+    a {
+      color: var(--primary);
+      text-decoration: none;
+
+      &:hover {
+        color: var(--tertiary);
+      }
+    }
+  }
+
+  // Meta row: creator on left, dates on right
+  .lottery-card__meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5em;
+    margin-bottom: 0.75em;
+    font-size: 0.9em;
+  }
+
+  // Creator info
+  .lottery-card__creator {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+
+    .avatar {
+      margin-right: 0.25em;
+    }
+
+    .username {
+      a {
+        color: var(--primary);
+        text-decoration: none;
+
+        &:hover {
+          color: var(--tertiary);
+        }
+      }
+
+      &.staff a {
+        color: var(--primary);
+        font-weight: bold;
+      }
+
+      .svg-icon-title {
+        margin-left: 0.25em;
+
+        .d-icon {
+          color: var(--tertiary);
+        }
+      }
+    }
+
+    .user-title {
+      color: var(--primary-medium);
+      font-size: 0.9em;
+    }
+  }
+
+  // Dates container - right aligned with constant width cells
+  .lottery-card__dates {
+    display: flex;
+    gap: 1.5em;
+  }
+
+  // Individual date cell
+  .lottery-card__date {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    font-size: 0.9em;
+    color: var(--primary-high);
+    min-width: 10em;
+
+    .d-icon {
+      color: var(--primary-medium);
+      flex-shrink: 0;
+    }
+
+    .date-value {
+      white-space: nowrap;
+    }
+
+    // Start date styling
+    &--start {
+      color: var(--primary-medium);
+
+      .d-icon {
+        opacity: 0.7;
+      }
+    }
+
+    // End date styling (active lotteries)
+    &--end {
+      font-weight: bold;
+
+      .date-value {
+        color: var(--tertiary);
+      }
+    }
+
+    // Ended state
+    &--ended {
+      .date-value {
+        color: var(--danger);
+      }
+    }
+
+    // Drawn date styling (finished lotteries)
+    &--drawn {
+      .d-icon {
+        color: var(--success);
+      }
+    }
+  }
+
+  // Stats row with expand toggle
+  .lottery-card__stats-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+  }
+
+  // Expand toggle button
+  .lottery-card__expand-toggle {
+    background: none;
+    border: none;
+    padding: 0.25em;
+    cursor: pointer;
+    color: var(--primary-medium);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &:hover {
+      background: var(--primary-low);
+      color: var(--primary);
+    }
+  }
+
+  // Stats: packet count and participants, left-aligned
+  .lottery-card__stats {
+    display: flex;
+    gap: 1.5em;
+  }
+
+  .lottery-card__stat {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    font-size: 0.9em;
+    color: var(--primary-high);
+
+    .d-icon {
+      color: var(--primary-medium);
+    }
+
+    &--user-tickets {
+      color: var(--tertiary);
+
+      .d-icon {
+        color: var(--tertiary);
+      }
+    }
+  }
+
+  // Expanded packet list
+  .lottery-card__packets {
+    margin-top: 1em;
+    padding-top: 1em;
+    border-top: 1px solid var(--primary-low);
+  }
+
+  .lottery-card__packets-table {
+    width: 100%;
+    border-collapse: collapse;
+
+    th,
+    td {
+      padding: 0.5em;
+      text-align: left;
+      border-bottom: 1px solid var(--primary-low);
+    }
+
+    th {
+      font-weight: 500;
+      color: var(--primary-high);
+      font-size: 0.85em;
+    }
+
+    tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    // Highlight packets where current user has a ticket
+    .packet-row--user-ticket {
+      background-color: var(--tertiary-very-low);
+
+      td:first-child::before {
+        content: "";
+        display: inline-block;
+        width: 3px;
+        height: 1em;
+        background-color: var(--tertiary);
+        margin-right: 0.5em;
+        vertical-align: middle;
+        border-radius: 2px;
+      }
+    }
+
+    .packet-title {
+      font-weight: 500;
 
       a {
         color: var(--primary);
@@ -1774,118 +1990,94 @@
       }
     }
 
-    .active-lottery-meta {
-      display: flex;
-      align-items: center;
-      font-size: 0.9em;
-
-      .names {
-        display: flex;
-        align-items: center;
-        gap: 0.5em;
-
-        .avatar {
-          margin-right: 0.25em;
-        }
-
-        .username {
-          a {
-            color: var(--primary);
-            text-decoration: none;
-
-            &:hover {
-              color: var(--tertiary);
-            }
-          }
-
-          &.staff a {
-            color: var(--primary);
-            font-weight: bold;
-          }
-
-          .svg-icon-title {
-            margin-left: 0.25em;
-
-            .d-icon {
-              color: var(--tertiary);
-            }
-          }
-        }
-
-        .user-title {
-          color: var(--primary-medium);
-          font-size: 0.9em;
-        }
-      }
-    }
-  }
-
-  .active-lottery-info {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    flex-wrap: wrap;
-    gap: 1em;
-  }
-
-  .active-lottery-dates {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5em;
-
-    .lottery-date {
-      display: flex;
-      align-items: center;
-      gap: 0.5em;
-      font-size: 0.9em;
-      color: var(--primary-high);
-
-      .d-icon {
-        color: var(--primary-medium);
+    .packet-winner {
+      .avatar {
+        margin-right: 0.4em;
+        vertical-align: middle;
       }
 
-      .date-label {
-        color: var(--primary-medium);
-      }
+      a {
+        color: var(--primary);
+        text-decoration: none;
 
-      &.lottery-ends-at {
-        font-weight: bold;
-
-        .date-value {
+        &:hover {
           color: var(--tertiary);
         }
       }
 
-      &.lottery-created-at {
-        font-size: var(--font-down-1);
+      .no-winner {
         color: var(--primary-medium);
+      }
+    }
 
-        .d-icon {
-          opacity: 0.7;
+    .packet-collected,
+    .packet-bericht {
+      text-align: center;
+      width: 5em;
+    }
+
+    .status-yes {
+      color: var(--success);
+    }
+
+    .status-no {
+      color: var(--primary-low-mid);
+    }
+
+    .bericht-link {
+      color: var(--tertiary);
+
+      &:hover {
+        color: var(--tertiary-hover);
+      }
+    }
+
+    .packet-participants {
+      .participants-avatars {
+        display: flex;
+        align-items: center;
+        gap: 0.25em;
+
+        .participant-avatar {
+          display: inline-block;
+
+          .avatar {
+            vertical-align: middle;
+          }
         }
+
+        .participants-more {
+          color: var(--primary-medium);
+          font-size: 0.85em;
+          margin-left: 0.25em;
+        }
+      }
+
+      .no-participants {
+        color: var(--primary-medium);
+        font-style: italic;
+        font-size: 0.9em;
       }
     }
   }
 
-  .active-lottery-stats {
-    display: flex;
-    gap: 1.5em;
+  // Expanded state
+  &--expanded {
+    .lottery-card__stats-row {
+      margin-bottom: 0;
+    }
+  }
 
-    .stat-item {
-      display: flex;
-      align-items: center;
-      gap: 0.5em;
-      font-size: 0.9em;
-      color: var(--primary-high);
-
-      .d-icon {
-        color: var(--primary-medium);
-      }
+  // Finished lottery variant
+  &--finished {
+    .lottery-card__date--drawn {
+      font-weight: bold;
     }
   }
 }
 
-.no-active-lotteries {
+// Empty state
+.no-lotteries {
   text-align: center;
   padding: 3em;
   color: var(--primary-medium);
@@ -1914,109 +2106,6 @@
   .spinner {
     animation: spin 1s linear infinite;
   }
-}
-
-// Finished lotteries list
-.finished-lotteries-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1em;
-}
-
-.finished-lottery-card {
-  background: var(--secondary);
-  border: 1px solid var(--primary-low);
-  border-radius: 8px;
-  padding: 1em;
-
-  .finished-lottery-header {
-    margin-bottom: 0.75em;
-
-    .finished-lottery-title {
-      margin: 0 0 0.5em 0;
-      font-size: 1.2em;
-
-      a {
-        color: var(--primary);
-        text-decoration: none;
-
-        &:hover {
-          color: var(--tertiary);
-        }
-      }
-    }
-
-    .finished-lottery-meta {
-      display: flex;
-      align-items: center;
-      font-size: 0.9em;
-
-      .names {
-        display: flex;
-        align-items: center;
-        gap: 0.5em;
-
-        .username {
-          color: var(--primary);
-          text-decoration: none;
-
-          &:hover {
-            color: var(--tertiary);
-          }
-        }
-      }
-    }
-  }
-
-  .finished-lottery-info {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    flex-wrap: wrap;
-    gap: 1em;
-  }
-
-  .finished-lottery-dates {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5em;
-
-    .lottery-date {
-      display: flex;
-      align-items: center;
-      gap: 0.5em;
-      font-size: 0.9em;
-      color: var(--primary-high);
-
-      .d-icon {
-        color: var(--success);
-      }
-    }
-  }
-
-  .finished-lottery-stats {
-    display: flex;
-    gap: 1.5em;
-
-    .stat-item {
-      display: flex;
-      align-items: center;
-      gap: 0.5em;
-      font-size: 0.9em;
-      color: var(--primary-high);
-
-      .d-icon {
-        color: var(--primary-medium);
-      }
-    }
-  }
-}
-
-.no-finished-lotteries {
-  text-align: center;
-  padding: 3em;
-  color: var(--primary-medium);
-  font-size: 1.1em;
 }
 
 // Active Donations Page

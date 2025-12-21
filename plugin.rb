@@ -46,7 +46,7 @@ after_initialize do
   # Register custom routes
   Discourse::Application.routes.append do
     get "/lottery-history" => "users#index", :constraints => { format: /(json|html)/ }
-    get "/active-lotteries" => "users#index", :constraints => { format: /(json|html)/ }
+    get "/lotteries" => "users#index", :constraints => { format: /(json|html)/ }
     get "/active-donations" => "users#index", :constraints => { format: /(json|html)/ }
     get "/new-lottery" => "list#latest", :constraints => { format: /(json|html)/ }
     get "u/:username/verlosungen" => "users#show",

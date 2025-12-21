@@ -18,7 +18,7 @@ export default class NeueVerlosungButton extends Component {
    * Check if button should be shown
    *
    * Shows when:
-   * - @forceShow is true (for pages like active-lotteries), or
+   * - @forceShow is true (for pages like /lotteries), or
    * - We're in the configured lottery category
    *
    * @type {boolean}

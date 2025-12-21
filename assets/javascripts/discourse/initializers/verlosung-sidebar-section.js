@@ -17,7 +17,7 @@ export default {
         (BaseCustomSidebarSection, BaseCustomSidebarSectionLink) => {
           const ActiveLotteriesLink = class extends BaseCustomSidebarSectionLink {
             get name() {
-              return "active-lotteries";
+              return "lotteries";
             }
 
             get route() {

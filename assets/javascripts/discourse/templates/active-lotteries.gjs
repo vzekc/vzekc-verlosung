@@ -42,7 +42,11 @@ import NeueVerlosungButton from "../components/neue-verlosung-button";
       <div class="active-tab-controls">
         <LotteryDisplayModeToggle />
       </div>
-      <ActiveLotteriesList @lotteries={{@model.lotteries}} />
+      <ActiveLotteriesList
+        @lotteries={{@model.lotteries}}
+        @expandedIds={{@controller.expandedIds}}
+        @onToggleExpanded={{@controller.toggleExpanded}}
+      />
     {{else}}
       {{#if @controller.loadingFinished}}
         <div class="loading-lotteries">
@@ -50,7 +54,11 @@ import NeueVerlosungButton from "../components/neue-verlosung-button";
           {{i18n "loading"}}
         </div>
       {{else}}
-        <FinishedLotteriesList @lotteries={{@controller.finishedLotteries}} />
+        <FinishedLotteriesList
+          @lotteries={{@controller.finishedLotteries}}
+          @expandedIds={{@controller.expandedIds}}
+          @onToggleExpanded={{@controller.toggleExpanded}}
+        />
       {{/if}}
     {{/if}}
   </div>

@@ -3,7 +3,6 @@ import { on } from "@ember/modifier";
 import icon from "discourse/helpers/d-icon";
 import { eq } from "discourse/truth-helpers";
 import { i18n } from "discourse-i18n";
-import LotteryHistoryLotteries from "../components/lottery-history-lotteries";
 import LotteryLeaderboard from "../components/lottery-leaderboard";
 import LotteryPacketLeaderboard from "../components/lottery-packet-leaderboard";
 import LotteryStatsCards from "../components/lottery-stats-cards";
@@ -27,15 +26,6 @@ import LotteryStatsCards from "../components/lottery-stats-cards";
         </button>
         <button
           type="button"
-          class="nav-item
-            {{if (eq @controller.activeTab 'lotteries') 'active'}}"
-          {{on "click" (fn @controller.setActiveTab "lotteries")}}
-        >
-          {{icon "dice"}}
-          {{i18n "vzekc_verlosung.history.tabs.lotteries"}}
-        </button>
-        <button
-          type="button"
           class="nav-item {{if (eq @controller.activeTab 'packets') 'active'}}"
           {{on "click" (fn @controller.setActiveTab "packets")}}
         >
@@ -49,11 +39,6 @@ import LotteryStatsCards from "../components/lottery-stats-cards";
     <div class="lottery-history-content">
       {{#if (eq @controller.activeTab "packets")}}
         <LotteryPacketLeaderboard />
-      {{else if (eq @controller.activeTab "lotteries")}}
-        <LotteryHistoryLotteries
-          @expanded={{@controller.expanded}}
-          @onExpandedChange={{@controller.updateExpanded}}
-        />
       {{else if (eq @controller.activeTab "leaderboard")}}
         <LotteryLeaderboard />
       {{/if}}
