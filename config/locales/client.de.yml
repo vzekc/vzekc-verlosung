@@ -28,15 +28,19 @@ de:
         newest: "Neueste"
       nav:
         section_title: "Verlosungen"
-        verlosungen: "Aktive Verlosungen"
+        verlosungen: "Verlosungen"
         spenden: "Spendenangebote"
         erhaltungsberichte: "Erhaltungsberichte"
         historie: "Statistik"
       active:
-        title: "Aktive Verlosungen"
+        title: "Verlosungen"
+        tabs:
+          active: "Aktiv"
+          finished: "Beendet"
         packets: "Pakete"
         participants: "Teilnehmer"
         no_lotteries: "Keine aktiven Verlosungen"
+        no_finished_lotteries: "Keine beendeten Verlosungen"
       active_donations:
         title: "Spendenangebote"
         offers:

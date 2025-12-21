@@ -1892,6 +1892,133 @@
   font-size: 1.1em;
 }
 
+// Lotteries page nav spacing
+.active-lotteries-page .nav-pills {
+  margin-bottom: 1em;
+}
+
+.active-tab-controls {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 1em;
+}
+
+.loading-lotteries {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5em;
+  padding: 3em;
+  color: var(--primary-medium);
+
+  .spinner {
+    animation: spin 1s linear infinite;
+  }
+}
+
+// Finished lotteries list
+.finished-lotteries-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+}
+
+.finished-lottery-card {
+  background: var(--secondary);
+  border: 1px solid var(--primary-low);
+  border-radius: 8px;
+  padding: 1em;
+
+  .finished-lottery-header {
+    margin-bottom: 0.75em;
+
+    .finished-lottery-title {
+      margin: 0 0 0.5em 0;
+      font-size: 1.2em;
+
+      a {
+        color: var(--primary);
+        text-decoration: none;
+
+        &:hover {
+          color: var(--tertiary);
+        }
+      }
+    }
+
+    .finished-lottery-meta {
+      display: flex;
+      align-items: center;
+      font-size: 0.9em;
+
+      .names {
+        display: flex;
+        align-items: center;
+        gap: 0.5em;
+
+        .username {
+          color: var(--primary);
+          text-decoration: none;
+
+          &:hover {
+            color: var(--tertiary);
+          }
+        }
+      }
+    }
+  }
+
+  .finished-lottery-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 1em;
+  }
+
+  .finished-lottery-dates {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+
+    .lottery-date {
+      display: flex;
+      align-items: center;
+      gap: 0.5em;
+      font-size: 0.9em;
+      color: var(--primary-high);
+
+      .d-icon {
+        color: var(--success);
+      }
+    }
+  }
+
+  .finished-lottery-stats {
+    display: flex;
+    gap: 1.5em;
+
+    .stat-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5em;
+      font-size: 0.9em;
+      color: var(--primary-high);
+
+      .d-icon {
+        color: var(--primary-medium);
+      }
+    }
+  }
+}
+
+.no-finished-lotteries {
+  text-align: center;
+  padding: 3em;
+  color: var(--primary-medium);
+  font-size: 1.1em;
+}
+
 // Active Donations Page
 .active-donations-page {
   max-width: 1200px;
@@ -2165,7 +2292,7 @@
       background: var(--secondary);
       border: 1px solid var(--primary-low);
       border-radius: 6px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      box-shadow: 0 4px 12px rgb(0, 0, 0, 0.15);
       position: relative;
     }
 

@@ -22,15 +22,19 @@ en:
         bing: "Bing Maps"
       nav:
         section_title: "Lotteries"
-        verlosungen: "Active Lotteries"
+        verlosungen: "Lotteries"
         spenden: "Donation Offers"
         erhaltungsberichte: "Reception Reports"
         historie: "Lottery History"
       active:
-        title: "Active Lotteries"
+        title: "Lotteries"
+        tabs:
+          active: "Active"
+          finished: "Finished"
         packets: "Packets"
         participants: "Participants"
         no_lotteries: "No active lotteries"
+        no_finished_lotteries: "No finished lotteries"
       neue_verlosung: "New Lottery"
       create_lottery: "Create Lottery"
       create_draft: "Create Draft"
