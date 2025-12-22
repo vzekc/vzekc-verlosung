@@ -572,9 +572,38 @@ export default class LotteryIntroSummary extends Component {
   }
 
   /**
-   * Get packets with winners resolved from lottery results JSON
+   * Check if collection indicator should be shown for a packet
+   * Shows for lottery owner or the winner themselves
    *
-   * @returns {Array} packets with winnerUsername from results JSON
+   * @param {Object} packet - The packet object
+   * @param {Object} winnerEntry - The winner entry (for multi-instance)
+   * @returns {boolean} true if indicator should be shown
+   */
+  @action
+  showCollectionIndicatorForPacket(packet, winnerEntry = null) {
+    if (!this.currentUser) {
+      return false;
+    }
+
+    // For multi-instance packets, check the specific winner entry
+    if (winnerEntry) {
+      const isWinner = winnerEntry.id === this.currentUser.id;
+      return (this.isLotteryOwner || isWinner) && !!winnerEntry.collected_at;
+    }
+
+    // For single winner (legacy), check packet.winner
+    if (!packet.winner) {
+      return false;
+    }
+    const isWinner = packet.winner.id === this.currentUser.id;
+    return (this.isLotteryOwner || isWinner) && !!packet.collected_at;
+  }
+
+  /**
+   * Get packets with winners resolved from lottery results JSON
+   * Supports multiple winners per packet (quantity > 1)
+   *
+   * @returns {Array} packets with winners array from results JSON
    */
   get packetsWithWinners() {
     const results = this.topic?.lottery_results;
@@ -595,36 +624,59 @@ export default class LotteryIntroSummary extends Component {
 
       if (resultIndex >= 0 && results.drawings[resultIndex]) {
         const drawing = results.drawings[resultIndex];
+        // Handle both new format (winners array) and legacy format (winner string)
+        const winners =
+          drawing.winners || (drawing.winner ? [drawing.winner] : []);
         return {
           ...packet,
-          winnerUsername: drawing.winner,
+          winnerUsernames: winners,
+          // Keep legacy property for backward compatibility
+          winnerUsername: winners[0] || null,
         };
       }
 
-      // Fallback to database winner
+      // Fallback to database winners (now an array)
+      const dbWinners =
+        packet.winners || (packet.winner ? [packet.winner] : []);
       return {
         ...packet,
-        winnerUsername: packet.winner?.username,
+        winnerUsernames: dbWinners.map((w) => w.username),
+        winnerUsername: dbWinners[0]?.username || null,
       };
     });
   }
 
   /**
    * Download lottery results as CSV file
-   * Format: packet number; packet name; winner nickname
+   * Format: packet number; packet name; quantity; winner nickname
+   * For multi-instance packets, creates one row per winner
    */
   @action
   downloadResultsCsv() {
     const packetsWithWinners = this.packetsWithWinners.filter(
-      (p) => p.winnerUsername
+      (p) => p.winnerUsernames?.length > 0 || p.winnerUsername
     );
 
     // Build CSV content with semicolon separator
-    const header = "Paket-Nr;Paketname;Gewinner";
-    const rows = packetsWithWinners.map(
-      (packet) =>
-        `${packet.ordinal};"${packet.title.replace(/"/g, '""')}";"${packet.winnerUsername}"`
-    );
+    const header = "Paket-Nr;Paketname;Instanz;Gewinner";
+    const rows = [];
+
+    packetsWithWinners.forEach((packet) => {
+      const winners =
+        packet.winnerUsernames ||
+        (packet.winnerUsername ? [packet.winnerUsername] : []);
+      const quantity = packet.quantity || 1;
+
+      winners.forEach((winner, index) => {
+        const instanceNum = quantity > 1 ? index + 1 : "";
+        const title =
+          quantity > 1 ? `${quantity}x ${packet.title}` : packet.title;
+        rows.push(
+          `${packet.ordinal};"${title.replace(/"/g, '""')}";${instanceNum};"${winner}"`
+        );
+      });
+    });
+
     const csvContent = [header, ...rows].join("\n");
 
     // Create blob and download
@@ -643,6 +695,7 @@ export default class LotteryIntroSummary extends Component {
   /**
    * Copy lottery results to clipboard
    * Format: #<packet no> <packet title>: @<winner> <celebratory emoji>
+   * For multi-instance packets: #<packet no> <quantity>x <title>: @winner1, @winner2, ...
    * Packets without tickets show "keine Lose gezogen"
    */
   @action
@@ -661,14 +714,22 @@ export default class LotteryIntroSummary extends Component {
     ];
 
     const lines = this.packetsWithWinners.map((packet) => {
-      if (packet.winnerUsername) {
+      const winners =
+        packet.winnerUsernames ||
+        (packet.winnerUsername ? [packet.winnerUsername] : []);
+      const quantity = packet.quantity || 1;
+      const title =
+        quantity > 1 ? `${quantity}x ${packet.title}` : packet.title;
+
+      if (winners.length > 0) {
         const emoji =
           celebratoryEmojis[
             Math.floor(Math.random() * celebratoryEmojis.length)
           ];
-        return `#${packet.ordinal} ${packet.title}: @${packet.winnerUsername} ${emoji}`;
+        const winnerMentions = winners.map((w) => `@${w}`).join(", ");
+        return `#${packet.ordinal} ${title}: ${winnerMentions} ${emoji}`;
       } else {
-        return `#${packet.ordinal} ${packet.title}: keine Lose gezogen`;
+        return `#${packet.ordinal} ${title}: keine Lose gezogen`;
       }
     });
 
@@ -917,7 +978,10 @@ export default class LotteryIntroSummary extends Component {
                   <a
                     href="/t/{{this.topic.id}}/{{packet.post_number}}"
                     class="packet-title"
-                  >{{packet.title}}</a>{{! Show indicator if no Erhaltungsbericht required }}{{#unless
+                  >{{#if (gt packet.quantity 1)}}<span
+                        class="packet-quantity"
+                      >{{packet.quantity}}x</span>
+                    {{/if}}{{packet.title}}</a>{{! Show indicator if no Erhaltungsbericht required }}{{#unless
                     packet.erhaltungsbericht_required
                   }}<span
                       class="no-erhaltungsbericht-indicator"
@@ -953,10 +1017,45 @@ export default class LotteryIntroSummary extends Component {
                     {{/if}}
                   {{/if}}
                 {{else}}
-                  {{! Regular packet - show winner or ticket count on second row }}
+                  {{! Regular packet - show winners or ticket count on second row }}
                   <div class="packet-participants-row">
                     {{#if this.isFinished}}
-                      {{#if packet.winner}}
+                      {{#if packet.winners.length}}
+                        {{! Multiple winners (quantity > 1) or single winner }}
+                        <div class="packet-winners">
+                          <span class="participants-label">{{i18n
+                              "vzekc_verlosung.ticket.winner"
+                            }}:</span>
+                          {{#each packet.winners as |winnerEntry|}}
+                            <span class="packet-winner">
+                              <UserLink
+                                @username={{winnerEntry.username}}
+                                class="winner-user-link"
+                              >
+                                {{avatar winnerEntry imageSize="tiny"}}
+                                <span
+                                  class="winner-name"
+                                >{{winnerEntry.username}}</span>
+                              </UserLink>
+                              {{#if
+                                (this.showCollectionIndicatorForPacket
+                                  packet winnerEntry
+                                )
+                              }}
+                                <span class="collection-indicator collected">
+                                  {{icon "check"}}
+                                  <span
+                                    class="collection-date"
+                                  >{{this.formatCollectedDate
+                                      winnerEntry.collected_at
+                                    }}</span>
+                                </span>
+                              {{/if}}
+                            </span>
+                          {{/each}}
+                        </div>
+                      {{else if packet.winner}}
+                        {{! Legacy single winner format }}
                         <span class="packet-winner">
                           <span class="participants-label">{{i18n
                               "vzekc_verlosung.ticket.winner"

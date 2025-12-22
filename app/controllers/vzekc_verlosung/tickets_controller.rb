@@ -108,16 +108,18 @@ module VzekcVerlosung
 
     # POST /vzekc_verlosung/packets/:post_id/mark-collected
     #
-    # Marks a packet as collected by the winner
+    # Marks a packet as collected by the winner or lottery owner
     #
     # @param post_id [Integer] Post ID of the packet
+    # @param instance_number [Integer] Optional instance number (for lottery owner marking specific winner)
     #
     # @return [JSON] Updated packet status
     def mark_collected
       post = Post.find_by(id: params[:post_id])
       return render_json_error("Post not found", status: :not_found) unless post
 
-      packet = LotteryPacket.find_by(post_id: post.id)
+      packet =
+        LotteryPacket.includes(:lottery_packet_winners).find_by(post_id: post.id)
       return render_json_error("Not a lottery packet", status: :bad_request) unless packet
 
       topic = post.topic
@@ -136,27 +138,168 @@ module VzekcVerlosung
         )
       end
 
-      # Check if there's a winner
-      unless packet.has_winner?
-        return(render_json_error("No winner for this packet", status: :unprocessable_entity))
-      end
+      is_lottery_owner = topic.user_id == current_user.id
 
-      # Check permissions - only the winner can mark as collected
-      unless packet.winner_user_id == current_user.id
-        return(
-          render_json_error("Only the winner can mark a packet as collected", status: :forbidden)
-        )
+      # Find the winner entry to mark
+      winner_entry =
+        if params[:instance_number].present? && is_lottery_owner
+          # Lottery owner can mark any specific instance
+          packet.lottery_packet_winners.find { |w| w.instance_number == params[:instance_number].to_i }
+        else
+          # Regular winner can only mark their own entry
+          packet.lottery_packet_winners.find { |w| w.winner_user_id == current_user.id }
+        end
+
+      # Check if winner entry exists
+      unless winner_entry
+        if is_lottery_owner && params[:instance_number].present?
+          return render_json_error("Winner entry not found for instance #{params[:instance_number]}", status: :not_found)
+        else
+          return render_json_error("Only a winner can mark a packet as collected", status: :forbidden)
+        end
       end
 
       # Check if already collected
-      if packet.collected?
+      if winner_entry.collected?
         return(
           render_json_error("Packet already marked as collected", status: :unprocessable_entity)
         )
       end
 
       # Mark as collected
-      packet.mark_collected!
+      winner_entry.mark_collected!
+
+      # Return updated packet status
+      render json: ticket_packet_status_response(post, current_user)
+    end
+
+    # POST /vzekc_verlosung/packets/:post_id/mark-shipped
+    #
+    # Marks a packet as shipped by the lottery owner
+    # Sends a PM to the winner with optional tracking info
+    #
+    # @param post_id [Integer] Post ID of the packet
+    # @param instance_number [Integer] Instance number of the winner entry to mark
+    # @param tracking_info [String] Optional tracking information
+    #
+    # @return [JSON] Updated packet status
+    def mark_shipped
+      post = Post.find_by(id: params[:post_id])
+      return render_json_error("Post not found", status: :not_found) unless post
+
+      packet =
+        LotteryPacket.includes(:lottery_packet_winners).find_by(post_id: post.id)
+      return render_json_error("Not a lottery packet", status: :bad_request) unless packet
+
+      topic = post.topic
+      return render_json_error("Topic not found", status: :not_found) unless topic
+
+      lottery = packet.lottery
+      return render_json_error("Lottery not found", status: :not_found) unless lottery
+
+      # Check if lottery is finished and drawn
+      unless lottery.finished? && lottery.drawn?
+        return(
+          render_json_error(
+            "Lottery must be finished and drawn before marking packets as shipped",
+            status: :unprocessable_entity,
+          )
+        )
+      end
+
+      # Only lottery owner can mark as shipped
+      unless topic.user_id == current_user.id
+        return render_json_error("Only the lottery owner can mark packets as shipped", status: :forbidden)
+      end
+
+      # Find the winner entry by instance number
+      instance_number = params[:instance_number].to_i
+      winner_entry = packet.lottery_packet_winners.find { |w| w.instance_number == instance_number }
+
+      unless winner_entry
+        return render_json_error("Winner entry not found for instance #{instance_number}", status: :not_found)
+      end
+
+      # Check if already shipped
+      if winner_entry.shipped?
+        return(
+          render_json_error("Packet already marked as shipped", status: :unprocessable_entity)
+        )
+      end
+
+      tracking_info = params[:tracking_info].presence
+
+      # Mark as shipped with tracking info
+      winner_entry.mark_shipped!(Time.zone.now, tracking_info: tracking_info)
+
+      # Send PM to winner
+      send_shipped_notification_pm(
+        winner: winner_entry.winner,
+        sender: current_user,
+        packet: packet,
+        lottery_topic: topic,
+        tracking_info: tracking_info,
+      )
+
+      # Return updated packet status
+      render json: ticket_packet_status_response(post, current_user)
+    end
+
+    # POST /vzekc_verlosung/packets/:post_id/mark-handed-over
+    #
+    # Marks a packet as handed over by the lottery owner
+    # This sets both shipped_at and collected_at (no need for winner to confirm)
+    #
+    # @param post_id [Integer] Post ID of the packet
+    # @param instance_number [Integer] Instance number of the winner entry to mark
+    #
+    # @return [JSON] Updated packet status
+    def mark_handed_over
+      post = Post.find_by(id: params[:post_id])
+      return render_json_error("Post not found", status: :not_found) unless post
+
+      packet =
+        LotteryPacket.includes(:lottery_packet_winners).find_by(post_id: post.id)
+      return render_json_error("Not a lottery packet", status: :bad_request) unless packet
+
+      topic = post.topic
+      return render_json_error("Topic not found", status: :not_found) unless topic
+
+      lottery = packet.lottery
+      return render_json_error("Lottery not found", status: :not_found) unless lottery
+
+      # Check if lottery is finished and drawn
+      unless lottery.finished? && lottery.drawn?
+        return(
+          render_json_error(
+            "Lottery must be finished and drawn before marking packets as handed over",
+            status: :unprocessable_entity,
+          )
+        )
+      end
+
+      # Only lottery owner can mark as handed over
+      unless topic.user_id == current_user.id
+        return render_json_error("Only the lottery owner can mark packets as handed over", status: :forbidden)
+      end
+
+      # Find the winner entry by instance number
+      instance_number = params[:instance_number].to_i
+      winner_entry = packet.lottery_packet_winners.find { |w| w.instance_number == instance_number }
+
+      unless winner_entry
+        return render_json_error("Winner entry not found for instance #{instance_number}", status: :not_found)
+      end
+
+      # Check if already collected (handed over implies collected)
+      if winner_entry.collected?
+        return(
+          render_json_error("Packet already marked as collected", status: :unprocessable_entity)
+        )
+      end
+
+      # Mark as handed over (sets both shipped_at and collected_at)
+      winner_entry.mark_handed_over!
 
       # Return updated packet status
       render json: ticket_packet_status_response(post, current_user)
@@ -174,32 +317,38 @@ module VzekcVerlosung
       return render_json_error("Post not found", status: :not_found) unless post
 
       # Find the lottery packet
-      packet = LotteryPacket.find_by(post_id: post.id)
+      packet =
+        LotteryPacket
+          .includes(lottery_packet_winners: :erhaltungsbericht_topic)
+          .find_by(post_id: post.id)
       return render_json_error("Not a lottery packet", status: :bad_request) unless packet
 
-      # Check if packet was collected
-      unless packet.collected?
+      # Find the current user's winner entry
+      winner_entry = packet.lottery_packet_winners.find { |w| w.winner_user_id == current_user.id }
+
+      # Check if user is a winner
+      unless winner_entry
+        return(
+          render_json_error("Only a winner can create an Erhaltungsbericht", status: :forbidden)
+        )
+      end
+
+      # Check if packet was collected by this user
+      unless winner_entry.collected?
         return(
           render_json_error("Packet not yet marked as collected", status: :unprocessable_entity)
         )
       end
 
-      # Check if user is the winner
-      unless packet.winner_user_id == current_user.id
-        return(
-          render_json_error("Only the winner can create an Erhaltungsbericht", status: :forbidden)
-        )
-      end
-
       # Check if Erhaltungsbericht already exists (and still exists)
-      if packet.erhaltungsbericht_topic_id.present?
-        if Topic.exists?(id: packet.erhaltungsbericht_topic_id)
+      if winner_entry.erhaltungsbericht_topic_id.present?
+        if winner_entry.erhaltungsbericht_topic.present?
           return(
             render_json_error("Erhaltungsbericht already created", status: :unprocessable_entity)
           )
         else
           # Topic was deleted, clear the field to allow creating a new one
-          packet.update!(erhaltungsbericht_topic_id: nil)
+          winner_entry.update!(erhaltungsbericht_topic_id: nil)
         end
       end
 
@@ -249,8 +398,8 @@ module VzekcVerlosung
           )
         end
 
-        # Store the reference on the packet
-        packet.link_report!(result.topic)
+        # Store the reference on the winner entry
+        winner_entry.link_report!(result.topic)
 
         # Also store reverse reference on the erhaltungsbericht topic (for backward compatibility)
         result.topic.custom_fields["packet_post_id"] = post.id
@@ -288,34 +437,95 @@ module VzekcVerlosung
           }
         end
 
-      # Get winner from packet
-      packet = LotteryPacket.find_by(post_id: post.id)
-      winner = nil
-      if packet&.winner
-        winner = {
-          id: packet.winner.id,
-          username: packet.winner.username,
-          name: packet.winner.name,
-          avatar_template: packet.winner.avatar_template,
-        }
-      end
+      # Get packet with winners
+      packet =
+        LotteryPacket
+          .includes(lottery_packet_winners: %i[winner erhaltungsbericht_topic])
+          .find_by(post_id: post.id)
 
-      response = {
+      topic = post.topic
+
+      # Build winners array
+      winners =
+        packet&.lottery_packet_winners&.ordered&.map do |lpw|
+          winner_data = {
+            instance_number: lpw.instance_number,
+            id: lpw.winner.id,
+            username: lpw.winner.username,
+            name: lpw.winner.name,
+            avatar_template: lpw.winner.avatar_template,
+          }
+
+          # Include erhaltungsbericht_topic_id if exists
+          if lpw.erhaltungsbericht_topic_id && lpw.erhaltungsbericht_topic
+            winner_data[:erhaltungsbericht_topic_id] = lpw.erhaltungsbericht_topic_id
+          end
+
+          # Include shipped_at and collected_at for lottery owner or this winner
+          is_this_winner = user && user.id == lpw.winner_user_id
+          is_authorized = topic&.user_id == user&.id || is_this_winner
+          winner_data[:shipped_at] = lpw.shipped_at if is_authorized && lpw.shipped_at
+          winner_data[:collected_at] = lpw.collected_at if is_authorized && lpw.collected_at
+
+          winner_data
+        end || []
+
+      {
         has_ticket: has_ticket,
         ticket_count: ticket_count,
+        quantity: packet&.quantity || 1,
         users: users,
-        winner: winner,
+        winners: winners,
       }
+    end
 
-      # Include collected_at for lottery owner or winner
-      topic = post.topic
-      is_winner = packet&.winner_user_id.present? && user && user.id == packet.winner_user_id
+    # Send PM to winner when packet is marked as shipped
+    def send_shipped_notification_pm(winner:, sender:, packet:, lottery_topic:, tracking_info:)
+      packet_title = packet.title || "Paket ##{packet.ordinal}"
 
-      if topic && packet && (topic.user_id == user.id || is_winner)
-        response[:collected_at] = packet.collected_at if packet.collected_at
-      end
+      message_title =
+        I18n.t(
+          "vzekc_verlosung.notifications.packet_shipped.title",
+          locale: winner.effective_locale,
+          packet_title: packet_title,
+        )
 
-      response
+      message_body =
+        if tracking_info.present?
+          I18n.t(
+            "vzekc_verlosung.notifications.packet_shipped.body_with_tracking",
+            locale: winner.effective_locale,
+            username: winner.username,
+            sender_username: sender.username,
+            packet_title: packet_title,
+            lottery_title: lottery_topic.title,
+            lottery_url: "#{Discourse.base_url}#{lottery_topic.relative_url}",
+            tracking_info: tracking_info,
+          )
+        else
+          I18n.t(
+            "vzekc_verlosung.notifications.packet_shipped.body",
+            locale: winner.effective_locale,
+            username: winner.username,
+            sender_username: sender.username,
+            packet_title: packet_title,
+            lottery_title: lottery_topic.title,
+            lottery_url: "#{Discourse.base_url}#{lottery_topic.relative_url}",
+          )
+        end
+
+      PostCreator.create!(
+        sender,
+        title: message_title,
+        raw: message_body,
+        archetype: Archetype.private_message,
+        target_usernames: winner.username,
+        skip_validations: true,
+      )
+    rescue => e
+      Rails.logger.error(
+        "Failed to send shipped PM for packet #{packet.id} to user #{winner.username}: #{e.message}",
+      )
     end
 
     # Notify the lottery creator that a ticket was drawn

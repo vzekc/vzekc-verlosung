@@ -8,49 +8,58 @@ module Jobs
       return unless SiteSetting.vzekc_verlosung_enabled
       return if SiteSetting.vzekc_verlosung_erhaltungsberichte_category_id.blank?
 
-      # Find all finished lotteries with drawn results
-      VzekcVerlosung::Lottery
-        .finished
-        .where.not(drawn_at: nil)
-        .includes(:lottery_packets)
-        .find_each do |lottery|
-          # Check each packet for missing Erhaltungsberichte (only if required)
-          lottery
-            .lottery_packets
-            .collected
-            .without_report
-            .requiring_report
-            .includes(:winner, :post, :lottery)
-            .each do |packet|
-              next if packet.collected_at.blank?
+      # Find all winner entries that are collected but missing Erhaltungsberichte
+      VzekcVerlosung::LotteryPacketWinner
+        .collected
+        .without_report
+        .requiring_report
+        .joins(lottery_packet: { lottery: :topic })
+        .includes(:winner, lottery_packet: [:post, { lottery: :topic }])
+        .where(vzekc_verlosung_lotteries: { state: "finished" })
+        .where.not(vzekc_verlosung_lotteries: { drawn_at: nil })
+        .find_each do |winner_entry|
+          next if winner_entry.collected_at.blank?
 
-              # Calculate days since collection
-              days_since_collected = (Time.zone.now - packet.collected_at).to_i / 1.day
+          # Calculate days since collection
+          days_since_collected = (Time.zone.now - winner_entry.collected_at).to_i / 1.day
 
-              # Only send reminder every 7 days (on days 7, 14, 21, etc.)
-              next if (days_since_collected % 7).nonzero? || days_since_collected <= 0
+          # Only send reminder every 7 days (on days 7, 14, 21, etc.)
+          next if (days_since_collected % 7).nonzero? || days_since_collected <= 0
 
-              # Find the winner user
-              winner = packet.winner
-              next unless winner
+          # Get winner and packet info
+          winner = winner_entry.winner
+          next unless winner
 
-              # Send reminder
-              send_erhaltungsbericht_reminder(
-                winner,
-                lottery.topic,
-                packet.post,
-                days_since_collected,
-              )
-            end
+          packet = winner_entry.lottery_packet
+          lottery = packet.lottery
+
+          # Send reminder
+          send_erhaltungsbericht_reminder(
+            winner,
+            lottery.topic,
+            packet.post,
+            winner_entry.instance_number,
+            packet.quantity,
+            days_since_collected,
+          )
         end
     end
 
     private
 
-    def send_erhaltungsbericht_reminder(user, lottery_topic, packet_post, days_since_collected)
+    def send_erhaltungsbericht_reminder(
+      user,
+      lottery_topic,
+      packet_post,
+      instance_number,
+      quantity,
+      days_since_collected
+    )
       packet_title =
         VzekcVerlosung::TitleExtractor.extract_title(packet_post.raw) ||
           "Paket ##{packet_post.post_number}"
+      # Add instance number to title for multi-instance packets
+      packet_title = "#{packet_title} (##{instance_number})" if quantity > 1
       packet_url =
         "#{Discourse.base_url}/t/#{lottery_topic.slug}/#{lottery_topic.id}/#{packet_post.post_number}"
 

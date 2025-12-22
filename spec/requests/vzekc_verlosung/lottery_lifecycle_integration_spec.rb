@@ -49,9 +49,11 @@ RSpec.describe "Lottery Full Lifecycle Integration" do
     expect(abholerpaket.ordinal).to eq(0)
     expect(abholerpaket.title).to eq("Mein behalten System")
     expect(abholerpaket.abholerpaket).to eq(true)
-    expect(abholerpaket.winner_user_id).to eq(owner.id)
-    expect(abholerpaket.won_at).to be_present
-    expect(abholerpaket.collected_at).to be_present # Automatically marked as collected
+    expect(abholerpaket.has_winner?).to eq(true)
+    abholerpaket_winner = abholerpaket.lottery_packet_winners.first
+    expect(abholerpaket_winner.winner_user_id).to eq(owner.id)
+    expect(abholerpaket_winner.won_at).to be_present
+    expect(abholerpaket_winner.collected_at).to be_present # Automatically marked as collected
     expect(abholerpaket.erhaltungsbericht_required).to eq(true)
 
     # Verify all posts exist (1 main + 1 abholerpaket + 3 user packets)
@@ -138,17 +140,20 @@ RSpec.describe "Lottery Full Lifecycle Integration" do
       "drawings" => [
         {
           "text" => "GPU Paket",
-          "winner" => participant1.username,
+          "winners" => [participant1.username],
+          "quantity" => 1,
           "participants" => [{ "name" => participant1.username, "tickets" => 2 }],
         },
         {
           "text" => "CPU Paket",
-          "winner" => participant2.username,
+          "winners" => [participant2.username],
+          "quantity" => 1,
           "participants" => [{ "name" => participant2.username, "tickets" => 1 }],
         },
         {
           "text" => "RAM Paket",
-          "winner" => participant3.username,
+          "winners" => [participant3.username],
+          "quantity" => 1,
           "participants" => [{ "name" => participant3.username, "tickets" => 1 }],
         },
       ],
@@ -177,7 +182,7 @@ RSpec.describe "Lottery Full Lifecycle Integration" do
         .joins(:post)
     expect(user_packets.count).to eq(3)
     expect(user_packets.all?(&:has_winner?)).to be true
-    expect(user_packets.map { |p| p.winner.username }).to contain_exactly(
+    expect(user_packets.map { |p| p.winners.first&.username }).to contain_exactly(
       participant1.username,
       participant2.username,
       participant3.username,
@@ -213,7 +218,8 @@ RSpec.describe "Lottery Full Lifecycle Integration" do
     # Day 7: 2025-01-22 (before drawing), Day 14: 2025-01-29 (before drawing)
     # Day 21: 2025-02-05 (after drawing on 2025-02-02) - use this
     abholerpaket.reload
-    freeze_time(abholerpaket.collected_at + 21.days)
+    abholerpaket_winner_entry = abholerpaket.lottery_packet_winners.first
+    freeze_time(abholerpaket_winner_entry.collected_at + 21.days)
 
     pm_count_before = Topic.where(archetype: Archetype.private_message).count
 
@@ -234,7 +240,7 @@ RSpec.describe "Lottery Full Lifecycle Integration" do
     expect(owner_erhaltungsbericht_pm.title.downcase).to include("report").or include("reception")
 
     # STEP 11: Owner creates Erhaltungsbericht for Abholerpaket
-    freeze_time(abholerpaket.collected_at + 22.days)
+    freeze_time(abholerpaket_winner_entry.collected_at + 22.days)
 
     sign_in(owner)
     post "/vzekc-verlosung/packets/#{abholerpaket.post_id}/create-erhaltungsbericht.json"
@@ -243,10 +249,10 @@ RSpec.describe "Lottery Full Lifecycle Integration" do
     erhaltungsbericht_data = response.parsed_body
     expect(erhaltungsbericht_data["topic_url"]).to be_present
 
-    abholerpaket.reload
-    expect(abholerpaket.erhaltungsbericht_topic_id).to be_present
+    abholerpaket_winner_entry.reload
+    expect(abholerpaket_winner_entry.erhaltungsbericht_topic_id).to be_present
 
-    abholerpaket_erhaltungsbericht_topic = Topic.find(abholerpaket.erhaltungsbericht_topic_id)
+    abholerpaket_erhaltungsbericht_topic = Topic.find(abholerpaket_winner_entry.erhaltungsbericht_topic_id)
     expect(abholerpaket_erhaltungsbericht_topic.category_id).to eq(erhaltungsberichte_category.id)
     expect(abholerpaket_erhaltungsbericht_topic.user_id).to eq(owner.id)
 
@@ -270,8 +276,9 @@ RSpec.describe "Lottery Full Lifecycle Integration" do
     expect(response.status).to eq(200)
 
     packet1 = VzekcVerlosung::LotteryPacket.find_by(post_id: packet_posts[0].id)
-    expect(packet1.collected?).to be true
-    expect(packet1.collected_at).to be_within(1.minute).of(Time.zone.now)
+    packet1_winner_entry = packet1.lottery_packet_winners.first
+    expect(packet1_winner_entry.collected_at).to be_present
+    expect(packet1_winner_entry.collected_at).to be_within(1.minute).of(Time.zone.now)
 
     # Check history shows collection
     get "/vzekc-verlosung/history.json"
@@ -300,7 +307,7 @@ RSpec.describe "Lottery Full Lifecycle Integration" do
     expect(uncollected_pm2.title).to include("2")
 
     # STEP 15: Erhaltungsbericht reminder 7 days after collection
-    freeze_time(packet1.collected_at + 7.days)
+    freeze_time(packet1_winner_entry.collected_at + 7.days)
 
     Jobs::VzekcVerlosungErhaltungsberichtReminder.new.execute({})
 
@@ -324,10 +331,10 @@ RSpec.describe "Lottery Full Lifecycle Integration" do
     erhaltungsbericht_data = response.parsed_body
     expect(erhaltungsbericht_data["topic_url"]).to be_present
 
-    packet1.reload
-    expect(packet1.erhaltungsbericht_topic_id).to be_present
+    packet1_winner_entry.reload
+    expect(packet1_winner_entry.erhaltungsbericht_topic_id).to be_present
 
-    erhaltungsbericht_topic = Topic.find(packet1.erhaltungsbericht_topic_id)
+    erhaltungsbericht_topic = Topic.find(packet1_winner_entry.erhaltungsbericht_topic_id)
     expect(erhaltungsbericht_topic.category_id).to eq(erhaltungsberichte_category.id)
     expect(erhaltungsbericht_topic.user_id).to eq(participant1.id)
 
@@ -375,7 +382,8 @@ RSpec.describe "Lottery Full Lifecycle Integration" do
 
     # STEP 19: Delete an erhaltungsbericht - verify packet state reverts
     packet2 = VzekcVerlosung::LotteryPacket.find_by(post_id: packet_posts[1].id)
-    erhaltungsbericht_id = packet2.erhaltungsbericht_topic_id
+    packet2_winner_entry = packet2.lottery_packet_winners.first
+    erhaltungsbericht_id = packet2_winner_entry.erhaltungsbericht_topic_id
 
     erhaltungsbericht_to_delete = Topic.find(erhaltungsbericht_id)
     erhaltungsbericht_to_delete.destroy!
@@ -387,9 +395,9 @@ RSpec.describe "Lottery Full Lifecycle Integration" do
     deleted_packet = history["packets"].find { |p| p["post_id"] == packet_posts[1].id }
     expect(deleted_packet["erhaltungsbericht"]).to be_nil
 
-    # Packet record's ID is automatically nullified due to ON DELETE NULLIFY
-    packet2.reload
-    expect(packet2.erhaltungsbericht_topic_id).to be_nil
+    # Packet winner entry's ID is automatically nullified due to ON DELETE NULLIFY
+    packet2_winner_entry.reload
+    expect(packet2_winner_entry.erhaltungsbericht_topic_id).to be_nil
     expect(Topic.find_by(id: erhaltungsbericht_id)).to be_nil
 
     # STEP 20: Recreate erhaltungsbericht - should work and set new ID
@@ -397,11 +405,11 @@ RSpec.describe "Lottery Full Lifecycle Integration" do
     post "/vzekc-verlosung/packets/#{packet_posts[1].id}/create-erhaltungsbericht.json"
     expect(response.status).to eq(200)
 
-    packet2.reload
-    expect(packet2.erhaltungsbericht_topic_id).to be_present
-    expect(packet2.erhaltungsbericht_topic_id).not_to eq(erhaltungsbericht_id)
+    packet2_winner_entry.reload
+    expect(packet2_winner_entry.erhaltungsbericht_topic_id).to be_present
+    expect(packet2_winner_entry.erhaltungsbericht_topic_id).not_to eq(erhaltungsbericht_id)
 
-    new_erhaltungsbericht = Topic.find(packet2.erhaltungsbericht_topic_id)
+    new_erhaltungsbericht = Topic.find(packet2_winner_entry.erhaltungsbericht_topic_id)
     expect(new_erhaltungsbericht).to be_present
 
     # Final history check
@@ -496,17 +504,20 @@ RSpec.describe "Lottery Full Lifecycle Integration" do
       "drawings" => [
         {
           "text" => "GPU Paket",
-          "winner" => participant1.username,
+          "winners" => [participant1.username],
+          "quantity" => 1,
           "participants" => [{ "name" => participant1.username, "tickets" => 1 }],
         },
         {
           "text" => "CPU Paket",
-          "winner" => participant2.username,
+          "winners" => [participant2.username],
+          "quantity" => 1,
           "participants" => [{ "name" => participant2.username, "tickets" => 1 }],
         },
         {
           "text" => "RAM Paket",
-          "winner" => participant3.username,
+          "winners" => [participant3.username],
+          "quantity" => 1,
           "participants" => [{ "name" => participant3.username, "tickets" => 1 }],
         },
       ],

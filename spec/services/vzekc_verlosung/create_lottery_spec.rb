@@ -117,9 +117,11 @@ RSpec.describe VzekcVerlosung::CreateLottery do
         abholerpaket =
           VzekcVerlosung::LotteryPacket.find_by(lottery_id: result.lottery.id, abholerpaket: true)
         expect(abholerpaket).to be_present
-        expect(abholerpaket.winner_user_id).to eq(user.id)
-        expect(abholerpaket.won_at).to be_present
-        expect(abholerpaket.collected_at).to be_present
+        expect(abholerpaket.has_winner?).to eq(true)
+        winner_entry = abholerpaket.lottery_packet_winners.first
+        expect(winner_entry.winner_user_id).to eq(user.id)
+        expect(winner_entry.won_at).to be_present
+        expect(winner_entry.collected_at).to be_present
       end
 
       it "stores correct ordinals for packets" do

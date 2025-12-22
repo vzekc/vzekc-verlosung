@@ -19,6 +19,7 @@ export class Lottery {
       this.drawings.push({
         text: packet.title,
         names,
+        quantity: packet.quantity || 1,
       });
     }
   }
@@ -65,7 +66,7 @@ export class Lottery {
     return this;
   }
 
-  _drawWinner(text, names) {
+  _drawWinners(text, names, quantity = 1) {
     if (!this.initialized || !this.rnd) {
       throw new Error("Random number generator not initialized");
     }
@@ -74,26 +75,52 @@ export class Lottery {
     if (names.length === 0) {
       return {
         text,
+        quantity,
         participants: [],
-        winner: null,
+        winners: [],
       };
     }
 
+    // Sort names for deterministic behavior
     names.sort();
+
+    // Count tickets per participant
     const counts = {};
     for (const name of names) {
       counts[name] = (counts[name] || 0) + 1;
     }
 
-    const winner = this.rnd.choice(names);
+    // Get unique participants
+    const uniqueParticipants = [...new Set(names)];
+
+    // Determine how many winners we can draw (min of quantity and unique participants)
+    const maxWinners = Math.min(quantity, uniqueParticipants.length);
+
+    // Draw winners one by one, removing each winner from the pool
+    const winners = [];
+    let remainingPool = [...names];
+
+    for (let i = 0; i < maxWinners; i++) {
+      if (remainingPool.length === 0) {
+        break;
+      }
+
+      // Draw a winner from the remaining pool
+      const winner = this.rnd.choice(remainingPool);
+      winners.push(winner);
+
+      // Remove ALL entries for this winner (they can only win once per packet)
+      remainingPool = remainingPool.filter((name) => name !== winner);
+    }
 
     return {
       text,
+      quantity,
       participants: Object.entries(counts).map(([name, tickets]) => ({
         name,
         tickets,
       })),
-      winner,
+      winners,
     };
   }
 
@@ -106,7 +133,9 @@ export class Lottery {
     const drawings = [];
 
     for (const drawing of this.drawings) {
-      drawings.push(this._drawWinner(drawing.text, drawing.names));
+      drawings.push(
+        this._drawWinners(drawing.text, drawing.names, drawing.quantity)
+      );
     }
 
     return {

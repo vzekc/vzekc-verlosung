@@ -67,8 +67,8 @@ RSpec.describe VzekcVerlosung::LotteriesController do
           expect(abholerpaket.abholerpaket).to eq(true)
           expect(abholerpaket.title).to eq("Abholerpaket")
           expect(abholerpaket.ordinal).to eq(0)
-          expect(abholerpaket.winner_user_id).to eq(user.id)
-          expect(abholerpaket.won_at).to be_present
+          expect(abholerpaket.has_winner?).to eq(true)
+          expect(abholerpaket.winners.first&.id).to eq(user.id)
 
           # User packets should start at ordinal 1
           expect(packets[1].ordinal).to eq(1)
@@ -124,8 +124,10 @@ RSpec.describe VzekcVerlosung::LotteriesController do
           abholerpaket =
             VzekcVerlosung::LotteryPacket.find_by(lottery_id: lottery.id, abholerpaket: true)
           expect(abholerpaket).to be_present
-          expect(abholerpaket.winner_user_id).to eq(user.id)
-          expect(abholerpaket.won_at).to be_present
+          expect(abholerpaket.has_winner?).to eq(true)
+          winner_entry = abholerpaket.lottery_packet_winners.first
+          expect(winner_entry.winner_user_id).to eq(user.id)
+          expect(winner_entry.won_at).to be_present
           expect(abholerpaket.erhaltungsbericht_required).to eq(true)
         end
 
@@ -253,7 +255,8 @@ RSpec.describe VzekcVerlosung::LotteriesController do
 
         lottery_packet = lottery.lottery_packets.first
         lottery_packet.reload
-        expect(lottery_packet.winner&.username).to eq(user.username)
+        expect(lottery_packet.has_winner?).to eq(true)
+        expect(lottery_packet.winners.first&.username).to eq(user.username)
       end
     end
 
@@ -314,12 +317,12 @@ RSpec.describe VzekcVerlosung::LotteriesController do
 
         # Verify regular packet has a winner from the drawing
         regular_packet.reload
-        expect(regular_packet.winner).to be_present
+        expect(regular_packet.has_winner?).to eq(true)
 
         # Verify Abholerpaket still has the original winner (lottery creator)
         # The drawing should not change the Abholerpaket's winner
         abholerpaket.reload
-        expect(abholerpaket.winner).to eq(user)
+        expect(abholerpaket.winners.first).to eq(user)
       end
 
       it "prevents users from drawing tickets for Abholerpaket" do
@@ -356,8 +359,9 @@ RSpec.describe VzekcVerlosung::LotteriesController do
       end
 
       it "rejects results with wrong winner" do
-        tampered_results = valid_results.dup
-        tampered_results["drawings"][0]["winner"] = "fake_user"
+        tampered_results = valid_results.deep_dup
+        # New format uses "winners" array instead of "winner" string
+        tampered_results["drawings"][0]["winners"] = ["fake_user"]
 
         post "/vzekc-verlosung/lotteries/#{topic.id}/draw.json",
              params: {
@@ -504,7 +508,8 @@ RSpec.describe VzekcVerlosung::LotteriesController do
 
         lottery_packet = lottery.lottery_packets.first
         lottery_packet.reload
-        expect(lottery_packet.winner&.id).to eq(user.id)
+        expect(lottery_packet.has_winner?).to eq(true)
+        expect(lottery_packet.winners.first&.id).to eq(user.id)
       end
 
       it "stores results with manual flag" do

@@ -280,8 +280,9 @@ after_initialize do
   end
 
   add_to_serializer(:post, :lottery_winner) do
-    packet = VzekcVerlosung::LotteryPacket.find_by(post_id: object.id)
-    packet&.winner&.username
+    packet =
+      VzekcVerlosung::LotteryPacket.includes(:lottery_packet_winners).find_by(post_id: object.id)
+    packet&.winners&.first&.username
   end
 
   add_to_serializer(:post, :lottery_packet_ordinal) do
@@ -300,34 +301,52 @@ after_initialize do
     :packet_collected_at,
     include_condition: -> { VzekcVerlosung::LotteryPacket.exists?(post_id: object.id) },
   ) do
-    packet = VzekcVerlosung::LotteryPacket.find_by(post_id: object.id)
+    packet =
+      VzekcVerlosung::LotteryPacket.includes(:lottery_packet_winners).find_by(post_id: object.id)
     return nil unless packet
 
-    # Show to lottery owner or winner
+    # Show to lottery owner or a winner
     topic = object.topic
     return nil unless topic
 
-    is_winner = packet.winner_user_id.present? && scope.user&.id == packet.winner_user_id
-    is_authorized = topic.user_id == scope.user&.id || is_winner
+    # Check if current user is one of the winners
+    user_winner_entry =
+      scope.user && packet.lottery_packet_winners.find { |w| w.winner_user_id == scope.user.id }
+    is_authorized = topic.user_id == scope.user&.id || user_winner_entry.present?
     return nil unless is_authorized
 
-    packet.collected_at
+    # Return the user's collected_at if they're a winner, or first winner's for owner
+    if user_winner_entry
+      user_winner_entry.collected_at
+    else
+      packet.lottery_packet_winners.ordered.first&.collected_at
+    end
   end
 
   # Include erhaltungsbericht topic ID (only if topic still exists)
+  # Returns the current user's erhaltungsbericht if they're a winner, otherwise nil
   add_to_serializer(
     :post,
     :erhaltungsbericht_topic_id,
     include_condition: -> { VzekcVerlosung::LotteryPacket.exists?(post_id: object.id) },
   ) do
-    packet = VzekcVerlosung::LotteryPacket.find_by(post_id: object.id)
+    return nil unless scope.user
+
+    packet =
+      VzekcVerlosung::LotteryPacket.includes(
+        lottery_packet_winners: :erhaltungsbericht_topic,
+      ).find_by(post_id: object.id)
     return nil unless packet
 
-    topic_id = packet.erhaltungsbericht_topic_id
+    # Find the current user's winner entry
+    user_winner_entry = packet.lottery_packet_winners.find { |w| w.winner_user_id == scope.user.id }
+    return nil unless user_winner_entry
+
+    topic_id = user_winner_entry.erhaltungsbericht_topic_id
     return nil unless topic_id
 
     # Check if the topic still exists
-    Topic.exists?(id: topic_id) ? topic_id : nil
+    user_winner_entry.erhaltungsbericht_topic.present? ? topic_id : nil
   end
 
   # Add lottery data to topic serializers
@@ -371,7 +390,11 @@ after_initialize do
     lottery_packets =
       lottery
         .lottery_packets
-        .includes(:post, :winner, :erhaltungsbericht_topic, lottery_tickets: :user)
+        .includes(
+          :post,
+          lottery_packet_winners: %i[winner erhaltungsbericht_topic],
+          lottery_tickets: :user,
+        )
         .order("posts.post_number")
 
     lottery_packets
@@ -393,40 +416,42 @@ after_initialize do
             }
           end
 
-        # Get winner user object if winner exists
-        winner_obj = nil
-        if packet.winner
-          winner_obj = {
-            id: packet.winner.id,
-            username: packet.winner.username,
-            name: packet.winner.name,
-            avatar_template: packet.winner.avatar_template,
-          }
-        end
+        # Get winners from junction table
+        winners =
+          packet.lottery_packet_winners.ordered.map do |lpw|
+            winner_data = {
+              instance_number: lpw.instance_number,
+              id: lpw.winner.id,
+              username: lpw.winner.username,
+              name: lpw.winner.name,
+              avatar_template: lpw.winner.avatar_template,
+            }
 
-        packet_data = {
+            # Include erhaltungsbericht_topic_id only if topic still exists
+            if lpw.erhaltungsbericht_topic_id && lpw.erhaltungsbericht_topic
+              winner_data[:erhaltungsbericht_topic_id] = lpw.erhaltungsbericht_topic_id
+            end
+
+            # Only include collected_at for lottery owner or this winner
+            is_this_winner = scope.user&.id == lpw.winner_user_id
+            is_authorized = object.topic.user_id == scope.user&.id || is_this_winner
+            winner_data[:collected_at] = lpw.collected_at if is_authorized && lpw.collected_at
+
+            winner_data
+          end
+
+        {
           post_id: packet.post_id,
           post_number: packet.post.post_number,
           title: packet.title,
+          quantity: packet.quantity,
           ticket_count: ticket_count,
-          winner: winner_obj,
+          winners: winners,
           users: users,
           ordinal: packet.ordinal,
           abholerpaket: packet.abholerpaket,
           erhaltungsbericht_required: packet.erhaltungsbericht_required,
         }
-
-        # Include erhaltungsbericht_topic_id only if topic still exists
-        if packet.erhaltungsbericht_topic_id && packet.erhaltungsbericht_topic
-          packet_data[:erhaltungsbericht_topic_id] = packet.erhaltungsbericht_topic_id
-        end
-
-        # Only include collected_at for lottery owner or winner
-        is_winner = packet.winner_user_id.present? && scope.user&.id == packet.winner_user_id
-        is_authorized = object.topic.user_id == scope.user&.id || is_winner
-        packet_data[:collected_at] = packet.collected_at if is_authorized && packet.collected_at
-
-        packet_data
       end
       .compact
   end
@@ -438,7 +463,10 @@ after_initialize do
     :packet_ticket_status,
     include_condition: -> { VzekcVerlosung::LotteryPacket.exists?(post_id: object.id) },
   ) do
-    packet = VzekcVerlosung::LotteryPacket.find_by(post_id: object.id)
+    packet =
+      VzekcVerlosung::LotteryPacket.includes(
+        lottery_packet_winners: %i[winner erhaltungsbericht_topic],
+      ).find_by(post_id: object.id)
     return nil unless packet
 
     # Get tickets with user data
@@ -455,34 +483,42 @@ after_initialize do
         }
       end
 
-    # Get winner data
-    winner = nil
-    if packet.winner
-      winner = {
-        id: packet.winner.id,
-        username: packet.winner.username,
-        name: packet.winner.name,
-        avatar_template: packet.winner.avatar_template,
-      }
-    end
+    topic = object.topic
 
-    response = {
+    # Get winners data from junction table
+    winners =
+      packet.lottery_packet_winners.ordered.map do |lpw|
+        winner_data = {
+          instance_number: lpw.instance_number,
+          id: lpw.winner.id,
+          username: lpw.winner.username,
+          name: lpw.winner.name,
+          avatar_template: lpw.winner.avatar_template,
+        }
+
+        # Include erhaltungsbericht_topic_id only if topic still exists
+        if lpw.erhaltungsbericht_topic_id && lpw.erhaltungsbericht_topic
+          winner_data[:erhaltungsbericht_topic_id] = lpw.erhaltungsbericht_topic_id
+        end
+
+        # Include shipped_at and collected_at for lottery owner or this winner
+        is_this_winner = scope.user&.id == lpw.winner_user_id
+        is_authorized = topic&.user_id == scope.user&.id || is_this_winner
+        winner_data[:shipped_at] = lpw.shipped_at if is_authorized && lpw.shipped_at
+        winner_data[:collected_at] = lpw.collected_at if is_authorized && lpw.collected_at
+
+        winner_data
+      end
+
+    {
       has_ticket:
         scope.user &&
           VzekcVerlosung::LotteryTicket.exists?(post_id: object.id, user_id: scope.user.id),
       ticket_count: ticket_count,
+      quantity: packet.quantity,
       users: users,
-      winner: winner,
+      winners: winners,
     }
-
-    # Include collected_at for lottery owner or winner
-    topic = object.topic
-    is_winner =
-      packet.winner_user_id.present? && scope.user && scope.user.id == packet.winner_user_id
-    is_authorized = topic&.user_id == scope.user&.id || is_winner
-    response[:collected_at] = packet.collected_at if is_authorized && packet.collected_at
-
-    response
   end
 
   # Preload lottery association for topic lists to prevent N+1 queries
@@ -624,14 +660,18 @@ after_initialize do
       topic.save_custom_fields
 
       # Find the lottery packet
-      packet = VzekcVerlosung::LotteryPacket.find_by(post_id: packet_post_id)
+      packet =
+        VzekcVerlosung::LotteryPacket.includes(:lottery_packet_winners).find_by(
+          post_id: packet_post_id,
+        )
       if packet
         # Verify the post belongs to the correct topic
         if packet.post.topic_id == packet_topic_id
-          # Verify the user is the winner
-          if packet.winner_user_id == user.id
-            # Establish reverse link from packet to Erhaltungsbericht
-            packet.link_report!(topic)
+          # Verify the user is one of the winners and link to their winner entry
+          winner_entry = packet.lottery_packet_winners.find { |w| w.winner_user_id == user.id }
+          if winner_entry
+            # Establish reverse link from winner entry to Erhaltungsbericht
+            winner_entry.link_report!(topic)
           end
         end
       end

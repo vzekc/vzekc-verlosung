@@ -513,8 +513,7 @@ export default class LotteryCard extends Component {
                 <th>{{i18n "vzekc_verlosung.history.table.packet"}}</th>
                 {{#if @isFinished}}
                   <th>{{i18n "vzekc_verlosung.history.table.winner"}}</th>
-                  <th>{{i18n "vzekc_verlosung.history.table.collected"}}</th>
-                  <th>{{i18n "vzekc_verlosung.history.table.bericht"}}</th>
+                  <th>{{i18n "vzekc_verlosung.donation.state.title"}}</th>
                 {{else}}
                   <th>{{i18n "vzekc_verlosung.ticket.participants"}}</th>
                 {{/if}}
@@ -533,31 +532,46 @@ export default class LotteryCard extends Component {
                   </td>
                   {{#if @isFinished}}
                     <td class="packet-winner">
-                      {{#if packet.winner}}
-                        {{avatar packet.winner imageSize="tiny"}}
-                        <a href="/u/{{packet.winner.username}}/verlosungen">
-                          {{packet.winner.username}}
-                        </a>
+                      {{#if packet.winners.length}}
+                        {{#each packet.winners as |winnerEntry|}}
+                          <div class="winner-row">
+                            {{avatar winnerEntry imageSize="tiny"}}
+                            <a href="/u/{{winnerEntry.username}}/verlosungen">
+                              {{winnerEntry.username}}
+                            </a>
+                          </div>
+                        {{/each}}
                       {{else}}
                         <span class="no-winner">-</span>
                       {{/if}}
                     </td>
-                    <td class="packet-collected">
-                      {{#if packet.collected_at}}
-                        <span class="status-yes">{{icon "check"}}</span>
+                    <td class="packet-status">
+                      {{#if packet.winners.length}}
+                        {{#each packet.winners as |winnerEntry|}}
+                          <div class="status-row">
+                            {{#if winnerEntry.bericht_url}}
+                              <a
+                                href={{winnerEntry.bericht_url}}
+                                class="status-finished"
+                              >
+                                {{icon "file-lines"}}
+                                {{i18n "vzekc_verlosung.status.finished"}}
+                              </a>
+                            {{else if winnerEntry.collected_at}}
+                              <span class="status-collected">
+                                {{icon "check"}}
+                                {{i18n "vzekc_verlosung.status.collected"}}
+                              </span>
+                            {{else}}
+                              <span class="status-won">
+                                {{icon "trophy"}}
+                                {{i18n "vzekc_verlosung.status.won"}}
+                              </span>
+                            {{/if}}
+                          </div>
+                        {{/each}}
                       {{else}}
-                        <span class="status-no">{{icon "xmark"}}</span>
-                      {{/if}}
-                    </td>
-                    <td class="packet-bericht">
-                      {{#if packet.erhaltungsbericht_required}}
-                        {{#if packet.bericht_url}}
-                          <a href={{packet.bericht_url}} class="bericht-link">
-                            {{icon "file-lines"}}
-                          </a>
-                        {{else}}
-                          <span class="status-no">{{icon "minus"}}</span>
-                        {{/if}}
+                        <span class="status-na">-</span>
                       {{/if}}
                     </td>
                   {{else}}

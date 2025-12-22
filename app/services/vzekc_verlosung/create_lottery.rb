@@ -150,6 +150,7 @@ module VzekcVerlosung
           post_id: main_topic.posts.first.id,
           ordinal: 1,
           title: params.title,
+          quantity: 1, # Single packet mode always has quantity 1
           erhaltungsbericht_required: erhaltungsbericht_required,
           abholerpaket: false,
         )
@@ -192,15 +193,23 @@ module VzekcVerlosung
             )
           end
 
-          # Create Abholerpaket record
-          LotteryPacket.create!(
-            lottery_id: lottery.id,
-            post_id: post.id,
-            ordinal: 0,
-            title: abholerpaket_title,
-            erhaltungsbericht_required: abholerpaket_erhaltungsbericht,
-            abholerpaket: true,
+          # Create Abholerpaket record (quantity always 1)
+          abholerpaket_packet =
+            LotteryPacket.create!(
+              lottery_id: lottery.id,
+              post_id: post.id,
+              ordinal: 0,
+              title: abholerpaket_title,
+              quantity: 1,
+              erhaltungsbericht_required: abholerpaket_erhaltungsbericht,
+              abholerpaket: true,
+            )
+
+          # Create winner entry for Abholerpaket (pre-assigned to creator)
+          LotteryPacketWinner.create!(
+            lottery_packet_id: abholerpaket_packet.id,
             winner_user_id: user.id,
+            instance_number: 1,
             won_at: Time.zone.now,
             collected_at: Time.zone.now,
           )
@@ -245,24 +254,32 @@ module VzekcVerlosung
             fail!("Failed to create packet post: #{post_creator.errors.full_messages.join(", ")}")
           end
 
+          # Get quantity (default 1, Abholerpaket always 1)
+          packet_quantity = packet_data[:quantity] || packet_data["quantity"] || 1
+          packet_quantity = 1 if is_abholerpaket # Abholerpaket always has quantity 1
+
           # Create lottery packet record
-          lottery_packet_attrs = {
-            lottery_id: lottery.id,
-            post_id: post.id,
-            ordinal: packet_ordinal,
-            title: packet_title,
-            erhaltungsbericht_required: erhaltungsbericht_required,
-            abholerpaket: is_abholerpaket,
-          }
+          lottery_packet =
+            LotteryPacket.create!(
+              lottery_id: lottery.id,
+              post_id: post.id,
+              ordinal: packet_ordinal,
+              title: packet_title,
+              quantity: packet_quantity,
+              erhaltungsbericht_required: erhaltungsbericht_required,
+              abholerpaket: is_abholerpaket,
+            )
 
-          # If this is Abholerpaket (ordinal 0), assign to creator and mark collected
+          # If this is Abholerpaket, assign to creator and mark collected
           if is_abholerpaket
-            lottery_packet_attrs[:winner_user_id] = user.id
-            lottery_packet_attrs[:won_at] = Time.zone.now
-            lottery_packet_attrs[:collected_at] = Time.zone.now
+            LotteryPacketWinner.create!(
+              lottery_packet_id: lottery_packet.id,
+              winner_user_id: user.id,
+              instance_number: 1,
+              won_at: Time.zone.now,
+              collected_at: Time.zone.now,
+            )
           end
-
-          LotteryPacket.create!(lottery_packet_attrs)
         end
       end
     end

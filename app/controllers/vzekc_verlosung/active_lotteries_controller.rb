@@ -51,7 +51,7 @@ module VzekcVerlosung
         created_at: topic.created_at,
         ends_at: lottery.ends_at,
         drawing_mode: lottery.drawing_mode,
-        packet_count: packets.size,
+        packet_count: packets.sum(&:quantity),
         participant_count: participant_count,
         category: {
           id: topic.category&.id,

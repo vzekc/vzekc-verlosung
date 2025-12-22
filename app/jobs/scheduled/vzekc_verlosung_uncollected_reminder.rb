@@ -20,27 +20,31 @@ module Jobs
           # Only send reminder every 7 days (on days 7, 14, 21, etc.)
           next if (days_since_drawn % 7).nonzero? || days_since_drawn <= 0
 
-          # Find all uncollected packets in this lottery
-          uncollected_packets =
-            lottery
-              .lottery_packets
+          # Find all uncollected winner entries in this lottery
+          uncollected_entries =
+            VzekcVerlosung::LotteryPacketWinner
               .uncollected
-              .includes(:winner, :post)
-              .map do |packet|
+              .joins(lottery_packet: :post)
+              .includes(:winner, lottery_packet: :post)
+              .where(vzekc_verlosung_lottery_packets: { lottery_id: lottery.id })
+              .map do |entry|
+                packet = entry.lottery_packet
                 post = packet.post
                 packet_title =
                   VzekcVerlosung::TitleExtractor.extract_title(post.raw) ||
                     "Packet ##{post.post_number}"
+                title_with_instance =
+                  packet.quantity > 1 ? "#{packet_title} (##{entry.instance_number})" : packet_title
                 {
                   post_number: post.post_number,
-                  title: packet_title,
-                  winner: packet.winner.username,
+                  title: title_with_instance,
+                  winner: entry.winner.username,
                 }
               end
 
-          # Send reminder if there are uncollected packets
-          if uncollected_packets.any?
-            send_uncollected_reminder(lottery.topic, uncollected_packets, days_since_drawn)
+          # Send reminder if there are uncollected entries
+          if uncollected_entries.any?
+            send_uncollected_reminder(lottery.topic, uncollected_entries, days_since_drawn)
           end
         end
     end

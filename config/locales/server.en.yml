@@ -33,6 +33,30 @@ en:
           If you have any questions, feel free to reply to this message.
 
           **[→ Open donation offer](%{topic_url})**
+      packet_shipped:
+        title: "Packet shipped: %{packet_title}"
+        body: |
+          Hello %{username},
+
+          %{sender_username} has shipped the packet **%{packet_title}** from the lottery **[%{lottery_title}](%{lottery_url})** to you!
+
+          Please mark the packet as "Received" once it arrives.
+
+          **[→ Open lottery](%{lottery_url})**
+        body_with_tracking: |
+          Hello %{username},
+
+          %{sender_username} has shipped the packet **%{packet_title}** from the lottery **[%{lottery_title}](%{lottery_url})** to you!
+
+          ## Tracking Information
+
+          %{tracking_info}
+
+          ---
+
+          Please mark the packet as "Received" once it arrives.
+
+          **[→ Open lottery](%{lottery_url})**
     reminders:
       draft:
         title: "You have an unpublished lottery"

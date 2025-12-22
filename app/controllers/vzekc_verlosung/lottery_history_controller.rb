@@ -17,16 +17,22 @@ module VzekcVerlosung
     #   unique_winners: Integer
     # }
     def stats
-      finished_packets =
+      # Count winner entries from finished lotteries
+      finished_winner_entries =
+        LotteryPacketWinner.joins(lottery_packet: :lottery).where(
+          vzekc_verlosung_lotteries: {
+            state: "finished",
+          },
+        )
+
+      total_packets = finished_winner_entries.count
+
+      # Count total tickets and unique participants from finished lotteries
+      finished_packet_post_ids =
         LotteryPacket
           .joins(:lottery)
           .where(vzekc_verlosung_lotteries: { state: "finished" })
-          .where.not(winner_user_id: nil)
-
-      total_packets = finished_packets.count
-
-      # Count total tickets and unique participants from finished lotteries
-      finished_packet_post_ids = finished_packets.pluck(:post_id)
+          .pluck(:post_id)
       tickets_query = LotteryTicket.where(post_id: finished_packet_post_ids)
       total_tickets = tickets_query.count
       unique_participants = tickets_query.distinct.count(:user_id)
@@ -36,7 +42,7 @@ module VzekcVerlosung
                total_packets: total_packets,
                unique_participants: unique_participants,
                total_tickets: total_tickets,
-               unique_winners: finished_packets.distinct.count(:winner_user_id),
+               unique_winners: finished_winner_entries.distinct.count(:winner_user_id),
              }
     end
 
@@ -118,22 +124,23 @@ module VzekcVerlosung
       page = [params[:page].to_i, 1].max
       per_page = [[params[:per_page].to_i, 50].max, 100].min
 
-      # Build query for packets from finished lotteries with winners
-      packets_query =
-        LotteryPacket
-          .joins(lottery: :topic)
-          .joins(:post)
-          .joins(:winner)
+      # Build query for winner entries from finished lotteries
+      entries_query =
+        LotteryPacketWinner
+          .joins(lottery_packet: [:post, { lottery: :topic }])
           .left_joins(:erhaltungsbericht_topic)
           .where(vzekc_verlosung_lotteries: { state: "finished" })
-          .where.not(winner_user_id: nil)
-          .includes(lottery: { topic: %i[category user] })
+          .includes(
+            :winner,
+            :erhaltungsbericht_topic,
+            lottery_packet: [:post, { lottery: { topic: %i[category user] } }],
+          )
 
       # Apply search filter at SQL level
       if search.present?
         search_term = "%#{search.downcase}%"
-        packets_query =
-          packets_query.where(
+        entries_query =
+          entries_query.where(
             "LOWER(topics.title) LIKE ? OR LOWER(vzekc_verlosung_lottery_packets.title) LIKE ?",
             search_term,
             search_term,
@@ -141,43 +148,51 @@ module VzekcVerlosung
       end
 
       # Apply sorting at SQL level
-      packets_query =
+      entries_query =
         case sort
         when "date_asc"
-          packets_query.order("topics.created_at ASC")
+          entries_query.order("topics.created_at ASC")
         when "lottery_asc"
-          packets_query.order("LOWER(topics.title) ASC, topics.created_at ASC")
+          entries_query.order("LOWER(topics.title) ASC, topics.created_at ASC")
         when "lottery_desc"
-          packets_query.order("LOWER(topics.title) DESC, topics.created_at DESC")
+          entries_query.order("LOWER(topics.title) DESC, topics.created_at DESC")
         else # date_desc
-          packets_query.order("topics.created_at DESC")
+          entries_query.order("topics.created_at DESC")
         end
 
       # Paginate
-      packets_query = packets_query.limit(per_page).offset((page - 1) * per_page)
+      entries_query = entries_query.limit(per_page).offset((page - 1) * per_page)
 
       # Build response
-      all_packets = packets_query.map { |packet| build_packet_response(packet) }
+      all_entries = entries_query.map { |entry| build_packet_response(entry) }
 
-      render json: { packets: all_packets }
+      render json: { packets: all_entries }
     end
 
     private
 
     # Build packet response data
     #
-    # @param packet [LotteryPacket] The lottery packet
+    # @param winner_entry [LotteryPacketWinner] The winner entry
     # @return [Hash] Packet data with lottery and winner info
-    def build_packet_response(packet)
+    def build_packet_response(winner_entry)
+      packet = winner_entry.lottery_packet
       topic = packet.lottery.topic
       post = packet.post
+      winner = winner_entry.winner
+
+      # Build title with instance number for multi-instance packets
+      title =
+        packet.quantity > 1 ? "#{packet.title} (##{winner_entry.instance_number})" : packet.title
 
       {
         # Packet info
         post_id: post.id,
         post_number: post.post_number,
         ordinal: packet.ordinal,
-        title: packet.title,
+        title: title,
+        quantity: packet.quantity,
+        instance_number: winner_entry.instance_number,
         packet_url: "#{topic.relative_url}/#{post.post_number}",
         # Lottery info
         lottery_id: topic.id,
@@ -193,23 +208,23 @@ module VzekcVerlosung
         },
         # Winner info
         winner: {
-          id: packet.winner.id,
-          username: packet.winner.username,
-          name: packet.winner.name,
-          avatar_template: packet.winner.avatar_template,
+          id: winner.id,
+          username: winner.username,
+          name: winner.name,
+          avatar_template: winner.avatar_template,
         },
-        collected_at: packet.collected_at,
-        won_at: packet.won_at,
+        collected_at: winner_entry.collected_at,
+        won_at: winner_entry.won_at,
         # Erhaltungsbericht info
         erhaltungsbericht_required: packet.erhaltungsbericht_required,
         erhaltungsbericht:
-          if packet.erhaltungsbericht_topic
+          if winner_entry.erhaltungsbericht_topic
             {
-              topic_id: packet.erhaltungsbericht_topic.id,
-              title: packet.erhaltungsbericht_topic.title,
-              slug: packet.erhaltungsbericht_topic.slug,
-              url: packet.erhaltungsbericht_topic.relative_url,
-              created_at: packet.erhaltungsbericht_topic.created_at,
+              topic_id: winner_entry.erhaltungsbericht_topic.id,
+              title: winner_entry.erhaltungsbericht_topic.title,
+              slug: winner_entry.erhaltungsbericht_topic.slug,
+              url: winner_entry.erhaltungsbericht_topic.relative_url,
+              created_at: winner_entry.erhaltungsbericht_topic.created_at,
             }
           else
             nil
@@ -223,21 +238,26 @@ module VzekcVerlosung
     # @return [Hash] Lottery data with packets
     def build_lottery_response(lottery)
       topic = lottery.topic
-      packets_with_winners =
-        lottery.lottery_packets.select { |p| p.winner_user_id.present? }.sort_by(&:ordinal)
+      packets_with_winners = lottery.lottery_packets.select { |p| p.has_winner? }.sort_by(&:ordinal)
 
-      # Preload winners
-      winner_ids = packets_with_winners.map(&:winner_user_id).compact
-      winners_by_id = User.where(id: winner_ids).index_by(&:id)
-
-      # Preload erhaltungsbericht topics
-      bericht_topic_ids = packets_with_winners.map(&:erhaltungsbericht_topic_id).compact
-      bericht_topics_by_id = Topic.where(id: bericht_topic_ids).index_by(&:id)
+      # Preload winner entries with users and erhaltungsbericht topics
+      packet_ids = packets_with_winners.map(&:id)
+      winner_entries =
+        LotteryPacketWinner
+          .where(lottery_packet_id: packet_ids)
+          .includes(:winner, :erhaltungsbericht_topic)
+          .group_by(&:lottery_packet_id)
 
       # Preload tickets with users for highlighting current user's participation
       packet_post_ids = packets_with_winners.map(&:post_id)
       tickets_by_post =
         LotteryTicket.where(post_id: packet_post_ids).includes(:user).group_by(&:post_id)
+
+      # Count totals
+      all_entries = winner_entries.values.flatten
+      total_quantity = packets_with_winners.sum(&:quantity)
+      collected_count = all_entries.count { |e| e.collected_at.present? }
+      bericht_count = all_entries.count { |e| e.erhaltungsbericht_topic_id.present? }
 
       {
         id: lottery.id,
@@ -248,9 +268,9 @@ module VzekcVerlosung
         ends_at: lottery.ends_at,
         drawn_at: lottery.drawn_at,
         participant_count: lottery.participant_count,
-        packet_count: packets_with_winners.size,
-        collected_count: packets_with_winners.count { |p| p.collected_at.present? },
-        bericht_count: packets_with_winners.count { |p| p.erhaltungsbericht_topic_id.present? },
+        packet_count: total_quantity,
+        collected_count: collected_count,
+        bericht_count: bericht_count,
         category: {
           id: topic.category&.id,
           name: topic.category&.name,
@@ -264,24 +284,27 @@ module VzekcVerlosung
         },
         packets:
           packets_with_winners.map do |packet|
-            winner = winners_by_id[packet.winner_user_id]
-            bericht_topic = bericht_topics_by_id[packet.erhaltungsbericht_topic_id]
+            entries = winner_entries[packet.id] || []
             tickets = tickets_by_post[packet.post_id] || []
             {
               ordinal: packet.ordinal,
               title: packet.title,
+              quantity: packet.quantity,
               url: "#{topic.relative_url}/#{packet.post.post_number}",
-              winner:
-                if winner
-                  {
-                    id: winner.id,
-                    username: winner.username,
-                    avatar_template: winner.avatar_template,
-                  }
-                end,
-              collected_at: packet.collected_at,
+              winners:
+                entries
+                  .sort_by(&:instance_number)
+                  .map do |entry|
+                    {
+                      instance_number: entry.instance_number,
+                      id: entry.winner.id,
+                      username: entry.winner.username,
+                      avatar_template: entry.winner.avatar_template,
+                      collected_at: entry.collected_at,
+                      bericht_url: entry.erhaltungsbericht_topic&.relative_url,
+                    }
+                  end,
               erhaltungsbericht_required: packet.erhaltungsbericht_required,
-              bericht_url: bericht_topic&.relative_url,
               users:
                 tickets.map { |ticket| { id: ticket.user.id, username: ticket.user.username } },
             }
@@ -331,10 +354,9 @@ module VzekcVerlosung
     # @return [Array<Hash>] Array of { user: {...}, count: Integer }
     def top_winners(limit)
       winner_counts =
-        LotteryPacket
-          .joins(:lottery)
+        LotteryPacketWinner
+          .joins(lottery_packet: :lottery)
           .where(vzekc_verlosung_lotteries: { state: "finished" })
-          .where.not(winner_user_id: nil)
           .group(:winner_user_id)
           .order("count_all DESC")
           .limit(limit)
@@ -365,38 +387,46 @@ module VzekcVerlosung
     #
     # @return [Hash] { luckiest: Array, unluckiest: Array }
     def luck_rankings
-      # Get all finished packets with their ticket counts
-      finished_packets =
-        LotteryPacket
-          .joins(:lottery)
+      # Get all finished winner entries
+      finished_entries =
+        LotteryPacketWinner
+          .joins(lottery_packet: :lottery)
           .where(vzekc_verlosung_lotteries: { state: "finished" })
-          .where.not(winner_user_id: nil)
-          .pluck(:id, :post_id, :winner_user_id)
+          .pluck(
+            "vzekc_verlosung_lottery_packets.id",
+            "vzekc_verlosung_lottery_packets.post_id",
+            :winner_user_id,
+          )
 
-      return { luckiest: [], unluckiest: [] } if finished_packets.empty?
+      return { luckiest: [], unluckiest: [] } if finished_entries.empty?
+
+      # Get unique post_ids
+      post_ids = finished_entries.map { |_, post_id, _| post_id }.compact.uniq
 
       # Get ticket counts per packet
-      post_ids = finished_packets.map { |_, post_id, _| post_id }.compact
       ticket_counts_by_post = LotteryTicket.where(post_id: post_ids).group(:post_id).count
 
       # Get user ticket counts per packet
       user_tickets = LotteryTicket.where(post_id: post_ids).group(:post_id, :user_id).count
 
       # Calculate expected wins and actual wins per user
-      user_stats = Hash.new { |h, k| h[k] = { expected: 0.0, wins: 0 } }
+      user_stats =
+        Hash.new { |h, k| h[k] = { expected: 0.0, wins: 0, packets_participated: Set.new } }
 
-      finished_packets.each do |_packet_id, post_id, winner_user_id|
+      finished_entries.each do |_packet_id, post_id, winner_user_id|
         total_tickets = ticket_counts_by_post[post_id] || 0
         next if total_tickets.zero?
 
-        # Add expected wins for all participants in this packet
+        # Add expected wins for all participants in this packet (only count each packet once)
         user_tickets.each do |(p_id, user_id), count|
           next unless p_id == post_id
+          next if user_stats[user_id][:packets_participated].include?(post_id)
 
+          user_stats[user_id][:packets_participated].add(post_id)
           user_stats[user_id][:expected] += count.to_f / total_tickets
         end
 
-        # Add actual win
+        # Add actual win for this instance
         user_stats[winner_user_id][:wins] += 1
       end
 
@@ -454,11 +484,10 @@ module VzekcVerlosung
     # @return [Array<Hash>] Array of { user: {...}, count: Integer }
     def top_bericht_writers(limit)
       bericht_counts =
-        LotteryPacket
-          .joins(:lottery)
+        LotteryPacketWinner
+          .joins(lottery_packet: :lottery)
           .where(vzekc_verlosung_lotteries: { state: "finished" })
-          .where(erhaltungsbericht_required: true)
-          .where.not(winner_user_id: nil)
+          .where(vzekc_verlosung_lottery_packets: { erhaltungsbericht_required: true })
           .where.not(erhaltungsbericht_topic_id: nil)
           .group(:winner_user_id)
           .order("count_all DESC")

@@ -22,6 +22,8 @@ VzekcVerlosung::Engine.routes.draw do
   delete "/tickets/:post_id" => "tickets#destroy"
   get "/tickets/packet-status/:post_id" => "tickets#packet_status"
   post "/packets/:post_id/mark-collected" => "tickets#mark_collected"
+  post "/packets/:post_id/mark-shipped" => "tickets#mark_shipped"
+  post "/packets/:post_id/mark-handed-over" => "tickets#mark_handed_over"
   post "/packets/:post_id/create-erhaltungsbericht" => "tickets#create_erhaltungsbericht"
 
   # Donation routes

@@ -470,6 +470,7 @@ export default class NewLotteryPage extends Component {
             title: "",
             raw: "",
             erhaltungsberichtNotRequired: false,
+            quantity: 1, // Abholerpaket always has quantity 1
             isAbholerpaket: true,
             ordinal: 0,
           },
@@ -477,6 +478,7 @@ export default class NewLotteryPage extends Component {
             title: "",
             raw: "",
             erhaltungsberichtNotRequired: false,
+            quantity: 1,
             ordinal: 1,
           },
         ];
@@ -487,6 +489,7 @@ export default class NewLotteryPage extends Component {
             title: "",
             raw: "",
             erhaltungsberichtNotRequired: false,
+            quantity: 1,
             ordinal: 1,
           },
         ];
@@ -535,6 +538,7 @@ export default class NewLotteryPage extends Component {
       title: "",
       raw: "",
       erhaltungsberichtNotRequired: false,
+      quantity: 1,
       ordinal,
     };
   }
@@ -827,6 +831,7 @@ export default class NewLotteryPage extends Component {
         title: typeof packet.title === "string" ? packet.title : "",
         raw: typeof packet.raw === "string" ? packet.raw : "",
         erhaltungsberichtNotRequired: packet.erhaltungsberichtNotRequired,
+        quantity: parseInt(packet.quantity, 10) || 1,
         ordinal: packet.ordinal,
         isAbholerpaket: packet.isAbholerpaket || false,
       }));
@@ -919,10 +924,14 @@ export default class NewLotteryPage extends Component {
         }
 
         // Prepare packet data - include all packets with their ordinals
+        // Abholerpaket always has quantity 1
         packets = this.packets.map((packet) => ({
           title: packet.title.trim(),
           raw: packet.raw.trim(),
           ordinal: packet.ordinal,
+          quantity: packet.isAbholerpaket
+            ? 1
+            : parseInt(packet.quantity, 10) || 1,
           erhaltungsbericht_required: !packet.erhaltungsberichtNotRequired,
           is_abholerpaket: packet.isAbholerpaket || false,
         }));
@@ -1209,17 +1218,37 @@ export default class NewLotteryPage extends Component {
                         />
                       {{/if}}
                     </div>
-                    <div class="packet-title-input">
-                      <input
-                        type="text"
-                        value={{packet.title}}
-                        {{on "input" (fn this.updatePacket index "title")}}
-                        placeholder={{i18n
-                          "vzekc_verlosung.modal.packet_title_placeholder"
-                          number=(this.getPacketNumber index)
-                        }}
-                        class="packet-title-field"
-                      />
+                    <div class="packet-title-row">
+                      <div class="packet-title-input">
+                        <input
+                          type="text"
+                          value={{packet.title}}
+                          {{on "input" (fn this.updatePacket index "title")}}
+                          placeholder={{i18n
+                            "vzekc_verlosung.modal.packet_title_placeholder"
+                            number=(this.getPacketNumber index)
+                          }}
+                          class="packet-title-field"
+                        />
+                      </div>
+                      {{#unless packet.isAbholerpaket}}
+                        <div class="packet-quantity-input">
+                          <label>{{i18n
+                              "vzekc_verlosung.modal.packet_quantity_label"
+                            }}</label>
+                          <input
+                            type="number"
+                            min="1"
+                            max="100"
+                            value={{packet.quantity}}
+                            {{on
+                              "input"
+                              (fn this.updatePacket index "quantity")
+                            }}
+                            class="packet-quantity-field"
+                          />
+                        </div>
+                      {{/unless}}
                     </div>
                     <div
                       class="packet-editor"

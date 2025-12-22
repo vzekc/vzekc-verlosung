@@ -4,14 +4,15 @@ module VzekcVerlosung
   class LotteryPacket < ActiveRecord::Base
     self.table_name = "vzekc_verlosung_lottery_packets"
 
+    # Ignore old columns that are being deprecated (now stored in lottery_packet_winners)
+    self.ignored_columns += %w[winner_user_id won_at collected_at erhaltungsbericht_topic_id]
+
     # Associations
     belongs_to :lottery, class_name: "VzekcVerlosung::Lottery"
     belongs_to :post, optional: true
-    belongs_to :winner, class_name: "User", foreign_key: :winner_user_id, optional: true
-    belongs_to :erhaltungsbericht_topic,
-               class_name: "Topic",
-               foreign_key: :erhaltungsbericht_topic_id,
-               optional: true
+    has_many :lottery_packet_winners,
+             class_name: "VzekcVerlosung::LotteryPacketWinner",
+             dependent: :destroy
     has_many :lottery_tickets,
              class_name: "VzekcVerlosung::LotteryTicket",
              foreign_key: :post_id,
@@ -28,40 +29,54 @@ module VzekcVerlosung
                 only_integer: true,
                 greater_than_or_equal_to: 0,
               }
+    validates :quantity,
+              presence: true,
+              numericality: {
+                only_integer: true,
+                greater_than: 0,
+                less_than_or_equal_to: 100,
+              }
 
     # Scopes
     scope :ordered, -> { order(:ordinal) }
-    scope :with_winner, -> { where.not(winner_user_id: nil) }
-    scope :without_winner, -> { where(winner_user_id: nil) }
-    scope :collected, -> { where.not(collected_at: nil) }
-    scope :uncollected, -> { with_winner.where(collected_at: nil) }
-    scope :with_report, -> { where.not(erhaltungsbericht_topic_id: nil) }
-    scope :without_report, -> { where(erhaltungsbericht_topic_id: nil) }
+    scope :with_winner, -> { joins(:lottery_packet_winners).distinct }
+    scope :without_winner, -> { left_joins(:lottery_packet_winners).where(lottery_packet_winners: { id: nil }) }
     scope :requiring_report, -> { where(erhaltungsbericht_required: true) }
 
-    # Helper methods
+    # Winner-related helper methods
     def has_winner?
-      winner_user_id.present?
+      lottery_packet_winners.exists?
     end
 
-    def collected?
-      collected_at.present?
+    def all_instances_won?
+      lottery_packet_winners.count >= quantity
     end
 
-    def has_report?
-      erhaltungsbericht_topic_id.present?
+    def remaining_instances
+      quantity - lottery_packet_winners.count
     end
 
-    def mark_winner!(user, timestamp = Time.zone.now)
-      update!(winner_user_id: user.id, won_at: timestamp)
+    def winners
+      lottery_packet_winners.ordered.includes(:winner).map(&:winner)
     end
 
-    def mark_collected!(timestamp = Time.zone.now)
-      update!(collected_at: timestamp)
+    def winner_entries
+      lottery_packet_winners.ordered.includes(:winner)
     end
 
-    def link_report!(topic)
-      update!(erhaltungsbericht_topic_id: topic.id)
+    def mark_winner!(user, timestamp = Time.zone.now, instance_number: nil)
+      next_instance = instance_number || (lottery_packet_winners.maximum(:instance_number) || 0) + 1
+      lottery_packet_winners.create!(
+        winner_user_id: user.id,
+        won_at: timestamp,
+        instance_number: next_instance,
+      )
+    end
+
+    def mark_winners!(users, timestamp = Time.zone.now)
+      users.each_with_index do |user, index|
+        mark_winner!(user, timestamp, instance_number: index + 1)
+      end
     end
 
     # Query helpers
@@ -72,6 +87,10 @@ module VzekcVerlosung
     def participant_count
       lottery_tickets.count
     end
+
+    def unique_participant_count
+      lottery_tickets.distinct.count(:user_id)
+    end
   end
 end
 
@@ -81,17 +100,14 @@ end
 #
 #  id                         :bigint           not null, primary key
 #  abholerpaket               :boolean          default(FALSE), not null
-#  collected_at               :datetime
 #  erhaltungsbericht_required :boolean          default(TRUE), not null
 #  ordinal                    :integer          not null
+#  quantity                   :integer          default(1), not null
 #  title                      :string           not null
-#  won_at                     :datetime
 #  created_at                 :datetime         not null
 #  updated_at                 :datetime         not null
-#  erhaltungsbericht_topic_id :bigint
 #  lottery_id                 :bigint           not null
 #  post_id                    :bigint           not null
-#  winner_user_id             :bigint
 #
 # Indexes
 #

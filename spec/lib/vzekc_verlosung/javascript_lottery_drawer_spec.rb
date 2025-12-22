@@ -48,8 +48,9 @@ RSpec.describe VzekcVerlosung::JavascriptLotteryDrawer do
       first_drawing = result["drawings"][0]
 
       expect(first_drawing["text"]).to eq("Hardware Bundle")
-      expect(first_drawing["winner"]).to be_a(String)
-      expect(first_drawing["winner"]).to be_in(%w[alice bob charlie])
+      expect(first_drawing["winners"]).to be_an(Array)
+      expect(first_drawing["winners"].length).to eq(1)
+      expect(first_drawing["winners"][0]).to be_in(%w[alice bob charlie])
       expect(first_drawing["participants"]).to be_an(Array)
       expect(first_drawing["participants"].length).to eq(3)
     end
@@ -98,7 +99,7 @@ RSpec.describe VzekcVerlosung::JavascriptLotteryDrawer do
       }
 
       result = described_class.draw(single_input)
-      expect(result["drawings"][0]["winner"]).to eq("alice")
+      expect(result["drawings"][0]["winners"]).to eq(["alice"])
     end
 
     it "handles multiple tickets per participant" do
@@ -118,7 +119,7 @@ RSpec.describe VzekcVerlosung::JavascriptLotteryDrawer do
       }
 
       # Run multiple times to check probability
-      winners = 10.times.map { described_class.draw(multi_ticket_input)["drawings"][0]["winner"] }
+      winners = 10.times.map { described_class.draw(multi_ticket_input)["drawings"][0]["winners"][0] }
 
       # Alice should win significantly more often (but not guaranteed every time)
       alice_wins = winners.count("alice")
@@ -151,7 +152,7 @@ RSpec.describe VzekcVerlosung::JavascriptLotteryDrawer do
       }
 
       result = described_class.draw(empty_input)
-      expect(result["drawings"][0]["winner"]).to be_nil
+      expect(result["drawings"][0]["winners"]).to eq([])
     end
 
     it "handles invalid timestamp format" do

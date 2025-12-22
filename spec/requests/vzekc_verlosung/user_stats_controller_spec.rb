@@ -52,12 +52,13 @@ RSpec.describe VzekcVerlosung::UserStatsController do
           post: packet_post,
           title: "Test Packet",
           ordinal: 1,
-          winner_user_id: another_user.id,
-          won_at: 1.day.ago,
         )
       end
 
-      before { VzekcVerlosung::LotteryTicket.create!(user: another_user, post: packet_post) }
+      before do
+        VzekcVerlosung::LotteryTicket.create!(user: another_user, post: packet_post)
+        lottery_packet.mark_winner!(another_user, 1.day.ago)
+      end
 
       it "returns correct stats for lottery creator" do
         get "/vzekc-verlosung/users/#{user.username}.json"

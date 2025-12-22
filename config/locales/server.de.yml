@@ -33,6 +33,30 @@ de:
           Bei Fragen kannst du mir gerne antworten.
 
           **[→ Spendenangebot öffnen](%{topic_url})**
+      packet_shipped:
+        title: "Paket versandt: %{packet_title}"
+        body: |
+          Hallo %{username},
+
+          %{sender_username} hat das Paket **%{packet_title}** aus der Verlosung **[%{lottery_title}](%{lottery_url})** an dich versandt!
+
+          Bitte markiere das Paket als "Erhalten", sobald es bei dir angekommen ist.
+
+          **[→ Verlosung öffnen](%{lottery_url})**
+        body_with_tracking: |
+          Hallo %{username},
+
+          %{sender_username} hat das Paket **%{packet_title}** aus der Verlosung **[%{lottery_title}](%{lottery_url})** an dich versandt!
+
+          ## Sendungsverfolgung
+
+          %{tracking_info}
+
+          ---
+
+          Bitte markiere das Paket als "Erhalten", sobald es bei dir angekommen ist.
+
+          **[→ Verlosung öffnen](%{lottery_url})**
     reminders:
       draft:
         title: "Du hast eine unveröffentlichte Verlosung"

@@ -86,7 +86,7 @@ module VzekcVerlosung
       lottery_packets =
         lottery
           .lottery_packets
-          .includes(:post, :winner, lottery_tickets: :user)
+          .includes(:post, lottery_packet_winners: :winner, lottery_tickets: :user)
           .order("posts.post_number")
 
       packets =
@@ -105,35 +105,38 @@ module VzekcVerlosung
               }
             end
 
-          # Get winner user object if winner exists
-          winner_obj = nil
-          if packet.winner
-            winner_obj = {
-              id: packet.winner.id,
-              username: packet.winner.username,
-              name: packet.winner.name,
-              avatar_template: packet.winner.avatar_template,
-            }
-          end
+          # Get winners from junction table
+          winners =
+            packet.lottery_packet_winners.ordered.map do |lpw|
+              winner_data = {
+                instance_number: lpw.instance_number,
+                id: lpw.winner.id,
+                username: lpw.winner.username,
+                name: lpw.winner.name,
+                avatar_template: lpw.winner.avatar_template,
+                erhaltungsbericht_topic_id: lpw.erhaltungsbericht_topic_id,
+              }
 
-          packet_data = {
+              # Only include collected_at for lottery owner
+              if topic.user_id == current_user&.id
+                winner_data[:collected_at] = lpw.collected_at if lpw.collected_at
+              end
+
+              winner_data
+            end
+
+          {
             post_id: packet.post_id,
             post_number: packet.post.post_number,
             title: packet.title,
+            quantity: packet.quantity,
             ticket_count: ticket_count,
-            winner: winner_obj,
+            winners: winners,
             users: users,
             ordinal: packet.ordinal,
             abholerpaket: packet.abholerpaket,
             erhaltungsbericht_required: packet.erhaltungsbericht_required,
           }
-
-          # Only include collected_at for lottery owner
-          if topic.user_id == current_user&.id
-            packet_data[:collected_at] = packet.collected_at if packet.collected_at
-          end
-
-          packet_data
         end
 
       render json: { packets: packets }
@@ -224,7 +227,7 @@ module VzekcVerlosung
                 { id: user.id, name: user.username, tickets: user_tickets.count }
               end
 
-          { id: packet.post_id, title: packet.title, participants: participants }
+          { id: packet.post_id, title: packet.title, participants: participants, quantity: packet.quantity }
         end
 
       # The timestamp should be when the lottery was published (went active)
@@ -318,7 +321,7 @@ module VzekcVerlosung
       lottery.finish!
       lottery.mark_drawn!(results)
 
-      # Store winner on each packet
+      # Store winners on each packet
       # Drawings and packets arrays are in the same order, so use index to match
       results["drawings"].each_with_index do |drawing, index|
         # Get packet ID from the packets array at the same index
@@ -327,11 +330,15 @@ module VzekcVerlosung
 
         # Find the packet by post_id (stored as "id" in results)
         packet = lottery.lottery_packets.find { |p| p.post_id == packet_data["id"] }
+        next unless packet
 
-        if packet && drawing["winner"].present?
-          # Find winner user
-          winner_user = User.find_by(username: drawing["winner"])
-          packet.mark_winner!(winner_user, drawn_at) if winner_user
+        # Handle array of winners
+        winners = drawing["winners"] || []
+
+        winners.each_with_index do |winner_username, instance_idx|
+          next unless winner_username.present?
+          winner_user = User.find_by(username: winner_username)
+          packet.mark_winner!(winner_user, drawn_at, instance_number: instance_idx + 1) if winner_user
         end
       end
 
@@ -384,14 +391,14 @@ module VzekcVerlosung
         return render_json_error("Lottery has already been drawn", status: :unprocessable_entity)
       end
 
-      # Get selections from params: { post_id: winner_user_id, ... }
+      # Get selections from params: { post_id: [winner_user_id, ...] or winner_user_id, ... }
       selections = params[:selections]&.permit!.to_h
 
       # Get all non-Abholerpaket packets with their tickets
       lottery_packets =
         lottery.lottery_packets.where(abholerpaket: false).includes(lottery_tickets: :user)
 
-      # Validate: all packets with participants must have a winner selected
+      # Validate: all packets with participants must have winner(s) selected
       packets_with_participants = lottery_packets.select { |p| p.lottery_tickets.any? }
 
       packets_with_participants.each do |packet|
@@ -405,12 +412,39 @@ module VzekcVerlosung
           )
         end
 
-        # Validate winner is actually a participant in this packet
-        winner_user_id = selections[post_id_str].to_i
-        unless packet.lottery_tickets.exists?(user_id: winner_user_id)
+        # Normalize to array format
+        selected_user_ids = Array(selections[post_id_str]).map(&:to_i)
+
+        # Calculate expected winners: min of quantity and unique participants
+        unique_participants = packet.lottery_tickets.distinct.count(:user_id)
+        expected_winners = [packet.quantity, unique_participants].min
+
+        if selected_user_ids.length != expected_winners
           return(
             render_json_error(
-              "Selected winner is not a participant in packet: #{packet.title}",
+              "Expected #{expected_winners} winner(s) for packet: #{packet.title}, got #{selected_user_ids.length}",
+              status: :unprocessable_entity,
+            )
+          )
+        end
+
+        # Validate all winners are participants
+        selected_user_ids.each do |winner_user_id|
+          unless packet.lottery_tickets.exists?(user_id: winner_user_id)
+            return(
+              render_json_error(
+                "Selected winner is not a participant in packet: #{packet.title}",
+                status: :unprocessable_entity,
+              )
+            )
+          end
+        end
+
+        # Validate no duplicate winners
+        if selected_user_ids.uniq.length != selected_user_ids.length
+          return(
+            render_json_error(
+              "Duplicate winner selected for packet: #{packet.title}",
               status: :unprocessable_entity,
             )
           )
@@ -423,13 +457,21 @@ module VzekcVerlosung
       packets_data = []
 
       packets_with_participants.each do |packet|
-        winner_user_id = selections[packet.post_id.to_s].to_i
-        winner_user = User.find(winner_user_id)
+        selected_user_ids = Array(selections[packet.post_id.to_s]).map(&:to_i)
+        winner_usernames = []
 
-        packet.mark_winner!(winner_user, drawn_at)
+        selected_user_ids.each_with_index do |winner_user_id, instance_idx|
+          winner_user = User.find(winner_user_id)
+          packet.mark_winner!(winner_user, drawn_at, instance_number: instance_idx + 1)
+          winner_usernames << winner_user.username
+        end
 
         # Build results entry for this drawing
-        drawings << { "text" => packet.title, "winner" => winner_user.username }
+        drawings << {
+          "text" => packet.title,
+          "quantity" => packet.quantity,
+          "winners" => winner_usernames,
+        }
         # Include packet data for notify_winners to match by index
         packets_data << { "id" => packet.post_id, "title" => packet.title }
       end
@@ -499,7 +541,7 @@ module VzekcVerlosung
         :abholerpaket_erhaltungsbericht_required,
         :drawing_mode,
         :donation_id,
-        packets: %i[title raw erhaltungsbericht_required ordinal is_abholerpaket],
+        packets: %i[title raw erhaltungsbericht_required ordinal is_abholerpaket quantity],
       )
     end
 
@@ -530,7 +572,7 @@ module VzekcVerlosung
               .group_by(&:user)
               .map { |user, user_tickets| { name: user.username, tickets: user_tickets.count } }
 
-          { id: packet.post_id, title: packet.title, participants: participants }
+          { id: packet.post_id, title: packet.title, participants: participants, quantity: packet.quantity }
         end
 
       # Calculate published_at from ends_at and duration
@@ -558,7 +600,12 @@ module VzekcVerlosung
       client_drawings.each_with_index do |client_drawing, index|
         server_drawing = server_drawings[index]
         return false unless client_drawing["text"] == server_drawing["text"]
-        return false unless client_drawing["winner"] == server_drawing["winner"]
+
+        # Compare winners arrays
+        client_winners = client_drawing["winners"] || []
+        server_winners = server_drawing["winners"] || []
+
+        return false unless client_winners == server_winners
       end
 
       true
@@ -601,12 +648,8 @@ module VzekcVerlosung
       winners_packets = Hash.new { |h, k| h[k] = [] }
 
       results["drawings"].each_with_index do |drawing, index|
-        winner_username = drawing["winner"]
         packet_title = drawing["text"]
-        next unless winner_username
-
-        winner_user = User.find_by(username: winner_username)
-        next unless winner_user
+        winner_usernames = drawing["winners"] || []
 
         # Find the packet by post_id using index to match with packets array
         packet_data = results["packets"][index]
@@ -618,31 +661,43 @@ module VzekcVerlosung
         packet_post = lottery_packet.post
         post_number = packet_post ? packet_post.post_number : 1
 
-        # Create in-app notification
-        begin
-          Notification.consolidate_or_create!(
-            notification_type: Notification.types[:vzekc_verlosung_won],
-            user_id: winner_user.id,
-            topic_id: topic.id,
-            post_number: post_number,
-            data: {
-              packet_title: packet_title,
-              message: "vzekc_verlosung.notifications.lottery_won",
-            }.to_json,
-          )
-        rescue => e
-          Rails.logger.error(
-            "Failed to create winner notification for user #{winner_user.id} (#{winner_user.username}) " \
-              "on topic #{topic.id}, packet '#{packet_title}': #{e.class}: #{e.message}",
-          )
-        end
+        # Process each winner for this packet
+        winner_usernames.each_with_index do |winner_username, instance_idx|
+          next unless winner_username.present?
 
-        # Collect packet info for PM
-        winners_packets[winner_user] << {
-          title: packet_title,
-          post_number: post_number,
-          post: packet_post,
-        }
+          winner_user = User.find_by(username: winner_username)
+          next unless winner_user
+
+          # Create in-app notification
+          begin
+            Notification.consolidate_or_create!(
+              notification_type: Notification.types[:vzekc_verlosung_won],
+              user_id: winner_user.id,
+              topic_id: topic.id,
+              post_number: post_number,
+              data: {
+                packet_title: packet_title,
+                instance_number: instance_idx + 1,
+                total_instances: winner_usernames.length,
+                message: "vzekc_verlosung.notifications.lottery_won",
+              }.to_json,
+            )
+          rescue => e
+            Rails.logger.error(
+              "Failed to create winner notification for user #{winner_user.id} (#{winner_user.username}) " \
+                "on topic #{topic.id}, packet '#{packet_title}': #{e.class}: #{e.message}",
+            )
+          end
+
+          # Collect packet info for PM
+          winners_packets[winner_user] << {
+            title: packet_title,
+            instance_number: instance_idx + 1,
+            total_instances: winner_usernames.length,
+            post_number: post_number,
+            post: packet_post,
+          }
+        end
       end
 
       # Send personal message to each winner with all their packets
@@ -660,8 +715,9 @@ module VzekcVerlosung
 
     # Notify participants who didn't win anything
     def notify_non_winners(topic, results)
-      # Get all winner usernames
-      winner_usernames = results["drawings"].map { |drawing| drawing["winner"] }.compact
+      # Get all winner usernames from all drawings
+      winner_usernames =
+        results["drawings"].flat_map { |drawing| drawing["winners"] || [] }.compact
 
       # Get all participants
       participant_user_ids = get_lottery_participant_user_ids(topic)

@@ -493,6 +493,13 @@
         flex-shrink: 0;
       }
 
+      .packet-quantity {
+        font-weight: 600;
+        color: var(--tertiary);
+        margin-right: 0.25em;
+        flex-shrink: 0;
+      }
+
       .packet-title {
         font-weight: 500;
         color: var(--tertiary);
@@ -726,6 +733,152 @@
       }
     }
 
+    // Winners section for multi-instance display
+    .winners-section {
+      padding-top: 0.75em;
+      border-top: 1px solid var(--success);
+
+      > .participants-label {
+        font-weight: 500;
+        color: var(--primary);
+        margin-bottom: 0.5em;
+        display: block;
+      }
+
+      .winners-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+
+        .winner-entry {
+          display: flex;
+          align-items: center;
+          flex-wrap: wrap;
+          gap: 0.5em;
+          padding: 0.5em 0;
+
+          .winner-instance {
+            font-weight: 600;
+            color: var(--tertiary);
+            min-width: 2em;
+            flex-shrink: 0;
+          }
+
+          .winner-user-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5em;
+            flex-shrink: 0;
+            min-width: 10em; // Ensure consistent width for alignment
+
+            .avatar {
+              width: 24px;
+              height: 24px;
+            }
+
+            .winner-name {
+              font-weight: 600;
+              color: var(--success);
+            }
+
+            &:hover .winner-name {
+              text-decoration: underline;
+            }
+          }
+
+          // Status text (left-aligned after username)
+          .winner-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25em;
+            font-size: 0.85em;
+            margin-left: 0.5em;
+
+            .status-won,
+            .status-shipped,
+            .status-collected,
+            .status-finished {
+              display: inline-flex;
+              align-items: center;
+              gap: 0.25em;
+              padding: 0.2em 0.5em;
+              border-radius: 4px;
+              color: var(--primary-medium);
+              background: var(--primary-very-low);
+
+              .d-icon {
+                color: var(--primary-medium);
+              }
+            }
+
+            .status-finished {
+              color: var(--success);
+              background: var(--success-low);
+
+              .d-icon {
+                color: var(--success);
+              }
+            }
+          }
+
+          // Action button (right-aligned)
+          .winner-action {
+            margin-left: auto;
+            flex-shrink: 0;
+          }
+
+          .winner-bericht-link {
+            color: var(--tertiary);
+            font-size: 0.9em;
+            flex-shrink: 0;
+
+            &:hover {
+              color: var(--tertiary-hover);
+            }
+          }
+
+          .mark-shipped-inline-button,
+          .mark-handed-over-inline-button,
+          .mark-collected-inline-button,
+          .create-erhaltungsbericht-inline-button {
+            padding: 0.25em 0.5em;
+            font-size: 0.8em;
+            min-height: unset;
+
+            .d-icon {
+              margin-right: 0.25em;
+            }
+          }
+        }
+      }
+    }
+
+    // Shipping confirmation dialog body
+    .shipping-confirm-body {
+      .tracking-info-field {
+        margin-top: 1em;
+
+        label {
+          display: block;
+          margin-bottom: 0.25em;
+          font-weight: 600;
+        }
+
+        input {
+          width: 100%;
+          padding: 0.5em;
+          border: 1px solid var(--primary-low);
+          border-radius: 4px;
+          font-size: 1em;
+
+          &:focus {
+            outline: none;
+            border-color: var(--tertiary);
+          }
+        }
+      }
+    }
+
     .winner-message {
       display: flex;
       align-items: center;
@@ -897,6 +1050,34 @@
         font-weight: 600;
         margin-bottom: 0.5em;
         color: var(--primary);
+
+        .packet-quantity-badge {
+          margin-left: 0.5em;
+          color: var(--tertiary);
+          font-weight: 500;
+        }
+      }
+
+      .instance-selections {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75em;
+      }
+
+      .instance-selection {
+        display: flex;
+        align-items: center;
+        gap: 0.5em;
+
+        .instance-label {
+          min-width: 2em;
+          font-weight: 600;
+          color: var(--tertiary);
+        }
+
+        select {
+          flex: 1;
+        }
       }
 
       select {
@@ -931,6 +1112,14 @@
           font-size: 0.9em;
         }
       }
+    }
+  }
+
+  .packets-summary {
+    .packet-quantity {
+      color: var(--tertiary);
+      font-weight: 600;
+      margin-right: 0.25em;
     }
   }
 }
@@ -1450,6 +1639,32 @@
             }
           }
         }
+
+        .packet-quantity-input {
+          display: flex;
+          align-items: center;
+          gap: 0.75em;
+          margin-bottom: 1em;
+
+          label {
+            font-weight: 500;
+            color: var(--primary);
+            white-space: nowrap;
+          }
+
+          input[type="number"] {
+            width: 80px;
+            padding: 0.5em;
+            border: 1px solid var(--primary-low-mid);
+            border-radius: 3px;
+            font-size: 1em;
+
+            &:focus {
+              outline: none;
+              border-color: var(--tertiary);
+            }
+          }
+        }
       }
     }
   }
@@ -1943,18 +2158,38 @@
   .lottery-card__packets-table {
     width: 100%;
     border-collapse: collapse;
+    table-layout: fixed;
 
     th,
     td {
       padding: 0.5em;
-      text-align: left;
       border-bottom: 1px solid var(--primary-low);
+      vertical-align: top;
     }
 
     th {
       font-weight: 500;
       color: var(--primary-high);
       font-size: 0.85em;
+    }
+
+    // Column widths and alignment for finished lotteries
+    th:first-child,
+    td:first-child {
+      text-align: left;
+      width: auto; // Takes remaining space
+    }
+
+    th:nth-child(2),
+    td:nth-child(2) {
+      text-align: left;
+      width: 13em; // Fixed width for winner column
+    }
+
+    th:nth-child(3),
+    td:nth-child(3) {
+      text-align: left;
+      width: 20em; // Fixed width for status column (fits "Erhaltungsbericht geschrieben")
     }
 
     tbody tr:last-child td {
@@ -1979,6 +2214,8 @@
 
     .packet-title {
       font-weight: 500;
+      overflow: hidden;
+      text-overflow: ellipsis;
 
       a {
         color: var(--primary);
@@ -2008,12 +2245,64 @@
       .no-winner {
         color: var(--primary-medium);
       }
+
+      .winner-row {
+        display: flex;
+        align-items: center;
+        padding: 0.15em 0;
+
+        &:not(:last-child) {
+          border-bottom: 1px solid var(--primary-very-low);
+        }
+      }
     }
 
-    .packet-collected,
-    .packet-bericht {
-      text-align: center;
-      width: 5em;
+    .packet-status {
+      .status-row {
+        display: flex;
+        align-items: center;
+        gap: 0.3em;
+        padding: 0.15em 0;
+        white-space: nowrap;
+
+        &:not(:last-child) {
+          border-bottom: 1px solid var(--primary-very-low);
+        }
+      }
+
+      .status-finished {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3em;
+        color: var(--success);
+        text-decoration: none;
+
+        &:hover {
+          text-decoration: underline;
+        }
+      }
+
+      .status-collected {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3em;
+        color: var(--primary-medium);
+      }
+
+      .status-won {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3em;
+        color: var(--primary-medium);
+      }
+    }
+
+    // For active lotteries (only 2 columns: packet + participants)
+    &:has(th:nth-child(2):last-child) {
+      th:nth-child(2),
+      td:nth-child(2) {
+        width: auto;
+      }
     }
 
     .status-yes {
@@ -2690,6 +2979,32 @@
     p {
       margin: 0;
       font-size: 1.1em;
+    }
+  }
+}
+
+// Mark Shipped Modal
+.mark-shipped-modal {
+  .tracking-info-field {
+    margin-top: 1em;
+
+    label {
+      display: block;
+      margin-bottom: 0.25em;
+      font-weight: 600;
+    }
+
+    .tracking-info-input {
+      width: 100%;
+      padding: 0.5em;
+      border: 1px solid var(--primary-low);
+      border-radius: 4px;
+      font-size: 1em;
+
+      &:focus {
+        outline: none;
+        border-color: var(--tertiary);
+      }
     }
   }
 }

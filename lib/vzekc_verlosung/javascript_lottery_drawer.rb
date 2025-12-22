@@ -103,7 +103,7 @@ module VzekcVerlosung
             const drawings = [];
 
             for (const drawing of this.drawings) {
-              drawings.push(this._drawWinner(drawing.text, drawing.names));
+              drawings.push(this._drawWinners(drawing.text, drawing.names, drawing.quantity || 1));
             }
 
             return {
