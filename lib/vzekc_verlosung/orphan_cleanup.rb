@@ -37,6 +37,8 @@ module VzekcVerlosung
         vzekc_verlosung_lottery_packets
         vzekc_verlosung_lottery_tickets
       ].all? { |table| ActiveRecord::Base.connection.table_exists?(table) }
+    rescue ActiveRecord::NoDatabaseError, PG::ConnectionBad
+      false
     end
 
     # Delete lottery tickets where the post no longer exists
