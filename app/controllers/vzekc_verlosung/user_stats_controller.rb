@@ -120,7 +120,7 @@ module VzekcVerlosung
         next if user_ticket_count.zero?
 
         # Only count each packet once for expected wins calculation
-        unless packets_participated_ids.include?(post_id)
+        if packets_participated_ids.exclude?(post_id)
           packets_participated_ids.add(post_id)
           total_tickets = ticket_counts_by_post[post_id] || 0
           next if total_tickets.zero?

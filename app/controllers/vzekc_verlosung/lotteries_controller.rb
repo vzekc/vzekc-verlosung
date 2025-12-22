@@ -336,7 +336,7 @@ module VzekcVerlosung
         winners = drawing["winners"] || []
 
         winners.each_with_index do |winner_username, instance_idx|
-          next unless winner_username.present?
+          next if winner_username.blank?
           winner_user = User.find_by(username: winner_username)
           packet.mark_winner!(winner_user, drawn_at, instance_number: instance_idx + 1) if winner_user
         end
@@ -663,7 +663,7 @@ module VzekcVerlosung
 
         # Process each winner for this packet
         winner_usernames.each_with_index do |winner_username, instance_idx|
-          next unless winner_username.present?
+          next if winner_username.blank?
 
           winner_user = User.find_by(username: winner_username)
           next unless winner_user
