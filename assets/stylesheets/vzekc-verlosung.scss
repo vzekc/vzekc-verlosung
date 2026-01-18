@@ -853,6 +853,23 @@
       }
     }
 
+    // Notification toggle row at bottom right
+    .notification-toggle-row {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 0.75em;
+      padding-top: 0.75em;
+      border-top: 1px solid var(--success);
+
+      .notification-toggle-button {
+        color: var(--primary-medium);
+
+        &:hover {
+          color: var(--primary);
+        }
+      }
+    }
+
     // Shipping confirmation dialog body
     .shipping-confirm-body {
       .tracking-info-field {

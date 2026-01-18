@@ -415,6 +415,42 @@ module VzekcVerlosung
       end
     end
 
+    # PUT /vzekc_verlosung/packets/:post_id/toggle-notifications
+    #
+    # Toggles the notifications_silenced flag for a lottery packet
+    # Only available after the lottery has been drawn and only for the lottery owner
+    #
+    # @param post_id [Integer] Post ID of the packet
+    #
+    # @return [JSON] Updated notifications_silenced status
+    def toggle_notifications
+      post = Post.find_by(id: params[:post_id])
+      return render_json_error("Post not found", status: :not_found) unless post
+
+      packet = LotteryPacket.find_by(post_id: post.id)
+      return render_json_error("Not a lottery packet", status: :bad_request) unless packet
+
+      topic = post.topic
+      return render_json_error("Topic not found", status: :not_found) unless topic
+
+      lottery = Lottery.find_by(topic_id: topic.id)
+      if lottery&.drawn_at.blank?
+        return render_json_error("Lottery has not been drawn yet", status: :bad_request)
+      end
+
+      unless topic.user_id == current_user.id
+        return(
+          render_json_error(
+            "Only the lottery owner can toggle packet notifications",
+            status: :forbidden,
+          )
+        )
+      end
+
+      packet.update!(notifications_silenced: !packet.notifications_silenced)
+      render json: success_json.merge(notifications_silenced: packet.notifications_silenced)
+    end
+
     private
 
     def ticket_packet_status_response(post_or_id, user = nil)

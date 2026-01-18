@@ -27,6 +27,7 @@ module Jobs
               .joins(lottery_packet: :post)
               .includes(:winner, lottery_packet: :post)
               .where(vzekc_verlosung_lottery_packets: { lottery_id: lottery.id })
+              .where.not(vzekc_verlosung_lottery_packets: { notifications_silenced: true })
               .filter_map do |entry|
                 # Skip non-member winners
                 next unless VzekcVerlosung::MemberChecker.active_member?(entry.winner)

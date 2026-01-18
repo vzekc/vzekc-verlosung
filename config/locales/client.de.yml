@@ -92,6 +92,8 @@ de:
         lottery_published: "%{topic_title}"
         lottery_drawn: "%{topic_title}"
         lottery_won: "%{packet_title}"
+        mute_packet: "Erinnerungen stumm schalten"
+        unmute_packet: "Erinnerungen aktivieren"
       modal:
         title: "Neue Verlosung erstellen"
         title_label: "Verlosungs-Titel"

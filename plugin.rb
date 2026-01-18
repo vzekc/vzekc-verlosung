@@ -519,6 +519,7 @@ after_initialize do
       quantity: packet.quantity,
       users: users,
       winners: winners,
+      notifications_silenced: packet.notifications_silenced,
     }
   end
 

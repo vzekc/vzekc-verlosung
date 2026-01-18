@@ -38,6 +38,7 @@ export default class LotteryWidget extends Component {
   @tracked loading = true;
   @tracked markingCollected = null; // Track which instance is being marked as collected
   @tracked markingShipped = null; // Track which instance is being marked as shipped
+  @tracked notificationsSilenced = false;
 
   constructor() {
     super(...arguments);
@@ -121,6 +122,7 @@ export default class LotteryWidget extends Component {
         this.winnersData =
           status.winners ||
           (status.winner ? [{ instance_number: 1, ...status.winner }] : []);
+        this.notificationsSilenced = status.notifications_silenced || false;
       }
     } finally {
       this.loading = false;
@@ -142,6 +144,7 @@ export default class LotteryWidget extends Component {
       this.winnersData =
         result.winners ||
         (result.winner ? [{ instance_number: 1, ...result.winner }] : []);
+      this.notificationsSilenced = result.notifications_silenced || false;
     } catch (error) {
       popupAjaxError(error);
     } finally {
@@ -407,6 +410,16 @@ export default class LotteryWidget extends Component {
   get isLotteryOwner() {
     const topic = this.post?.topic;
     return this.currentUser && topic && topic.user_id === this.currentUser.id;
+  }
+
+  /**
+   * Check if notification toggle should be shown
+   * Only show to lottery owner after lottery is drawn
+   *
+   * @type {boolean}
+   */
+  get showNotificationToggle() {
+    return this.isLotteryOwner && this.isDrawn;
   }
 
   /**
@@ -806,6 +819,26 @@ export default class LotteryWidget extends Component {
   }
 
   /**
+   * Toggle notifications silenced for this packet
+   * Only lottery owner can toggle, and only after lottery is drawn
+   */
+  @action
+  async toggleNotifications() {
+    if (!this.isLotteryOwner || !this.isDrawn || this.loading) {
+      return;
+    }
+    try {
+      const result = await ajax(
+        `/vzekc-verlosung/packets/${this.post.id}/toggle-notifications`,
+        { type: "PUT" }
+      );
+      this.notificationsSilenced = result.notifications_silenced;
+    } catch (error) {
+      popupAjaxError(error);
+    }
+  }
+
+  /**
    * Create Erhaltungsbericht topic for this packet
    * Opens the composer with pre-filled content and packet references
    * The packet_post_id, packet_topic_id, and winner_instance_number will be stored
@@ -1054,6 +1087,26 @@ export default class LotteryWidget extends Component {
                     {{/each}}
                   </ul>
                 </div>
+
+                {{! Notification toggle for lottery owner }}
+                {{#if this.showNotificationToggle}}
+                  <div class="notification-toggle-row">
+                    <DButton
+                      @action={{this.toggleNotifications}}
+                      @icon={{if
+                        this.notificationsSilenced
+                        "bell-slash"
+                        "bell"
+                      }}
+                      @title={{if
+                        this.notificationsSilenced
+                        (i18n "vzekc_verlosung.notifications.unmute_packet")
+                        (i18n "vzekc_verlosung.notifications.mute_packet")
+                      }}
+                      class="btn-flat notification-toggle-button"
+                    />
+                  </div>
+                {{/if}}
               {{/if}}
             </div>
           {{else}}

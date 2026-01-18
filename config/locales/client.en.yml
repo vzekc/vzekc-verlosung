@@ -77,6 +77,8 @@ en:
         lottery_published: "%{topic_title}"
         lottery_drawn: "%{topic_title}"
         lottery_won: "%{packet_title}"
+        mute_packet: "Mute reminders for this packet"
+        unmute_packet: "Unmute reminders for this packet"
       modal:
         title: "Create New Lottery"
         title_label: "Lottery Title"
