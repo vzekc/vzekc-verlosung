@@ -21,6 +21,9 @@ module Jobs
           user = topic.user
           next unless user
 
+          # Skip if lottery creator is no longer an active member
+          next unless VzekcVerlosung::MemberChecker.active_member?(user)
+
           # Send reminder PM
           PostCreator.create!(
             Discourse.system_user,

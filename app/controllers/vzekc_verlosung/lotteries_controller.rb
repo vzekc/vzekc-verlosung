@@ -618,6 +618,7 @@ module VzekcVerlosung
       participant_user_ids.each do |user_id|
         user = User.find_by(id: user_id)
         next unless user
+        next unless VzekcVerlosung::MemberChecker.active_member?(user)
 
         begin
           Notification.consolidate_or_create!(
@@ -667,6 +668,7 @@ module VzekcVerlosung
 
           winner_user = User.find_by(username: winner_username)
           next unless winner_user
+          next unless VzekcVerlosung::MemberChecker.active_member?(winner_user)
 
           # Create in-app notification
           begin
@@ -726,6 +728,7 @@ module VzekcVerlosung
       participant_user_ids.each do |user_id|
         user = User.find_by(id: user_id)
         next unless user
+        next unless VzekcVerlosung::MemberChecker.active_member?(user)
         next if winner_usernames.include?(user.username)
 
         begin

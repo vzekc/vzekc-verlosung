@@ -30,6 +30,9 @@ module Jobs
           user = assigned_offer.user
           next unless user
 
+          # Skip if picker is no longer an active member
+          next unless VzekcVerlosung::MemberChecker.active_member?(user)
+
           # Check if user has already completed required action
           next if donation.pickup_action_completed?
 

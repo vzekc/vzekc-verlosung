@@ -86,3 +86,7 @@ vzekc_verlosung:
     type: string
     textarea: true
     client: true
+  vzekc_verlosung_members_group_name:
+    default: 'vereinsmitglieder'
+    type: string
+    client: false

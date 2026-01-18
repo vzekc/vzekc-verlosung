@@ -38,6 +38,7 @@ end
 
 require_relative "lib/vzekc_verlosung/engine"
 require_relative "lib/vzekc_verlosung/guardian_extensions"
+require_relative "lib/vzekc_verlosung/member_checker"
 require_relative "lib/vzekc_verlosung/orphan_cleanup"
 
 after_initialize do

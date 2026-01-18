@@ -30,6 +30,9 @@ module Jobs
           winner = winner_entry.winner
           next unless winner
 
+          # Skip if winner is no longer an active member
+          next unless VzekcVerlosung::MemberChecker.active_member?(winner)
+
           packet = winner_entry.lottery_packet
           lottery = packet.lottery
 

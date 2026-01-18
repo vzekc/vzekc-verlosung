@@ -25,6 +25,9 @@ module Jobs
           user = donation.creator
           next unless user
 
+          # Skip if facilitator is no longer an active member
+          next unless VzekcVerlosung::MemberChecker.active_member?(user)
+
           # Update last_reminded_at timestamp
           donation.update_column(:last_reminded_at, Time.zone.now)
 

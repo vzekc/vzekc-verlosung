@@ -166,6 +166,9 @@ module VzekcVerlosung
       picker = pickup_offer.user
       return unless picker
 
+      # Skip notification if picker is no longer an active member
+      return unless VzekcVerlosung::MemberChecker.active_member?(picker)
+
       # Send PM to picker with donor's contact information (from facilitator, not system)
       PostCreator.create!(
         facilitator,
@@ -206,6 +209,9 @@ module VzekcVerlosung
 
       picker = assigned_offer.user
       return unless picker
+
+      # Skip notification if picker is no longer an active member
+      return unless VzekcVerlosung::MemberChecker.active_member?(picker)
 
       # Send PM to picker
       PostCreator.create!(

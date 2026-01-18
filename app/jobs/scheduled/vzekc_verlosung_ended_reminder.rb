@@ -21,6 +21,9 @@ module Jobs
           user = topic.user
           next unless user
 
+          # Skip if lottery creator is no longer an active member
+          next unless VzekcVerlosung::MemberChecker.active_member?(user)
+
           # If no drawable tickets exist, auto-finish the lottery
           unless lottery.has_drawable_tickets?
             lottery.finish_without_participants!

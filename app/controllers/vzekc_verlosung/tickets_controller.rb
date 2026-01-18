@@ -481,6 +481,9 @@ module VzekcVerlosung
 
     # Send PM to winner when packet is marked as shipped
     def send_shipped_notification_pm(winner:, sender:, packet:, lottery_topic:, tracking_info:)
+      # Skip notification if winner is no longer an active member
+      return unless VzekcVerlosung::MemberChecker.active_member?(winner)
+
       packet_title = packet.title || "Paket ##{packet.ordinal}"
 
       message_title =
@@ -531,6 +534,7 @@ module VzekcVerlosung
     # Notify the lottery creator that a ticket was drawn
     def notify_ticket_bought(topic, post, buyer)
       return if topic.user_id == buyer.id # Don't notify if creator drew their own ticket
+      return unless VzekcVerlosung::MemberChecker.active_member?(buyer) # Skip non-members
 
       packet_title =
         VzekcVerlosung::TitleExtractor.extract_title(post.raw) || "Packet ##{post.post_number}"
@@ -547,6 +551,7 @@ module VzekcVerlosung
     # Notify the lottery creator that a ticket was returned
     def notify_ticket_returned(topic, post, returner)
       return if topic.user_id == returner.id # Don't notify if creator returned their own ticket
+      return unless VzekcVerlosung::MemberChecker.active_member?(returner) # Skip non-members
 
       packet_title =
         VzekcVerlosung::TitleExtractor.extract_title(post.raw) || "Packet ##{post.post_number}"
