@@ -84,6 +84,9 @@ export default class NewLotteryPage extends Component {
   _bodyUppyFiles = new Map();
   _packetUppyFiles = {};
 
+  // Flag to prevent draft save after successful publish
+  _publishedSuccessfully = false;
+
   constructor() {
     super(...arguments);
     // Initialize packets based on mode
@@ -120,9 +123,12 @@ export default class NewLotteryPage extends Component {
   willDestroy() {
     super.willDestroy(...arguments);
     // Cancel debounce timer and save draft immediately if there are pending changes
+    // Skip saving if lottery was successfully published (draft already cleared)
     if (this._saveDraftDebounce) {
       cancel(this._saveDraftDebounce);
-      this._performDraftSave();
+      if (!this._publishedSuccessfully) {
+        this._performDraftSave();
+      }
     }
   }
 
@@ -978,6 +984,9 @@ export default class NewLotteryPage extends Component {
         contentType: "application/json",
         data: JSON.stringify(requestData),
       });
+
+      // Mark as published to prevent willDestroy from re-saving draft
+      this._publishedSuccessfully = true;
 
       // Always clear the draft after successful publish
       // Fetch the current draft to get the correct sequence number
