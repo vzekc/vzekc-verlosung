@@ -166,30 +166,13 @@ module VzekcVerlosung
       picker = pickup_offer.user
       return unless picker
 
-      # Skip notification if picker is no longer an active member
-      return unless VzekcVerlosung::MemberChecker.active_member?(picker)
-
-      # Send PM to picker with donor's contact information (from facilitator, not system)
-      PostCreator.create!(
-        facilitator,
-        title:
-          I18n.t(
-            "vzekc_verlosung.notifications.donation_assigned.title",
-            locale: picker.effective_locale,
-            topic_title: topic.title,
-          ),
-        raw:
-          I18n.t(
-            "vzekc_verlosung.notifications.donation_assigned.body",
-            locale: picker.effective_locale,
-            username: picker.username,
-            topic_title: topic.title,
-            topic_url: "#{Discourse.base_url}#{topic.relative_url}",
-            contact_info: contact_info,
-          ),
-        archetype: Archetype.private_message,
-        target_usernames: picker.username,
-        skip_validations: true,
+      NotificationService.notify(
+        :donation_assigned,
+        recipient: picker,
+        context: {
+          donation: self,
+          contact_info: contact_info,
+        },
       )
     end
 
@@ -210,30 +193,12 @@ module VzekcVerlosung
       picker = assigned_offer.user
       return unless picker
 
-      # Skip notification if picker is no longer an active member
-      return unless VzekcVerlosung::MemberChecker.active_member?(picker)
-
-      # Send PM to picker
-      PostCreator.create!(
-        Discourse.system_user,
-        title:
-          I18n.t(
-            "vzekc_verlosung.reminders.donation_picked_up.title",
-            locale: picker.effective_locale,
-            topic_title: topic.title,
-          ),
-        raw:
-          I18n.t(
-            "vzekc_verlosung.reminders.donation_picked_up.body",
-            locale: picker.effective_locale,
-            username: picker.username,
-            topic_title: topic.title,
-            topic_url: "#{Discourse.base_url}#{topic.relative_url}",
-          ),
-        archetype: Archetype.private_message,
-        subtype: TopicSubtype.system_message,
-        target_usernames: picker.username,
-        skip_validations: true,
+      NotificationService.notify(
+        :donation_picked_up,
+        recipient: picker,
+        context: {
+          donation: self,
+        },
       )
     end
   end

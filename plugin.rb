@@ -36,6 +36,9 @@ module ::VzekcVerlosung
   PLUGIN_NAME = "vzekc-verlosung"
 end
 
+add_admin_route "vzekc_verlosung.admin.notification_logs.nav_title", "vzekc-verlosung",
+                use_new_show_route: true
+
 require_relative "lib/vzekc_verlosung/engine"
 require_relative "lib/vzekc_verlosung/guardian_extensions"
 require_relative "lib/vzekc_verlosung/member_checker"
@@ -57,16 +60,18 @@ after_initialize do
   end
 
   # Add custom notification types to the Notification.types enum
-  # Since Enum extends Hash, we can add new types directly
-  Notification.types[:vzekc_verlosung_published] = 810
-  Notification.types[:vzekc_verlosung_drawn] = 811
-  Notification.types[:vzekc_verlosung_won] = 812
-  Notification.types[:vzekc_verlosung_ticket_bought] = 813
-  Notification.types[:vzekc_verlosung_ticket_returned] = 814
-  Notification.types[:vzekc_verlosung_did_not_win] = 815
-  Notification.types[:vzekc_verlosung_ending_tomorrow] = 816
-  Notification.types[:vzekc_verlosung_uncollected_reminder] = 817
-  Notification.types[:vzekc_verlosung_erhaltungsbericht_reminder] = 818
+  # Using reloadable_patch ensures types are re-registered after code reloads in development
+  reloadable_patch do
+    Notification.types[:vzekc_verlosung_published] = 810
+    Notification.types[:vzekc_verlosung_drawn] = 811
+    Notification.types[:vzekc_verlosung_won] = 812
+    Notification.types[:vzekc_verlosung_ticket_bought] = 813
+    Notification.types[:vzekc_verlosung_ticket_returned] = 814
+    Notification.types[:vzekc_verlosung_did_not_win] = 815
+    Notification.types[:vzekc_verlosung_ending_tomorrow] = 816
+    Notification.types[:vzekc_verlosung_uncollected_reminder] = 817
+    Notification.types[:vzekc_verlosung_erhaltungsbericht_reminder] = 818
+  end
 
   # Extend Guardian with custom permissions and override can_create_post
   Guardian.prepend VzekcVerlosung::GuardianExtensions

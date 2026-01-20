@@ -227,7 +227,12 @@ module VzekcVerlosung
                 { id: user.id, name: user.username, tickets: user_tickets.count }
               end
 
-          { id: packet.post_id, title: packet.title, participants: participants, quantity: packet.quantity }
+          {
+            id: packet.post_id,
+            title: packet.title,
+            participants: participants,
+            quantity: packet.quantity,
+          }
         end
 
       # The timestamp should be when the lottery was published (went active)
@@ -338,7 +343,9 @@ module VzekcVerlosung
         winners.each_with_index do |winner_username, instance_idx|
           next if winner_username.blank?
           winner_user = User.find_by(username: winner_username)
-          packet.mark_winner!(winner_user, drawn_at, instance_number: instance_idx + 1) if winner_user
+          if winner_user
+            packet.mark_winner!(winner_user, drawn_at, instance_number: instance_idx + 1)
+          end
         end
       end
 
@@ -572,7 +579,12 @@ module VzekcVerlosung
               .group_by(&:user)
               .map { |user, user_tickets| { name: user.username, tickets: user_tickets.count } }
 
-          { id: packet.post_id, title: packet.title, participants: participants, quantity: packet.quantity }
+          {
+            id: packet.post_id,
+            title: packet.title,
+            participants: participants,
+            quantity: packet.quantity,
+          }
         end
 
       # Calculate published_at from ends_at and duration
@@ -614,30 +626,15 @@ module VzekcVerlosung
     # Notify all users with tickets that winners have been drawn
     def notify_lottery_drawn(topic)
       participant_user_ids = get_lottery_participant_user_ids(topic)
+      recipients = User.where(id: participant_user_ids)
 
-      participant_user_ids.each do |user_id|
-        user = User.find_by(id: user_id)
-        next unless user
-        next unless VzekcVerlosung::MemberChecker.active_member?(user)
-
-        begin
-          Notification.consolidate_or_create!(
-            notification_type: Notification.types[:vzekc_verlosung_drawn],
-            user_id: user.id,
-            topic_id: topic.id,
-            post_number: 1,
-            data: {
-              topic_title: topic.title,
-              message: "vzekc_verlosung.notifications.lottery_drawn",
-            }.to_json,
-          )
-        rescue => e
-          Rails.logger.error(
-            "Failed to create lottery_drawn notification for user #{user_id} (#{user.username}) " \
-              "on topic #{topic.id}: #{e.class}: #{e.message}",
-          )
-        end
-      end
+      NotificationService.notify_batch(
+        :lottery_drawn,
+        recipients: recipients,
+        context: {
+          topic: topic,
+        },
+      )
     end
 
     # Notify winners that they won a packet
@@ -668,28 +665,18 @@ module VzekcVerlosung
 
           winner_user = User.find_by(username: winner_username)
           next unless winner_user
-          next unless VzekcVerlosung::MemberChecker.active_member?(winner_user)
 
-          # Create in-app notification
-          begin
-            Notification.consolidate_or_create!(
-              notification_type: Notification.types[:vzekc_verlosung_won],
-              user_id: winner_user.id,
-              topic_id: topic.id,
-              post_number: post_number,
-              data: {
-                packet_title: packet_title,
-                instance_number: instance_idx + 1,
-                total_instances: winner_usernames.length,
-                message: "vzekc_verlosung.notifications.lottery_won",
-              }.to_json,
-            )
-          rescue => e
-            Rails.logger.error(
-              "Failed to create winner notification for user #{winner_user.id} (#{winner_user.username}) " \
-                "on topic #{topic.id}, packet '#{packet_title}': #{e.class}: #{e.message}",
-            )
-          end
+          # Create in-app notification via NotificationService
+          NotificationService.notify(
+            :lottery_won,
+            recipient: winner_user,
+            context: {
+              topic: topic,
+              packet: lottery_packet,
+              instance_number: instance_idx + 1,
+              total_instances: winner_usernames.length,
+            },
+          )
 
           # Collect packet info for PM
           winners_packets[winner_user] << {
@@ -704,51 +691,36 @@ module VzekcVerlosung
 
       # Send personal message to each winner with all their packets
       winners_packets.each do |winner_user, packets|
-        begin
-          send_winner_personal_message(topic, winner_user, packets)
-        rescue => e
-          Rails.logger.error(
-            "Failed to send winner PM for topic #{topic.id} to user #{winner_user.username}: " \
-              "#{e.class}: #{e.message}",
-          )
-        end
+        NotificationService.notify(
+          :winner_pm,
+          recipient: winner_user,
+          context: {
+            topic: topic,
+            packets: packets,
+          },
+        )
       end
     end
 
     # Notify participants who didn't win anything
     def notify_non_winners(topic, results)
       # Get all winner usernames from all drawings
-      winner_usernames =
-        results["drawings"].flat_map { |drawing| drawing["winners"] || [] }.compact
+      winner_usernames = results["drawings"].flat_map { |drawing| drawing["winners"] || [] }.compact
 
       # Get all participants
       participant_user_ids = get_lottery_participant_user_ids(topic)
 
-      # Notify participants who are not winners
-      participant_user_ids.each do |user_id|
-        user = User.find_by(id: user_id)
-        next unless user
-        next unless VzekcVerlosung::MemberChecker.active_member?(user)
-        next if winner_usernames.include?(user.username)
+      # Get non-winner users
+      non_winners =
+        User.where(id: participant_user_ids).reject { |u| winner_usernames.include?(u.username) }
 
-        begin
-          Notification.consolidate_or_create!(
-            notification_type: Notification.types[:vzekc_verlosung_did_not_win],
-            user_id: user.id,
-            topic_id: topic.id,
-            post_number: 1,
-            data: {
-              topic_title: topic.title,
-              message: "vzekc_verlosung.notifications.did_not_win",
-            }.to_json,
-          )
-        rescue => e
-          Rails.logger.error(
-            "Failed to create non-winner notification for user #{user_id} (#{user.username}) " \
-              "on topic #{topic.id}: #{e.class}: #{e.message}",
-          )
-        end
-      end
+      NotificationService.notify_batch(
+        :did_not_win,
+        recipients: non_winners,
+        context: {
+          topic: topic,
+        },
+      )
     end
 
     # Get all unique user IDs who have tickets in this lottery
@@ -758,70 +730,6 @@ module VzekcVerlosung
         .where(posts: { topic_id: topic.id })
         .distinct
         .pluck(:user_id)
-    end
-
-    # Send a personal message to a winner with details about their prize(s)
-    def send_winner_personal_message(topic, winner_user, packets)
-      lottery_creator = topic.user
-
-      # Get the main post content (excluding images)
-      main_post = topic.posts.first
-      main_post_content = strip_images_from_markdown(main_post.raw)
-
-      # Build packet list with links
-      packet_list =
-        packets
-          .map do |packet|
-            packet_url = "#{Discourse.base_url}#{topic.relative_url}/#{packet[:post_number]}"
-            "- [#{packet[:title]}](#{packet_url})"
-          end
-          .join("\n")
-
-      # Build the message in the winner's locale
-      message_title =
-        I18n.with_locale(winner_user.effective_locale) do
-          I18n.t("vzekc_verlosung.winner_message.title", topic_title: topic.title)
-        end
-
-      message_body =
-        I18n.with_locale(winner_user.effective_locale) do
-          I18n.t(
-            "vzekc_verlosung.winner_message.body",
-            username: winner_user.username,
-            topic_title: topic.title,
-            topic_url: "#{Discourse.base_url}#{topic.relative_url}",
-            packet_list: packet_list,
-            main_post_content: main_post_content,
-          )
-        end
-
-      # Create the personal message
-      PostCreator.create!(
-        lottery_creator,
-        title: message_title,
-        raw: message_body,
-        archetype: Archetype.private_message,
-        target_usernames: winner_user.username,
-        skip_validations: true,
-      )
-    rescue => e
-      Rails.logger.error(
-        "Failed to send winner PM for topic #{topic.id} to user #{winner_user.username}: #{e.message}",
-      )
-    end
-
-    # Strip image markdown and HTML from content
-    def strip_images_from_markdown(content)
-      # Remove markdown images: ![alt](url)
-      content = content.gsub(/!\[.*?\]\(.*?\)/, "")
-
-      # Remove HTML img tags
-      content = content.gsub(/<img[^>]*>/, "")
-
-      # Remove standalone image URLs that might be on their own line
-      content = content.gsub(%r{^\s*https?://\S+\.(jpg|jpeg|png|gif|webp)\s*$}i, "")
-
-      content.strip
     end
   end
 end

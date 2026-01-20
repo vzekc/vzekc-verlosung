@@ -353,6 +353,51 @@ en:
         contact_info_help: "This information will be sent as a private message to the assigned person so they can contact the donor to arrange pickup."
         assign: "Assign and Send Message"
         assigning: "Sending..."
+      admin:
+        notification_logs:
+          nav_title: "Notification Logs"
+          title: "Notification Logs"
+          results_count:
+            one: "%{count} notification"
+            other: "%{count} notifications"
+          no_results: "No notifications found"
+          filters:
+            username: "Username"
+            username_placeholder: "Filter by username..."
+            type: "Type"
+            method: "Method"
+            status: "Status"
+            all: "All"
+            success: "Success"
+            failed: "Failed"
+            clear: "Clear"
+          table:
+            date: "Date"
+            type: "Type"
+            method: "Method"
+            recipient: "Recipient"
+            context: "Context"
+            status: "Status"
+          pagination:
+            page: "Page %{current} of %{total}"
+          types:
+            ticket_bought: "Ticket drawn"
+            ticket_returned: "Ticket returned"
+            lottery_drawn: "Winners drawn"
+            lottery_won: "Won lottery"
+            did_not_win: "Did not win"
+            winner_pm: "Winner message"
+            packet_shipped: "Packet shipped"
+            donation_assigned: "Donation assigned"
+            donation_picked_up: "Donation picked up"
+            draft_reminder: "Draft reminder"
+            donation_reminder: "Donation reminder"
+            ending_tomorrow_reminder: "Ending tomorrow"
+            ended_reminder: "Lottery ended"
+            no_participants_reminder: "No participants"
+            donation_picked_up_reminder: "Pickup reminder"
+            erhaltungsbericht_reminder: "Report reminder"
+            uncollected_reminder: "Uncollected reminder"
       user_stats:
         nav_title: "Lotteries"
         tabs:
@@ -360,6 +405,18 @@ en:
           pickups: "Pickups"
           created: "Lotteries created"
           won: "Packets won"
+          notifications: "Notifications"
+        notifications:
+          table:
+            date: "Date"
+            type: "Type"
+            method: "Method"
+            recipient: "Recipient"
+            context: "Context"
+            status: "Status"
+          pagination:
+            page: "Page %{current} of %{total}"
+          no_notifications: "No notifications"
         tickets_drawn:
           one: "%{count} Ticket drawn"
           other: "%{count} Tickets drawn"

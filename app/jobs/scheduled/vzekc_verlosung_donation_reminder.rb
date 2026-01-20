@@ -25,29 +25,15 @@ module Jobs
           user = donation.creator
           next unless user
 
-          # Skip if facilitator is no longer an active member
-          next unless VzekcVerlosung::MemberChecker.active_member?(user)
-
           # Update last_reminded_at timestamp
           donation.update_column(:last_reminded_at, Time.zone.now)
 
-          # Send reminder PM
-          PostCreator.create!(
-            Discourse.system_user,
-            title:
-              I18n.t("vzekc_verlosung.reminders.donation.title", locale: user.effective_locale),
-            raw:
-              I18n.t(
-                "vzekc_verlosung.reminders.donation.body",
-                locale: user.effective_locale,
-                username: user.username,
-                topic_title: topic.title,
-                topic_url: "#{Discourse.base_url}#{topic.relative_url}",
-              ),
-            archetype: Archetype.private_message,
-            subtype: TopicSubtype.system_message,
-            target_usernames: user.username,
-            skip_validations: true,
+          VzekcVerlosung::NotificationService.notify(
+            :donation_reminder,
+            recipient: user,
+            context: {
+              donation: donation,
+            },
           )
         end
     end

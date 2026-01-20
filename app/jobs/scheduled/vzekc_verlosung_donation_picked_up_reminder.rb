@@ -30,36 +30,18 @@ module Jobs
           user = assigned_offer.user
           next unless user
 
-          # Skip if picker is no longer an active member
-          next unless VzekcVerlosung::MemberChecker.active_member?(user)
-
           # Check if user has already completed required action
           next if donation.pickup_action_completed?
 
           # Update last_reminded_at timestamp
           donation.update_column(:last_reminded_at, Time.zone.now)
 
-          # Send reminder PM
-          PostCreator.create!(
-            Discourse.system_user,
-            title:
-              I18n.t(
-                "vzekc_verlosung.reminders.donation_picked_up.title",
-                locale: user.effective_locale,
-                topic_title: topic.title,
-              ),
-            raw:
-              I18n.t(
-                "vzekc_verlosung.reminders.donation_picked_up.body",
-                locale: user.effective_locale,
-                username: user.username,
-                topic_title: topic.title,
-                topic_url: "#{Discourse.base_url}#{topic.relative_url}",
-              ),
-            archetype: Archetype.private_message,
-            subtype: TopicSubtype.system_message,
-            target_usernames: user.username,
-            skip_validations: true,
+          VzekcVerlosung::NotificationService.notify(
+            :donation_picked_up_reminder,
+            recipient: user,
+            context: {
+              donation: donation,
+            },
           )
         end
     end

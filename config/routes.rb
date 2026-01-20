@@ -39,6 +39,10 @@ VzekcVerlosung::Engine.routes.draw do
   get "/donations/:donation_id/pickup-offers" => "pickup_offers#index"
   put "/pickup-offers/:id/assign" => "pickup_offers#assign"
   put "/pickup-offers/:id/mark-picked-up" => "pickup_offers#mark_picked_up"
+
+  # Notification logs routes
+  get "/admin/notification-logs" => "notification_logs#admin_index"
+  get "/users/:username/notification-logs" => "notification_logs#user_index"
 end
 
 Discourse::Application.routes.draw { mount ::VzekcVerlosung::Engine, at: "vzekc-verlosung" }

@@ -3,6 +3,8 @@ import { tracked } from "@glimmer/tracking";
 import { fn } from "@ember/helper";
 import { on } from "@ember/modifier";
 import { action } from "@ember/object";
+import { service } from "@ember/service";
+import avatar from "discourse/helpers/bound-avatar-template";
 import icon from "discourse/helpers/d-icon";
 import { ajax } from "discourse/lib/ajax";
 import { eq, gt } from "discourse/truth-helpers";
@@ -17,6 +19,8 @@ import I18n, { i18n } from "discourse-i18n";
  * @param {Function} onTabChange - Callback when tab changes
  */
 export default class UserVerlosungenStats extends Component {
+  @service currentUser;
+
   @tracked isLoading = true;
   @tracked stats = null;
   @tracked luck = null;
@@ -24,9 +28,21 @@ export default class UserVerlosungenStats extends Component {
   @tracked lotteriesCreated = [];
   @tracked pickups = [];
 
+  // Notification logs
+  @tracked notificationLogs = [];
+  @tracked notificationLogsLoading = false;
+  @tracked notificationLogsPage = 1;
+  @tracked notificationLogsTotalCount = 0;
+  @tracked notificationLogsLoaded = false;
+
   constructor() {
     super(...arguments);
     this.loadData();
+
+    // Load notifications if tab is already active on initial load
+    if (this.activeTab === "notifications") {
+      this.loadNotificationLogs();
+    }
   }
 
   /**
@@ -64,6 +80,91 @@ export default class UserVerlosungenStats extends Component {
   @action
   switchTab(tab) {
     this.args.onTabChange?.(tab);
+    // Load notification logs on first access
+    if (tab === "notifications" && !this.notificationLogsLoaded) {
+      this.loadNotificationLogs();
+    }
+  }
+
+  /**
+   * Check if current user can view notifications tab
+   * Users can only view their own notifications
+   *
+   * @returns {Boolean} True if user can view notifications
+   */
+  get canViewNotifications() {
+    return (
+      this.currentUser &&
+      (this.currentUser.id === this.args.user.id || this.currentUser.admin)
+    );
+  }
+
+  /**
+   * Load notification logs for the user
+   */
+  async loadNotificationLogs() {
+    if (!this.canViewNotifications) {
+      return;
+    }
+
+    this.notificationLogsLoading = true;
+    const username = this.args.user.username;
+
+    try {
+      const result = await ajax(
+        `/vzekc-verlosung/users/${username}/notification-logs.json?page=${this.notificationLogsPage}&per_page=50`
+      );
+      this.notificationLogs = result.notification_logs;
+      this.notificationLogsTotalCount = result.total_count;
+      this.notificationLogsLoaded = true;
+    } finally {
+      this.notificationLogsLoading = false;
+    }
+  }
+
+  /**
+   * Go to previous page of notifications
+   */
+  @action
+  prevNotificationPage() {
+    if (this.notificationLogsPage > 1) {
+      this.notificationLogsPage = this.notificationLogsPage - 1;
+      this.loadNotificationLogs();
+    }
+  }
+
+  /**
+   * Go to next page of notifications
+   */
+  @action
+  nextNotificationPage() {
+    const totalPages = Math.ceil(this.notificationLogsTotalCount / 50);
+    if (this.notificationLogsPage < totalPages) {
+      this.notificationLogsPage = this.notificationLogsPage + 1;
+      this.loadNotificationLogs();
+    }
+  }
+
+  /**
+   * Get total pages for notifications
+   *
+   * @returns {Number} Total pages
+   */
+  get notificationTotalPages() {
+    return Math.ceil(this.notificationLogsTotalCount / 50);
+  }
+
+  /**
+   * Translate notification type to localized string
+   *
+   * @param {String} type - Notification type code
+   * @returns {String} Translated string
+   */
+  @action
+  translateNotificationType(type) {
+    const key = `vzekc_verlosung.admin.notification_logs.types.${type}`;
+    const translated = I18n.t(key);
+    return translated === key ? type : translated;
   }
 
   /**
@@ -190,6 +291,17 @@ export default class UserVerlosungenStats extends Component {
             {{icon "trophy"}}
             {{i18n "vzekc_verlosung.user_stats.tabs.won"}}
           </button>
+          {{#if this.canViewNotifications}}
+            <button
+              type="button"
+              class="btn btn-flat
+                {{if (eq this.activeTab 'notifications') 'active'}}"
+              {{on "click" (fn this.switchTab "notifications")}}
+            >
+              {{icon "bell"}}
+              {{i18n "vzekc_verlosung.user_stats.tabs.notifications"}}
+            </button>
+          {{/if}}
         </div>
 
         {{#if (eq this.activeTab "stats")}}
@@ -436,6 +548,140 @@ export default class UserVerlosungenStats extends Component {
               <div class="empty-state">
                 {{icon "box-archive"}}
                 <p>{{i18n "vzekc_verlosung.user_stats.no_pickups"}}</p>
+              </div>
+            {{/if}}
+          </div>
+        {{/if}}
+
+        {{#if (eq this.activeTab "notifications")}}
+          <div class="notifications-list">
+            {{#if this.notificationLogsLoading}}
+              <div class="loading-container">
+                {{icon "spinner" class="fa-spin"}}
+                {{i18n "loading"}}
+              </div>
+            {{else if this.notificationLogs.length}}
+              <table class="user-verlosungen-table notification-logs-table">
+                <thead>
+                  <tr>
+                    <th>{{i18n
+                        "vzekc_verlosung.user_stats.notifications.table.date"
+                      }}</th>
+                    <th>{{i18n
+                        "vzekc_verlosung.user_stats.notifications.table.type"
+                      }}</th>
+                    <th>{{i18n
+                        "vzekc_verlosung.user_stats.notifications.table.method"
+                      }}</th>
+                    <th>{{i18n
+                        "vzekc_verlosung.user_stats.notifications.table.recipient"
+                      }}</th>
+                    <th>{{i18n
+                        "vzekc_verlosung.user_stats.notifications.table.context"
+                      }}</th>
+                    <th>{{i18n
+                        "vzekc_verlosung.user_stats.notifications.table.status"
+                      }}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {{#each this.notificationLogs as |log|}}
+                    <tr
+                      class={{if log.success "status-success" "status-failed"}}
+                    >
+                      <td>{{this.formatDate log.created_at}}</td>
+                      <td>
+                        <span
+                          class="notification-type-badge"
+                          title={{log.notification_type}}
+                        >{{this.translateNotificationType
+                            log.notification_type
+                          }}</span>
+                      </td>
+                      <td>
+                        {{#if (eq log.delivery_method "in_app")}}
+                          {{icon "bell"}}
+                        {{else}}
+                          {{icon "envelope"}}
+                        {{/if}}
+                      </td>
+                      <td>
+                        {{#if log.recipient}}
+                          <a
+                            href="/u/{{log.recipient.username}}"
+                            class="recipient-link"
+                          >
+                            {{avatar log.recipient.avatar_template "tiny"}}
+                            {{log.recipient.username}}
+                          </a>
+                        {{/if}}
+                      </td>
+                      <td>
+                        {{#if log.lottery}}
+                          <a href={{log.lottery.url}} class="context-link">
+                            {{icon "gift"}}
+                            {{log.lottery.title}}
+                          </a>
+                        {{else if log.donation}}
+                          <a href={{log.donation.url}} class="context-link">
+                            {{icon "hand-holding-heart"}}
+                            {{log.donation.title}}
+                          </a>
+                        {{else}}
+                          -
+                        {{/if}}
+                      </td>
+                      <td class="status-cell">
+                        {{#if log.success}}
+                          <span class="status-yes">{{icon "check"}}</span>
+                        {{else}}
+                          <span
+                            class="status-no"
+                            title={{log.error_message}}
+                          >{{icon "times"}}</span>
+                        {{/if}}
+                      </td>
+                    </tr>
+                  {{/each}}
+                </tbody>
+              </table>
+
+              {{#if (gt this.notificationTotalPages 1)}}
+                <div class="pagination-controls">
+                  <button
+                    type="button"
+                    class="btn btn-default"
+                    disabled={{eq this.notificationLogsPage 1}}
+                    {{on "click" this.prevNotificationPage}}
+                  >
+                    {{icon "angle-left"}}
+                  </button>
+                  <span class="page-info">
+                    {{i18n
+                      "vzekc_verlosung.user_stats.notifications.pagination.page"
+                      current=this.notificationLogsPage
+                      total=this.notificationTotalPages
+                    }}
+                  </span>
+                  <button
+                    type="button"
+                    class="btn btn-default"
+                    disabled={{eq
+                      this.notificationLogsPage
+                      this.notificationTotalPages
+                    }}
+                    {{on "click" this.nextNotificationPage}}
+                  >
+                    {{icon "angle-right"}}
+                  </button>
+                </div>
+              {{/if}}
+            {{else}}
+              <div class="empty-state">
+                {{icon "bell-slash"}}
+                <p>{{i18n
+                    "vzekc_verlosung.user_stats.notifications.no_notifications"
+                  }}</p>
               </div>
             {{/if}}
           </div>

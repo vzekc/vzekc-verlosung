@@ -26,30 +26,12 @@ module Jobs
           user = topic.user
           next unless user
 
-          # Skip if lottery creator is no longer an active member
-          next unless VzekcVerlosung::MemberChecker.active_member?(user)
-
-          # Send reminder PM to lottery creator
-          PostCreator.create!(
-            Discourse.system_user,
-            title:
-              I18n.t(
-                "vzekc_verlosung.reminders.ending_tomorrow.title",
-                locale: user.effective_locale,
-              ),
-            raw:
-              I18n.t(
-                "vzekc_verlosung.reminders.ending_tomorrow.body",
-                locale: user.effective_locale,
-                username: user.username,
-                topic_title: topic.title,
-                ending_at: lottery.ends_at.strftime("%d.%m.%Y"),
-                topic_url: "#{Discourse.base_url}#{topic.relative_url}",
-              ),
-            archetype: Archetype.private_message,
-            subtype: TopicSubtype.system_message,
-            target_usernames: user.username,
-            skip_validations: true,
+          VzekcVerlosung::NotificationService.notify(
+            :ending_tomorrow_reminder,
+            recipient: user,
+            context: {
+              lottery: lottery,
+            },
           )
         end
     end

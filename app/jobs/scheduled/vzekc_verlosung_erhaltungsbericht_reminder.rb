@@ -30,66 +30,27 @@ module Jobs
           winner = winner_entry.winner
           next unless winner
 
-          # Skip if winner is no longer an active member
-          next unless VzekcVerlosung::MemberChecker.active_member?(winner)
-
           packet = winner_entry.lottery_packet
           lottery = packet.lottery
+          packet_post = packet.post
 
-          # Send reminder
-          send_erhaltungsbericht_reminder(
-            winner,
-            lottery.topic,
-            packet.post,
-            winner_entry.instance_number,
-            packet.quantity,
-            days_since_collected,
+          # Build packet title with instance number for multi-instance packets
+          packet_title =
+            VzekcVerlosung::TitleExtractor.extract_title(packet_post.raw) ||
+              "Paket ##{packet_post.post_number}"
+          packet_title = "#{packet_title} (##{winner_entry.instance_number})" if packet.quantity > 1
+
+          VzekcVerlosung::NotificationService.notify(
+            :erhaltungsbericht_reminder,
+            recipient: winner,
+            context: {
+              lottery_topic: lottery.topic,
+              packet_post: packet_post,
+              packet_title: packet_title,
+              days_since_collected: days_since_collected,
+            },
           )
         end
-    end
-
-    private
-
-    def send_erhaltungsbericht_reminder(
-      user,
-      lottery_topic,
-      packet_post,
-      instance_number,
-      quantity,
-      days_since_collected
-    )
-      packet_title =
-        VzekcVerlosung::TitleExtractor.extract_title(packet_post.raw) ||
-          "Paket ##{packet_post.post_number}"
-      # Add instance number to title for multi-instance packets
-      packet_title = "#{packet_title} (##{instance_number})" if quantity > 1
-      packet_url =
-        "#{Discourse.base_url}/t/#{lottery_topic.slug}/#{lottery_topic.id}/#{packet_post.post_number}"
-
-      # Send reminder PM
-      PostCreator.create!(
-        Discourse.system_user,
-        title:
-          I18n.t(
-            "vzekc_verlosung.reminders.erhaltungsbericht.title",
-            locale: user.effective_locale,
-            packet_title: packet_title,
-          ),
-        raw:
-          I18n.t(
-            "vzekc_verlosung.reminders.erhaltungsbericht.body",
-            locale: user.effective_locale,
-            username: user.username,
-            lottery_title: lottery_topic.title,
-            packet_title: packet_title,
-            days_since_collected: days_since_collected,
-            packet_url: packet_url,
-          ),
-        archetype: Archetype.private_message,
-        subtype: TopicSubtype.system_message,
-        target_usernames: user.username,
-        skip_validations: true,
-      )
     end
   end
 end

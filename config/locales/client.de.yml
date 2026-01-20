@@ -400,6 +400,51 @@ de:
         contact_info_help: "Diese Informationen werden als private Nachricht an den zugewiesenen Abholer gesendet, damit er den Spender kontaktieren kann, um die Abholung zu vereinbaren."
         assign: "Zuweisen und Nachricht senden"
         assigning: "Sende..."
+      admin:
+        notification_logs:
+          nav_title: "Benachrichtigungs-Log"
+          title: "Benachrichtigungs-Log"
+          results_count:
+            one: "%{count} Benachrichtigung"
+            other: "%{count} Benachrichtigungen"
+          no_results: "Keine Benachrichtigungen gefunden"
+          filters:
+            username: "Benutzername"
+            username_placeholder: "Nach Benutzername filtern..."
+            type: "Typ"
+            method: "Methode"
+            status: "Status"
+            all: "Alle"
+            success: "Erfolgreich"
+            failed: "Fehlgeschlagen"
+            clear: "Zurücksetzen"
+          table:
+            date: "Datum"
+            type: "Typ"
+            method: "Methode"
+            recipient: "Empfänger"
+            context: "Kontext"
+            status: "Status"
+          pagination:
+            page: "Seite %{current} von %{total}"
+          types:
+            ticket_bought: "Los gezogen"
+            ticket_returned: "Los zurückgegeben"
+            lottery_drawn: "Gewinner gezogen"
+            lottery_won: "Verlosung gewonnen"
+            did_not_win: "Nicht gewonnen"
+            winner_pm: "Gewinner-Nachricht"
+            packet_shipped: "Paket versandt"
+            donation_assigned: "Spende zugewiesen"
+            donation_picked_up: "Spende abgeholt"
+            draft_reminder: "Entwurf-Erinnerung"
+            donation_reminder: "Spenden-Erinnerung"
+            ending_tomorrow_reminder: "Endet morgen"
+            ended_reminder: "Verlosung beendet"
+            no_participants_reminder: "Keine Teilnehmer"
+            donation_picked_up_reminder: "Abholungs-Erinnerung"
+            erhaltungsbericht_reminder: "Bericht-Erinnerung"
+            uncollected_reminder: "Nicht abgeholt"
       user_stats:
         nav_title: "Verlosungen"
         tabs:
@@ -407,6 +452,18 @@ de:
           pickups: "Abholungen"
           created: "Verlosungen erstellt"
           won: "Pakete gewonnen"
+          notifications: "Benachrichtigungen"
+        notifications:
+          table:
+            date: "Datum"
+            type: "Typ"
+            method: "Methode"
+            recipient: "Empfänger"
+            context: "Kontext"
+            status: "Status"
+          pagination:
+            page: "Seite %{current} von %{total}"
+          no_notifications: "Keine Benachrichtigungen"
         tickets_drawn:
           one: "%{count} Los gezogen"
           other: "%{count} Lose gezogen"

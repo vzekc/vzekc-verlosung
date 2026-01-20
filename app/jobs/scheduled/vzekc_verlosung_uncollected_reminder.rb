@@ -47,48 +47,24 @@ module Jobs
               end
 
           # Send reminder if there are uncollected entries
-          if uncollected_entries.any?
-            send_uncollected_reminder(lottery.topic, uncollected_entries, days_since_drawn)
-          end
+          next if uncollected_entries.none?
+
+          topic = lottery.topic
+          next if topic.user_id.blank?
+
+          owner = User.find_by(id: topic.user_id)
+          next unless owner
+
+          VzekcVerlosung::NotificationService.notify(
+            :uncollected_reminder,
+            recipient: owner,
+            context: {
+              lottery_topic: topic,
+              uncollected_packets: uncollected_entries,
+              days_since_drawn: days_since_drawn,
+            },
+          )
         end
-    end
-
-    private
-
-    def send_uncollected_reminder(topic, uncollected_packets, days_since_drawn)
-      return if topic.user_id.blank?
-
-      owner = User.find_by(id: topic.user_id)
-      return unless owner
-
-      # Format packet list for PM body
-      packet_list =
-        uncollected_packets.map { |p| "- #{p[:title]} (Winner: #{p[:winner]})" }.join("\n")
-
-      # Send reminder PM
-      PostCreator.create!(
-        Discourse.system_user,
-        title:
-          I18n.t(
-            "vzekc_verlosung.reminders.uncollected.title",
-            locale: owner.effective_locale,
-            uncollected_count: uncollected_packets.count,
-          ),
-        raw:
-          I18n.t(
-            "vzekc_verlosung.reminders.uncollected.body",
-            locale: owner.effective_locale,
-            username: owner.username,
-            topic_title: topic.title,
-            days_since_drawn: days_since_drawn,
-            packet_list: packet_list,
-            topic_url: "#{Discourse.base_url}#{topic.relative_url}",
-          ),
-        archetype: Archetype.private_message,
-        subtype: TopicSubtype.system_message,
-        target_usernames: owner.username,
-        skip_validations: true,
-      )
     end
   end
 end
