@@ -452,6 +452,7 @@ en:
           packet: "Packet"
           lottery: "Lottery"
           won_at: "Won"
+          status: "Status"
           collected: "Collected"
           bericht: "Report"
           ended: "Ended"

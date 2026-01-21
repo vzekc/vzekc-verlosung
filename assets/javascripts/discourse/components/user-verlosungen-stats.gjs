@@ -250,6 +250,34 @@ export default class UserVerlosungenStats extends Component {
     });
   }
 
+  /**
+   * Get icon component for fulfillment state
+   *
+   * @param {String} state - Fulfillment state
+   * @returns {String} Icon name
+   */
+  @action
+  fulfillmentIcon(state) {
+    const icons = {
+      won: "trophy",
+      shipped: "truck",
+      received: "box",
+      completed: "circle-check",
+    };
+    return icons[state] || "question";
+  }
+
+  /**
+   * Get localized label for fulfillment state
+   *
+   * @param {String} state - Fulfillment state
+   * @returns {String} Localized label
+   */
+  @action
+  fulfillmentLabel(state) {
+    return i18n(`vzekc_verlosung.status.${state}`);
+  }
+
   <template>
     <div class="user-verlosungen-stats">
       {{#if this.isLoading}}
@@ -396,9 +424,7 @@ export default class UserVerlosungenStats extends Component {
                     <th>{{i18n "vzekc_verlosung.user_stats.table.packet"}}</th>
                     <th>{{i18n "vzekc_verlosung.user_stats.table.lottery"}}</th>
                     <th>{{i18n "vzekc_verlosung.user_stats.table.won_at"}}</th>
-                    <th>{{i18n
-                        "vzekc_verlosung.user_stats.table.collected"
-                      }}</th>
+                    <th>{{i18n "vzekc_verlosung.user_stats.table.status"}}</th>
                     <th>{{i18n "vzekc_verlosung.user_stats.table.bericht"}}</th>
                   </tr>
                 </thead>
@@ -417,11 +443,14 @@ export default class UserVerlosungenStats extends Component {
                       </td>
                       <td>{{this.formatDate packet.won_at}}</td>
                       <td class="status-cell">
-                        {{#if packet.collected_at}}
-                          <span class="status-yes">{{icon "check"}}</span>
-                        {{else}}
-                          <span class="status-no">{{icon "xmark"}}</span>
-                        {{/if}}
+                        <span
+                          class="fulfillment-status fulfillment-{{packet.fulfillment_state}}"
+                        >
+                          {{icon
+                            (this.fulfillmentIcon packet.fulfillment_state)
+                          }}
+                          {{this.fulfillmentLabel packet.fulfillment_state}}
+                        </span>
                       </td>
                       <td class="status-cell">
                         {{#if packet.erhaltungsbericht_required}}

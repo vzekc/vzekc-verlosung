@@ -2977,6 +2977,36 @@
       align-items: center;
       gap: 0.25em;
     }
+
+    .fulfillment-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35em;
+      padding: 0.25em 0.5em;
+      border-radius: 4px;
+      font-size: 0.85em;
+      white-space: nowrap;
+
+      &.fulfillment-won {
+        background: var(--highlight-low);
+        color: var(--highlight);
+      }
+
+      &.fulfillment-shipped {
+        background: var(--tertiary-low);
+        color: var(--tertiary);
+      }
+
+      &.fulfillment-received {
+        background: var(--success-low);
+        color: var(--success);
+      }
+
+      &.fulfillment-completed {
+        background: var(--success-low);
+        color: var(--success);
+      }
+    }
   }
 
   .empty-state {

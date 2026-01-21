@@ -165,7 +165,7 @@ module VzekcVerlosung
           quantity: packet.quantity,
           url: "#{topic.relative_url}/#{packet.post.post_number}",
           won_at: winner_entry.won_at,
-          collected_at: winner_entry.collected_at,
+          fulfillment_state: winner_entry.fulfillment_state,
           lottery: {
             id: topic.id,
             title: topic.title,

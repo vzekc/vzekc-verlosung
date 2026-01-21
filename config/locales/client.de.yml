@@ -499,6 +499,7 @@ de:
           packet: "Paket"
           lottery: "Verlosung"
           won_at: "Gewonnen am"
+          status: "Status"
           collected: "Abgeholt"
           bericht: "Bericht"
           ended: "Beendet"
