@@ -4,6 +4,9 @@ module VzekcVerlosung
   class LotteryPacketWinner < ActiveRecord::Base
     self.table_name = "vzekc_verlosung_lottery_packet_winners"
 
+    # Fulfillment state constants
+    FULFILLMENT_STATES = %w[won shipped received completed].freeze
+
     # Associations
     belongs_to :lottery_packet, class_name: "VzekcVerlosung::LotteryPacket"
     belongs_to :winner, class_name: "User", foreign_key: :winner_user_id
@@ -27,6 +30,7 @@ module VzekcVerlosung
                 scope: :lottery_packet_id,
                 message: "can only win one instance per packet",
               }
+    validates :fulfillment_state, presence: true, inclusion: { in: FULFILLMENT_STATES }
     validate :instance_number_within_quantity
 
     # Scopes
@@ -45,8 +49,30 @@ module VzekcVerlosung
               },
             )
           end
+    scope :won, -> { where(fulfillment_state: "won") }
+    scope :fulfillment_shipped, -> { where(fulfillment_state: "shipped") }
+    scope :received, -> { where(fulfillment_state: "received") }
+    scope :completed, -> { where(fulfillment_state: "completed") }
+    scope :pending_fulfillment, -> { where.not(fulfillment_state: "completed") }
 
-    # Helper methods
+    # Fulfillment state helpers
+    def won?
+      fulfillment_state == "won"
+    end
+
+    def fulfillment_shipped?
+      fulfillment_state == "shipped"
+    end
+
+    def received?
+      fulfillment_state == "received"
+    end
+
+    def fulfillment_completed?
+      fulfillment_state == "completed"
+    end
+
+    # Timestamp helpers (kept for compatibility)
     def shipped?
       shipped_at.present?
     end
@@ -59,20 +85,27 @@ module VzekcVerlosung
       erhaltungsbericht_topic_id.present?
     end
 
+    # State transition methods
     def mark_shipped!(timestamp = Time.zone.now, tracking_info: nil)
-      update!(shipped_at: timestamp, tracking_info: tracking_info)
+      update!(shipped_at: timestamp, tracking_info: tracking_info, fulfillment_state: "shipped")
     end
 
     def mark_collected!(timestamp = Time.zone.now)
-      update!(collected_at: timestamp)
+      new_state = lottery_packet.erhaltungsbericht_required ? "received" : "completed"
+      update!(collected_at: timestamp, fulfillment_state: new_state)
     end
 
     def mark_handed_over!(timestamp = Time.zone.now)
-      update!(shipped_at: timestamp, collected_at: timestamp)
+      new_state = lottery_packet.erhaltungsbericht_required ? "received" : "completed"
+      update!(shipped_at: timestamp, collected_at: timestamp, fulfillment_state: new_state)
     end
 
     def link_report!(topic)
-      update!(erhaltungsbericht_topic_id: topic.id)
+      update!(erhaltungsbericht_topic_id: topic.id, fulfillment_state: "completed")
+    end
+
+    def mark_complete!
+      update!(fulfillment_state: "completed")
     end
 
     private
@@ -93,6 +126,7 @@ end
 #
 #  id                         :bigint           not null, primary key
 #  collected_at               :datetime
+#  fulfillment_state          :string           default("won"), not null
 #  instance_number            :integer          not null
 #  shipped_at                 :datetime
 #  tracking_info              :text
@@ -105,10 +139,11 @@ end
 #
 # Indexes
 #
-#  idx_lottery_packet_winners_on_packet_id     (lottery_packet_id)
-#  idx_lottery_packet_winners_on_user_id       (winner_user_id)
-#  idx_lottery_packet_winners_unique_instance  (lottery_packet_id,instance_number) UNIQUE
-#  idx_lottery_packet_winners_unique_user      (lottery_packet_id,winner_user_id) UNIQUE
+#  idx_lottery_packet_winners_on_fulfillment_state   (fulfillment_state)
+#  idx_lottery_packet_winners_on_packet_id          (lottery_packet_id)
+#  idx_lottery_packet_winners_on_user_id            (winner_user_id)
+#  idx_lottery_packet_winners_unique_instance       (lottery_packet_id,instance_number) UNIQUE
+#  idx_lottery_packet_winners_unique_user           (lottery_packet_id,winner_user_id) UNIQUE
 #
 # Foreign Keys
 #

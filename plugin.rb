@@ -431,6 +431,7 @@ after_initialize do
               username: lpw.winner.username,
               name: lpw.winner.name,
               avatar_template: lpw.winner.avatar_template,
+              fulfillment_state: lpw.fulfillment_state,
             }
 
             # Include erhaltungsbericht_topic_id only if topic still exists
@@ -457,6 +458,7 @@ after_initialize do
           ordinal: packet.ordinal,
           abholerpaket: packet.abholerpaket,
           erhaltungsbericht_required: packet.erhaltungsbericht_required,
+          state: packet.state,
         }
       end
       .compact
@@ -500,6 +502,7 @@ after_initialize do
           username: lpw.winner.username,
           name: lpw.winner.name,
           avatar_template: lpw.winner.avatar_template,
+          fulfillment_state: lpw.fulfillment_state,
         }
 
         # Include erhaltungsbericht_topic_id only if topic still exists
@@ -525,6 +528,7 @@ after_initialize do
       users: users,
       winners: winners,
       notifications_silenced: packet.notifications_silenced,
+      state: packet.state,
     }
   end
 
@@ -541,6 +545,14 @@ after_initialize do
   add_to_serializer(:topic_list_item, :lottery_results) { object.lottery&.results }
 
   add_to_serializer(:topic_list_item, :lottery_drawing_mode) { object.lottery&.drawing_mode }
+
+  add_to_serializer(:topic_list_item, :lottery_all_reports_written) do
+    object.lottery&.all_required_reports_written?
+  end
+
+  add_to_serializer(:topic_list_item, :lottery_completion_status) do
+    object.lottery&.completion_status
+  end
 
   # Register custom field for Erhaltungsbericht donation source
   register_topic_custom_field_type("donation_id", :integer)

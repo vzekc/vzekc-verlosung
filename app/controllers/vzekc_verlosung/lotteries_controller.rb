@@ -115,6 +115,7 @@ module VzekcVerlosung
                 name: lpw.winner.name,
                 avatar_template: lpw.winner.avatar_template,
                 erhaltungsbericht_topic_id: lpw.erhaltungsbericht_topic_id,
+                fulfillment_state: lpw.fulfillment_state,
               }
 
               # Only include collected_at for lottery owner
@@ -136,6 +137,7 @@ module VzekcVerlosung
             ordinal: packet.ordinal,
             abholerpaket: packet.abholerpaket,
             erhaltungsbericht_required: packet.erhaltungsbericht_required,
+            state: packet.state,
           }
         end
 
@@ -326,7 +328,7 @@ module VzekcVerlosung
       lottery.finish!
       lottery.mark_drawn!(results)
 
-      # Store winners on each packet
+      # Store winners on each packet and set packet state
       # Drawings and packets arrays are in the same order, so use index to match
       results["drawings"].each_with_index do |drawing, index|
         # Get packet ID from the packets array at the same index
@@ -340,13 +342,26 @@ module VzekcVerlosung
         # Handle array of winners
         winners = drawing["winners"] || []
 
-        winners.each_with_index do |winner_username, instance_idx|
-          next if winner_username.blank?
-          winner_user = User.find_by(username: winner_username)
-          if winner_user
-            packet.mark_winner!(winner_user, drawn_at, instance_number: instance_idx + 1)
+        if winners.compact.any?
+          # Mark packet as drawn
+          packet.mark_drawn!
+
+          winners.each_with_index do |winner_username, instance_idx|
+            next if winner_username.blank?
+            winner_user = User.find_by(username: winner_username)
+            if winner_user
+              packet.mark_winner!(winner_user, drawn_at, instance_number: instance_idx + 1)
+            end
           end
+        else
+          # No winners means no tickets were bought for this packet
+          packet.mark_no_tickets!
         end
+      end
+
+      # Mark any remaining packets (not in results) as no_tickets
+      lottery.lottery_packets.where(abholerpaket: false, state: "pending").find_each do |packet|
+        packet.mark_no_tickets!
       end
 
       # Notify all participants that winners have been drawn
@@ -467,6 +482,9 @@ module VzekcVerlosung
         selected_user_ids = Array(selections[packet.post_id.to_s]).map(&:to_i)
         winner_usernames = []
 
+        # Mark packet as drawn since it has winners
+        packet.mark_drawn!
+
         selected_user_ids.each_with_index do |winner_user_id, instance_idx|
           winner_user = User.find(winner_user_id)
           packet.mark_winner!(winner_user, drawn_at, instance_number: instance_idx + 1)
@@ -482,6 +500,11 @@ module VzekcVerlosung
         # Include packet data for notify_winners to match by index
         packets_data << { "id" => packet.post_id, "title" => packet.title }
       end
+
+      # Mark packets without participants as no_tickets
+      packets_without_participants =
+        lottery_packets.reject { |p| packets_with_participants.include?(p) }
+      packets_without_participants.each(&:mark_no_tickets!)
 
       # Build results hash (simplified version without RNG seed since it's manual)
       results = {

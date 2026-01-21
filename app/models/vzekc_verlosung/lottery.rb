@@ -80,6 +80,47 @@ module VzekcVerlosung
       lottery_packets.where(abholerpaket: false).joins(:lottery_tickets).exists?
     end
 
+    # Check if all required Erhaltungsberichte have been written
+    # Uses explicit fulfillment_state instead of checking erhaltungsbericht_topic_id
+    #
+    # @return [Boolean]
+    def all_required_reports_written?
+      winners_requiring_reports =
+        LotteryPacketWinner
+          .joins(:lottery_packet)
+          .where(lottery_packet: { lottery_id: id, erhaltungsbericht_required: true })
+
+      return true if winners_requiring_reports.empty?
+
+      winners_requiring_reports.pending_fulfillment.empty?
+    end
+
+    # Returns the completion status for display in the UI
+    # Used by topic_list_item serializer for the lottery-status-chip component
+    #
+    # @return [String] One of: 'active', 'ready_to_draw', 'no_tickets', 'drawn', 'finished'
+    def completion_status
+      return "active" if active? && !ended?
+      return "ready_to_draw" if active? && ended? && !drawn?
+
+      # Lottery has been drawn
+      return "active" unless drawn?
+
+      # Check if all packets had no tickets (no_participants scenario)
+      drawable_packets = lottery_packets.where(abholerpaket: false)
+      if drawable_packets.where(state: "no_tickets").count == drawable_packets.count
+        return "no_tickets"
+      end
+
+      # Check if all fulfillments are complete
+      all_required_reports_written? ? "finished" : "drawn"
+    end
+
+    # Check if lottery has ended (past end time)
+    def ended?
+      ends_at.present? && ends_at <= Time.zone.now
+    end
+
     # Finish lottery without drawing (no participants)
     # Sets drawn_at and results to indicate no drawing was needed
     def finish_without_participants!

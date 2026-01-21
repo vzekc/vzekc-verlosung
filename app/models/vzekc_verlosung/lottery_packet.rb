@@ -7,6 +7,9 @@ module VzekcVerlosung
     # Ignore old columns that are being deprecated (now stored in lottery_packet_winners)
     self.ignored_columns += %w[winner_user_id won_at collected_at erhaltungsbericht_topic_id]
 
+    # State constants
+    STATES = %w[pending no_tickets drawn].freeze
+
     # Associations
     belongs_to :lottery, class_name: "VzekcVerlosung::Lottery"
     belongs_to :post, optional: true
@@ -36,12 +39,38 @@ module VzekcVerlosung
                 greater_than: 0,
                 less_than_or_equal_to: 100,
               }
+    validates :state, presence: true, inclusion: { in: STATES }
 
     # Scopes
     scope :ordered, -> { order(:ordinal) }
     scope :with_winner, -> { joins(:lottery_packet_winners).distinct }
     scope :without_winner, -> { left_joins(:lottery_packet_winners).where(lottery_packet_winners: { id: nil }) }
     scope :requiring_report, -> { where(erhaltungsbericht_required: true) }
+    scope :pending, -> { where(state: "pending") }
+    scope :no_tickets, -> { where(state: "no_tickets") }
+    scope :drawn, -> { where(state: "drawn") }
+
+    # State helpers
+    def pending?
+      state == "pending"
+    end
+
+    def no_tickets?
+      state == "no_tickets"
+    end
+
+    def drawn?
+      state == "drawn"
+    end
+
+    # State transitions
+    def mark_no_tickets!
+      update!(state: "no_tickets")
+    end
+
+    def mark_drawn!
+      update!(state: "drawn")
+    end
 
     # Winner-related helper methods
     def has_winner?
@@ -104,6 +133,7 @@ end
 #  notifications_silenced     :boolean          default(FALSE), not null
 #  ordinal                    :integer          not null
 #  quantity                   :integer          default(1), not null
+#  state                      :string           default("pending"), not null
 #  title                      :string           not null
 #  created_at                 :datetime         not null
 #  updated_at                 :datetime         not null
@@ -115,6 +145,7 @@ end
 #  index_packets_on_collected_and_winner                    (collected_at,winner_user_id) WHERE ((winner_user_id IS NOT NULL) AND (collected_at IS NULL))
 #  index_vzekc_verlosung_lottery_packets_on_lottery_id      (lottery_id)
 #  index_vzekc_verlosung_lottery_packets_on_post_id         (post_id) UNIQUE
+#  idx_lottery_packets_on_state                             (state)
 #  index_vzekc_verlosung_lottery_packets_on_winner_user_id  (winner_user_id)
 #
 # Foreign Keys

@@ -21,22 +21,22 @@ export default class LotteryStatusChip extends Component {
   }
 
   /**
+   * The completion status from the server
+   * One of: 'active', 'ready_to_draw', 'no_tickets', 'drawn', 'finished'
+   *
+   * @type {string | undefined}
+   */
+  get completionStatus() {
+    return this.args.topic.lottery_completion_status;
+  }
+
+  /**
    * Whether the lottery is active and accepting tickets
    *
    * @type {boolean}
    */
   get isActive() {
-    if (this.args.topic.lottery_state !== "active") {
-      return false;
-    }
-
-    if (!this.args.topic.lottery_ends_at) {
-      return true;
-    }
-
-    const now = new Date();
-    const endsAt = new Date(this.args.topic.lottery_ends_at);
-    return endsAt > now;
+    return this.completionStatus === "active";
   }
 
   /**
@@ -45,30 +45,34 @@ export default class LotteryStatusChip extends Component {
    * @type {boolean}
    */
   get isReadyToDraw() {
-    if (this.args.topic.lottery_state !== "active") {
-      return false;
-    }
-
-    if (!this.args.topic.lottery_ends_at) {
-      return false;
-    }
-
-    const now = new Date();
-    const endsAt = new Date(this.args.topic.lottery_ends_at);
-    return endsAt <= now && !this.args.topic.lottery_results;
+    return this.completionStatus === "ready_to_draw";
   }
 
   /**
-   * Whether the lottery is finished (winners have been drawn)
+   * Whether the lottery ended with no participants (no tickets were bought)
+   *
+   * @type {boolean}
+   */
+  get hasNoTickets() {
+    return this.completionStatus === "no_tickets";
+  }
+
+  /**
+   * Whether the lottery is drawn but reports are still pending
+   *
+   * @type {boolean}
+   */
+  get isDrawn() {
+    return this.completionStatus === "drawn";
+  }
+
+  /**
+   * Whether the lottery is finished (drawn AND all required reports written)
    *
    * @type {boolean}
    */
   get isFinished() {
-    return (
-      this.args.topic.lottery_state === "finished" ||
-      (this.args.topic.lottery_state === "active" &&
-        this.args.topic.lottery_results)
-    );
+    return this.completionStatus === "finished";
   }
 
   /**
@@ -128,12 +132,32 @@ export default class LotteryStatusChip extends Component {
                 "vzekc_verlosung.status.ready_to_draw"
               }}</span>
           </span>
+        {{else if this.hasNoTickets}}
+          <span
+            class="lottery-status-chip__no-winner"
+            title={{this.endDateTooltip}}
+          >
+            {{dIcon "ban"}}
+            <span class="lottery-status-chip__text">{{i18n
+                "vzekc_verlosung.status.no_winner"
+              }}</span>
+          </span>
+        {{else if this.isDrawn}}
+          <span
+            class="lottery-status-chip__drawn"
+            title={{this.endDateTooltip}}
+          >
+            {{dIcon "trophy"}}
+            <span class="lottery-status-chip__text">{{i18n
+                "vzekc_verlosung.status.drawn"
+              }}</span>
+          </span>
         {{else if this.isFinished}}
           <span
             class="lottery-status-chip__finished"
             title={{this.endDateTooltip}}
           >
-            {{dIcon "trophy"}}
+            {{dIcon "circle-check"}}
             <span class="lottery-status-chip__text">{{i18n
                 "vzekc_verlosung.status.finished"
               }}</span>

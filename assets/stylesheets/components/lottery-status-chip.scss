@@ -5,7 +5,9 @@
 
   &__active,
   &__ready-to-draw,
-  &__finished {
+  &__drawn,
+  &__finished,
+  &__no-winner {
     display: inline-flex;
     align-items: center;
     gap: 0.4em;
@@ -32,10 +34,22 @@
     border: 1px solid var(--highlight);
   }
 
+  &__drawn {
+    background-color: var(--highlight-low);
+    color: var(--highlight-high);
+    border: 1px solid var(--highlight);
+  }
+
   &__finished {
     background-color: var(--success-low);
     color: var(--success);
     border: 1px solid var(--success-medium);
+  }
+
+  &__no-winner {
+    background-color: var(--primary-very-low);
+    color: var(--primary-medium);
+    border: 1px solid var(--primary-low);
   }
 
   &__text {
