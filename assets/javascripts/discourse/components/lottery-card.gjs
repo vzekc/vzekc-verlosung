@@ -7,6 +7,7 @@ import { service } from "@ember/service";
 import UserLink from "discourse/components/user-link";
 import avatar from "discourse/helpers/avatar";
 import icon from "discourse/helpers/d-icon";
+import { eq, or } from "discourse/truth-helpers";
 import { i18n } from "discourse-i18n";
 
 /**
@@ -557,10 +558,22 @@ export default class LotteryCard extends Component {
                                 {{icon "file-lines"}}
                                 {{i18n "vzekc_verlosung.status.finished"}}
                               </a>
-                            {{else if winnerEntry.collected_at}}
+                            {{else if
+                              (or
+                                (eq winnerEntry.fulfillment_state "received")
+                                (eq winnerEntry.fulfillment_state "completed")
+                              )
+                            }}
                               <span class="status-collected">
                                 {{icon "check"}}
                                 {{i18n "vzekc_verlosung.status.collected"}}
+                              </span>
+                            {{else if
+                              (eq winnerEntry.fulfillment_state "shipped")
+                            }}
+                              <span class="status-shipped">
+                                {{icon "paper-plane"}}
+                                {{i18n "vzekc_verlosung.status.shipped"}}
                               </span>
                             {{else}}
                               <span class="status-won">

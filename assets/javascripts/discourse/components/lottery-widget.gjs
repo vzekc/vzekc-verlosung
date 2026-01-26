@@ -11,6 +11,7 @@ import { ajax } from "discourse/lib/ajax";
 import { popupAjaxError } from "discourse/lib/ajax-error";
 import { bind } from "discourse/lib/decorators";
 import Composer from "discourse/models/composer";
+import { and, eq, or } from "discourse/truth-helpers";
 import I18n, { i18n } from "discourse-i18n";
 import MarkShippedModal from "./modal/mark-shipped-modal";
 import TicketCountBadge from "./ticket-count-badge";
@@ -456,6 +457,29 @@ export default class LotteryWidget extends Component {
   }
 
   /**
+   * Check if a winner entry can be collected (state is "won" or "shipped")
+   *
+   * @param {Object} winnerEntry
+   * @returns {boolean}
+   */
+  isCollectable(winnerEntry) {
+    return (
+      winnerEntry?.fulfillment_state === "won" ||
+      winnerEntry?.fulfillment_state === "shipped"
+    );
+  }
+
+  /**
+   * Check if a winner entry can be shipped (state is "won")
+   *
+   * @param {Object} winnerEntry
+   * @returns {boolean}
+   */
+  isShippable(winnerEntry) {
+    return winnerEntry?.fulfillment_state === "won";
+  }
+
+  /**
    * Check if current user can mark their instance as collected
    *
    * @type {boolean}
@@ -464,7 +488,7 @@ export default class LotteryWidget extends Component {
     const entry = this.currentUserWinnerEntry;
     return (
       entry &&
-      !entry.collected_at &&
+      this.isCollectable(entry) &&
       !this.loading &&
       this.markingCollected === null
     );
@@ -478,7 +502,7 @@ export default class LotteryWidget extends Component {
    * @returns {boolean}
    */
   canMarkEntryAsCollected(winnerEntry) {
-    if (!winnerEntry || winnerEntry.collected_at) {
+    if (!winnerEntry || !this.isCollectable(winnerEntry)) {
       return false;
     }
     if (this.loading || this.markingCollected !== null) {
@@ -502,7 +526,7 @@ export default class LotteryWidget extends Component {
    * @returns {boolean}
    */
   canWinnerMarkAsCollected(winnerEntry) {
-    if (!winnerEntry || winnerEntry.collected_at) {
+    if (!winnerEntry || !this.isCollectable(winnerEntry)) {
       return false;
     }
     if (this.loading || this.markingCollected !== null) {
@@ -522,7 +546,7 @@ export default class LotteryWidget extends Component {
    * @returns {boolean}
    */
   canMarkEntryAsShipped(winnerEntry) {
-    if (!winnerEntry || winnerEntry.shipped_at) {
+    if (!winnerEntry || !this.isShippable(winnerEntry)) {
       return false;
     }
     if (this.loading || this.markingShipped !== null) {
@@ -577,8 +601,11 @@ export default class LotteryWidget extends Component {
     if (this.isAbholerpaket) {
       return true;
     }
-    // For regular packets, require collection first
-    return !!winnerEntry.collected_at;
+    // For regular packets, require collection first (state must be "received" or "completed")
+    return (
+      winnerEntry.fulfillment_state === "received" ||
+      winnerEntry.fulfillment_state === "completed"
+    );
   }
 
   /**
@@ -988,29 +1015,47 @@ export default class LotteryWidget extends Component {
                             >{{winnerEntry.username}}</span>
                           </UserLink>
                         {{/if}}
-                        {{! Status text (left-aligned) }}
+                        {{! Status text based on fulfillment_state }}
                         <span class="winner-status">
-                          {{#if winnerEntry.erhaltungsbericht_topic_id}}
+                          {{#if
+                            (and
+                              (eq winnerEntry.fulfillment_state "completed")
+                              winnerEntry.erhaltungsbericht_topic_id
+                            )
+                          }}
                             <span class="status-finished">{{icon "file-lines"}}
                               {{i18n "vzekc_verlosung.status.finished"}}</span>
-                          {{else if winnerEntry.collected_at}}
+                          {{else if
+                            (or
+                              (eq winnerEntry.fulfillment_state "received")
+                              (eq winnerEntry.fulfillment_state "completed")
+                            )
+                          }}
                             <span
                               class="status-collected"
-                              title={{i18n
-                                "vzekc_verlosung.collection.collected_on"
-                                date=(this.formatCollectedDate
-                                  winnerEntry.collected_at
+                              title={{if
+                                winnerEntry.collected_at
+                                (i18n
+                                  "vzekc_verlosung.collection.collected_on"
+                                  date=(this.formatCollectedDate
+                                    winnerEntry.collected_at
+                                  )
                                 )
                               }}
                             >{{icon "check"}}
                               {{i18n "vzekc_verlosung.status.collected"}}</span>
-                          {{else if winnerEntry.shipped_at}}
+                          {{else if
+                            (eq winnerEntry.fulfillment_state "shipped")
+                          }}
                             <span
                               class="status-shipped"
-                              title={{i18n
-                                "vzekc_verlosung.shipping.shipped_on"
-                                date=(this.formatCollectedDate
-                                  winnerEntry.shipped_at
+                              title={{if
+                                winnerEntry.shipped_at
+                                (i18n
+                                  "vzekc_verlosung.shipping.shipped_on"
+                                  date=(this.formatCollectedDate
+                                    winnerEntry.shipped_at
+                                  )
                                 )
                               }}
                             >{{icon "paper-plane"}}

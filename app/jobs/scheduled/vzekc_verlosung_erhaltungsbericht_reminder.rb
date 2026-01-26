@@ -18,9 +18,9 @@ module Jobs
         .where(vzekc_verlosung_lotteries: { state: "finished" })
         .where.not(vzekc_verlosung_lotteries: { drawn_at: nil })
         .find_each do |winner_entry|
-          next if winner_entry.collected_at.blank?
-
-          # Calculate days since collection
+          # Calculate days since collection (collected_at should always be present
+          # since we're querying .collected scope which uses fulfillment_state)
+          next if winner_entry.collected_at.blank? # Safety check for data integrity
           days_since_collected = (Time.zone.now - winner_entry.collected_at).to_i / 1.day
 
           # Only send reminder every 7 days (on days 7, 14, 21, etc.)

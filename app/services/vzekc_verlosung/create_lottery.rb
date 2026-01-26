@@ -206,12 +206,16 @@ module VzekcVerlosung
             )
 
           # Create winner entry for Abholerpaket (pre-assigned to creator)
+          # Set fulfillment_state based on whether Erhaltungsbericht is required
+          abholerpaket_state =
+            abholerpaket_packet.erhaltungsbericht_required ? "received" : "completed"
           LotteryPacketWinner.create!(
             lottery_packet_id: abholerpaket_packet.id,
             winner_user_id: user.id,
             instance_number: 1,
             won_at: Time.zone.now,
             collected_at: Time.zone.now,
+            fulfillment_state: abholerpaket_state,
           )
         end
 
@@ -272,12 +276,16 @@ module VzekcVerlosung
 
           # If this is Abholerpaket, assign to creator and mark collected
           if is_abholerpaket
+            # Set fulfillment_state based on whether Erhaltungsbericht is required
+            abholerpaket_winner_state =
+              lottery_packet.erhaltungsbericht_required ? "received" : "completed"
             LotteryPacketWinner.create!(
               lottery_packet_id: lottery_packet.id,
               winner_user_id: user.id,
               instance_number: 1,
               won_at: Time.zone.now,
               collected_at: Time.zone.now,
+              fulfillment_state: abholerpaket_winner_state,
             )
           end
         end

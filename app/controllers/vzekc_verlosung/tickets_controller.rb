@@ -521,9 +521,10 @@ module VzekcVerlosung
             winner_data[:erhaltungsbericht_topic_id] = lpw.erhaltungsbericht_topic_id
           end
 
-          # Include shipped_at and collected_at for lottery owner or this winner
+          # Include fulfillment state and timestamps for lottery owner or this winner
           is_this_winner = user && user.id == lpw.winner_user_id
           is_authorized = topic&.user_id == user&.id || is_this_winner
+          winner_data[:fulfillment_state] = lpw.fulfillment_state if is_authorized
           winner_data[:shipped_at] = lpw.shipped_at if is_authorized && lpw.shipped_at
           winner_data[:collected_at] = lpw.collected_at if is_authorized && lpw.collected_at
 

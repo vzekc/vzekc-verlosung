@@ -572,6 +572,19 @@ export default class LotteryIntroSummary extends Component {
   }
 
   /**
+   * Check if a winner entry is collected (based on fulfillment_state)
+   *
+   * @param {Object} entry - The winner entry or packet
+   * @returns {boolean} true if collected
+   */
+  isCollectedState(entry) {
+    return (
+      entry?.fulfillment_state === "received" ||
+      entry?.fulfillment_state === "completed"
+    );
+  }
+
+  /**
    * Check if collection indicator should be shown for a packet
    * Shows for lottery owner or the winner themselves
    *
@@ -588,7 +601,9 @@ export default class LotteryIntroSummary extends Component {
     // For multi-instance packets, check the specific winner entry
     if (winnerEntry) {
       const isWinner = winnerEntry.id === this.currentUser.id;
-      return (this.isLotteryOwner || isWinner) && !!winnerEntry.collected_at;
+      return (
+        (this.isLotteryOwner || isWinner) && this.isCollectedState(winnerEntry)
+      );
     }
 
     // For single winner (legacy), check packet.winner
@@ -596,7 +611,7 @@ export default class LotteryIntroSummary extends Component {
       return false;
     }
     const isWinner = packet.winner.id === this.currentUser.id;
-    return (this.isLotteryOwner || isWinner) && !!packet.collected_at;
+    return (this.isLotteryOwner || isWinner) && this.isCollectedState(packet);
   }
 
   /**

@@ -35,10 +35,11 @@ module VzekcVerlosung
 
     # Scopes
     scope :ordered, -> { order(:instance_number) }
-    scope :shipped, -> { where.not(shipped_at: nil) }
-    scope :unshipped, -> { where(shipped_at: nil) }
-    scope :collected, -> { where.not(collected_at: nil) }
-    scope :uncollected, -> { where(collected_at: nil) }
+    # State-based scopes (use these for business logic decisions)
+    scope :shipped, -> { where(fulfillment_state: %w[shipped received completed]) }
+    scope :unshipped, -> { where(fulfillment_state: "won") }
+    scope :collected, -> { where(fulfillment_state: %w[received completed]) }
+    scope :uncollected, -> { where(fulfillment_state: %w[won shipped]) }
     scope :with_report, -> { where.not(erhaltungsbericht_topic_id: nil) }
     scope :without_report, -> { where(erhaltungsbericht_topic_id: nil) }
     scope :requiring_report,
@@ -72,13 +73,13 @@ module VzekcVerlosung
       fulfillment_state == "completed"
     end
 
-    # Timestamp helpers (kept for compatibility)
+    # State-based helpers (use these for business logic decisions)
     def shipped?
-      shipped_at.present?
+      %w[shipped received completed].include?(fulfillment_state)
     end
 
     def collected?
-      collected_at.present?
+      %w[received completed].include?(fulfillment_state)
     end
 
     def has_report?

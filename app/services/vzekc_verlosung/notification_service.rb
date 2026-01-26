@@ -683,7 +683,11 @@ module VzekcVerlosung
     end
 
     def extract_lottery_id
-      @context[:lottery]&.id || @context[:packet]&.lottery_id
+      return @context[:lottery]&.id if @context[:lottery]
+      return @context[:packet]&.lottery_id if @context[:packet]
+
+      # For notifications with lottery_topic context, look up the lottery
+      Lottery.find_by(topic_id: @context[:lottery_topic].id)&.id if @context[:lottery_topic]
     end
 
     def extract_donation_id
