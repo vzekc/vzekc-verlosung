@@ -61,6 +61,11 @@ de:
       draft_saved: "Entwurf erfolgreich gespeichert"
       draft_saving: "Speichert..."
       discard_draft: "Entwurf verwerfen"
+      draft_conflict:
+        title: "Vorhandener Entwurf"
+        message: "Du hast bereits einen Entwurf für eine andere Verlosung. Möchtest du diesen verwerfen und neu beginnen, oder den vorhandenen Entwurf fortsetzen?"
+        discard: "Verwerfen und neu beginnen"
+        keep: "Vorhandenen Entwurf laden"
       errors:
         at_least_one_packet_required: "Bitte geben Sie mindestens einen Pakettitel ein"
         packet_title_required: "Bitte geben Sie für alle Pakete einen Titel ein"

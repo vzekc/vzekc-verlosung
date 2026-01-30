@@ -96,6 +96,7 @@ export default class NewLotteryPage extends Component {
     this.body = this.template;
 
     // Pre-fill from donation if provided via route model
+    // These values from URL params take precedence over draft values
     if (this.args.model?.donationId) {
       this.donationId = this.args.model.donationId;
     }
@@ -103,12 +104,8 @@ export default class NewLotteryPage extends Component {
       this.title = this.args.model.donationTitle;
     }
 
-    // Load draft asynchronously (only if not creating from donation)
-    if (!this.donationId) {
-      this.loadDraft();
-    } else {
-      this.draftLoaded = true;
-    }
+    // Always attempt to load draft - it will handle donation_id conflicts
+    this.loadDraft();
 
     // Set up upload handler for body editor
     this.uppyUpload = new UppyUpload(getOwner(this), {
@@ -714,7 +711,34 @@ export default class NewLotteryPage extends Component {
   }
 
   /**
+   * Check if a draft has meaningful content worth preserving
+   */
+  _draftHasContent(draft) {
+    // Check title
+    if (draft.title && draft.title.trim().length > 0) {
+      return true;
+    }
+    // Check body (compare against template to see if user made changes)
+    if (draft.reply && draft.reply.trim() !== this.template.trim()) {
+      return true;
+    }
+    // Check packets
+    if (draft.metaData?.lottery_packets) {
+      const hasPacketContent = draft.metaData.lottery_packets.some(
+        (p) =>
+          (p.title && p.title.trim().length > 0) ||
+          (p.raw && p.raw.trim().length > 0)
+      );
+      if (hasPacketContent) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
    * Load existing draft if available
+   * Handles donation_id conflicts by asking user whether to discard
    */
   async loadDraft() {
     try {
@@ -729,6 +753,38 @@ export default class NewLotteryPage extends Component {
 
         // Check if this is a lottery draft by looking for lottery metadata
         if (draft.metaData && draft.metaData.lottery_duration_days) {
+          const draftDonationId = draft.metaData.donation_id || null;
+          const urlDonationId = this.donationId || null;
+
+          // Check if there's a donation_id mismatch
+          if (
+            draftDonationId !== urlDonationId &&
+            this._draftHasContent(draft)
+          ) {
+            // Ask user whether to discard the existing draft
+            const confirmed = await this.dialog.confirm({
+              title: i18n("vzekc_verlosung.draft_conflict.title"),
+              message: i18n("vzekc_verlosung.draft_conflict.message"),
+              confirmButtonLabel: i18n(
+                "vzekc_verlosung.draft_conflict.discard"
+              ),
+              cancelButtonLabel: i18n("vzekc_verlosung.draft_conflict.keep"),
+            });
+
+            if (confirmed) {
+              // User chose to discard - clear the draft and start fresh
+              await Draft.clear("new_topic", result.draft_sequence);
+              this.draftSequence = 0;
+              return; // Don't load the draft content
+            } else {
+              // User chose to keep the draft - restore its donation_id
+              this.donationId = draftDonationId;
+              // Clear the URL donation title since we're using draft data
+              // (title will be loaded from draft below)
+            }
+          }
+
+          // Load draft content
           this.title = draft.title || "";
           // Ensure body is always a string
           this.body =
@@ -738,6 +794,11 @@ export default class NewLotteryPage extends Component {
           this.durationDays = draft.metaData.lottery_duration_days || 14;
           this.drawingMode = draft.metaData.lottery_drawing_mode || "automatic";
           this.draftSequence = result.draft_sequence || 0;
+
+          // Restore donation_id from draft if not set from URL
+          if (!this.donationId && draftDonationId) {
+            this.donationId = draftDonationId;
+          }
 
           // Update the stable form data object
           if (this._formData) {
@@ -793,11 +854,6 @@ export default class NewLotteryPage extends Component {
    * Called automatically when form data changes
    */
   _scheduleDraftSave() {
-    // Don't auto-save if creating from donation (no draft needed)
-    if (this.donationId) {
-      return;
-    }
-
     // Don't schedule if draft hasn't loaded yet
     if (!this.draftLoaded) {
       return;
@@ -856,6 +912,7 @@ export default class NewLotteryPage extends Component {
             this.singlePacketErhaltungsberichtNotRequired,
           has_abholerpaket: !this.noAbholerpaket,
           abholerpaket_title: this.abholerpaketTitle,
+          donation_id: this.donationId,
         },
       };
 

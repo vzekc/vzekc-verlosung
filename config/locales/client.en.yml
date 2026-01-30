@@ -46,6 +46,11 @@ en:
       draft_saved: "Draft saved successfully"
       draft_saving: "Saving..."
       discard_draft: "Discard Draft"
+      draft_conflict:
+        title: "Existing Draft"
+        message: "You already have a draft for a different lottery. Do you want to discard it and start fresh, or continue with the existing draft?"
+        discard: "Discard and start fresh"
+        keep: "Load existing draft"
       errors:
         at_least_one_packet_required: "Please enter at least one packet title"
         packet_title_required: "Please enter a title for all packets"
