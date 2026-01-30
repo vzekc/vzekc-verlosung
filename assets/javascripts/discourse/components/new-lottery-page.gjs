@@ -1327,7 +1327,9 @@ export default class NewLotteryPage extends Component {
                         @extraButtons={{this.packetExtraButtons index}}
                         @onSetup={{fn this.onPacketEditorSetup index}}
                         @preview={{false}}
-                        @placeholder="vzekc_verlosung.modal.packet_description_placeholder"
+                        @placeholder={{i18n
+                          "vzekc_verlosung.modal.packet_description_placeholder"
+                        }}
                       />
                       <PickFilesButton
                         @registerFileInput={{fn
