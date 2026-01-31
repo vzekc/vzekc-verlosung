@@ -66,6 +66,10 @@ de:
         message: "Du hast bereits einen Entwurf für eine andere Verlosung. Möchtest du diesen verwerfen und neu beginnen, oder den vorhandenen Entwurf fortsetzen?"
         discard: "Verwerfen und neu beginnen"
         keep: "Vorhandenen Entwurf laden"
+      pending_donation_banner:
+        title: "Ist diese Verlosung für eine abgeholte Spende?"
+        description: "Du hast eine abgeholte Spende, für die noch keine Verlosung erstellt wurde. Klicke auf den Button, um diese Verlosung mit der Spende zu verknüpfen."
+      linked_donation_notice: "Diese Verlosung wird mit einer Spende verknüpft."
       errors:
         at_least_one_packet_required: "Bitte geben Sie mindestens einen Pakettitel ein"
         packet_title_required: "Bitte geben Sie für alle Pakete einen Titel ein"

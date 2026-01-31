@@ -13,6 +13,7 @@ import { service } from "@ember/service";
 import DButton from "discourse/components/d-button";
 import DEditor from "discourse/components/d-editor";
 import Form from "discourse/components/form";
+import icon from "discourse/helpers/d-icon";
 import PickFilesButton from "discourse/components/pick-files-button";
 import DTooltip from "discourse/float-kit/components/d-tooltip";
 import { ajax } from "discourse/lib/ajax";
@@ -59,6 +60,8 @@ export default class NewLotteryPage extends Component {
   @tracked draftSaving = false;
   @tracked draftLoaded = false;
   @tracked donationId = null;
+  @tracked pendingDonations = [];
+  @tracked pendingDonationsLoaded = false;
 
   formApi = null;
   bodyFileInputId = "lottery-body-file-uploader";
@@ -106,6 +109,13 @@ export default class NewLotteryPage extends Component {
 
     // Always attempt to load draft - it will handle donation_id conflicts
     this.loadDraft();
+
+    // Load pending donations if no donation_id was provided
+    if (!this.donationId) {
+      this.loadPendingDonations();
+    } else {
+      this.pendingDonationsLoaded = true;
+    }
 
     // Set up upload handler for body editor
     this.uppyUpload = new UppyUpload(getOwner(this), {
@@ -737,6 +747,54 @@ export default class NewLotteryPage extends Component {
   }
 
   /**
+   * Load pending donations for the current user
+   * These are donations where the user is the picker and hasn't completed the required action
+   */
+  async loadPendingDonations() {
+    try {
+      const response = await ajax("/vzekc-verlosung/donations/pending");
+      this.pendingDonations = response.donations || [];
+    } catch (error) {
+      // Silently fail - not critical
+      // eslint-disable-next-line no-console
+      console.warn("Failed to load pending donations:", error);
+      this.pendingDonations = [];
+    } finally {
+      this.pendingDonationsLoaded = true;
+    }
+  }
+
+  /**
+   * Link the lottery to a pending donation
+   */
+  @action
+  linkToDonation(donation) {
+    this.donationId = donation.id;
+    // Pre-fill title from donation if title is empty
+    if (!this.title || this.title.trim() === "") {
+      this.title = donation.title;
+      if (this.formApi) {
+        this.formApi.set("title", donation.title);
+      }
+      if (this._formData) {
+        this._formData.title = donation.title;
+      }
+    }
+    this._scheduleDraftSave();
+  }
+
+  /**
+   * Check if there are pending donations to show the banner
+   */
+  get showPendingDonationsBanner() {
+    return (
+      this.pendingDonationsLoaded &&
+      !this.donationId &&
+      this.pendingDonations.length > 0
+    );
+  }
+
+  /**
    * Load existing draft if available
    * Handles donation_id conflicts by asking user whether to discard
    */
@@ -1078,6 +1136,41 @@ export default class NewLotteryPage extends Component {
       <div class="new-lottery-page__header">
         <h1>{{i18n "vzekc_verlosung.neue_verlosung"}}</h1>
       </div>
+
+      {{#if this.showPendingDonationsBanner}}
+        <div class="pending-donation-banner">
+          <div class="pending-donation-banner__content">
+            <span class="pending-donation-banner__icon">{{icon
+                "circle-info"
+              }}</span>
+            <div class="pending-donation-banner__text">
+              <strong>{{i18n
+                  "vzekc_verlosung.pending_donation_banner.title"
+                }}</strong>
+              <p>{{i18n
+                  "vzekc_verlosung.pending_donation_banner.description"
+                }}</p>
+            </div>
+          </div>
+          <div class="pending-donation-banner__donations">
+            {{#each this.pendingDonations as |donation|}}
+              <DButton
+                @action={{fn this.linkToDonation donation}}
+                @translatedLabel={{donation.title}}
+                @icon="link"
+                class="btn-primary"
+              />
+            {{/each}}
+          </div>
+        </div>
+      {{/if}}
+
+      {{#if this.donationId}}
+        <div class="linked-donation-notice">
+          {{icon "link"}}
+          {{i18n "vzekc_verlosung.linked_donation_notice"}}
+        </div>
+      {{/if}}
 
       {{#if this.draftLoaded}}
         <Form

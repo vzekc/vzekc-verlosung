@@ -29,6 +29,7 @@ VzekcVerlosung::Engine.routes.draw do
 
   # Donation routes
   post "/donations" => "donations#create"
+  get "/donations/pending" => "donations#pending"
   get "/donations/:id" => "donations#show"
   put "/donations/:id/publish" => "donations#publish"
   put "/donations/:id/close" => "donations#close"

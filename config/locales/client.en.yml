@@ -51,6 +51,10 @@ en:
         message: "You already have a draft for a different lottery. Do you want to discard it and start fresh, or continue with the existing draft?"
         discard: "Discard and start fresh"
         keep: "Load existing draft"
+      pending_donation_banner:
+        title: "Is this lottery for a picked up donation?"
+        description: "You have a picked up donation that doesn't have a lottery yet. Click the button to link this lottery to the donation."
+      linked_donation_notice: "This lottery will be linked to a donation."
       errors:
         at_least_one_packet_required: "Please enter at least one packet title"
         packet_title_required: "Please enter a title for all packets"

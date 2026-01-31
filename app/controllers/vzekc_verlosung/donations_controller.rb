@@ -93,6 +93,30 @@ module VzekcVerlosung
       head :no_content
     end
 
+    # GET /vzekc-verlosung/donations/pending
+    #
+    # Returns donations where current user is the picker and hasn't completed the required action
+    # (i.e., hasn't created a lottery or written an Erhaltungsbericht)
+    #
+    # @return [JSON] Array of pending donations
+    def pending
+      # Find donations where current user is the assigned/picked_up picker
+      pending_donations =
+        Donation
+          .where(state: %w[picked_up closed])
+          .joins(:pickup_offers)
+          .where(vzekc_verlosung_pickup_offers: { user_id: current_user.id, state: %w[assigned picked_up] })
+          .includes(:topic, :lottery)
+          .select { |d| !d.pickup_action_completed? && d.topic.present? }
+
+      render json: {
+               donations:
+                 pending_donations.map do |d|
+                   { id: d.id, topic_id: d.topic_id, title: d.topic.title }
+                 end,
+             }
+    end
+
     # PUT /vzekc-verlosung/donations/:id/close
     #
     # Closes a donation (manual close by creator)
