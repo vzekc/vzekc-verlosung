@@ -1,0 +1,217 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# Custom MCP server for Discourse that loads Rails in-process
+# This avoids subprocess environment issues with mise/rbenv
+
+require "json"
+require "stringio"
+
+# MCP Protocol version
+MCP_VERSION = "2024-11-05"
+
+class DiscourseMcpServer
+  def initialize(discourse_path)
+    @discourse_path = discourse_path
+    @rails_loaded = false
+    @log_file = File.open("/tmp/discourse-mcp-server.log", "a")
+    @log_file.sync = true
+    log("Starting Discourse MCP Server for #{discourse_path}")
+  end
+
+  def log(message)
+    @log_file.puts("[#{Time.now.iso8601}] #{message}")
+  end
+
+  def run
+    log("Entering main loop")
+
+    $stdin.each_line do |line|
+      begin
+        request = JSON.parse(line)
+        log("Received: #{request['method']}")
+
+        response = handle_request(request)
+
+        if response
+          output = JSON.generate(response)
+          log("Sending response for #{request['method']}")
+          $stdout.puts(output)
+          $stdout.flush
+        end
+      rescue JSON::ParserError => e
+        log("JSON parse error: #{e.message}")
+      rescue => e
+        log("Error: #{e.message}\n#{e.backtrace.first(5).join("\n")}")
+        error_response = {
+          jsonrpc: "2.0",
+          id: request&.dig("id"),
+          error: { code: -32603, message: e.message }
+        }
+        $stdout.puts(JSON.generate(error_response))
+        $stdout.flush
+      end
+    end
+  end
+
+  def handle_request(request)
+    method = request["method"]
+    id = request["id"]
+    params = request["params"] || {}
+
+    case method
+    when "initialize"
+      handle_initialize(id, params)
+    when "notifications/initialized"
+      # Client acknowledgment, no response needed
+      nil
+    when "tools/list"
+      handle_tools_list(id)
+    when "tools/call"
+      handle_tools_call(id, params)
+    when "ping"
+      { jsonrpc: "2.0", id: id, result: {} }
+    else
+      log("Unknown method: #{method}")
+      { jsonrpc: "2.0", id: id, error: { code: -32601, message: "Method not found: #{method}" } }
+    end
+  end
+
+  def handle_initialize(id, params)
+    log("Initializing with params: #{params.inspect}")
+    {
+      jsonrpc: "2.0",
+      id: id,
+      result: {
+        protocolVersion: MCP_VERSION,
+        capabilities: {
+          tools: {}
+        },
+        serverInfo: {
+          name: "discourse-mcp-server",
+          version: "1.0.0"
+        }
+      }
+    }
+  end
+
+  def handle_tools_list(id)
+    {
+      jsonrpc: "2.0",
+      id: id,
+      result: {
+        tools: [
+          {
+            name: "execute_ruby",
+            description: "Execute Ruby code in the Discourse Rails context. " \
+                        "Full access to models, ActiveRecord, and Rails helpers. " \
+                        "Use `puts` to output results. Read-only operations only.",
+            inputSchema: {
+              type: "object",
+              properties: {
+                code: {
+                  type: "string",
+                  description: "Ruby code to execute"
+                }
+              },
+              required: ["code"]
+            }
+          }
+        ]
+      }
+    }
+  end
+
+  def handle_tools_call(id, params)
+    tool_name = params["name"]
+    arguments = params["arguments"] || {}
+
+    case tool_name
+    when "execute_ruby"
+      result = execute_ruby(arguments["code"])
+      {
+        jsonrpc: "2.0",
+        id: id,
+        result: {
+          content: [{ type: "text", text: result }]
+        }
+      }
+    else
+      {
+        jsonrpc: "2.0",
+        id: id,
+        error: { code: -32602, message: "Unknown tool: #{tool_name}" }
+      }
+    end
+  end
+
+  def load_rails_environment
+    return if @rails_loaded
+
+    log("Loading Rails environment from #{@discourse_path}")
+
+    Dir.chdir(@discourse_path) do
+      # Set up the environment
+      ENV["RAILS_ENV"] ||= "development"
+
+      # Load the Rails application
+      require File.join(@discourse_path, "config", "environment")
+    end
+
+    @rails_loaded = true
+    log("Rails environment loaded successfully")
+  rescue => e
+    log("Failed to load Rails: #{e.message}\n#{e.backtrace.first(10).join("\n")}")
+    raise "Failed to load Rails environment: #{e.message}"
+  end
+
+  def execute_ruby(code)
+    load_rails_environment
+
+    log("Executing Ruby code: #{code.lines.first}...")
+
+    # Capture stdout
+    old_stdout = $stdout
+    captured_output = StringIO.new
+    $stdout = captured_output
+
+    begin
+      # Execute the code in a clean binding
+      result = eval(code, TOPLEVEL_BINDING, "(mcp)", 1)
+
+      $stdout = old_stdout
+      output = captured_output.string
+
+      if output.empty?
+        # If no puts output, show the result
+        output = result.inspect
+      end
+
+      log("Execution successful, output length: #{output.length}")
+      output
+    rescue => e
+      $stdout = old_stdout
+      error_msg = "Error: #{e.class}: #{e.message}\n#{e.backtrace.first(5).join("\n")}"
+      log("Execution failed: #{e.message}")
+      error_msg
+    end
+  end
+end
+
+# Main entry point
+if __FILE__ == $0
+  discourse_path = ENV["DISCOURSE_PATH"]
+
+  unless discourse_path
+    $stderr.puts "Error: DISCOURSE_PATH environment variable not set"
+    exit 1
+  end
+
+  unless File.exist?(File.join(discourse_path, "config", "environment.rb"))
+    $stderr.puts "Error: Discourse not found at #{discourse_path}"
+    exit 1
+  end
+
+  server = DiscourseMcpServer.new(discourse_path)
+  server.run
+end

@@ -1,0 +1,20 @@
+{
+  "mcpServers": {
+    "postgres": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-postgres",
+        "postgresql://localhost/discourse_development"
+      ],
+      "env": {}
+    },
+    "discourse": {
+      "type": "stdio",
+      "command": "./bin/discourse-mcp-wrapper.sh",
+      "args": [],
+      "env": {}
+    }
+  }
+}
