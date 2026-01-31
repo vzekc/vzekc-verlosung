@@ -45,10 +45,6 @@ module VzekcVerlosung
         delivery: :pm,
         template: "notifications.donation_assigned",
       },
-      donation_picked_up: {
-        delivery: :pm,
-        template: "reminders.donation_picked_up",
-      },
       draft_reminder: {
         delivery: :pm,
         template: "reminders.draft",
@@ -206,8 +202,6 @@ module VzekcVerlosung
         build_packet_shipped_pm_data
       when :donation_assigned
         build_donation_assigned_pm_data
-      when :donation_picked_up
-        build_donation_picked_up_pm_data
       when :draft_reminder
         build_draft_reminder_pm_data
       when :donation_reminder
@@ -428,31 +422,6 @@ module VzekcVerlosung
             contact_info: contact_info,
           ),
         subtype: nil, # Not a system message, from facilitator
-      }
-    end
-
-    def build_donation_picked_up_pm_data
-      donation = @context[:donation]
-
-      return nil unless donation&.topic
-
-      {
-        sender: Discourse.system_user,
-        title:
-          I18n.t(
-            "vzekc_verlosung.reminders.donation_picked_up.title",
-            locale: @recipient.effective_locale,
-            topic_title: donation.topic.title,
-          ),
-        body:
-          I18n.t(
-            "vzekc_verlosung.reminders.donation_picked_up.body",
-            locale: @recipient.effective_locale,
-            username: @recipient.username,
-            topic_title: donation.topic.title,
-            topic_url: "#{Discourse.base_url}#{donation.topic.relative_url}",
-          ),
-        subtype: TopicSubtype.system_message,
       }
     end
 

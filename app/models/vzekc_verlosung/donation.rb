@@ -122,7 +122,8 @@ module VzekcVerlosung
     # @return [Boolean] true if successful
     def mark_picked_up!
       transaction do
-        update!(state: "picked_up")
+        # Set last_reminded_at to prevent duplicate reminder on same day
+        update!(state: "picked_up", last_reminded_at: Time.zone.now)
         # Update the assigned offer
         assigned_offer = pickup_offers.find_by(state: "assigned")
         assigned_offer&.update!(state: "picked_up", picked_up_at: Time.zone.now)
@@ -194,7 +195,7 @@ module VzekcVerlosung
       return unless picker
 
       NotificationService.notify(
-        :donation_picked_up,
+        :donation_picked_up_reminder,
         recipient: picker,
         context: {
           donation: self,

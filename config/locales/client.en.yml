@@ -396,7 +396,6 @@ en:
             winner_pm: "Winner message"
             packet_shipped: "Packet shipped"
             donation_assigned: "Donation assigned"
-            donation_picked_up: "Donation picked up"
             draft_reminder: "Draft reminder"
             donation_reminder: "Donation reminder"
             ending_tomorrow_reminder: "Ending tomorrow"

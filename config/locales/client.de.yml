@@ -443,7 +443,6 @@ de:
             winner_pm: "Gewinner-Nachricht"
             packet_shipped: "Paket versandt"
             donation_assigned: "Spende zugewiesen"
-            donation_picked_up: "Spende abgeholt"
             draft_reminder: "Entwurf-Erinnerung"
             donation_reminder: "Spenden-Erinnerung"
             ending_tomorrow_reminder: "Endet morgen"
