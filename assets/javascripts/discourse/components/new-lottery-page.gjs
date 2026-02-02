@@ -294,13 +294,14 @@ export default class NewLotteryPage extends Component {
 
   @action
   extraButtons(toolbar) {
-    if (this.allowUpload && this.site.desktopView) {
+    if (this.allowUpload) {
       toolbar.addButton({
         id: "upload",
-        group: "insertions",
+        group: "fontStyles",
         icon: this.uploadIcon,
         title: "upload",
         sendAction: () => this.showUploadModal(),
+        unshift: true,
       });
     }
   }
@@ -319,13 +320,14 @@ export default class NewLotteryPage extends Component {
   @action
   packetExtraButtons(index) {
     return (toolbar) => {
-      if (this.allowUpload && this.site.desktopView) {
+      if (this.allowUpload) {
         toolbar.addButton({
           id: "upload",
-          group: "insertions",
+          group: "fontStyles",
           icon: this.uploadIcon,
           title: "upload",
           sendAction: () => this.showPacketUploadModal(index),
+          unshift: true,
         });
       }
     };
