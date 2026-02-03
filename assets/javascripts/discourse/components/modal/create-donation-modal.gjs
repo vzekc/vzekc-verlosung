@@ -242,10 +242,6 @@ export default class CreateDonationModal extends Component {
 
           {{#unless this.skipMerchPacket}}
             <fieldset class="donor-address-section">
-              <legend>{{i18n
-                  "vzekc_verlosung.donation_modal.donor_address_legend"
-                }}</legend>
-
               <div class="control-group">
                 <label>{{i18n
                     "vzekc_verlosung.donation_modal.donor_name_label"
