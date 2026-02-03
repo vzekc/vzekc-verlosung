@@ -366,7 +366,7 @@ en:
         donor_company_placeholder: "Company name or additional info"
         donor_street_label: "Street"
         donor_street_placeholder: "Street name"
-        donor_street_number_label: "Number"
+        donor_street_number_label: "No."
         donor_street_number_placeholder: "Nr."
         donor_postcode_label: "Postcode"
         donor_postcode_placeholder: "PLZ"

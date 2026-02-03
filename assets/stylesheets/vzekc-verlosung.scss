@@ -3566,6 +3566,33 @@
   }
 }
 
+// Create Donation Modal
+.create-donation-modal {
+  .donation-form {
+    .street-row,
+    .postal-row {
+      display: flex;
+      gap: 1em;
+
+      .street-field {
+        flex: 1;
+      }
+
+      .street-number-field {
+        flex: 0 0 80px;
+      }
+
+      .postcode-field {
+        flex: 0 0 100px;
+      }
+
+      .city-field {
+        flex: 1;
+      }
+    }
+  }
+}
+
 // User profile notification logs
 .user-verlosungen-stats {
   .notifications-list {

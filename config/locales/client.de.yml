@@ -413,7 +413,7 @@ de:
         donor_company_placeholder: "Firmenname oder Zusatz"
         donor_street_label: "Straße"
         donor_street_placeholder: "Straßenname"
-        donor_street_number_label: "Hausnr."
+        donor_street_number_label: "Nr."
         donor_street_number_placeholder: "Nr."
         donor_postcode_label: "PLZ"
         donor_postcode_placeholder: "PLZ"
