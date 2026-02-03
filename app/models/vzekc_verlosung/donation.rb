@@ -24,6 +24,7 @@ module VzekcVerlosung
     alias_method :creator, :facilitator
     has_many :pickup_offers, dependent: :destroy
     has_one :lottery, class_name: "VzekcVerlosung::Lottery", dependent: :nullify
+    has_one :merch_packet, class_name: "VzekcVerlosung::MerchPacket", dependent: :destroy
 
     validates :state, presence: true, inclusion: { in: %w[draft open assigned picked_up closed] }
     validates :postcode, presence: true
@@ -132,6 +133,8 @@ module VzekcVerlosung
       close_automatically!
       # Send initial PM notification to picker about next steps
       send_pickup_notification!
+      # Notify merch handlers if a merch packet exists
+      notify_merch_handlers!
     end
 
     # Close the donation
@@ -180,6 +183,13 @@ module VzekcVerlosung
     # Automatically close donation after pickup
     def close_automatically!
       close! if picked_up?
+    end
+
+    # Notify merch handlers that a merch packet is ready to ship
+    def notify_merch_handlers!
+      return unless merch_packet&.pending?
+
+      NotificationService.notify_merch_handlers(donation: self)
     end
 
     # Send initial PM notification when donation is marked as picked up

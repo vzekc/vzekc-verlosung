@@ -140,7 +140,7 @@ end
 #
 # Indexes
 #
-#  idx_lottery_packet_winners_on_fulfillment_state   (fulfillment_state)
+#  idx_lottery_packet_winners_on_fulfillment_state  (fulfillment_state)
 #  idx_lottery_packet_winners_on_packet_id          (lottery_packet_id)
 #  idx_lottery_packet_winners_on_user_id            (winner_user_id)
 #  idx_lottery_packet_winners_unique_instance       (lottery_packet_id,instance_number) UNIQUE

@@ -41,6 +41,10 @@ VzekcVerlosung::Engine.routes.draw do
   put "/pickup-offers/:id/assign" => "pickup_offers#assign"
   put "/pickup-offers/:id/mark-picked-up" => "pickup_offers#mark_picked_up"
 
+  # Merch packet routes
+  get "/merch-packets" => "merch_packets#index"
+  put "/merch-packets/:id/ship" => "merch_packets#ship"
+
   # Notification logs routes
   get "/admin/notification-logs" => "notification_logs#admin_index"
   get "/users/:username/notification-logs" => "notification_logs#user_index"

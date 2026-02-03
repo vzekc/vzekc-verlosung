@@ -3,4 +3,5 @@ export default function () {
   this.route("activeLotteries", { path: "/lotteries" });
   this.route("activeDonations", { path: "/active-donations" });
   this.route("newLottery", { path: "/new-lottery" });
+  this.route("merchPackets", { path: "/merch-packets" });
 }

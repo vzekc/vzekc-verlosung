@@ -56,11 +56,21 @@ module VzekcVerlosung
     # Creates a new donation in draft state (no topic yet)
     #
     # @param postcode [String] Location postcode for pickup
+    # @param donor_name [String] Optional: Donor name for merch packet
+    # @param donor_company [String] Optional: Donor company/zusatz
+    # @param donor_street [String] Optional: Donor street
+    # @param donor_street_number [String] Optional: Donor street number
+    # @param donor_postcode [String] Optional: Donor postcode
+    # @param donor_city [String] Optional: Donor city
+    # @param donor_email [String] Optional: Donor email for tracking notification
     #
     # @return [JSON] donation_id for use in composer
     def create
       donation =
         Donation.create!(postcode: create_params[:postcode], creator_user_id: current_user.id)
+
+      # Create merch packet if donor address is provided
+      create_merch_packet_if_provided(donation)
 
       render json: success_json.merge(donation_id: donation.id)
     rescue ActiveRecord::RecordInvalid => e
@@ -141,7 +151,34 @@ module VzekcVerlosung
     private
 
     def create_params
-      params.permit(:postcode)
+      params.permit(
+        :postcode,
+        :donor_name,
+        :donor_company,
+        :donor_street,
+        :donor_street_number,
+        :donor_postcode,
+        :donor_city,
+        :donor_email,
+      )
+    end
+
+    # Create a merch packet if donor address fields are provided
+    #
+    # @param donation [Donation] The donation to create the merch packet for
+    def create_merch_packet_if_provided(donation)
+      return if create_params[:donor_name].blank?
+
+      MerchPacket.create!(
+        donation: donation,
+        donor_name: create_params[:donor_name],
+        donor_company: create_params[:donor_company],
+        donor_street: create_params[:donor_street],
+        donor_street_number: create_params[:donor_street_number],
+        donor_postcode: create_params[:donor_postcode],
+        donor_city: create_params[:donor_city],
+        donor_email: create_params[:donor_email],
+      )
     end
   end
 end

@@ -7,6 +7,7 @@ en:
     vzekc_verlosung_erhaltungsbericht_template: "Template for Erhaltungsbericht posts (use [LOTTERY_TITLE] and [PACKET_LINK] as placeholders)"
     vzekc_verlosung_reminder_hour: "Hour of day (0-23) in server local time when reminder notifications are sent"
     vzekc_verlosung_show_end_early_button: "Show 'End Early' button on active lotteries (for testing purposes)"
+    vzekc_verlosung_merch_handlers_group_name: "Name of the group whose members can manage merch packets"
   vzekc_verlosung:
     notifications:
       lottery_published: "The lottery '%{topic_title}' has been published and is now active"
@@ -57,6 +58,45 @@ en:
           Please mark the packet as "Received" once it arrives.
 
           **[→ Open lottery](%{lottery_url})**
+      merch_packet_ready:
+        title: "Please ship merch packet: %{topic_title}"
+        body: |
+          Hello %{username},
+
+          A donation has been picked up and a merch packet needs to be shipped to the donor.
+
+          **Donation:** [%{topic_title}](%{topic_url})
+
+          Please open the merch packet management and ship the packet. You will find the shipping address there.
+
+          **[→ Ship merch packet](%{merch_packets_url})**
+      merch_packet_shipped:
+        subject: "Your merch packet is on its way!"
+        body: |
+          Hello %{donor_name},
+
+          Thank you for your generous donation to our organization!
+
+          We have shipped a merch packet to you as a thank-you gift. It should arrive soon.
+
+          If you have any questions, please don't hesitate to contact us.
+
+          Best regards,
+          The VZEKC Team
+        body_with_tracking: |
+          Hello %{donor_name},
+
+          Thank you for your generous donation to our organization!
+
+          We have shipped a merch packet to you as a thank-you gift.
+
+          **Tracking Information:**
+          %{tracking_info}
+
+          If you have any questions, please don't hesitate to contact us.
+
+          Best regards,
+          The VZEKC Team
     reminders:
       draft:
         title: "You have an unpublished lottery"

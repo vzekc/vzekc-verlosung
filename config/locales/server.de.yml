@@ -7,6 +7,7 @@ de:
     vzekc_verlosung_erhaltungsbericht_template: "Vorlage für Erhaltungsbericht-Beiträge (verwende [LOTTERY_TITLE] und [PACKET_LINK] als Platzhalter)"
     vzekc_verlosung_reminder_hour: "Uhrzeit (0-23) in Server-Lokalzeit, zu der Erinnerungs-Benachrichtigungen versendet werden"
     vzekc_verlosung_show_end_early_button: "'Vorzeitig beenden' Button bei aktiven Verlosungen anzeigen (für Testzwecke)"
+    vzekc_verlosung_merch_handlers_group_name: "Name der Gruppe, deren Mitglieder Merch-Pakete verwalten können"
   vzekc_verlosung:
     notifications:
       lottery_published: "Die Verlosung '%{topic_title}' wurde veröffentlicht und ist jetzt aktiv"
@@ -57,6 +58,45 @@ de:
           Bitte markiere das Paket als "Erhalten", sobald es bei dir angekommen ist.
 
           **[→ Verlosung öffnen](%{lottery_url})**
+      merch_packet_ready:
+        title: "Bitte Merch-Paket versenden: %{topic_title}"
+        body: |
+          Hallo %{username},
+
+          eine Spende wurde abgeholt und ein Merch-Paket muss an den Spender versendet werden.
+
+          **Spende:** [%{topic_title}](%{topic_url})
+
+          Bitte öffne die Merch-Paket-Verwaltung und versende das Paket. Die Versandadresse findest du dort.
+
+          **[→ Merch-Paket versenden](%{merch_packets_url})**
+      merch_packet_shipped:
+        subject: "Dein Merch-Paket ist auf dem Weg!"
+        body: |
+          Hallo %{donor_name},
+
+          vielen Dank für deine großzügige Spende an unsere Organisation!
+
+          Wir haben dir als Dankeschön ein Merch-Paket geschickt. Es sollte bald bei dir ankommen.
+
+          Bei Fragen kannst du dich gerne an uns wenden.
+
+          Beste Grüße,
+          Das VZEKC-Team
+        body_with_tracking: |
+          Hallo %{donor_name},
+
+          vielen Dank für deine großzügige Spende an unsere Organisation!
+
+          Wir haben dir als Dankeschön ein Merch-Paket geschickt.
+
+          **Sendungsverfolgung:**
+          %{tracking_info}
+
+          Bei Fragen kannst du dich gerne an uns wenden.
+
+          Beste Grüße,
+          Das VZEKC-Team
     reminders:
       draft:
         title: "Du hast eine unveröffentlichte Verlosung"

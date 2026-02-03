@@ -155,12 +155,12 @@ function stateClass(state) {
                       "vzekc_verlosung.donation.state.assigned"
                     }}</span>
                 {{else if (eq donation.state "picked_up")}}
-                  {{icon "check-circle"}}
+                  {{icon "circle-check"}}
                   <span>{{i18n
                       "vzekc_verlosung.donation.state.picked_up"
                     }}</span>
                 {{else if (eq donation.state "closed")}}
-                  {{icon "check-circle"}}
+                  {{icon "circle-check"}}
                   <span>{{i18n "vzekc_verlosung.donation.state.closed"}}</span>
                 {{/if}}
               </div>

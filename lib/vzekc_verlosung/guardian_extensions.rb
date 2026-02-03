@@ -106,5 +106,20 @@ module VzekcVerlosung
       # For non-packet posts, use the default Guardian logic
       super
     end
+
+    # Check if user can manage merch packets
+    #
+    # @return [Boolean] true if user is in merch handlers group
+    def can_manage_merch_packets?
+      return false unless @user
+
+      group_name = SiteSetting.vzekc_verlosung_merch_handlers_group_name
+      return false if group_name.blank?
+
+      group = Group.find_by(name: group_name)
+      return false unless group
+
+      group.users.exists?(id: @user.id)
+    end
   end
 end

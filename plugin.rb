@@ -31,6 +31,7 @@ register_svg_icon "clover"
 register_svg_icon "cloud-rain"
 register_svg_icon "truck"
 register_svg_icon "hand-paper"
+register_svg_icon "map"
 
 module ::VzekcVerlosung
   PLUGIN_NAME = "vzekc-verlosung"
@@ -53,6 +54,7 @@ after_initialize do
     get "/lotteries" => "users#index", :constraints => { format: /(json|html)/ }
     get "/active-donations" => "users#index", :constraints => { format: /(json|html)/ }
     get "/new-lottery" => "list#latest", :constraints => { format: /(json|html)/ }
+    get "/merch-packets" => "users#index", :constraints => { format: /(json|html)/ }
     get "u/:username/verlosungen" => "users#show",
         :constraints => {
           username: USERNAME_ROUTE_FORMAT,

@@ -77,6 +77,10 @@ module VzekcVerlosung
         delivery: :pm,
         template: "reminders.uncollected",
       },
+      merch_packet_ready: {
+        delivery: :pm,
+        template: "notifications.merch_packet_ready",
+      },
     }.freeze
 
     class << self
@@ -98,6 +102,66 @@ module VzekcVerlosung
       # @return [Array<NotificationLog>] The created log entries
       def notify_batch(type, recipients:, context: {})
         recipients.filter_map { |recipient| notify(type, recipient: recipient, context: context) }
+      end
+
+      # Notify merch handlers that a merch packet is ready
+      #
+      # @param donation [Donation] The donation with a merch packet
+      def notify_merch_handlers(donation:)
+        group_name = SiteSetting.vzekc_verlosung_merch_handlers_group_name
+        return if group_name.blank?
+
+        group = Group.find_by(name: group_name)
+        return unless group
+
+        group.users.each do |user|
+          notify(:merch_packet_ready, recipient: user, context: { donation: donation })
+        end
+      end
+
+      # Send email to donor when merch packet is shipped
+      #
+      # @param email [String] Donor's email address
+      # @param donor_name [String] Donor's name
+      # @param tracking_info [String] Optional tracking information
+      # @param donation [Donation] The associated donation
+      def send_merch_packet_shipped_email(email:, donor_name:, tracking_info:, donation:)
+        return if email.blank?
+
+        subject =
+          I18n.t("vzekc_verlosung.notifications.merch_packet_shipped.subject")
+
+        body =
+          if tracking_info.present?
+            I18n.t(
+              "vzekc_verlosung.notifications.merch_packet_shipped.body_with_tracking",
+              donor_name: donor_name,
+              tracking_info: tracking_info,
+            )
+          else
+            I18n.t(
+              "vzekc_verlosung.notifications.merch_packet_shipped.body",
+              donor_name: donor_name,
+            )
+          end
+
+        Email::Sender.new(
+          build_merch_packet_email(email, subject, body),
+          :vzekc_verlosung_merch_packet_shipped,
+        ).send
+      rescue => e
+        Rails.logger.error("Failed to send merch packet shipped email: #{e.message}")
+      end
+
+      private
+
+      def build_merch_packet_email(to_address, subject, body)
+        message = Mail::Message.new
+        message.to = to_address
+        message.from = SiteSetting.notification_email
+        message.subject = subject
+        message.body = body
+        message
       end
     end
 
@@ -168,8 +232,12 @@ module VzekcVerlosung
       pm_data = build_pm_data
       return nil unless pm_data
 
+      # Reload sender to avoid stale class references in development mode
+      sender = pm_data[:sender]
+      sender = User.find(sender.id) if sender.is_a?(User)
+
       PostCreator.create!(
-        pm_data[:sender],
+        sender,
         title: pm_data[:title],
         raw: pm_data[:body],
         archetype: Archetype.private_message,
@@ -218,6 +286,8 @@ module VzekcVerlosung
         build_erhaltungsbericht_reminder_pm_data
       when :uncollected_reminder
         build_uncollected_reminder_pm_data
+      when :merch_packet_ready
+        build_merch_packet_ready_pm_data
       end
     end
 
@@ -629,6 +699,34 @@ module VzekcVerlosung
             days_since_drawn: days_since_drawn,
             packet_list: packet_list,
             topic_url: "#{Discourse.base_url}#{lottery_topic.relative_url}",
+          ),
+        subtype: TopicSubtype.system_message,
+      }
+    end
+
+    def build_merch_packet_ready_pm_data
+      donation = @context[:donation]
+      topic = donation&.topic
+      merch_packet = donation&.merch_packet
+
+      return nil unless topic && merch_packet
+
+      {
+        sender: Discourse.system_user,
+        title:
+          I18n.t(
+            "vzekc_verlosung.notifications.merch_packet_ready.title",
+            locale: @recipient.effective_locale,
+            topic_title: topic.title,
+          ),
+        body:
+          I18n.t(
+            "vzekc_verlosung.notifications.merch_packet_ready.body",
+            locale: @recipient.effective_locale,
+            username: @recipient.username,
+            topic_title: topic.title,
+            topic_url: "#{Discourse.base_url}#{topic.relative_url}",
+            merch_packets_url: "#{Discourse.base_url}/vzekc-verlosung/merch-packets?ship=#{merch_packet.id}",
           ),
         subtype: TopicSubtype.system_message,
       }

@@ -3352,6 +3352,220 @@
   }
 }
 
+// Merch Packets Page
+.merch-packets-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1em;
+
+  h1 {
+    margin-bottom: 1em;
+  }
+}
+
+.merch-packets-list {
+  .nav-pills {
+    display: flex;
+    gap: 0.5em;
+    list-style: none;
+    padding: 0;
+    margin: 0 0 1.5em 0;
+    border-bottom: 2px solid var(--primary-low);
+    padding-bottom: 0.5em;
+
+    li {
+      margin: 0;
+    }
+
+    button {
+      background: none;
+      border: none;
+      padding: 0.5em 1em;
+      cursor: pointer;
+      color: var(--primary-medium);
+      font-size: 0.95em;
+      border-radius: 4px;
+      transition: all 0.2s ease;
+
+      &:hover {
+        background: var(--primary-very-low);
+        color: var(--primary);
+      }
+
+      &.active {
+        background: var(--tertiary-low);
+        color: var(--tertiary);
+        font-weight: 500;
+      }
+    }
+  }
+
+  .merch-packets-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--secondary);
+    border: 1px solid var(--primary-low);
+    border-radius: 6px;
+
+    th,
+    td {
+      padding: 0.75em 1em;
+      text-align: left;
+      border-bottom: 1px solid var(--primary-low);
+    }
+
+    th {
+      font-weight: 600;
+      background: var(--primary-very-low);
+      color: var(--primary-high);
+
+      &:first-child {
+        border-radius: 6px 0 0 0;
+      }
+
+      &:last-child {
+        border-radius: 0 6px 0 0;
+      }
+    }
+
+    tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    tbody tr:hover {
+      background: var(--primary-very-low);
+    }
+
+    .donation-cell {
+      a {
+        color: var(--tertiary);
+        text-decoration: none;
+
+        &:hover {
+          text-decoration: underline;
+        }
+      }
+    }
+
+    .donor-cell {
+      small {
+        color: var(--primary-medium);
+      }
+    }
+
+    .date-cell {
+      white-space: nowrap;
+      color: var(--primary-medium);
+
+      .tracking-info {
+        margin-top: 0.25em;
+        font-size: 0.9em;
+        color: var(--primary-high);
+
+        .d-icon {
+          margin-right: 0.25em;
+        }
+      }
+    }
+
+    .actions-cell {
+      text-align: right;
+    }
+
+    .shipped-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35em;
+      color: var(--success);
+      font-weight: 500;
+
+      .d-icon {
+        color: var(--success);
+      }
+    }
+  }
+
+  .no-packets {
+    text-align: center;
+    padding: 3em;
+    color: var(--primary-medium);
+    font-size: 1.1em;
+  }
+}
+
+// Mark Merch Shipped Modal
+.mark-merch-shipped-modal {
+  .ship-modal-content {
+    .packet-info,
+    .donor-address {
+      margin-bottom: 1.5em;
+
+      h4 {
+        margin: 0 0 0.5em 0;
+        font-size: 0.9em;
+        font-weight: 600;
+        color: var(--primary-medium);
+      }
+
+      p {
+        margin: 0;
+      }
+
+      pre {
+        margin: 0;
+        padding: 0.75em;
+        background: var(--primary-very-low);
+        border: 1px solid var(--primary-low);
+        border-radius: 4px;
+        white-space: pre-wrap;
+        font-family: inherit;
+        font-size: 0.95em;
+      }
+    }
+
+    .donor-email-info {
+      margin-bottom: 1.5em;
+      padding: 0.75em;
+      background: var(--tertiary-low);
+      border: 1px solid var(--tertiary);
+      border-radius: 4px;
+
+      .email-notice {
+        margin: 0;
+        font-size: 0.9em;
+        color: var(--primary-high);
+      }
+    }
+
+    .tracking-input {
+      label {
+        display: block;
+        margin-bottom: 0.5em;
+        font-weight: 600;
+      }
+
+      .tracking-info-input {
+        width: 100%;
+        padding: 0.5em;
+        border: 1px solid var(--primary-low-mid);
+        border-radius: 4px;
+        font-size: 1em;
+
+        &:focus {
+          outline: none;
+          border-color: var(--tertiary);
+        }
+      }
+
+      .help-text {
+        margin: 0.5em 0 0 0;
+        font-size: 0.85em;
+        color: var(--primary-medium);
+      }
+    }
+  }
+}
+
 // User profile notification logs
 .user-verlosungen-stats {
   .notifications-list {

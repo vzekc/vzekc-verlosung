@@ -27,13 +27,40 @@ export default class CreateDonationModal extends Component {
   @tracked postcode = "";
   @tracked isSubmitting = false;
 
+  @tracked skipMerchPacket = false;
+  @tracked donorName = "";
+  @tracked donorCompany = "";
+  @tracked donorStreet = "";
+  @tracked donorStreetNumber = "";
+  @tracked donorPostcode = "";
+  @tracked donorCity = "";
+  @tracked donorEmail = "";
+
   /**
    * Check if user can submit
    *
    * @type {boolean}
    */
   get canSubmit() {
-    return this.title.trim().length >= 3 && this.postcode.trim().length >= 3;
+    const basicValid =
+      this.title.trim().length >= 3 && this.postcode.trim().length >= 3;
+
+    if (!basicValid) {
+      return false;
+    }
+
+    // If merch packet is NOT skipped, require address fields
+    if (!this.skipMerchPacket) {
+      return (
+        this.donorName.trim().length >= 2 &&
+        this.donorStreet.trim().length >= 2 &&
+        this.donorStreetNumber.trim().length >= 1 &&
+        this.donorPostcode.trim().length >= 4 &&
+        this.donorCity.trim().length >= 2
+      );
+    }
+
+    return true;
   }
 
   /**
@@ -45,6 +72,14 @@ export default class CreateDonationModal extends Component {
   @action
   updateField(field, event) {
     this[field] = event.target.value;
+  }
+
+  /**
+   * Toggle skip merch packet checkbox
+   */
+  @action
+  toggleSkipMerchPacket() {
+    this.skipMerchPacket = !this.skipMerchPacket;
   }
 
   /**
@@ -104,28 +139,36 @@ export default class CreateDonationModal extends Component {
     this.isSubmitting = true;
 
     try {
-      // Create draft donation
+      const requestData = {
+        postcode: this.postcode.trim(),
+      };
+
+      // Send merch packet data unless explicitly skipped
+      if (!this.skipMerchPacket) {
+        requestData.donor_name = this.donorName.trim();
+        requestData.donor_company = this.donorCompany.trim() || null;
+        requestData.donor_street = this.donorStreet.trim();
+        requestData.donor_street_number = this.donorStreetNumber.trim();
+        requestData.donor_postcode = this.donorPostcode.trim();
+        requestData.donor_city = this.donorCity.trim();
+        requestData.donor_email = this.donorEmail.trim() || null;
+      }
+
       const result = await ajax("/vzekc-verlosung/donations", {
         type: "POST",
         contentType: "application/json",
-        data: JSON.stringify({
-          postcode: this.postcode.trim(),
-        }),
+        data: JSON.stringify(requestData),
       });
 
       const donationId = result.donation_id;
 
-      // Get the donation template and replace [POSTCODE]
       let template = this.siteSettings.vzekc_verlosung_donation_template || "";
       template = template.replace(/\[POSTCODE\]/g, this.postcode.trim());
 
       this.args.closeModal();
 
-      // Open composer with pre-filled content and donation_id
-      // Keys must match first parameter of serializeToDraft in donation-composer.js
       const topicTitle = `${this.title.trim()} in ${this.postcode.trim()}`;
 
-      // Note: Custom slug with "-spende" suffix is set on backend when donation is published
       this.composer.open({
         action: Composer.CREATE_TOPIC,
         categoryId: this.args.model.categoryId,
@@ -180,6 +223,149 @@ export default class CreateDonationModal extends Component {
               class="donation-postcode-input"
             />
           </div>
+
+          <div class="control-group merch-packet-section">
+            <label class="checkbox-label">
+              <input
+                type="checkbox"
+                checked={{this.skipMerchPacket}}
+                {{on "change" this.toggleSkipMerchPacket}}
+              />
+              {{i18n "vzekc_verlosung.donation_modal.skip_merch_packet"}}
+            </label>
+            {{#unless this.skipMerchPacket}}
+              <p class="help-text">{{i18n
+                  "vzekc_verlosung.donation_modal.merch_packet_help"
+                }}</p>
+            {{/unless}}
+          </div>
+
+          {{#unless this.skipMerchPacket}}
+            <fieldset class="donor-address-section">
+              <legend>{{i18n
+                  "vzekc_verlosung.donation_modal.donor_address_legend"
+                }}</legend>
+
+              <div class="control-group">
+                <label>{{i18n
+                    "vzekc_verlosung.donation_modal.donor_name_label"
+                  }}<span class="required">*</span></label>
+                <input
+                  type="text"
+                  {{on "input" (fn this.updateField "donorName")}}
+                  {{on "keydown" this.handleKeyDown}}
+                  value={{this.donorName}}
+                  placeholder={{i18n
+                    "vzekc_verlosung.donation_modal.donor_name_placeholder"
+                  }}
+                  class="donor-name-input"
+                />
+              </div>
+
+              <div class="control-group">
+                <label>{{i18n
+                    "vzekc_verlosung.donation_modal.donor_company_label"
+                  }}</label>
+                <input
+                  type="text"
+                  {{on "input" (fn this.updateField "donorCompany")}}
+                  {{on "keydown" this.handleKeyDown}}
+                  value={{this.donorCompany}}
+                  placeholder={{i18n
+                    "vzekc_verlosung.donation_modal.donor_company_placeholder"
+                  }}
+                  class="donor-company-input"
+                />
+              </div>
+
+              <div class="control-group street-row">
+                <div class="street-field">
+                  <label>{{i18n
+                      "vzekc_verlosung.donation_modal.donor_street_label"
+                    }}<span class="required">*</span></label>
+                  <input
+                    type="text"
+                    {{on "input" (fn this.updateField "donorStreet")}}
+                    {{on "keydown" this.handleKeyDown}}
+                    value={{this.donorStreet}}
+                    placeholder={{i18n
+                      "vzekc_verlosung.donation_modal.donor_street_placeholder"
+                    }}
+                    class="donor-street-input"
+                  />
+                </div>
+                <div class="street-number-field">
+                  <label>{{i18n
+                      "vzekc_verlosung.donation_modal.donor_street_number_label"
+                    }}<span class="required">*</span></label>
+                  <input
+                    type="text"
+                    {{on "input" (fn this.updateField "donorStreetNumber")}}
+                    {{on "keydown" this.handleKeyDown}}
+                    value={{this.donorStreetNumber}}
+                    placeholder={{i18n
+                      "vzekc_verlosung.donation_modal.donor_street_number_placeholder"
+                    }}
+                    class="donor-street-number-input"
+                  />
+                </div>
+              </div>
+
+              <div class="control-group postal-row">
+                <div class="postcode-field">
+                  <label>{{i18n
+                      "vzekc_verlosung.donation_modal.donor_postcode_label"
+                    }}<span class="required">*</span></label>
+                  <input
+                    type="text"
+                    {{on "input" (fn this.updateField "donorPostcode")}}
+                    {{on "keydown" this.handleKeyDown}}
+                    value={{this.donorPostcode}}
+                    placeholder={{i18n
+                      "vzekc_verlosung.donation_modal.donor_postcode_placeholder"
+                    }}
+                    class="donor-postcode-input"
+                  />
+                </div>
+                <div class="city-field">
+                  <label>{{i18n
+                      "vzekc_verlosung.donation_modal.donor_city_label"
+                    }}<span class="required">*</span></label>
+                  <input
+                    type="text"
+                    {{on "input" (fn this.updateField "donorCity")}}
+                    {{on "keydown" this.handleKeyDown}}
+                    value={{this.donorCity}}
+                    placeholder={{i18n
+                      "vzekc_verlosung.donation_modal.donor_city_placeholder"
+                    }}
+                    class="donor-city-input"
+                  />
+                </div>
+              </div>
+
+              <div class="control-group">
+                <label>{{i18n
+                    "vzekc_verlosung.donation_modal.donor_email_label"
+                  }}</label>
+                <input
+                  type="email"
+                  name="email"
+                  autocomplete="email"
+                  {{on "input" (fn this.updateField "donorEmail")}}
+                  {{on "keydown" this.handleKeyDown}}
+                  value={{this.donorEmail}}
+                  placeholder={{i18n
+                    "vzekc_verlosung.donation_modal.donor_email_placeholder"
+                  }}
+                  class="donor-email-input"
+                />
+                <p class="help-text">{{i18n
+                    "vzekc_verlosung.donation_modal.donor_email_help"
+                  }}</p>
+              </div>
+            </fieldset>
+          {{/unless}}
         </form>
       </:body>
       <:footer>

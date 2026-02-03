@@ -90,3 +90,7 @@ vzekc_verlosung:
     default: 'vereinsmitglieder'
     type: string
     client: false
+  vzekc_verlosung_merch_handlers_group_name:
+    default: ''
+    type: string
+    client: true
