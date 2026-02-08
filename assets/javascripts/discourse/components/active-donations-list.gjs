@@ -86,7 +86,8 @@ function stateClass(state) {
       {{#each @donations as |donation|}}
         <div
           class="active-donation-card
-            {{if donation.assigned_picker 'has-picker'}}"
+            {{if donation.assigned_picker 'has-picker'}}
+            {{if donation.unread 'is-unread'}}"
         >
           <div class="active-donation-header">
             <h3 class="active-donation-title">

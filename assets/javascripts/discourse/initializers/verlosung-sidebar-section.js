@@ -1,5 +1,47 @@
+import { ajax } from "discourse/lib/ajax";
 import { withPluginApi } from "discourse/lib/plugin-api";
 import { i18n } from "discourse-i18n";
+
+const newContentState = {
+  donations: false,
+  lotteries: false,
+  erhaltungsberichte: false,
+  merch_packets: false,
+};
+
+const LINK_SELECTORS = {
+  donations: '.sidebar-section-link[data-link-name="active-donations"]',
+  lotteries: '.sidebar-section-link[data-link-name="lotteries"]',
+  erhaltungsberichte:
+    '.sidebar-section-link[data-link-name="erhaltungsberichte-category"]',
+  merch_packets: '.sidebar-section-link[data-link-name="merch-packets"]',
+};
+
+function applyCssClasses() {
+  for (const [key, selector] of Object.entries(LINK_SELECTORS)) {
+    const el = document.querySelector(selector);
+    if (!el) {
+      continue;
+    }
+    if (newContentState[key]) {
+      el.classList.add("has-new-content");
+    } else {
+      el.classList.remove("has-new-content");
+    }
+  }
+}
+
+function fetchNewContentStatus() {
+  return ajax("/vzekc-verlosung/has-new-content.json")
+    .then((result) => {
+      newContentState.donations = result.donations;
+      newContentState.lotteries = result.lotteries;
+      newContentState.erhaltungsberichte = result.erhaltungsberichte;
+      newContentState.merch_packets = result.merch_packets;
+      applyCssClasses();
+    })
+    .catch(() => {});
+}
 
 export default {
   name: "verlosung-sidebar-section",
@@ -13,7 +55,6 @@ export default {
       return;
     }
 
-    // Check if current user is a merch handler
     const merchHandlersGroupName =
       siteSettings.vzekc_verlosung_merch_handlers_group_name;
     const isMerchHandler =
@@ -21,7 +62,33 @@ export default {
       merchHandlersGroupName &&
       currentUser.groups?.some((g) => g.name === merchHandlersGroupName);
 
+    const erhaltungsberichteCategoryId = parseInt(
+      siteSettings.vzekc_verlosung_erhaltungsberichte_category_id,
+      10
+    );
+    const erhaltungsberichteCategory = site.categories?.find(
+      (c) => c.id === erhaltungsberichteCategoryId
+    );
+    const erhaltungsberichteCategoryUrl = erhaltungsberichteCategory?.url;
+
+    if (currentUser) {
+      const messageBus = container.lookup("service:message-bus");
+
+      fetchNewContentStatus();
+
+      messageBus.subscribe("/vzekc-verlosung/new-content", (data) => {
+        if (data.type && data.type in newContentState) {
+          newContentState[data.type] = data.has_new;
+          applyCssClasses();
+        }
+      });
+    }
+
     withPluginApi((api) => {
+      if (currentUser) {
+        api.onPageChange(() => applyCssClasses());
+      }
+
       api.addSidebarSection(
         (BaseCustomSidebarSection, BaseCustomSidebarSectionLink) => {
           const ActiveLotteriesLink = class extends BaseCustomSidebarSectionLink {
@@ -82,14 +149,7 @@ export default {
             }
 
             get href() {
-              const categoryId = parseInt(
-                siteSettings.vzekc_verlosung_erhaltungsberichte_category_id,
-                10
-              );
-              const category = site.categories?.find(
-                (c) => c.id === categoryId
-              );
-              return category?.url;
+              return erhaltungsberichteCategoryUrl;
             }
 
             get text() {
@@ -177,21 +237,15 @@ export default {
             get links() {
               const links = [];
 
-              // Spendenangebote
               links.push(new ActiveDonationsLink());
-
-              // Verlosungen (active lotteries)
               links.push(new ActiveLotteriesLink());
 
-              // Erhaltungsberichte
               if (siteSettings.vzekc_verlosung_erhaltungsberichte_category_id) {
                 links.push(new ErhaltungsberichteCategoryLink());
               }
 
-              // Verlosungshistorie
               links.push(new HistoryLink());
 
-              // Merch-Pakete (only for merch handlers)
               if (isMerchHandler) {
                 links.push(new MerchPacketsLink());
               }

@@ -126,6 +126,8 @@ module VzekcVerlosung
 
       context[:main_topic] = post.topic
       context[:lottery] = lottery
+
+      VzekcVerlosung.notify_new_content("lotteries")
     end
 
     def create_packet_posts(user:, params:)

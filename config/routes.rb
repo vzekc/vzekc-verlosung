@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 VzekcVerlosung::Engine.routes.draw do
+  get "/has-new-content" => "new_content#index"
   get "/examples" => "examples#index"
   get "/users/:username" => "user_stats#show"
   get "/history" => "lottery_history#index"

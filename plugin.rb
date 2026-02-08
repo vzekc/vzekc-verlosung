@@ -35,6 +35,114 @@ register_svg_icon "map"
 
 module ::VzekcVerlosung
   PLUGIN_NAME = "vzekc-verlosung"
+
+  # Broadcast new content notification via MessageBus
+  #
+  # @param section [String] one of: "donations", "lotteries", "erhaltungsberichte", "merch_packets"
+  # @param user_ids [Array<Integer>] optional: restrict notification to specific users
+  # @param has_new [Boolean] true when new content exists, false when section is clear
+  def self.notify_new_content(section, user_ids: nil, has_new: true)
+    message = { type: section, has_new: has_new }
+    if user_ids.present?
+      MessageBus.publish("/vzekc-verlosung/new-content", message, user_ids: user_ids)
+    else
+      MessageBus.publish("/vzekc-verlosung/new-content", message)
+    end
+  end
+
+  # Get user IDs for the merch handlers group
+  #
+  # @return [Array<Integer>]
+  def self.merch_handler_user_ids
+    group_name = SiteSetting.vzekc_verlosung_merch_handlers_group_name
+    return [] if group_name.blank?
+    Group.find_by(name: group_name)&.users&.pluck(:id) || []
+  end
+
+  # Check if user has unread donation topics (non-draft, < 4 weeks old)
+  #
+  # @param user_id [Integer]
+  # @return [Boolean]
+  def self.has_unread_donations?(user_id)
+    Donation
+      .where.not(state: "draft")
+      .where.not(topic_id: nil)
+      .joins(:topic)
+      .where("topics.created_at > ?", 4.weeks.ago)
+      .joins(left_join_topic_users_sql(user_id))
+      .where("topic_users.first_visited_at IS NULL")
+      .exists?
+  end
+
+  # Check if user has unread active lottery topics
+  #
+  # @param user_id [Integer]
+  # @return [Boolean]
+  def self.has_unread_lotteries?(user_id)
+    Lottery
+      .where(state: "active")
+      .joins(:topic)
+      .joins(left_join_topic_users_sql(user_id))
+      .where("topic_users.first_visited_at IS NULL")
+      .exists?
+  end
+
+  # Check if user has unread Erhaltungsbericht topics (< 4 weeks old)
+  #
+  # @param user_id [Integer]
+  # @return [Boolean]
+  def self.has_unread_erhaltungsberichte?(user_id)
+    category_id = SiteSetting.vzekc_verlosung_erhaltungsberichte_category_id.to_i
+    return false if category_id <= 0
+
+    Topic
+      .where(category_id: category_id, deleted_at: nil)
+      .where("topics.created_at > ?", 4.weeks.ago)
+      .joins(left_join_topic_users_sql(user_id))
+      .where("topic_users.first_visited_at IS NULL")
+      .exists?
+  end
+
+  # Check if pending merch packets exist for picked-up/closed donations
+  #
+  # @return [Boolean]
+  def self.has_pending_merch_packets?
+    MerchPacket
+      .pending
+      .joins(:donation)
+      .where(vzekc_verlosung_donations: { state: %w[picked_up closed] })
+      .exists?
+  end
+
+  # Called after a user first visits a topic to check if a new-content
+  # indicator should be cleared for that user
+  #
+  # @param topic_id [Integer]
+  # @param user_id [Integer]
+  def self.check_new_content_after_visit(topic_id, user_id)
+    if Donation.exists?(topic_id: topic_id) && !has_unread_donations?(user_id)
+      notify_new_content("donations", user_ids: [user_id], has_new: false)
+    end
+
+    if Lottery.exists?(topic_id: topic_id) && !has_unread_lotteries?(user_id)
+      notify_new_content("lotteries", user_ids: [user_id], has_new: false)
+    end
+
+    category_id = SiteSetting.vzekc_verlosung_erhaltungsberichte_category_id.to_i
+    if category_id > 0 && Topic.exists?(id: topic_id, category_id: category_id) &&
+         !has_unread_erhaltungsberichte?(user_id)
+      notify_new_content("erhaltungsberichte", user_ids: [user_id], has_new: false)
+    end
+  end
+
+  # Build LEFT JOIN SQL for topic_users filtered by user_id
+  #
+  # @param user_id [Integer]
+  # @return [String] SQL LEFT JOIN clause
+  def self.left_join_topic_users_sql(user_id)
+    sanitized = ActiveRecord::Base.sanitize_sql_array(["?", user_id])
+    "LEFT JOIN topic_users ON topic_users.topic_id = topics.id AND topic_users.user_id = #{sanitized}"
+  end
 end
 
 add_admin_route "vzekc_verlosung.admin.notification_logs.nav_title", "vzekc-verlosung",
@@ -46,6 +154,18 @@ require_relative "lib/vzekc_verlosung/member_checker"
 require_relative "lib/vzekc_verlosung/orphan_cleanup"
 
 after_initialize do
+  # Detect first topic visits to clear new-content sidebar indicators
+  module ::VzekcVerlosung
+    module TopicUserTrackVisitExtension
+      def track_visit!(topic_id, user_id)
+        first_visit = !TopicUser.exists?(topic_id: topic_id, user_id: user_id)
+        super
+        VzekcVerlosung.check_new_content_after_visit(topic_id, user_id) if first_visit
+      end
+    end
+  end
+  TopicUser.singleton_class.prepend(VzekcVerlosung::TopicUserTrackVisitExtension)
+
   # Clean up orphaned lottery data (lotteries without topics, packets without posts, etc.)
   VzekcVerlosung::OrphanCleanup.run
   # Register custom routes
@@ -693,6 +813,7 @@ after_initialize do
           if winner_entry
             # Establish reverse link from winner entry to Erhaltungsbericht
             winner_entry.link_report!(topic)
+            VzekcVerlosung.notify_new_content("erhaltungsberichte")
           end
         end
       end
@@ -719,6 +840,7 @@ after_initialize do
         donation = VzekcVerlosung::Donation.find_by(id: erhaltungsbericht_donation_id)
         if donation
           donation.update!(erhaltungsbericht_topic_id: topic.id)
+          VzekcVerlosung.notify_new_content("erhaltungsberichte")
           Rails.logger.info("Linked Erhaltungsbericht topic #{topic.id} to donation #{donation.id}")
         else
           Rails.logger.warn(
@@ -876,6 +998,7 @@ after_initialize do
 
     # Auto-publish the donation
     donation.publish!
+    VzekcVerlosung.notify_new_content("donations")
 
     Rails.logger.info("Linked donation #{donation.id} to topic #{topic.id} and published")
   end

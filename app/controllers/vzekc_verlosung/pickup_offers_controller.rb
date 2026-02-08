@@ -136,6 +136,11 @@ module VzekcVerlosung
 
       donation.mark_picked_up!
 
+      if donation.merch_packet&.pending?
+        handler_ids = VzekcVerlosung.merch_handler_user_ids
+        VzekcVerlosung.notify_new_content("merch_packets", user_ids: handler_ids) if handler_ids.any?
+      end
+
       head :no_content
     end
 

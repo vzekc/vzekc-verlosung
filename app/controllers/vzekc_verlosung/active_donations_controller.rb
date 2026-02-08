@@ -19,7 +19,12 @@ module VzekcVerlosung
           .includes(:pickup_offers, topic: [:category, { user: :primary_group }])
           .order(published_at: :desc)
 
-      render json: { donations: donations.map { |donation| build_donation_response(donation) } }
+      read_topic_ids = read_topic_ids_for(donations)
+
+      render json: {
+               donations:
+                 donations.map { |donation| build_donation_response(donation, read_topic_ids) },
+             }
     end
 
     private
@@ -28,7 +33,24 @@ module VzekcVerlosung
     #
     # @param donation [Donation] The donation
     # @return [Hash] Donation data
-    def build_donation_response(donation)
+    # Get topic IDs the current user has read
+    #
+    # @param donations [ActiveRecord::Relation] Donations to check
+    # @return [Set<Integer>] Set of topic IDs the user has read
+    def read_topic_ids_for(donations)
+      return Set.new unless current_user
+
+      topic_ids = donations.map(&:topic_id).compact
+      return Set.new if topic_ids.empty?
+
+      TopicUser
+        .where(user_id: current_user.id, topic_id: topic_ids)
+        .where.not(first_visited_at: nil)
+        .pluck(:topic_id)
+        .to_set
+    end
+
+    def build_donation_response(donation, read_topic_ids)
       topic = donation.topic
 
       # Count pickup offers
@@ -47,6 +69,10 @@ module VzekcVerlosung
           }
         end
 
+      # Only mark as unread if the topic is recent (< 4 weeks) and user hasn't read it
+      is_unread =
+        current_user && topic.created_at > 4.weeks.ago && !read_topic_ids.include?(topic.id)
+
       {
         id: donation.id,
         topic_id: topic.id,
@@ -56,6 +82,7 @@ module VzekcVerlosung
         postcode: donation.postcode,
         published_at: donation.published_at,
         created_at: topic.created_at,
+        unread: is_unread,
         pickup_offer_count: pickup_offer_count,
         assigned_picker: assigned_picker,
         has_lottery: donation.lottery.present?,

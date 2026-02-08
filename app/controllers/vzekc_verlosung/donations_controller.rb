@@ -99,6 +99,7 @@ module VzekcVerlosung
       end
 
       donation.publish!
+      VzekcVerlosung.notify_new_content("donations")
 
       head :no_content
     end

@@ -50,6 +50,12 @@ module VzekcVerlosung
 
       packet.mark_shipped!(current_user, tracking_info: params[:tracking_info])
 
+      handler_ids = VzekcVerlosung.merch_handler_user_ids
+      if handler_ids.any?
+        has_new = VzekcVerlosung.has_pending_merch_packets?
+        VzekcVerlosung.notify_new_content("merch_packets", user_ids: handler_ids, has_new: has_new)
+      end
+
       head :no_content
     end
 
