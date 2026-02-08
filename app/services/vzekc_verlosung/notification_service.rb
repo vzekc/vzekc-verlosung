@@ -726,7 +726,7 @@ module VzekcVerlosung
             username: @recipient.username,
             topic_title: topic.title,
             topic_url: "#{Discourse.base_url}#{topic.relative_url}",
-            merch_packets_url: "#{Discourse.base_url}/vzekc-verlosung/merch-packets?ship=#{merch_packet.id}",
+            merch_packets_url: "#{Discourse.base_url}/merch-packets?ship=#{merch_packet.id}",
           ),
         subtype: TopicSubtype.system_message,
       }
