@@ -17,18 +17,38 @@ const LINK_SELECTORS = {
   merch_packets: '.sidebar-section-link[data-link-name="merch-packets"]',
 };
 
-function applyCssClasses() {
+const INDICATOR_STYLE = `
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-left: 6px;
+  background-color: var(--tertiary);
+  border-radius: 50%;
+  vertical-align: middle;
+`;
+
+let indicatorStyleEl = null;
+
+function updateIndicatorStyles() {
+  if (!indicatorStyleEl) {
+    indicatorStyleEl = document.createElement("style");
+    indicatorStyleEl.id = "vzekc-new-content-indicators";
+    document.head.appendChild(indicatorStyleEl);
+  }
+
+  const rules = [];
+  const wrapper = ".sidebar-section-wrapper[data-section-name='verlosung']";
+
   for (const [key, selector] of Object.entries(LINK_SELECTORS)) {
-    const el = document.querySelector(selector);
-    if (!el) {
-      continue;
-    }
     if (newContentState[key]) {
-      el.classList.add("has-new-content");
-    } else {
-      el.classList.remove("has-new-content");
+      rules.push(
+        `${wrapper} ${selector} .sidebar-section-link-content-text::after { ${INDICATOR_STYLE} }`
+      );
     }
   }
+
+  indicatorStyleEl.textContent = rules.join("\n");
 }
 
 function fetchNewContentStatus() {
@@ -38,7 +58,7 @@ function fetchNewContentStatus() {
       newContentState.lotteries = result.lotteries;
       newContentState.erhaltungsberichte = result.erhaltungsberichte;
       newContentState.merch_packets = result.merch_packets;
-      applyCssClasses();
+      updateIndicatorStyles();
     })
     .catch(() => {});
 }
@@ -79,16 +99,12 @@ export default {
       messageBus.subscribe("/vzekc-verlosung/new-content", (data) => {
         if (data.type && data.type in newContentState) {
           newContentState[data.type] = data.has_new;
-          applyCssClasses();
+          updateIndicatorStyles();
         }
       });
     }
 
     withPluginApi((api) => {
-      if (currentUser) {
-        api.onPageChange(() => applyCssClasses());
-      }
-
       api.addSidebarSection(
         (BaseCustomSidebarSection, BaseCustomSidebarSectionLink) => {
           const ActiveLotteriesLink = class extends BaseCustomSidebarSectionLink {

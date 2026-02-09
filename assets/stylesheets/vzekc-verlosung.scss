@@ -2829,22 +2829,6 @@
   }
 }
 
-// New content indicator dot on sidebar links
-.sidebar-section-wrapper[data-section-name="verlosung"] {
-  .sidebar-section-link.has-new-content {
-    .sidebar-section-link-content-text::after {
-      content: "";
-      display: inline-block;
-      width: 8px;
-      height: 8px;
-      margin-left: 6px;
-      background-color: var(--tertiary);
-      border-radius: 50%;
-      vertical-align: middle;
-    }
-  }
-}
-
 // Import component styles
 @import "components/lottery-status-chip";
 
