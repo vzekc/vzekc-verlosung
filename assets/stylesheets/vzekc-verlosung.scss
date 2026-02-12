@@ -639,6 +639,144 @@
           }
         }
       }
+
+      // Fulfillment management in intro summary (finished state)
+      .packet-winners-fulfillment {
+        flex: 0 0 100%;
+        margin-top: 0.35em;
+
+        .packet-winner-row {
+          display: flex;
+          align-items: center;
+          flex-wrap: wrap;
+          gap: 0.5em;
+          padding: 0.4em 0;
+
+          &:not(:last-child) {
+            border-bottom: 1px solid var(--primary-very-low);
+          }
+        }
+
+        .packet-winner-identity {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.4em;
+          flex-shrink: 0;
+
+          .winner-instance {
+            font-weight: 600;
+            color: var(--tertiary);
+            min-width: 1.5em;
+          }
+
+          .winner-user-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4em;
+
+            .avatar {
+              width: 20px;
+              height: 20px;
+            }
+
+            .winner-name {
+              font-weight: 600;
+              color: var(--success);
+            }
+
+            &:hover .winner-name {
+              text-decoration: underline;
+            }
+          }
+        }
+
+        .winner-fulfillment-status {
+          .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25em;
+            padding: 0.15em 0.5em;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: 500;
+            color: var(--primary-medium);
+            background: var(--primary-very-low);
+
+            .d-icon {
+              color: var(--primary-medium);
+            }
+          }
+
+          .status-finished {
+            color: var(--success);
+            background: var(--success-low);
+
+            .d-icon {
+              color: var(--success);
+            }
+          }
+        }
+
+        .winner-fulfillment-actions {
+          margin-left: auto;
+          flex-shrink: 0;
+          display: inline-flex;
+          gap: 0.25em;
+
+          .mark-shipped-inline-button,
+          .mark-handed-over-inline-button,
+          .mark-collected-inline-button {
+            padding: 0.2em 0.4em;
+            font-size: 0.8em;
+            min-height: unset;
+
+            .d-icon {
+              margin-right: 0.2em;
+            }
+          }
+        }
+
+        .winner-fulfillment-links {
+          flex-shrink: 0;
+          display: inline-flex;
+          align-items: center;
+          gap: 0.4em;
+
+          .winner-bericht-link,
+          .winner-pm-link {
+            color: var(--tertiary);
+            font-size: 0.9em;
+
+            &:hover {
+              color: var(--tertiary-hover);
+            }
+          }
+
+          .create-erhaltungsbericht-inline-button {
+            padding: 0.2em 0.4em;
+            font-size: 0.8em;
+            min-height: unset;
+
+            .d-icon {
+              margin-right: 0.2em;
+            }
+          }
+        }
+
+        .packet-notification-toggle {
+          display: flex;
+          justify-content: flex-end;
+          padding-top: 0.25em;
+
+          .notification-toggle-button {
+            color: var(--primary-medium);
+
+            &:hover {
+              color: var(--primary);
+            }
+          }
+        }
+      }
     }
   }
 }

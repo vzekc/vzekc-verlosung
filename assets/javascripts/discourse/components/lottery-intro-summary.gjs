@@ -12,7 +12,7 @@ import { ajax } from "discourse/lib/ajax";
 import { popupAjaxError } from "discourse/lib/ajax-error";
 import { bind } from "discourse/lib/decorators";
 import { and, eq, gt, or } from "discourse/truth-helpers";
-import I18n, { i18n } from "discourse-i18n";
+import { i18n } from "discourse-i18n";
 import DrawLotteryModal from "./modal/draw-lottery-modal";
 import TicketCountBadge from "./ticket-count-badge";
 
@@ -20,7 +20,8 @@ import TicketCountBadge from "./ticket-count-badge";
  * Component to display lottery packet summary on lottery intro posts
  *
  * @component LotteryIntroSummary
- * Shows a list of lottery packets with their ticket counts
+ * Shows a list of lottery packets with their ticket counts.
+ * For finished lotteries, serves as the fulfillment management "command center".
  *
  * @param {Object} data.post - The lottery intro post object
  */
@@ -30,6 +31,7 @@ export default class LotteryIntroSummary extends Component {
   @service modal;
   @service siteSettings;
   @service lotteryDisplayMode;
+  @service packetFulfillment;
 
   @tracked packets = [];
   @tracked loading = true;
@@ -38,14 +40,20 @@ export default class LotteryIntroSummary extends Component {
   @tracked openingDrawModal = false;
   @tracked resultsCopied = false;
   @tracked now = new Date();
+  @tracked markingCollected = null;
+  @tracked markingShipped = null;
 
   _timer = null;
 
   constructor() {
     super(...arguments);
-    // Load from serialized/cached topic data (updated when tickets change)
     this.loadPacketsFromTopic();
     this.appEvents.on("lottery:ticket-changed", this, this.onTicketChanged);
+    this.appEvents.on(
+      "lottery:fulfillment-changed",
+      this,
+      this.onFulfillmentChanged
+    );
     this._startTimer();
     registerDestructor(this, () => this._stopTimer());
   }
@@ -53,6 +61,11 @@ export default class LotteryIntroSummary extends Component {
   willDestroy() {
     super.willDestroy(...arguments);
     this.appEvents.off("lottery:ticket-changed", this, this.onTicketChanged);
+    this.appEvents.off(
+      "lottery:fulfillment-changed",
+      this,
+      this.onFulfillmentChanged
+    );
   }
 
   _startTimer() {
@@ -70,7 +83,6 @@ export default class LotteryIntroSummary extends Component {
 
   @bind
   onTicketChanged(eventData) {
-    // Find the packet that changed
     const packetIndex = this.packets.findIndex(
       (p) => p.post_id === eventData.postId
     );
@@ -78,7 +90,6 @@ export default class LotteryIntroSummary extends Component {
       return;
     }
 
-    // Update the packet data in our local array
     const updatedPackets = [...this.packets];
     updatedPackets[packetIndex] = {
       ...updatedPackets[packetIndex],
@@ -87,7 +98,6 @@ export default class LotteryIntroSummary extends Component {
     };
     this.packets = updatedPackets;
 
-    // Update the cached topic data so it persists across component recreation
     const topic = this.args.data.post.topic;
     if (topic?.lottery_packets) {
       const topicPacketIndex = topic.lottery_packets.findIndex(
@@ -103,12 +113,31 @@ export default class LotteryIntroSummary extends Component {
     }
   }
 
+  @bind
+  onFulfillmentChanged(eventData) {
+    if (!eventData.postId || !eventData.winners) {
+      return;
+    }
+    const packetIndex = this.packets.findIndex(
+      (p) => p.post_id === eventData.postId
+    );
+    if (packetIndex === -1) {
+      return;
+    }
+
+    const updatedPackets = [...this.packets];
+    updatedPackets[packetIndex] = {
+      ...updatedPackets[packetIndex],
+      winners: eventData.winners,
+    };
+    this.packets = updatedPackets;
+  }
+
   /**
    * Load packets from serialized topic data (no AJAX request)
    */
   loadPacketsFromTopic() {
     try {
-      // Packets are already serialized in the topic data
       this.packets = this.args.data.post.topic?.lottery_packets || [];
     } finally {
       this.loading = false;
@@ -130,8 +159,6 @@ export default class LotteryIntroSummary extends Component {
   }
 
   /**
-   * Get the topic object
-   *
    * @returns {Object} the topic object
    */
   get topic() {
@@ -139,8 +166,6 @@ export default class LotteryIntroSummary extends Component {
   }
 
   /**
-   * Check if this lottery is a draft
-   *
    * @returns {Boolean} true if the lottery is in draft state
    */
   get isDraft() {
@@ -148,8 +173,6 @@ export default class LotteryIntroSummary extends Component {
   }
 
   /**
-   * Check if this lottery is active
-   *
    * @returns {Boolean} true if the lottery is active
    */
   get isActive() {
@@ -157,8 +180,6 @@ export default class LotteryIntroSummary extends Component {
   }
 
   /**
-   * Check if lottery is active and still running (not ended yet)
-   *
    * @returns {Boolean} true if the lottery is active and hasn't ended
    */
   get isRunning() {
@@ -171,8 +192,6 @@ export default class LotteryIntroSummary extends Component {
   }
 
   /**
-   * Check if this lottery is finished
-   *
    * @returns {Boolean} true if the lottery is finished
    */
   get isFinished() {
@@ -180,8 +199,6 @@ export default class LotteryIntroSummary extends Component {
   }
 
   /**
-   * Check if lottery has downloadable results (finished with actual winners)
-   *
    * @returns {Boolean} true if results can be downloaded
    */
   get hasDownloadableResults() {
@@ -189,13 +206,10 @@ export default class LotteryIntroSummary extends Component {
       return false;
     }
     const results = this.topic?.lottery_results;
-    // No results or marked as no_participants means no downloadable results
     return results && !results.no_participants;
   }
 
   /**
-   * Get the packet mode for this lottery
-   *
    * @returns {String} "ein" or "mehrere" (default: "mehrere")
    */
   get packetMode() {
@@ -203,8 +217,6 @@ export default class LotteryIntroSummary extends Component {
   }
 
   /**
-   * Check if lottery has ended
-   *
    * @returns {Boolean} true if the lottery has ended
    */
   get hasEnded() {
@@ -216,8 +228,6 @@ export default class LotteryIntroSummary extends Component {
   }
 
   /**
-   * Get the end date as Date object
-   *
    * @returns {Date|null} the end date
    */
   get endDate() {
@@ -228,12 +238,6 @@ export default class LotteryIntroSummary extends Component {
   }
 
   /**
-   * Format the end date and time display
-   * Format depends on display mode:
-   * - Absolute: "Endet am <datum> um <uhrzeit> (<verbleibende zeit>)"
-   * - Relative: "<verbleibende zeit> (am <datum> um <uhrzeit>)"
-   * When ended: "Wartet auf Ziehung (Endete am <datum> um <uhrzeit>)"
-   *
    * @returns {String} formatted end date/time string with relative time
    */
   get endDateTimeDisplay() {
@@ -266,8 +270,6 @@ export default class LotteryIntroSummary extends Component {
   }
 
   /**
-   * Get relative time remaining
-   *
    * @returns {String} relative time string
    */
   get relativeTimeRemaining() {
@@ -340,22 +342,18 @@ export default class LotteryIntroSummary extends Component {
   }
 
   /**
-   * Check if lottery has ended but not been drawn yet
-   *
    * @returns {Boolean} true if ready to draw
    */
   get canDraw() {
     if (!this.topic || !this.topic.lottery_ends_at) {
       return false;
     }
-    const hasEnded = new Date(this.topic.lottery_ends_at) <= new Date();
+    const hasEndedNow = new Date(this.topic.lottery_ends_at) <= new Date();
     const notDrawn = !this.topic.lottery_results;
-    return hasEnded && notDrawn && this.canPublish;
+    return hasEndedNow && notDrawn && this.canPublish;
   }
 
   /**
-   * Check if the lottery has an end date set
-   *
    * @returns {Boolean} true if end date is set
    */
   get hasEndsAt() {
@@ -363,8 +361,6 @@ export default class LotteryIntroSummary extends Component {
   }
 
   /**
-   * Check if current user can publish this lottery
-   *
    * @returns {Boolean} true if user can publish
    */
   get canPublish() {
@@ -375,8 +371,6 @@ export default class LotteryIntroSummary extends Component {
   }
 
   /**
-   * Check if current user is the lottery owner
-   *
    * @returns {Boolean} true if user is lottery owner
    */
   get isLotteryOwner() {
@@ -387,12 +381,6 @@ export default class LotteryIntroSummary extends Component {
     );
   }
 
-  /**
-   * Check if current user has a ticket for a specific packet
-   *
-   * @param {Object} packet - The packet to check
-   * @returns {Boolean} true if user has a ticket for this packet
-   */
   @action
   userHasTicket(packet) {
     if (!this.currentUser || !packet.users) {
@@ -402,8 +390,6 @@ export default class LotteryIntroSummary extends Component {
   }
 
   /**
-   * Check if end early button should be shown
-   *
    * @returns {Boolean} true if button should be shown
    */
   get showEndEarlyButton() {
@@ -411,8 +397,6 @@ export default class LotteryIntroSummary extends Component {
   }
 
   /**
-   * Get regular packets (excluding Abholerpaket)
-   *
    * @type {Array}
    */
   get regularPackets() {
@@ -420,8 +404,6 @@ export default class LotteryIntroSummary extends Component {
   }
 
   /**
-   * Get total number of participants across all packets
-   *
    * @type {number}
    */
   get totalParticipants() {
@@ -435,8 +417,6 @@ export default class LotteryIntroSummary extends Component {
   }
 
   /**
-   * Get total number of tickets across all packets
-   *
    * @type {number}
    */
   get totalTickets() {
@@ -447,8 +427,6 @@ export default class LotteryIntroSummary extends Component {
   }
 
   /**
-   * Get number of regular packets without any tickets
-   *
    * @type {number}
    */
   get packetsWithoutTickets() {
@@ -458,28 +436,6 @@ export default class LotteryIntroSummary extends Component {
   }
 
   /**
-   * Format collected date for display
-   *
-   * @param {String|Date} collectedAt - The collection timestamp
-   * @returns {String} formatted date string
-   */
-  formatCollectedDate(collectedAt) {
-    if (!collectedAt) {
-      return null;
-    }
-    const date = new Date(collectedAt);
-    // Use user's locale from Discourse
-    const locale = I18n.locale || "en";
-    return date.toLocaleDateString(locale, {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    });
-  }
-
-  /**
-   * Get the publish button label
-   *
    * @returns {String} the button label
    */
   get publishButtonLabel() {
@@ -489,17 +445,12 @@ export default class LotteryIntroSummary extends Component {
   }
 
   /**
-   * Get the publish button icon
-   *
    * @returns {String} the button icon
    */
   get publishButtonIcon() {
     return this.publishing ? "spinner" : "paper-plane";
   }
 
-  /**
-   * Publish the lottery (remove draft status)
-   */
   @action
   async publishLottery() {
     if (this.publishing) {
@@ -514,7 +465,6 @@ export default class LotteryIntroSummary extends Component {
           type: "PUT",
         }
       );
-      // Reload to clean URL (strip any query parameters that might hide posts)
       const cleanUrl = window.location.pathname;
       window.location.href = cleanUrl;
     } catch (error) {
@@ -523,9 +473,6 @@ export default class LotteryIntroSummary extends Component {
     }
   }
 
-  /**
-   * Open the drawing modal to draw winners
-   */
   @action
   async drawWinners() {
     this.openingDrawModal = true;
@@ -536,14 +483,10 @@ export default class LotteryIntroSummary extends Component {
         },
       });
     } finally {
-      // Reset spinner state when modal closes (whether cancelled or completed)
       this.openingDrawModal = false;
     }
   }
 
-  /**
-   * End the lottery early (for testing purposes)
-   */
   @action
   async endEarly() {
     if (this.ending) {
@@ -563,7 +506,6 @@ export default class LotteryIntroSummary extends Component {
           type: "PUT",
         }
       );
-      // Reload the page to show the ended state
       window.location.reload();
     } catch (error) {
       popupAjaxError(error);
@@ -572,51 +514,7 @@ export default class LotteryIntroSummary extends Component {
   }
 
   /**
-   * Check if a winner entry is collected (based on fulfillment_state)
-   *
-   * @param {Object} entry - The winner entry or packet
-   * @returns {boolean} true if collected
-   */
-  isCollectedState(entry) {
-    return (
-      entry?.fulfillment_state === "received" ||
-      entry?.fulfillment_state === "completed"
-    );
-  }
-
-  /**
-   * Check if collection indicator should be shown for a packet
-   * Shows for lottery owner or the winner themselves
-   *
-   * @param {Object} packet - The packet object
-   * @param {Object} winnerEntry - The winner entry (for multi-instance)
-   * @returns {boolean} true if indicator should be shown
-   */
-  @action
-  showCollectionIndicatorForPacket(packet, winnerEntry = null) {
-    if (!this.currentUser) {
-      return false;
-    }
-
-    // For multi-instance packets, check the specific winner entry
-    if (winnerEntry) {
-      const isWinner = winnerEntry.id === this.currentUser.id;
-      return (
-        (this.isLotteryOwner || isWinner) && this.isCollectedState(winnerEntry)
-      );
-    }
-
-    // For single winner (legacy), check packet.winner
-    if (!packet.winner) {
-      return false;
-    }
-    const isWinner = packet.winner.id === this.currentUser.id;
-    return (this.isLotteryOwner || isWinner) && this.isCollectedState(packet);
-  }
-
-  /**
    * Get packets with winners resolved from lottery results JSON
-   * Supports multiple winners per packet (quantity > 1)
    *
    * @returns {Array} packets with winners array from results JSON
    */
@@ -625,32 +523,25 @@ export default class LotteryIntroSummary extends Component {
     const regularPackets = this.packets.filter((p) => !p.abholerpaket);
 
     if (!results?.drawings || !results?.packets) {
-      // No results JSON or missing data, fall back to database winners
       return regularPackets;
     }
 
-    // Match packets by post_id using index correspondence between
-    // results.packets and results.drawings arrays
     return regularPackets.map((packet) => {
-      // Find the index of this packet in the results.packets array by post_id
       const resultIndex = results.packets.findIndex(
         (p) => p.id === packet.post_id
       );
 
       if (resultIndex >= 0 && results.drawings[resultIndex]) {
         const drawing = results.drawings[resultIndex];
-        // Handle both new format (winners array) and legacy format (winner string)
         const winners =
           drawing.winners || (drawing.winner ? [drawing.winner] : []);
         return {
           ...packet,
           winnerUsernames: winners,
-          // Keep legacy property for backward compatibility
           winnerUsername: winners[0] || null,
         };
       }
 
-      // Fallback to database winners (now an array)
       const dbWinners =
         packet.winners || (packet.winner ? [packet.winner] : []);
       return {
@@ -661,18 +552,12 @@ export default class LotteryIntroSummary extends Component {
     });
   }
 
-  /**
-   * Download lottery results as CSV file
-   * Format: packet number; packet name; quantity; winner nickname
-   * For multi-instance packets, creates one row per winner
-   */
   @action
   downloadResultsCsv() {
     const packetsWithWinners = this.packetsWithWinners.filter(
       (p) => p.winnerUsernames?.length > 0 || p.winnerUsername
     );
 
-    // Build CSV content with semicolon separator
     const header = "Paket-Nr;Paketname;Instanz;Gewinner";
     const rows = [];
 
@@ -693,8 +578,6 @@ export default class LotteryIntroSummary extends Component {
     });
 
     const csvContent = [header, ...rows].join("\n");
-
-    // Create blob and download
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
 
@@ -707,12 +590,6 @@ export default class LotteryIntroSummary extends Component {
     URL.revokeObjectURL(url);
   }
 
-  /**
-   * Copy lottery results to clipboard
-   * Format: #<packet no> <packet title>: @<winner> <celebratory emoji>
-   * For multi-instance packets: #<packet no> <quantity>x <title>: @winner1, @winner2, ...
-   * Packets without tickets show "keine Lose gezogen"
-   */
   @action
   async copyResultsToClipboard() {
     const celebratoryEmojis = [
@@ -748,7 +625,6 @@ export default class LotteryIntroSummary extends Component {
       }
     });
 
-    // Add link to lottery at the end
     const lotteryUrl = `${window.location.origin}${this.topic.url}`;
     lines.push("");
     lines.push(`Details zur Verlosung: ${lotteryUrl}`);
@@ -762,7 +638,6 @@ export default class LotteryIntroSummary extends Component {
         this.resultsCopied = false;
       }, 2000);
     } catch {
-      // Fallback for older browsers
       const textarea = document.createElement("textarea");
       textarea.value = text;
       document.body.appendChild(textarea);
@@ -776,11 +651,6 @@ export default class LotteryIntroSummary extends Component {
     }
   }
 
-  /**
-   * Open Erhaltungsbericht composer for Abholerpaket
-   *
-   * @param {Object} packet - The Abholerpaket object
-   */
   @action
   openErhaltungsberichtComposer(packet) {
     if (!packet) {
@@ -790,18 +660,13 @@ export default class LotteryIntroSummary extends Component {
     const lottery = this.topic;
     const packetTitle = packet.title;
     const erhaltungsberichtTitle = `${packetTitle} aus ${lottery.title}`;
-
-    // Get template from site settings
     const template =
       this.siteSettings.vzekc_verlosung_erhaltungsbericht_template || "";
-
-    // CRITICAL: Category SiteSettings are strings, must parse to integer
     const categoryId = parseInt(
       this.siteSettings.vzekc_verlosung_erhaltungsberichte_category_id,
       10
     );
 
-    // Abholerpaket now has a post, use same mechanism as regular packets
     this.appEvents.trigger("composer:open", {
       action: "createTopic",
       title: erhaltungsberichtTitle,
@@ -809,6 +674,189 @@ export default class LotteryIntroSummary extends Component {
       categoryId,
       packet_post_id: packet.post_id,
       packet_topic_id: lottery.id,
+    });
+  }
+
+  /**
+   * Check if an action is in progress for a specific packet/instance
+   *
+   * @param {number} postId
+   * @param {number} instanceNumber
+   * @returns {boolean}
+   */
+  _isActionInProgress(postId, instanceNumber) {
+    return (
+      (this.markingCollected?.postId === postId &&
+        this.markingCollected?.instanceNumber === instanceNumber) ||
+      (this.markingShipped?.postId === postId &&
+        this.markingShipped?.instanceNumber === instanceNumber)
+    );
+  }
+
+  /**
+   * Update a winner entry in the packets array after a fulfillment action
+   *
+   * @param {number} postId
+   * @param {Object} result - API response with winners array
+   */
+  _updatePacketWinners(postId, result) {
+    if (!result?.winners) {
+      return;
+    }
+
+    const packetIndex = this.packets.findIndex((p) => p.post_id === postId);
+    if (packetIndex === -1) {
+      return;
+    }
+
+    const updatedPackets = [...this.packets];
+    updatedPackets[packetIndex] = {
+      ...updatedPackets[packetIndex],
+      winners: result.winners,
+    };
+    this.packets = updatedPackets;
+
+    this.appEvents.trigger("lottery:fulfillment-changed", {
+      postId,
+      winners: result.winners,
+    });
+  }
+
+  @action
+  canWinnerMarkAsCollectedForPacket(winnerEntry, packet) {
+    return this.packetFulfillment.canWinnerMarkAsCollected(winnerEntry, {
+      isActionInProgress: this._isActionInProgress(
+        packet.post_id,
+        winnerEntry.instance_number
+      ),
+    });
+  }
+
+  @action
+  canMarkEntryAsShippedForPacket(winnerEntry, packet) {
+    return this.packetFulfillment.canMarkEntryAsShipped(winnerEntry, {
+      isLotteryOwner: this.isLotteryOwner,
+      isActionInProgress: this._isActionInProgress(
+        packet.post_id,
+        winnerEntry.instance_number
+      ),
+    });
+  }
+
+  @action
+  canCreateErhaltungsberichtForPacket(winnerEntry, packet) {
+    return this.packetFulfillment.canCreateErhaltungsberichtForEntry(
+      winnerEntry,
+      {
+        isAbholerpaket: packet.abholerpaket,
+        erhaltungsberichtRequired: packet.erhaltungsbericht_required,
+      }
+    );
+  }
+
+  @action
+  async handleMarkCollected(winnerEntry, packet) {
+    if (this._isActionInProgress(packet.post_id, winnerEntry.instance_number)) {
+      return;
+    }
+
+    this.markingCollected = {
+      postId: packet.post_id,
+      instanceNumber: winnerEntry.instance_number,
+    };
+
+    try {
+      const result = await this.packetFulfillment.markEntryAsCollected(
+        packet.post_id,
+        winnerEntry,
+        { packetTitle: packet.title }
+      );
+      if (result) {
+        this._updatePacketWinners(packet.post_id, result);
+      }
+    } finally {
+      this.markingCollected = null;
+    }
+  }
+
+  @action
+  handleMarkShipped(winnerEntry, packet) {
+    if (this._isActionInProgress(packet.post_id, winnerEntry.instance_number)) {
+      return;
+    }
+
+    this.markingShipped = {
+      postId: packet.post_id,
+      instanceNumber: winnerEntry.instance_number,
+    };
+
+    this.packetFulfillment.markEntryAsShipped(packet.post_id, winnerEntry, {
+      packetTitle: packet.title,
+      onComplete: (result) => {
+        if (result) {
+          this._updatePacketWinners(packet.post_id, result);
+        }
+        this.markingShipped = null;
+      },
+    });
+  }
+
+  @action
+  async handleMarkHandedOver(winnerEntry, packet) {
+    if (this._isActionInProgress(packet.post_id, winnerEntry.instance_number)) {
+      return;
+    }
+
+    this.markingShipped = {
+      postId: packet.post_id,
+      instanceNumber: winnerEntry.instance_number,
+    };
+
+    try {
+      const result = await this.packetFulfillment.markEntryAsHandedOver(
+        packet.post_id,
+        winnerEntry,
+        { packetTitle: packet.title }
+      );
+      if (result) {
+        this._updatePacketWinners(packet.post_id, result);
+      }
+    } finally {
+      this.markingShipped = null;
+    }
+  }
+
+  @action
+  async handleToggleNotifications(packet) {
+    const result = await this.packetFulfillment.toggleNotifications(
+      packet.post_id
+    );
+    if (result) {
+      const packetIndex = this.packets.findIndex(
+        (p) => p.post_id === packet.post_id
+      );
+      if (packetIndex !== -1) {
+        const updatedPackets = [...this.packets];
+        updatedPackets[packetIndex] = {
+          ...updatedPackets[packetIndex],
+          notifications_silenced: result.notifications_silenced,
+        };
+        this.packets = updatedPackets;
+      }
+    }
+  }
+
+  @action
+  handleCreateErhaltungsbericht(winnerEntry, packet) {
+    const post = {
+      id: packet.post_id,
+      post_number: packet.post_number,
+      topic: this.topic,
+      topic_id: this.topic.id,
+    };
+    this.packetFulfillment.createErhaltungsbericht(winnerEntry, {
+      post,
+      packetTitle: packet.title,
     });
   }
 
@@ -975,7 +1023,6 @@ export default class LotteryIntroSummary extends Component {
         {{/if}}
 
         {{! ========== PACKETS LIST ========== }}
-        {{! Only show packet list in "mehrere" mode - in "ein" mode, the main post is the packet }}
         {{#if (and this.packets.length (eq this.packetMode "mehrere"))}}
           <h3 class="lottery-packets-title">{{i18n
               "vzekc_verlosung.packets_title"
@@ -996,7 +1043,7 @@ export default class LotteryIntroSummary extends Component {
                   >{{#if (gt packet.quantity 1)}}<span
                         class="packet-quantity"
                       >{{packet.quantity}}x</span>
-                    {{/if}}{{packet.title}}</a>{{! Show indicator if no Erhaltungsbericht required }}{{#unless
+                    {{/if}}{{packet.title}}</a>{{#unless
                     packet.erhaltungsbericht_required
                   }}<span
                       class="no-erhaltungsbericht-indicator"
@@ -1007,12 +1054,10 @@ export default class LotteryIntroSummary extends Component {
                 </div>
 
                 {{#if packet.abholerpaket}}
-                  {{! Abholerpaket - show label instead of ticket count }}
                   <span class="abholerpaket-label">{{i18n
                       "vzekc_verlosung.ticket.abholerpaket"
                     }}</span>
 
-                  {{! Show Erhaltungsbericht controls only to lottery owner }}
                   {{#if this.isLotteryOwner}}
                     {{#if packet.erhaltungsbericht_topic_id}}
                       <a
@@ -1032,83 +1077,224 @@ export default class LotteryIntroSummary extends Component {
                     {{/if}}
                   {{/if}}
                 {{else}}
-                  {{! Regular packet - show winners or ticket count on second row }}
                   <div class="packet-participants-row">
                     {{#if this.isFinished}}
                       {{#if packet.winners.length}}
-                        {{! Multiple winners (quantity > 1) or single winner }}
-                        <div class="packet-winners">
-                          <span class="participants-label">{{i18n
-                              "vzekc_verlosung.ticket.winner"
-                            }}:</span>
+                        <div class="packet-winners-fulfillment">
                           {{#each packet.winners as |winnerEntry|}}
-                            <span class="packet-winner">
-                              <UserLink
-                                @username={{winnerEntry.username}}
-                                class="winner-user-link"
-                              >
-                                {{avatar winnerEntry imageSize="tiny"}}
-                                <span
-                                  class="winner-name"
-                                >{{winnerEntry.username}}</span>
-                              </UserLink>
-                              {{#if
-                                (this.showCollectionIndicatorForPacket
-                                  packet winnerEntry
-                                )
-                              }}
-                                <span class="collection-indicator collected">
-                                  {{icon "check"}}
+                            <div class="packet-winner-row">
+                              <span class="packet-winner-identity">
+                                {{#if (gt packet.quantity 1)}}
                                   <span
-                                    class="collection-date"
-                                  >{{this.formatCollectedDate
-                                      winnerEntry.collected_at
+                                    class="winner-instance"
+                                  >#{{winnerEntry.instance_number}}</span>
+                                {{/if}}
+                                <UserLink
+                                  @username={{winnerEntry.username}}
+                                  class="winner-user-link"
+                                >
+                                  {{avatar winnerEntry imageSize="tiny"}}
+                                  <span
+                                    class="winner-name"
+                                  >{{winnerEntry.username}}</span>
+                                </UserLink>
+                              </span>
+
+                              {{! Status badge }}
+                              <span class="winner-fulfillment-status">
+                                {{#if
+                                  (and
+                                    (eq
+                                      winnerEntry.fulfillment_state "completed"
+                                    )
+                                    winnerEntry.erhaltungsbericht_topic_id
+                                  )
+                                }}
+                                  <span
+                                    class="status-badge status-finished"
+                                  >{{icon "file-lines"}}
+                                    {{i18n
+                                      "vzekc_verlosung.status.finished"
                                     }}</span>
-                                </span>
-                              {{/if}}
-                              {{#if
-                                (and
-                                  this.isLotteryOwner
-                                  winnerEntry.winner_pm_topic_id
-                                )
-                              }}
-                                <a
-                                  href="/t/{{winnerEntry.winner_pm_topic_id}}"
-                                  class="winner-pm-link"
-                                  title={{i18n
-                                    "vzekc_verlosung.winner_pm.view_link"
-                                  }}
-                                >{{icon "envelope"}}</a>
-                              {{/if}}
-                            </span>
+                                {{else if
+                                  (or
+                                    (eq
+                                      winnerEntry.fulfillment_state "received"
+                                    )
+                                    (eq
+                                      winnerEntry.fulfillment_state "completed"
+                                    )
+                                  )
+                                }}
+                                  <span
+                                    class="status-badge status-collected"
+                                    title={{if
+                                      winnerEntry.collected_at
+                                      (i18n
+                                        "vzekc_verlosung.collection.collected_on"
+                                        date=(this.packetFulfillment.formatCollectedDate
+                                          winnerEntry.collected_at
+                                        )
+                                      )
+                                    }}
+                                  >{{icon "check"}}
+                                    {{i18n
+                                      "vzekc_verlosung.status.collected"
+                                    }}</span>
+                                {{else if
+                                  (eq winnerEntry.fulfillment_state "shipped")
+                                }}
+                                  <span
+                                    class="status-badge status-shipped"
+                                    title={{if
+                                      winnerEntry.shipped_at
+                                      (i18n
+                                        "vzekc_verlosung.shipping.shipped_on"
+                                        date=(this.packetFulfillment.formatCollectedDate
+                                          winnerEntry.shipped_at
+                                        )
+                                      )
+                                    }}
+                                  >{{icon "paper-plane"}}
+                                    {{i18n
+                                      "vzekc_verlosung.status.shipped"
+                                    }}</span>
+                                {{else}}
+                                  <span class="status-badge status-won">{{icon
+                                      "trophy"
+                                    }}
+                                    {{i18n "vzekc_verlosung.status.won"}}</span>
+                                {{/if}}
+                              </span>
+
+                              {{! Action buttons }}
+                              <span class="winner-fulfillment-actions">
+                                {{#if
+                                  (this.canWinnerMarkAsCollectedForPacket
+                                    winnerEntry packet
+                                  )
+                                }}
+                                  <DButton
+                                    @action={{fn
+                                      this.handleMarkCollected
+                                      winnerEntry
+                                      packet
+                                    }}
+                                    @icon="check"
+                                    @label="vzekc_verlosung.collection.received"
+                                    @disabled={{this.markingCollected}}
+                                    class="btn-small btn-default mark-collected-inline-button"
+                                    title={{i18n
+                                      "vzekc_verlosung.collection.mark_collected"
+                                    }}
+                                  />
+                                {{else if
+                                  (this.canMarkEntryAsShippedForPacket
+                                    winnerEntry packet
+                                  )
+                                }}
+                                  <DButton
+                                    @action={{fn
+                                      this.handleMarkShipped
+                                      winnerEntry
+                                      packet
+                                    }}
+                                    @icon="paper-plane"
+                                    @label="vzekc_verlosung.shipping.shipped"
+                                    @disabled={{this.markingShipped}}
+                                    class="btn-small btn-default mark-shipped-inline-button"
+                                    title={{i18n
+                                      "vzekc_verlosung.shipping.mark_shipped"
+                                    }}
+                                  />
+                                  <DButton
+                                    @action={{fn
+                                      this.handleMarkHandedOver
+                                      winnerEntry
+                                      packet
+                                    }}
+                                    @icon="handshake"
+                                    @label="vzekc_verlosung.handover.handed_over"
+                                    @disabled={{this.markingShipped}}
+                                    class="btn-small btn-default mark-handed-over-inline-button"
+                                    title={{i18n
+                                      "vzekc_verlosung.handover.mark_handed_over"
+                                    }}
+                                  />
+                                {{/if}}
+                              </span>
+
+                              {{! Links }}
+                              <span class="winner-fulfillment-links">
+                                {{#if winnerEntry.erhaltungsbericht_topic_id}}
+                                  <a
+                                    href="/t/{{winnerEntry.erhaltungsbericht_topic_id}}"
+                                    class="winner-bericht-link"
+                                    title={{i18n
+                                      "vzekc_verlosung.erhaltungsbericht.view_link"
+                                    }}
+                                  >{{icon "file-lines"}}</a>
+                                {{else if
+                                  (this.canCreateErhaltungsberichtForPacket
+                                    winnerEntry packet
+                                  )
+                                }}
+                                  <DButton
+                                    @action={{fn
+                                      this.handleCreateErhaltungsbericht
+                                      winnerEntry
+                                      packet
+                                    }}
+                                    @icon="pen"
+                                    @label="vzekc_verlosung.erhaltungsbericht.create_button"
+                                    class="btn-small btn-primary create-erhaltungsbericht-inline-button"
+                                  />
+                                {{/if}}
+                                {{#if
+                                  (and
+                                    this.isLotteryOwner
+                                    winnerEntry.winner_pm_topic_id
+                                  )
+                                }}
+                                  <a
+                                    href="/t/{{winnerEntry.winner_pm_topic_id}}"
+                                    class="winner-pm-link"
+                                    title={{i18n
+                                      "vzekc_verlosung.winner_pm.view_link"
+                                    }}
+                                  >{{icon "envelope"}}</a>
+                                {{/if}}
+                              </span>
+                            </div>
                           {{/each}}
-                        </div>
-                      {{else if packet.winner}}
-                        {{! Legacy single winner format }}
-                        <span class="packet-winner">
-                          <span class="participants-label">{{i18n
-                              "vzekc_verlosung.ticket.winner"
-                            }}:</span>
-                          <UserLink
-                            @username={{packet.winner.username}}
-                            class="winner-user-link"
-                          >
-                            {{avatar packet.winner imageSize="tiny"}}
-                            <span
-                              class="winner-name"
-                            >{{packet.winner.username}}</span>
-                          </UserLink>
-                          {{#if (this.showCollectionIndicatorForPacket packet)}}
-                            <span class="collection-indicator collected">
-                              {{icon "check"}}
-                              <span
-                                class="collection-date"
-                              >{{this.formatCollectedDate
-                                  packet.collected_at
-                                }}</span>
-                            </span>
+
+                          {{! Notification toggle for lottery owner }}
+                          {{#if this.isLotteryOwner}}
+                            <div class="packet-notification-toggle">
+                              <DButton
+                                @action={{fn
+                                  this.handleToggleNotifications
+                                  packet
+                                }}
+                                @icon={{if
+                                  packet.notifications_silenced
+                                  "bell-slash"
+                                  "bell"
+                                }}
+                                @title={{if
+                                  packet.notifications_silenced
+                                  (i18n
+                                    "vzekc_verlosung.notifications.unmute_packet"
+                                  )
+                                  (i18n
+                                    "vzekc_verlosung.notifications.mute_packet"
+                                  )
+                                }}
+                                class="btn-flat notification-toggle-button"
+                              />
+                            </div>
                           {{/if}}
-                        </span>
+                        </div>
                       {{else}}
                         <span class="packet-no-tickets">
                           {{i18n "vzekc_verlosung.ticket.no_tickets"}}

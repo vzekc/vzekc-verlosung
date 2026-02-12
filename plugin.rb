@@ -568,15 +568,16 @@ after_initialize do
               winner_data[:winner_pm_topic_id] = lpw.winner_pm_topic_id
             end
 
-            # Only include collected_at for lottery owner or this winner
+            # Include shipped_at and collected_at for lottery owner or this winner
             is_this_winner = scope.user&.id == lpw.winner_user_id
             is_authorized = object.topic.user_id == scope.user&.id || is_this_winner
+            winner_data[:shipped_at] = lpw.shipped_at if is_authorized && lpw.shipped_at
             winner_data[:collected_at] = lpw.collected_at if is_authorized && lpw.collected_at
 
             winner_data
           end
 
-        {
+        packet_data = {
           post_id: packet.post_id,
           post_number: packet.post.post_number,
           title: packet.title,
@@ -589,6 +590,13 @@ after_initialize do
           erhaltungsbericht_required: packet.erhaltungsbericht_required,
           state: packet.state,
         }
+
+        # Include notifications_silenced for lottery owner only
+        if scope.user&.id == object.topic.user_id
+          packet_data[:notifications_silenced] = packet.notifications_silenced
+        end
+
+        packet_data
       end
       .compact
   end
