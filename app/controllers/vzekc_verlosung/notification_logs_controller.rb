@@ -22,7 +22,8 @@ module VzekcVerlosung
     #
     # @return [JSON] Paginated notification logs with metadata
     def admin_index
-      logs = NotificationLog.recent.includes(:recipient, :actor, :lottery, :donation, :lottery_packet)
+      logs =
+        NotificationLog.recent.includes(:recipient, :actor, :lottery, :donation, :lottery_packet)
 
       logs = apply_filters(logs)
 
@@ -63,13 +64,10 @@ module VzekcVerlosung
       raise Discourse::NotFound unless user
 
       # Users can only view their own notifications
-      unless current_user.id == user.id || current_user.admin?
-        raise Discourse::InvalidAccess
-      end
+      raise Discourse::InvalidAccess unless current_user.id == user.id || current_user.admin?
 
       # Get lottery IDs created by this user
-      user_lottery_ids =
-        Lottery.joins(:topic).where(topics: { user_id: user.id }).pluck(:id)
+      user_lottery_ids = Lottery.joins(:topic).where(topics: { user_id: user.id }).pluck(:id)
 
       # Fetch logs where user is recipient OR logs from their lotteries
       logs =
@@ -124,9 +122,7 @@ module VzekcVerlosung
       end
 
       # Filter by success status
-      if params[:success].present?
-        logs = logs.where(success: params[:success] == "true")
-      end
+      logs = logs.where(success: params[:success] == "true") if params[:success].present?
 
       # Filter by date range
       if params[:from_date].present?

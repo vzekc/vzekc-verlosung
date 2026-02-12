@@ -31,17 +31,21 @@ if ARGV[0] == "--list"
 
       picker = d.pickup_offers.find { |o| o.state.in?(%w[assigned picked_up]) }&.user
       puts "Donation ID: #{d.id}"
-      puts "  Topic: #{d.topic&.title || '(no topic)'}"
-      puts "  Picker: #{picker&.username || '(unknown)'}"
+      puts "  Topic: #{d.topic&.title || "(no topic)"}"
+      puts "  Picker: #{picker&.username || "(unknown)"}"
       puts ""
 
       if picker
-        lotteries = VzekcVerlosung::Lottery.joins(:topic).where(topics: { user_id: picker.id }, donation_id: nil)
+        lotteries =
+          VzekcVerlosung::Lottery.joins(:topic).where(
+            topics: {
+              user_id: picker.id,
+            },
+            donation_id: nil,
+          )
         if lotteries.any?
           puts "  Potential lotteries by #{picker.username}:"
-          lotteries.each do |l|
-            puts "    - Lottery #{l.id}: #{l.topic&.title} (#{l.state})"
-          end
+          lotteries.each { |l| puts "    - Lottery #{l.id}: #{l.topic&.title} (#{l.state})" }
         end
       end
       puts ""

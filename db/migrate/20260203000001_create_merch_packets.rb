@@ -3,9 +3,11 @@
 class CreateMerchPackets < ActiveRecord::Migration[7.2]
   def change
     create_table :vzekc_verlosung_merch_packets do |t|
-      t.references :donation,
+      t.references :donation, # rubocop:disable Discourse/NoAddReferenceOrAliasesActiveRecordMigration
                    null: false,
-                   index: { unique: true },
+                   index: {
+                     unique: true,
+                   },
                    foreign_key: {
                      to_table: :vzekc_verlosung_donations,
                      on_delete: :cascade,
@@ -22,11 +24,13 @@ class CreateMerchPackets < ActiveRecord::Migration[7.2]
       t.string :state, null: false, default: "pending"
       t.text :tracking_info
       t.datetime :shipped_at
-      t.references :shipped_by_user, foreign_key: { to_table: :users, on_delete: :nullify }
+      t.references :shipped_by_user, foreign_key: { to_table: :users, on_delete: :nullify } # rubocop:disable Discourse/NoAddReferenceOrAliasesActiveRecordMigration
       t.timestamps
     end
 
     add_index :vzekc_verlosung_merch_packets, :state
-    add_index :vzekc_verlosung_merch_packets, %i[state shipped_at], name: "idx_merch_packets_for_archival"
+    add_index :vzekc_verlosung_merch_packets,
+              %i[state shipped_at],
+              name: "idx_merch_packets_for_archival"
   end
 end

@@ -150,7 +150,9 @@ module VzekcVerlosung
       lines << donor_name if donor_name.present?
       lines << donor_company if donor_company.present?
       lines << "#{donor_street} #{donor_street_number}".strip if donor_street.present?
-      lines << "#{donor_postcode} #{donor_city}".strip if donor_postcode.present? || donor_city.present?
+      if donor_postcode.present? || donor_city.present?
+        lines << "#{donor_postcode} #{donor_city}".strip
+      end
       lines.join("\n")
     end
 

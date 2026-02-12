@@ -86,9 +86,12 @@ module VzekcVerlosung
     # @return [Boolean]
     def all_required_reports_written?
       winners_requiring_reports =
-        LotteryPacketWinner
-          .joins(:lottery_packet)
-          .where(lottery_packet: { lottery_id: id, erhaltungsbericht_required: true })
+        LotteryPacketWinner.joins(:lottery_packet).where(
+          lottery_packet: {
+            lottery_id: id,
+            erhaltungsbericht_required: true,
+          },
+        )
 
       return true if winners_requiring_reports.empty?
 

@@ -1,4 +1,4 @@
-/* eslint-disable no-bitwise, no-undef */
+/* eslint-disable no-bitwise */
 // Simple deterministic PRNG implementation
 // Bitwise operations are essential for the PRNG algorithm
 // BigInt is a standard JavaScript feature

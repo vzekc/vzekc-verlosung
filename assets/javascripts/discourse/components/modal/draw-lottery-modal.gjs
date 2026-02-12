@@ -3,12 +3,12 @@ import { tracked } from "@glimmer/tracking";
 import { fn, get } from "@ember/helper";
 import { on } from "@ember/modifier";
 import { action } from "@ember/object";
-import { and, eq, gt, not } from "truth-helpers";
 import DButton from "discourse/components/d-button";
 import DModal from "discourse/components/d-modal";
 import icon from "discourse/helpers/d-icon";
 import { ajax } from "discourse/lib/ajax";
 import { popupAjaxError } from "discourse/lib/ajax-error";
+import { and, eq, gt, not } from "discourse/truth-helpers";
 import { i18n } from "discourse-i18n";
 import { Lottery } from "../../lib/lottery";
 

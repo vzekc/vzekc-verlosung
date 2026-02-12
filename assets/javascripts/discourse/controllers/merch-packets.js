@@ -1,12 +1,10 @@
+import { tracked } from "@glimmer/tracking";
 import Controller from "@ember/controller";
 import { action } from "@ember/object";
 import { service } from "@ember/service";
-import { tracked } from "@glimmer/tracking";
 
 export default class MerchPacketsController extends Controller {
   @service router;
-
-  queryParams = ["ship"];
 
   /**
    * Packet ID to open shipping modal for (from query param)
@@ -14,6 +12,8 @@ export default class MerchPacketsController extends Controller {
    * @type {string|null}
    */
   @tracked ship = null;
+
+  queryParams = ["ship"];
 
   /**
    * Refresh the model to reload merch packets after a change

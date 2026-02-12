@@ -15,12 +15,16 @@ class AddStateColumnsToLotteryTables < ActiveRecord::Migration[7.0]
     # shipped: package shipped to winner
     # received: winner confirmed receipt
     # completed: report written (if required) or fulfilled
-    add_column :vzekc_verlosung_lottery_packet_winners, :fulfillment_state, :string,
-               default: "won", null: false
+    add_column :vzekc_verlosung_lottery_packet_winners,
+               :fulfillment_state,
+               :string,
+               default: "won",
+               null: false
 
     # Add index for filtering by state (use short names to stay under 63 char limit)
     add_index :vzekc_verlosung_lottery_packets, :state, name: "idx_lottery_packets_on_state"
-    add_index :vzekc_verlosung_lottery_packet_winners, :fulfillment_state,
+    add_index :vzekc_verlosung_lottery_packet_winners,
+              :fulfillment_state,
               name: "idx_lottery_packet_winners_on_fulfillment_state"
   end
 end

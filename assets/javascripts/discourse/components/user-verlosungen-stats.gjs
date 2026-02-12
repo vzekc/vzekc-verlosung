@@ -163,7 +163,7 @@ export default class UserVerlosungenStats extends Component {
   @action
   translateNotificationType(type) {
     const key = `vzekc_verlosung.admin.notification_logs.types.${type}`;
-    const translated = I18n.t(key);
+    const translated = i18n(key);
     return translated === key ? type : translated;
   }
 

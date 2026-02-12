@@ -8,7 +8,7 @@ require "json"
 require "stringio"
 
 # MCP Protocol version
-MCP_VERSION = "2024-11-05"
+MCP_VERSION = "2024-11-05" # rubocop:disable Discourse/Plugins/NamespaceConstants
 
 class DiscourseMcpServer
   def initialize(discourse_path)
@@ -150,7 +150,7 @@ class DiscourseMcpServer
 
     log("Loading Rails environment from #{@discourse_path}")
 
-    Dir.chdir(@discourse_path) do
+    Dir.chdir(@discourse_path) do # rubocop:disable Discourse/NoChdir
       # Set up the environment
       ENV["RAILS_ENV"] ||= "development"
 
@@ -177,7 +177,7 @@ class DiscourseMcpServer
 
     begin
       # Execute the code in a clean binding
-      result = eval(code, TOPLEVEL_BINDING, "(mcp)", 1)
+      result = eval(code, TOPLEVEL_BINDING, "(mcp)", 1) # rubocop:disable Security/Eval
 
       $stdout = old_stdout
       output = captured_output.string

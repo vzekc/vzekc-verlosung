@@ -3,7 +3,6 @@ import { tracked } from "@glimmer/tracking";
 import { fn } from "@ember/helper";
 import { on } from "@ember/modifier";
 import { action } from "@ember/object";
-import { service } from "@ember/service";
 import avatar from "discourse/helpers/bound-avatar-template";
 import icon from "discourse/helpers/d-icon";
 import { ajax } from "discourse/lib/ajax";
@@ -17,8 +16,6 @@ import I18n, { i18n } from "discourse-i18n";
  * @component AdminNotificationLogs
  */
 export default class AdminNotificationLogs extends Component {
-  @service router;
-
   @tracked isLoading = true;
   @tracked logs = [];
   @tracked totalCount = 0;
@@ -203,8 +200,8 @@ export default class AdminNotificationLogs extends Component {
   @action
   translateType(type) {
     const key = `vzekc_verlosung.admin.notification_logs.types.${type}`;
-    const translated = I18n.t(key);
-    // If translation not found, I18n returns the key - fall back to raw type
+    const translated = i18n(key);
+    // If translation not found, i18n returns the key - fall back to raw type
     return translated === key ? type : translated;
   }
 
@@ -245,7 +242,7 @@ export default class AdminNotificationLogs extends Component {
                 "vzekc_verlosung.admin.notification_logs.filters.username_placeholder"
               }}
               {{on "input" this.updateUsername}}
-              {{on "keyup" (fn this.applyFilters)}}
+              {{on "keyup" this.applyFilters}}
               class="filter-input"
             />
           </div>

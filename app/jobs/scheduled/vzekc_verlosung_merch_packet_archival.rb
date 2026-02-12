@@ -12,16 +12,16 @@ module Jobs
       VzekcVerlosung::MerchPacket.needs_archival.find_each do |packet|
         packet.archive!
         archived_count += 1
-        Rails.logger.info(
-          "Archived merch packet #{packet.id} (donation_id: #{packet.donation_id})",
-        )
+        Rails.logger.info("Archived merch packet #{packet.id} (donation_id: #{packet.donation_id})")
       rescue => e
-        Rails.logger.error(
-          "Failed to archive merch packet #{packet.id}: #{e.message}",
-        )
+        Rails.logger.error("Failed to archive merch packet #{packet.id}: #{e.message}")
       end
 
-      Rails.logger.info("Merch packet archival job completed. Archived #{archived_count} packets.") if archived_count.positive?
+      if archived_count.positive?
+        Rails.logger.info(
+          "Merch packet archival job completed. Archived #{archived_count} packets.",
+        )
+      end
     end
   end
 end

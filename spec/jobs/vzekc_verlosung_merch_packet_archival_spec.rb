@@ -11,7 +11,12 @@ describe Jobs::VzekcVerlosungMerchPacketArchival do
 
       it "does nothing" do
         old_packet =
-          Fabricate(:merch_packet, donation: Fabricate(:donation), state: "shipped", shipped_at: 5.weeks.ago)
+          Fabricate(
+            :merch_packet,
+            donation: Fabricate(:donation),
+            state: "shipped",
+            shipped_at: 5.weeks.ago,
+          )
 
         described_class.new.execute({})
 
@@ -22,12 +27,24 @@ describe Jobs::VzekcVerlosungMerchPacketArchival do
 
     context "with shipped packets" do
       let!(:old_packet) do
-        Fabricate(:merch_packet, donation: Fabricate(:donation), state: "shipped", shipped_at: 5.weeks.ago)
+        Fabricate(
+          :merch_packet,
+          donation: Fabricate(:donation),
+          state: "shipped",
+          shipped_at: 5.weeks.ago,
+        )
       end
       let!(:recent_packet) do
-        Fabricate(:merch_packet, donation: Fabricate(:donation), state: "shipped", shipped_at: 2.weeks.ago)
+        Fabricate(
+          :merch_packet,
+          donation: Fabricate(:donation),
+          state: "shipped",
+          shipped_at: 2.weeks.ago,
+        )
       end
-      let!(:pending_packet) { Fabricate(:merch_packet, donation: Fabricate(:donation), state: "pending") }
+      let!(:pending_packet) do
+        Fabricate(:merch_packet, donation: Fabricate(:donation), state: "pending")
+      end
 
       it "archives packets shipped more than 4 weeks ago" do
         described_class.new.execute({})

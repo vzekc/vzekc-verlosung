@@ -97,9 +97,7 @@ module VzekcVerlosung
             :winner_user_id,
           )
 
-      if finished_winner_entries.empty?
-        return { luck: 0, wins: 0, expected: 0, participated: 0 }
-      end
+      return { luck: 0, wins: 0, expected: 0, participated: 0 } if finished_winner_entries.empty?
 
       # Get unique packet post_ids
       post_ids = finished_winner_entries.map { |_, post_id, _| post_id }.compact.uniq
@@ -205,8 +203,7 @@ module VzekcVerlosung
       lotteries.map do |lottery|
         topic = lottery.topic
         # Count packets that have at least one winner
-        packets_with_winners =
-          lottery.lottery_packets.count { |p| p.lottery_packet_winners.any? }
+        packets_with_winners = lottery.lottery_packets.count { |p| p.lottery_packet_winners.any? }
         {
           id: lottery.id,
           topic_id: topic.id,

@@ -25,12 +25,7 @@ module VzekcVerlosung
           .where(vzekc_verlosung_donations: { state: %w[picked_up closed] })
           .order(created_at: :desc)
 
-      render json: {
-               merch_packets:
-                 packets.map do |packet|
-                   serialize_merch_packet(packet)
-                 end,
-             }
+      render json: { merch_packets: packets.map do |packet| serialize_merch_packet(packet) end }
     end
 
     # PUT /vzekc-verlosung/merch-packets/:id/ship
@@ -64,10 +59,7 @@ module VzekcVerlosung
     def ensure_can_manage_merch_packets
       return if guardian.can_manage_merch_packets?
 
-      render_json_error(
-        "You don't have permission to manage merch packets",
-        status: :forbidden,
-      )
+      render_json_error("You don't have permission to manage merch packets", status: :forbidden)
     end
 
     def serialize_merch_packet(packet)

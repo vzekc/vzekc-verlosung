@@ -44,7 +44,8 @@ module VzekcVerlosung
     # Scopes
     scope :ordered, -> { order(:ordinal) }
     scope :with_winner, -> { joins(:lottery_packet_winners).distinct }
-    scope :without_winner, -> { left_joins(:lottery_packet_winners).where(lottery_packet_winners: { id: nil }) }
+    scope :without_winner,
+          -> { left_joins(:lottery_packet_winners).where(lottery_packet_winners: { id: nil }) }
     scope :requiring_report, -> { where(erhaltungsbericht_required: true) }
     scope :pending, -> { where(state: "pending") }
     scope :no_tickets, -> { where(state: "no_tickets") }

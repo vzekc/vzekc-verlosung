@@ -3252,6 +3252,65 @@
       font-size: 1.1em;
     }
   }
+
+  // Notification logs
+  .notifications-list {
+    .notification-logs-table {
+      .notification-type-badge {
+        display: inline-block;
+        padding: 0.2em 0.5em;
+        border-radius: 4px;
+        font-size: 0.85em;
+        background: var(--primary-low);
+        color: var(--primary);
+      }
+
+      .recipient-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35em;
+        color: var(--primary);
+        text-decoration: none;
+
+        &:hover {
+          color: var(--tertiary);
+        }
+      }
+
+      .context-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35em;
+        color: var(--tertiary);
+        text-decoration: none;
+        max-width: 250px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+
+        &:hover {
+          text-decoration: underline;
+        }
+      }
+
+      tr.status-failed {
+        background: var(--danger-low);
+      }
+    }
+
+    .pagination-controls {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5em;
+      margin-top: 1.5em;
+
+      .page-info {
+        padding: 0 1em;
+        color: var(--primary-medium);
+      }
+    }
+  }
 }
 
 // Mark Shipped Modal
@@ -3749,67 +3808,6 @@
 
       .city-field {
         flex: 1;
-      }
-    }
-  }
-}
-
-// User profile notification logs
-.user-verlosungen-stats {
-  .notifications-list {
-    .notification-logs-table {
-      .notification-type-badge {
-        display: inline-block;
-        padding: 0.2em 0.5em;
-        border-radius: 4px;
-        font-size: 0.85em;
-        background: var(--primary-low);
-        color: var(--primary);
-      }
-
-      .recipient-link {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.35em;
-        color: var(--primary);
-        text-decoration: none;
-
-        &:hover {
-          color: var(--tertiary);
-        }
-      }
-
-      .context-link {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.35em;
-        color: var(--tertiary);
-        text-decoration: none;
-        max-width: 250px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-
-        &:hover {
-          text-decoration: underline;
-        }
-      }
-
-      tr.status-failed {
-        background: var(--danger-low);
-      }
-    }
-
-    .pagination-controls {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5em;
-      margin-top: 1.5em;
-
-      .page-info {
-        padding: 0 1em;
-        color: var(--primary-medium);
       }
     }
   }

@@ -116,7 +116,12 @@ module VzekcVerlosung
         Donation
           .where(state: %w[picked_up closed])
           .joins(:pickup_offers)
-          .where(vzekc_verlosung_pickup_offers: { user_id: current_user.id, state: %w[assigned picked_up] })
+          .where(
+            vzekc_verlosung_pickup_offers: {
+              user_id: current_user.id,
+              state: %w[assigned picked_up],
+            },
+          )
           .includes(:topic, :lottery)
           .select { |d| !d.pickup_action_completed? && d.topic.present? }
 

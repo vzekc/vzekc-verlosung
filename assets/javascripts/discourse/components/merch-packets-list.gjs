@@ -3,10 +3,10 @@ import { tracked } from "@glimmer/tracking";
 import { fn } from "@ember/helper";
 import { on } from "@ember/modifier";
 import { action } from "@ember/object";
+import { getOwner } from "@ember/owner";
+import didInsert from "@ember/render-modifiers/modifiers/did-insert";
 import { next } from "@ember/runloop";
 import { service } from "@ember/service";
-import didInsert from "@ember/render-modifiers/modifiers/did-insert";
-import { getOwner } from "@ember/owner";
 import DButton from "discourse/components/d-button";
 import icon from "discourse/helpers/d-icon";
 import { ajax } from "discourse/lib/ajax";
@@ -25,7 +25,6 @@ import MarkMerchShippedModal from "./modal/mark-merch-shipped-modal";
  */
 export default class MerchPacketsList extends Component {
   @service modal;
-  @service dialog;
 
   @tracked activeTab = "pending";
   @tracked shippingPacketId = null;

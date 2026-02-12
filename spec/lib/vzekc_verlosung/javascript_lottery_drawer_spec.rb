@@ -119,7 +119,8 @@ RSpec.describe VzekcVerlosung::JavascriptLotteryDrawer do
       }
 
       # Run multiple times to check probability
-      winners = 10.times.map { described_class.draw(multi_ticket_input)["drawings"][0]["winners"][0] }
+      winners =
+        10.times.map { described_class.draw(multi_ticket_input)["drawings"][0]["winners"][0] }
 
       # Alice should win significantly more often (but not guaranteed every time)
       alice_wins = winners.count("alice")

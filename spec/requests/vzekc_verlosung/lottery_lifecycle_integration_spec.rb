@@ -252,7 +252,8 @@ RSpec.describe "Lottery Full Lifecycle Integration" do
     abholerpaket_winner_entry.reload
     expect(abholerpaket_winner_entry.erhaltungsbericht_topic_id).to be_present
 
-    abholerpaket_erhaltungsbericht_topic = Topic.find(abholerpaket_winner_entry.erhaltungsbericht_topic_id)
+    abholerpaket_erhaltungsbericht_topic =
+      Topic.find(abholerpaket_winner_entry.erhaltungsbericht_topic_id)
     expect(abholerpaket_erhaltungsbericht_topic.category_id).to eq(erhaltungsberichte_category.id)
     expect(abholerpaket_erhaltungsbericht_topic.user_id).to eq(owner.id)
 

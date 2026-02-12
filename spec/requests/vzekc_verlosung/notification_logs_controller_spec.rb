@@ -3,10 +3,10 @@
 require "rails_helper"
 
 RSpec.describe VzekcVerlosung::NotificationLogsController do
-  fab!(:admin) { Fabricate(:admin) }
+  fab!(:admin)
   fab!(:user)
-  fab!(:another_user) { Fabricate(:user) }
-  fab!(:lottery_category) { Fabricate(:category) }
+  fab!(:another_user, :user)
+  fab!(:lottery_category, :category)
 
   before do
     SiteSetting.vzekc_verlosung_enabled = true

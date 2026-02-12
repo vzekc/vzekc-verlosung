@@ -13,9 +13,9 @@ import { service } from "@ember/service";
 import DButton from "discourse/components/d-button";
 import DEditor from "discourse/components/d-editor";
 import Form from "discourse/components/form";
-import icon from "discourse/helpers/d-icon";
 import PickFilesButton from "discourse/components/pick-files-button";
 import DTooltip from "discourse/float-kit/components/d-tooltip";
+import icon from "discourse/helpers/d-icon";
 import { ajax } from "discourse/lib/ajax";
 import { extractError } from "discourse/lib/ajax-error";
 import discourseDebounce from "discourse/lib/debounce";
@@ -44,7 +44,6 @@ export default class NewLotteryPage extends Component {
   @service siteSettings;
   @service currentUser;
   @service dialog;
-  @service site;
 
   @tracked title = "";
   @tracked body = "";

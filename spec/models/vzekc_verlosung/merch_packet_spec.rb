@@ -61,9 +61,16 @@ RSpec.describe VzekcVerlosung::MerchPacket do
   end
 
   describe "scopes" do
-    let!(:pending_packet) { Fabricate(:merch_packet, donation: Fabricate(:donation), state: "pending") }
+    let!(:pending_packet) do
+      Fabricate(:merch_packet, donation: Fabricate(:donation), state: "pending")
+    end
     let!(:shipped_packet) do
-      Fabricate(:merch_packet, donation: Fabricate(:donation), state: "shipped", shipped_at: Time.zone.now)
+      Fabricate(
+        :merch_packet,
+        donation: Fabricate(:donation),
+        state: "shipped",
+        shipped_at: Time.zone.now,
+      )
     end
     let!(:archived_packet) do
       Fabricate(
@@ -125,23 +132,25 @@ RSpec.describe VzekcVerlosung::MerchPacket do
     end
 
     it "#shipped? returns true for shipped state" do
-      packet = Fabricate(:merch_packet, donation: donation, state: "shipped", shipped_at: Time.zone.now)
+      packet =
+        Fabricate(:merch_packet, donation: donation, state: "shipped", shipped_at: Time.zone.now)
       expect(packet.pending?).to be false
       expect(packet.shipped?).to be true
       expect(packet.archived?).to be false
     end
 
     it "#archived? returns true for archived state" do
-      packet = Fabricate(
-        :merch_packet,
-        donation: donation,
-        state: "archived",
-        donor_name: nil,
-        donor_street: nil,
-        donor_street_number: nil,
-        donor_postcode: nil,
-        donor_city: nil,
-      )
+      packet =
+        Fabricate(
+          :merch_packet,
+          donation: donation,
+          state: "archived",
+          donor_name: nil,
+          donor_street: nil,
+          donor_street_number: nil,
+          donor_postcode: nil,
+          donor_city: nil,
+        )
       expect(packet.pending?).to be false
       expect(packet.shipped?).to be false
       expect(packet.archived?).to be true
@@ -219,16 +228,17 @@ RSpec.describe VzekcVerlosung::MerchPacket do
     end
 
     it "returns empty string when archived" do
-      packet = Fabricate(
-        :merch_packet,
-        donation: donation,
-        state: "archived",
-        donor_name: nil,
-        donor_street: nil,
-        donor_street_number: nil,
-        donor_postcode: nil,
-        donor_city: nil,
-      )
+      packet =
+        Fabricate(
+          :merch_packet,
+          donation: donation,
+          state: "archived",
+          donor_name: nil,
+          donor_street: nil,
+          donor_street_number: nil,
+          donor_postcode: nil,
+          donor_city: nil,
+        )
       expect(packet.formatted_address).to eq("")
     end
   end
