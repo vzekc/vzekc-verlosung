@@ -14,6 +14,10 @@ module VzekcVerlosung
                class_name: "Topic",
                foreign_key: :erhaltungsbericht_topic_id,
                optional: true
+    belongs_to :winner_pm_topic,
+               class_name: "Topic",
+               foreign_key: :winner_pm_topic_id,
+               optional: true
 
     # Validations
     validates :lottery_packet_id, presence: true
@@ -136,6 +140,7 @@ end
 #  updated_at                 :datetime         not null
 #  erhaltungsbericht_topic_id :bigint
 #  lottery_packet_id          :bigint           not null
+#  winner_pm_topic_id         :bigint
 #  winner_user_id             :bigint           not null
 #
 # Indexes
@@ -150,5 +155,6 @@ end
 #
 #  fk_rails_...  (erhaltungsbericht_topic_id => topics.id) ON DELETE => nullify
 #  fk_rails_...  (lottery_packet_id => vzekc_verlosung_lottery_packets.id) ON DELETE => cascade
+#  fk_rails_...  (winner_pm_topic_id => topics.id) ON DELETE => nullify
 #  fk_rails_...  (winner_user_id => users.id) ON DELETE => cascade
 #

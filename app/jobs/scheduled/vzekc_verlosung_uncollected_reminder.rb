@@ -43,6 +43,7 @@ module Jobs
                   post_number: post.post_number,
                   title: title_with_instance,
                   winner: entry.winner.username,
+                  winner_pm_topic_id: entry.winner_pm_topic_id,
                 }
               end
 

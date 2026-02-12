@@ -4,28 +4,28 @@
 #
 # Table name: vzekc_verlosung_merch_packets
 #
-#  id                     :bigint           not null, primary key
-#  created_at             :datetime         not null
-#  updated_at             :datetime         not null
-#  donation_id            :bigint           not null
-#  donor_city             :string
-#  donor_company          :string
-#  donor_email            :string
-#  donor_name             :string
-#  donor_postcode         :string
-#  donor_street           :string
-#  donor_street_number    :string
-#  shipped_at             :datetime
-#  shipped_by_user_id     :bigint
-#  state                  :string           default("pending"), not null
-#  tracking_info          :text
+#  id                  :bigint           not null, primary key
+#  donor_city          :string
+#  donor_company       :string
+#  donor_email         :string
+#  donor_name          :string
+#  donor_postcode      :string
+#  donor_street        :string
+#  donor_street_number :string
+#  shipped_at          :datetime
+#  state               :string           default("pending"), not null
+#  tracking_info       :text
+#  created_at          :datetime         not null
+#  updated_at          :datetime         not null
+#  donation_id         :bigint           not null
+#  shipped_by_user_id  :bigint
 #
 # Indexes
 #
-#  idx_merch_packets_for_archival                          (state,shipped_at)
-#  index_vzekc_verlosung_merch_packets_on_donation_id      (donation_id) UNIQUE
+#  idx_merch_packets_for_archival                             (state,shipped_at)
+#  index_vzekc_verlosung_merch_packets_on_donation_id         (donation_id) UNIQUE
 #  index_vzekc_verlosung_merch_packets_on_shipped_by_user_id  (shipped_by_user_id)
-#  index_vzekc_verlosung_merch_packets_on_state            (state)
+#  index_vzekc_verlosung_merch_packets_on_state               (state)
 #
 # Foreign Keys
 #

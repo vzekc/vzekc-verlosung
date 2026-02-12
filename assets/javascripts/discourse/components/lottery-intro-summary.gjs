@@ -1066,6 +1066,20 @@ export default class LotteryIntroSummary extends Component {
                                     }}</span>
                                 </span>
                               {{/if}}
+                              {{#if
+                                (and
+                                  this.isLotteryOwner
+                                  winnerEntry.winner_pm_topic_id
+                                )
+                              }}
+                                <a
+                                  href="/t/{{winnerEntry.winner_pm_topic_id}}"
+                                  class="winner-pm-link"
+                                  title={{i18n
+                                    "vzekc_verlosung.winner_pm.view_link"
+                                  }}
+                                >{{icon "envelope"}}</a>
+                              {{/if}}
                             </span>
                           {{/each}}
                         </div>

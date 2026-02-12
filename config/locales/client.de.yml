@@ -245,6 +245,8 @@ de:
         category_not_configured: "Die Kategorie für Erhaltungsberichte ist nicht konfiguriert. Bitte kontaktiere einen Administrator."
         from_donation: "Erhaltungsbericht zur Spende:"
         from_lottery: "Erhaltungsbericht zum Paket aus:"
+      winner_pm:
+        view_link: "Gewinner-Nachricht anzeigen"
       time:
         just_now: "Gerade eben"
         minutes_ago:

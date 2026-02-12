@@ -94,6 +94,19 @@ module VzekcVerlosung
         new(type, recipient: recipient, context: context).deliver
       end
 
+      # Send a single notification and return the service instance
+      # (useful for accessing pm_post after delivery)
+      #
+      # @param type [Symbol] Notification type from NOTIFICATION_TYPES
+      # @param recipient [User] User to notify
+      # @param context [Hash] Context data for building notification
+      # @return [NotificationService] The service instance
+      def notify_and_return(type, recipient:, context: {})
+        service = new(type, recipient: recipient, context: context)
+        service.deliver
+        service
+      end
+
       # Send notifications to multiple recipients
       #
       # @param type [Symbol] Notification type from NOTIFICATION_TYPES
@@ -128,8 +141,7 @@ module VzekcVerlosung
       def send_merch_packet_shipped_email(email:, donor_name:, tracking_info:, donation:)
         return if email.blank?
 
-        subject =
-          I18n.t("vzekc_verlosung.notifications.merch_packet_shipped.subject")
+        subject = I18n.t("vzekc_verlosung.notifications.merch_packet_shipped.subject")
 
         body =
           if tracking_info.present?
@@ -164,6 +176,8 @@ module VzekcVerlosung
         message
       end
     end
+
+    attr_reader :pm_post
 
     def initialize(type, recipient:, context: {})
       @type = type
@@ -236,15 +250,16 @@ module VzekcVerlosung
       sender = pm_data[:sender]
       sender = User.find(sender.id) if sender.is_a?(User)
 
-      PostCreator.create!(
-        sender,
-        title: pm_data[:title],
-        raw: pm_data[:body],
-        archetype: Archetype.private_message,
-        subtype: pm_data[:subtype] || TopicSubtype.system_message,
-        target_usernames: @recipient.username,
-        skip_validations: true,
-      )
+      @pm_post =
+        PostCreator.create!(
+          sender,
+          title: pm_data[:title],
+          raw: pm_data[:body],
+          archetype: Archetype.private_message,
+          subtype: pm_data[:subtype] || TopicSubtype.system_message,
+          target_usernames: @recipient.username,
+          skip_validations: true,
+        )
     end
 
     def build_in_app_data
@@ -680,7 +695,16 @@ module VzekcVerlosung
       return nil unless lottery_topic && uncollected_packets&.any?
 
       packet_list =
-        uncollected_packets.map { |p| "- #{p[:title]} (Winner: #{p[:winner]})" }.join("\n")
+        uncollected_packets
+          .map do |p|
+            line = "- #{p[:title]} (Winner: #{p[:winner]})"
+            if p[:winner_pm_topic_id]
+              pm_url = "#{Discourse.base_url}/t/#{p[:winner_pm_topic_id]}"
+              line += " — [PM](#{pm_url})"
+            end
+            line
+          end
+          .join("\n")
 
       {
         sender: Discourse.system_user,

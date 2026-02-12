@@ -145,7 +145,8 @@ module ::VzekcVerlosung
   end
 end
 
-add_admin_route "vzekc_verlosung.admin.notification_logs.nav_title", "vzekc-verlosung",
+add_admin_route "vzekc_verlosung.admin.notification_logs.nav_title",
+                "vzekc-verlosung",
                 use_new_show_route: true
 
 require_relative "lib/vzekc_verlosung/engine"
@@ -520,7 +521,7 @@ after_initialize do
         .lottery_packets
         .includes(
           :post,
-          lottery_packet_winners: %i[winner erhaltungsbericht_topic],
+          lottery_packet_winners: %i[winner erhaltungsbericht_topic winner_pm_topic],
           lottery_tickets: :user,
         )
         .order("posts.post_number")
@@ -561,6 +562,12 @@ after_initialize do
               winner_data[:erhaltungsbericht_topic_id] = lpw.erhaltungsbericht_topic_id
             end
 
+            # Include winner_pm_topic_id for lottery owner only, if topic still exists
+            if scope.user&.id == object.topic.user_id && lpw.winner_pm_topic_id &&
+                 lpw.winner_pm_topic
+              winner_data[:winner_pm_topic_id] = lpw.winner_pm_topic_id
+            end
+
             # Only include collected_at for lottery owner or this winner
             is_this_winner = scope.user&.id == lpw.winner_user_id
             is_authorized = object.topic.user_id == scope.user&.id || is_this_winner
@@ -595,7 +602,7 @@ after_initialize do
   ) do
     packet =
       VzekcVerlosung::LotteryPacket.includes(
-        lottery_packet_winners: %i[winner erhaltungsbericht_topic],
+        lottery_packet_winners: %i[winner erhaltungsbericht_topic winner_pm_topic],
       ).find_by(post_id: object.id)
     return nil unless packet
 
@@ -630,6 +637,11 @@ after_initialize do
         # Include erhaltungsbericht_topic_id only if topic still exists
         if lpw.erhaltungsbericht_topic_id && lpw.erhaltungsbericht_topic
           winner_data[:erhaltungsbericht_topic_id] = lpw.erhaltungsbericht_topic_id
+        end
+
+        # Include winner_pm_topic_id for lottery owner only, if topic still exists
+        if scope.user&.id == topic&.user_id && lpw.winner_pm_topic_id && lpw.winner_pm_topic
+          winner_data[:winner_pm_topic_id] = lpw.winner_pm_topic_id
         end
 
         # Include shipped_at and collected_at for lottery owner or this winner

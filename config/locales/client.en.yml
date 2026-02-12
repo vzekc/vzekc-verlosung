@@ -230,6 +230,8 @@ en:
         category_not_configured: "Reception reports category is not configured. Please contact an administrator."
         from_donation: "Reception report for donation:"
         from_lottery: "Reception report for packet from:"
+      winner_pm:
+        view_link: "View winner message"
       time:
         just_now: "Just now"
         minutes_ago:

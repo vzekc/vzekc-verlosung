@@ -14,10 +14,10 @@ describe VzekcVerlosung::MerchPacketsController do
   end
 
   describe "#index" do
-    let!(:donation) { Fabricate(:donation) }
+    let!(:donation) { Fabricate(:donation, state: "picked_up") }
     let!(:pending_packet) { Fabricate(:merch_packet, donation: donation) }
     let!(:shipped_packet) do
-      Fabricate(:merch_packet, donation: Fabricate(:donation), state: "shipped", shipped_at: Time.zone.now)
+      Fabricate(:merch_packet, donation: Fabricate(:donation, state: "picked_up"), state: "shipped", shipped_at: Time.zone.now)
     end
 
     context "when not logged in" do
@@ -51,7 +51,7 @@ describe VzekcVerlosung::MerchPacketsController do
         archived =
           Fabricate(
             :merch_packet,
-            donation: Fabricate(:donation),
+            donation: Fabricate(:donation, state: "picked_up"),
             state: "archived",
             donor_name: nil,
             donor_street: nil,

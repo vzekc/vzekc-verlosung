@@ -837,6 +837,16 @@
             }
           }
 
+          .winner-pm-link {
+            color: var(--tertiary);
+            font-size: 0.9em;
+            flex-shrink: 0;
+
+            &:hover {
+              color: var(--tertiary-hover);
+            }
+          }
+
           .mark-shipped-inline-button,
           .mark-handed-over-inline-button,
           .mark-collected-inline-button,

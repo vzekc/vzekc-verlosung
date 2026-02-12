@@ -1128,6 +1128,17 @@ export default class LotteryWidget extends Component {
                             class="btn-small btn-primary create-erhaltungsbericht-inline-button"
                           />
                         {{/if}}
+                        {{#if
+                          (and
+                            this.isLotteryOwner winnerEntry.winner_pm_topic_id
+                          )
+                        }}
+                          <a
+                            href="/t/{{winnerEntry.winner_pm_topic_id}}"
+                            class="winner-pm-link"
+                            title={{i18n "vzekc_verlosung.winner_pm.view_link"}}
+                          >{{icon "envelope"}}</a>
+                        {{/if}}
                       </li>
                     {{/each}}
                   </ul>

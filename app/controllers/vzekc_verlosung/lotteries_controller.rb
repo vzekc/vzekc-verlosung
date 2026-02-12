@@ -360,9 +360,10 @@ module VzekcVerlosung
       end
 
       # Mark any remaining packets (not in results) as no_tickets
-      lottery.lottery_packets.where(abholerpaket: false, state: "pending").find_each do |packet|
-        packet.mark_no_tickets!
-      end
+      lottery
+        .lottery_packets
+        .where(abholerpaket: false, state: "pending")
+        .find_each { |packet| packet.mark_no_tickets! }
 
       # Notify all participants that winners have been drawn
       notify_lottery_drawn(topic)
@@ -714,14 +715,29 @@ module VzekcVerlosung
 
       # Send personal message to each winner with all their packets
       winners_packets.each do |winner_user, packets|
-        NotificationService.notify(
-          :winner_pm,
-          recipient: winner_user,
-          context: {
-            topic: topic,
-            packets: packets,
-          },
-        )
+        service =
+          NotificationService.notify_and_return(
+            :winner_pm,
+            recipient: winner_user,
+            context: {
+              topic: topic,
+              packets: packets,
+            },
+          )
+
+        # Store the PM topic_id on all winner records for this user in this lottery
+        pm_topic_id = service.pm_post&.topic_id
+        if pm_topic_id
+          LotteryPacketWinner
+            .joins(:lottery_packet)
+            .where(
+              winner_user_id: winner_user.id,
+              vzekc_verlosung_lottery_packets: {
+                lottery_id: lottery.id,
+              },
+            )
+            .update_all(winner_pm_topic_id: pm_topic_id)
+        end
       end
     end
 
