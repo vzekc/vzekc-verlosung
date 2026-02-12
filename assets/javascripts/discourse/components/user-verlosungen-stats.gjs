@@ -614,59 +614,63 @@ export default class UserVerlosungenStats extends Component {
                   </tr>
                 </thead>
                 <tbody>
-                  {{#each this.notificationLogs as |log|}}
+                  {{#each this.notificationLogs as |entry|}}
                     <tr
-                      class={{if log.success "status-success" "status-failed"}}
+                      class={{if
+                        entry.success
+                        "status-success"
+                        "status-failed"
+                      }}
                     >
-                      <td>{{this.formatDate log.created_at}}</td>
+                      <td>{{this.formatDate entry.created_at}}</td>
                       <td>
                         <span
                           class="notification-type-badge"
-                          title={{log.notification_type}}
+                          title={{entry.notification_type}}
                         >{{this.translateNotificationType
-                            log.notification_type
+                            entry.notification_type
                           }}</span>
                       </td>
                       <td>
-                        {{#if (eq log.delivery_method "in_app")}}
+                        {{#if (eq entry.delivery_method "in_app")}}
                           {{icon "bell"}}
                         {{else}}
                           {{icon "envelope"}}
                         {{/if}}
                       </td>
                       <td>
-                        {{#if log.recipient}}
+                        {{#if entry.recipient}}
                           <a
-                            href="/u/{{log.recipient.username}}"
+                            href="/u/{{entry.recipient.username}}"
                             class="recipient-link"
                           >
-                            {{avatar log.recipient.avatar_template "tiny"}}
-                            {{log.recipient.username}}
+                            {{avatar entry.recipient.avatar_template "tiny"}}
+                            {{entry.recipient.username}}
                           </a>
                         {{/if}}
                       </td>
                       <td>
-                        {{#if log.lottery}}
-                          <a href={{log.lottery.url}} class="context-link">
+                        {{#if entry.lottery}}
+                          <a href={{entry.lottery.url}} class="context-link">
                             {{icon "gift"}}
-                            {{log.lottery.title}}
+                            {{entry.lottery.title}}
                           </a>
-                        {{else if log.donation}}
-                          <a href={{log.donation.url}} class="context-link">
+                        {{else if entry.donation}}
+                          <a href={{entry.donation.url}} class="context-link">
                             {{icon "hand-holding-heart"}}
-                            {{log.donation.title}}
+                            {{entry.donation.title}}
                           </a>
                         {{else}}
                           -
                         {{/if}}
                       </td>
                       <td class="status-cell">
-                        {{#if log.success}}
+                        {{#if entry.success}}
                           <span class="status-yes">{{icon "check"}}</span>
                         {{else}}
                           <span
                             class="status-no"
-                            title={{log.error_message}}
+                            title={{entry.error_message}}
                           >{{icon "times"}}</span>
                         {{/if}}
                       </td>

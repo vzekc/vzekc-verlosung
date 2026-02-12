@@ -1,4 +1,3 @@
-/* eslint-disable ember/no-classic-components */
 import Component from "@ember/component";
 import { LinkTo } from "@ember/routing";
 import { classNames, tagName } from "@ember-decorators/component";

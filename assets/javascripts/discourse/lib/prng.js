@@ -1,7 +1,7 @@
 /* eslint-disable no-bitwise */
+/* global BigInt */
 // Simple deterministic PRNG implementation
 // Bitwise operations are essential for the PRNG algorithm
-// BigInt is a standard JavaScript feature
 export class SeededRandom {
   constructor(seed) {
     // Initialize state from seed

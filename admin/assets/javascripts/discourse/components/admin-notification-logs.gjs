@@ -359,67 +359,71 @@ export default class AdminNotificationLogs extends Component {
               </tr>
             </thead>
             <tbody>
-              {{#each this.logs as |log|}}
-                <tr class={{if log.success "status-success" "status-failed"}}>
-                  <td class="date-cell">{{this.formatDate log.created_at}}</td>
+              {{#each this.logs as |entry|}}
+                <tr class={{if entry.success "status-success" "status-failed"}}>
+                  <td class="date-cell">{{this.formatDate
+                      entry.created_at
+                    }}</td>
                   <td class="type-cell">
                     <span
                       class="notification-type-badge
-                        {{this.getTypeBadgeClass log.notification_type}}"
-                      title={{log.notification_type}}
-                    >{{this.translateType log.notification_type}}</span>
+                        {{this.getTypeBadgeClass entry.notification_type}}"
+                      title={{entry.notification_type}}
+                    >{{this.translateType entry.notification_type}}</span>
                   </td>
                   <td class="method-cell">
-                    {{#if (eq log.delivery_method "in_app")}}
+                    {{#if (eq entry.delivery_method "in_app")}}
                       {{icon "bell"}}
                     {{else}}
                       {{icon "envelope"}}
                     {{/if}}
-                    {{log.delivery_method}}
+                    {{entry.delivery_method}}
                   </td>
                   <td class="recipient-cell">
-                    {{#if log.recipient}}
+                    {{#if entry.recipient}}
                       <a
-                        href="/u/{{log.recipient.username}}"
+                        href="/u/{{entry.recipient.username}}"
                         class="recipient-link"
                       >
-                        {{avatar log.recipient.avatar_template "tiny"}}
-                        <span class="username">{{log.recipient.username}}</span>
+                        {{avatar entry.recipient.avatar_template "tiny"}}
+                        <span
+                          class="username"
+                        >{{entry.recipient.username}}</span>
                       </a>
                     {{/if}}
                   </td>
                   <td class="context-cell">
-                    {{#if log.lottery}}
-                      <a href={{log.lottery.url}} class="context-link">
+                    {{#if entry.lottery}}
+                      <a href={{entry.lottery.url}} class="context-link">
                         {{icon "gift"}}
-                        {{log.lottery.title}}
+                        {{entry.lottery.title}}
                       </a>
-                    {{else if log.donation}}
-                      <a href={{log.donation.url}} class="context-link">
+                    {{else if entry.donation}}
+                      <a href={{entry.donation.url}} class="context-link">
                         {{icon "hand-holding-heart"}}
-                        {{log.donation.title}}
+                        {{entry.donation.title}}
                       </a>
                     {{else}}
                       -
                     {{/if}}
                   </td>
                   <td class="status-cell">
-                    {{#if log.success}}
+                    {{#if entry.success}}
                       <span class="status-icon success">{{icon "check"}}</span>
                     {{else}}
                       <span
                         class="status-icon failed"
-                        title={{log.error_message}}
+                        title={{entry.error_message}}
                       >{{icon "times"}}</span>
                     {{/if}}
                   </td>
                 </tr>
-                {{#unless log.success}}
-                  {{#if log.error_message}}
+                {{#unless entry.success}}
+                  {{#if entry.error_message}}
                     <tr class="error-row">
                       <td colspan="6" class="error-message">
                         {{icon "exclamation-triangle"}}
-                        {{log.error_message}}
+                        {{entry.error_message}}
                       </td>
                     </tr>
                   {{/if}}
