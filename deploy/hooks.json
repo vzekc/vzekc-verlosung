@@ -58,6 +58,16 @@
               "name": "workflow_run.head_branch"
             }
           }
+        },
+        {
+          "match": {
+            "type": "value",
+            "value": "Discourse Plugin",
+            "parameter": {
+              "source": "payload",
+              "name": "workflow_run.name"
+            }
+          }
         }
       ]
     }
