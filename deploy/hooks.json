@@ -1,0 +1,65 @@
+[
+  {
+    "id": "discourse-rebuild",
+    "execute-command": "/usr/local/bin/rebuild-discourse.sh",
+    "command-working-directory": "/var/www/discourse",
+    "pass-arguments-to-command": [
+      { "source": "payload", "name": "repository.full_name" },
+      { "source": "payload", "name": "workflow_run.html_url" }
+    ],
+    "trigger-rule": {
+      "and": [
+        {
+          "match": {
+            "type": "payload-hmac-sha256",
+            "secret": "{{ WEBHOOK_SECRET }}",
+            "parameter": {
+              "source": "header",
+              "name": "X-Hub-Signature-256"
+            }
+          }
+        },
+        {
+          "match": {
+            "type": "value",
+            "value": "workflow_run",
+            "parameter": {
+              "source": "header",
+              "name": "X-GitHub-Event"
+            }
+          }
+        },
+        {
+          "match": {
+            "type": "value",
+            "value": "completed",
+            "parameter": {
+              "source": "payload",
+              "name": "action"
+            }
+          }
+        },
+        {
+          "match": {
+            "type": "value",
+            "value": "success",
+            "parameter": {
+              "source": "payload",
+              "name": "workflow_run.conclusion"
+            }
+          }
+        },
+        {
+          "match": {
+            "type": "value",
+            "value": "main",
+            "parameter": {
+              "source": "payload",
+              "name": "workflow_run.head_branch"
+            }
+          }
+        }
+      ]
+    }
+  }
+]
