@@ -214,6 +214,9 @@ de:
         confirm_selections_message: "Bist du sicher, dass du diese Gewinnerauswahl bestätigen möchtest? Diese Aktion kann nicht rückgängig gemacht werden."
         missing_selections_error: "Bitte wähle einen Gewinner für alle Pakete mit Teilnehmern aus."
         manual_draw_success: "Gewinner erfolgreich gespeichert!"
+      packet_note:
+        placeholder: "Notiz hinzufügen..."
+        save_error: "Notiz konnte nicht gespeichert werden"
       packets_title: "Pakete"
       shipping:
         shipped: "Versandt"

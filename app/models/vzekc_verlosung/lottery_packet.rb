@@ -131,6 +131,7 @@ end
 #  id                         :bigint           not null, primary key
 #  abholerpaket               :boolean          default(FALSE), not null
 #  erhaltungsbericht_required :boolean          default(TRUE), not null
+#  note                       :text
 #  notifications_silenced     :boolean          default(FALSE), not null
 #  ordinal                    :integer          not null
 #  quantity                   :integer          default(1), not null

@@ -199,6 +199,9 @@ en:
         confirm_selections_message: "Are you sure you want to confirm these winner selections? This action cannot be undone."
         missing_selections_error: "Please select a winner for all packets with participants."
         manual_draw_success: "Winners successfully saved!"
+      packet_note:
+        placeholder: "Add note..."
+        save_error: "Failed to save note"
       packets_title: "Packets"
       shipping:
         shipped: "Shipped"

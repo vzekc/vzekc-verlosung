@@ -439,6 +439,35 @@ module VzekcVerlosung
       end
     end
 
+    # PUT /vzekc_verlosung/packets/:post_id/note
+    #
+    # Updates the owner note for a lottery packet
+    # Only the lottery owner can update notes
+    #
+    # @param post_id [Integer] Post ID of the packet
+    # @param note [String] Note text (can be blank to clear)
+    #
+    # @return [JSON] Updated note
+    def update_note
+      post = Post.find_by(id: params[:post_id])
+      return render_json_error("Post not found", status: :not_found) unless post
+
+      packet = LotteryPacket.find_by(post_id: post.id)
+      return render_json_error("Not a lottery packet", status: :bad_request) unless packet
+
+      topic = post.topic
+      return render_json_error("Topic not found", status: :not_found) unless topic
+
+      unless topic.user_id == current_user.id
+        return(
+          render_json_error("Only the lottery owner can update packet notes", status: :forbidden)
+        )
+      end
+
+      packet.update!(note: params[:note].presence)
+      render json: success_json.merge(note: packet.note)
+    end
+
     # PUT /vzekc_verlosung/packets/:post_id/toggle-notifications
     #
     # Toggles the notifications_silenced flag for a lottery packet

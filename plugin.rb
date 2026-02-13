@@ -591,9 +591,10 @@ after_initialize do
           state: packet.state,
         }
 
-        # Include notifications_silenced for lottery owner only
+        # Include owner-only fields
         if scope.user&.id == object.topic.user_id
           packet_data[:notifications_silenced] = packet.notifications_silenced
+          packet_data[:note] = packet.note
         end
 
         packet_data

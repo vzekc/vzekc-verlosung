@@ -2,7 +2,9 @@ import Component from "@glimmer/component";
 import { tracked } from "@glimmer/tracking";
 import { registerDestructor } from "@ember/destroyable";
 import { concat, fn } from "@ember/helper";
+import { on } from "@ember/modifier";
 import { action } from "@ember/object";
+import didInsert from "@ember/render-modifiers/modifiers/did-insert";
 import { service } from "@ember/service";
 import DButton from "discourse/components/d-button";
 import UserLink from "discourse/components/user-link";
@@ -42,6 +44,8 @@ export default class LotteryIntroSummary extends Component {
   @tracked now = new Date();
   @tracked markingCollected = null;
   @tracked markingShipped = null;
+  @tracked editingNotePostId = null;
+  @tracked savingNote = false;
 
   _timer = null;
 
@@ -847,6 +851,64 @@ export default class LotteryIntroSummary extends Component {
   }
 
   @action
+  focusElement(element) {
+    element.focus();
+  }
+
+  @action
+  startEditingNote(postId) {
+    this.editingNotePostId = postId;
+  }
+
+  @action
+  async saveNote(packet, event) {
+    const newNote = event.target.value;
+    this.editingNotePostId = null;
+
+    if (newNote === (packet.note || "")) {
+      return;
+    }
+
+    this.savingNote = true;
+    try {
+      const result = await ajax(
+        `/vzekc-verlosung/packets/${packet.post_id}/note`,
+        {
+          type: "PUT",
+          data: { note: newNote },
+        }
+      );
+
+      const packetIndex = this.packets.findIndex(
+        (p) => p.post_id === packet.post_id
+      );
+      if (packetIndex !== -1) {
+        const updatedPackets = [...this.packets];
+        updatedPackets[packetIndex] = {
+          ...updatedPackets[packetIndex],
+          note: result.note,
+        };
+        this.packets = updatedPackets;
+      }
+    } catch (error) {
+      popupAjaxError(error);
+    } finally {
+      this.savingNote = false;
+    }
+  }
+
+  @action
+  handleNoteKeydown(packet, event) {
+    if (event.key === "Escape") {
+      this.editingNotePostId = null;
+      event.preventDefault();
+    } else if (event.key === "Enter" && !event.shiftKey) {
+      event.target.blur();
+      event.preventDefault();
+    }
+  }
+
+  @action
   handleCreateErhaltungsbericht(winnerEntry, packet) {
     const post = {
       id: packet.post_id,
@@ -1052,6 +1114,35 @@ export default class LotteryIntroSummary extends Component {
                       }}
                     >{{icon "ban"}}</span>{{/unless}}
                 </div>
+
+                {{#if this.isLotteryOwner}}
+                  <div class="packet-note">
+                    {{#if (eq this.editingNotePostId packet.post_id)}}
+                      <textarea
+                        class="packet-note-input"
+                        placeholder={{i18n
+                          "vzekc_verlosung.packet_note.placeholder"
+                        }}
+                        {{didInsert this.focusElement}}
+                        {{on "blur" (fn this.saveNote packet)}}
+                        {{on "keydown" (fn this.handleNoteKeydown packet)}}
+                      >{{packet.note}}</textarea>
+                    {{else}}
+                      <span
+                        class={{concat
+                          "packet-note-text"
+                          (if packet.note "" " empty")
+                        }}
+                        role="button"
+                        {{on "click" (fn this.startEditingNote packet.post_id)}}
+                      >{{if
+                          packet.note
+                          packet.note
+                          (i18n "vzekc_verlosung.packet_note.placeholder")
+                        }}</span>
+                    {{/if}}
+                  </div>
+                {{/if}}
 
                 {{#if packet.abholerpaket}}
                   <span class="abholerpaket-label">{{i18n
