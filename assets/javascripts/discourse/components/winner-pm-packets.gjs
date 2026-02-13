@@ -4,6 +4,7 @@ import { fn } from "@ember/helper";
 import { on } from "@ember/modifier";
 import { action } from "@ember/object";
 import didInsert from "@ember/render-modifiers/modifiers/did-insert";
+import didUpdate from "@ember/render-modifiers/modifiers/did-update";
 import { service } from "@ember/service";
 import DButton from "discourse/components/d-button";
 import UserLink from "discourse/components/user-link";
@@ -231,6 +232,13 @@ export default class WinnerPmPackets extends Component {
   }
 
   @action
+  onTopicChanged() {
+    this.packets = this.args.outletArgs?.topic?.winner_pm_packets || [];
+    this.editingNotePostId = null;
+    this.savingNote = false;
+  }
+
+  @action
   focusElement(element) {
     element.focus();
   }
@@ -290,7 +298,10 @@ export default class WinnerPmPackets extends Component {
 
   <template>
     {{#if this.packets.length}}
-      <div class="winner-pm-packets">
+      <div
+        class="winner-pm-packets"
+        {{didUpdate this.onTopicChanged @outletArgs.topic}}
+      >
         <h3 class="winner-pm-packets__title">
           {{icon "gift"}}
           {{i18n "vzekc_verlosung.winner_pm.packets_title"}}
