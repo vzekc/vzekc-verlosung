@@ -40,6 +40,80 @@ Discourse is large with long history. Understand context before changes.
 - Use FormKit for forms: https://meta.discourse.org/t/discourse-toolkit-to-render-forms/326439 (`app/assets/javascripts/discourse/app/form-kit`)
 - **NEVER use console.log in production code** - remove all debug logging before committing
 
+### Code Style Rules (CI-Enforced)
+
+All code MUST pass these CI linters. Generate code that conforms from the start.
+
+#### JavaScript / GJS (ESLint + Prettier)
+- **Strict equality**: Always use `===`/`!==`, never `==`/`!=` (`eqeqeq`)
+- **No `var`**: Use `const` or `let` (`no-var`)
+- **No `console.log`**: Forbidden in production code (`no-console`)
+- **No `debugger`**: Remove all debug statements (`no-debugger`)
+- **No `eval()`**: Never use eval or equivalent (`no-eval`)
+- **No `alert()`**: Never use alert/confirm/prompt (`no-alert`)
+- **No bitwise operators**: Use explicit alternatives (`no-bitwise`)
+- **No variable shadowing**: Outer scope variable names must not be reused (`no-shadow`)
+- **Always use curly braces**: Even for single-line `if`/`else`/`for`/`while` (`curly`)
+- **Object shorthand**: Use `{ foo }` not `{ foo: foo }` for properties (`object-shorthand`)
+- **Radix parameter**: Always pass radix to `parseInt()` e.g. `parseInt(x, 10)` (`radix`)
+- **No `extend` on native prototypes**: Never modify built-in prototypes (`no-extend-native`)
+- **Trailing commas**: Use trailing commas in ES5 contexts (arrays, objects, params) (`trailingComma: "es5"`)
+- **Import order** (enforced by `eslint-plugin-import-sort`):
+  1. `@glimmer/*`, `@ember/*`, then other packages
+  2. `discourse/*`, `discourse-common/*`, `admin/*`
+  3. `discourse/plugins/*`
+  4. Relative imports (`./`, `../`)
+- **Class member order** (enforced by `eslint-plugin-sort-class-members`):
+  1. Static properties/methods
+  2. `@service` injections
+  3. `@tracked` properties
+  4. Regular properties
+  5. Private properties
+  6. Constructor, `init`, `willDestroy`
+  7. Everything else
+  8. `<template>` tag (last)
+- **Blank line after imports**: Required (`discourse/line-after-imports`)
+- **Blank line before default export**: Required (`discourse/line-before-default-export`)
+- **Blank lines between class members**: Required (`discourse/lines-between-class-members`)
+- **No `onclick` attribute**: Use Ember `{{on "click"}}` modifier (`discourse/no-onclick`)
+- **No curly component invocations**: Use angle bracket `<MyComponent />` not `{{my-component}}` (`discourse/no-curly-components`)
+- **Component names capitalized**: `<MyComponent />` not `<myComponent />` (`discourse/capital-components`)
+- **No `this.` in `<template>` tag**: Use bare names, not `this.foo` (`discourse/template-tag-no-self-this`)
+- **No `querySelector`**: Use Discourse helpers instead (`discourse/no-simple-query-selector`)
+- **Use updated imports**: Follow current Discourse import paths, not deprecated ones (`discourse/deprecated-imports`, `discourse/discourse-common-imports`)
+- **GJS/GTS files**: Parsed with `ember-eslint-parser`, formatted with `prettier-plugin-ember-template-tag`
+
+#### Template Lint (Ember Templates / GJS `<template>`)
+- **Strict mode required**: All `.gjs`/`.gts` templates must use strict mode (`require-strict-mode`)
+- **No `{{action}}` modifier**: Use `{{on "click" this.method}}` instead (`no-action`)
+- **No unnecessary curly parens/strings**: `{{@foo}}` not `{{(@foo)}}`, `@foo` not `{{"foo"}}` (`no-unnecessary-curly-parens`, `no-unnecessary-curly-strings`)
+- **Simple modifiers**: Prefer built-in modifiers (`simple-modifiers`)
+- **No chained `this`**: Avoid `{{this.foo.bar.baz}}` chains (`no-chained-this`)
+- **No `@class`**: Use angle bracket invocation (`discourse/no-at-class`)
+
+#### SCSS / CSS (Stylelint)
+- **Standard SCSS**: Extends `stylelint-config-standard-scss`
+- **Valid hex colors**: No invalid hex values (`color-no-invalid-hex`)
+- **Known units only**: No unknown CSS units (`unit-no-unknown`)
+- **Rule empty line before**: Always (except after single-line comment or first-nested) (`rule-empty-line-before`)
+- **No redundant declaration lines**: Never put empty lines before declarations (`declaration-empty-line-before: never`)
+- **No deprecated property values**: Avoid deprecated keywords like `break-word` → use `anywhere` or `break-all` (`declaration-property-value-keyword-no-deprecated`)
+- **Modern color function notation**: Use `rgb(0 0 0 / 50%)` not `rgba(0, 0, 0, 0.5)` (both currently allowed but prefer modern)
+
+#### Ruby (RuboCop + SyntaxTree)
+- **rubocop-discourse** ruleset with SyntaxTree compatibility
+- **No monkey patching in plugins**: Use `prepend` pattern, never `class_eval` (`Discourse/Plugins/NoMonkeyPatching`)
+- **Call `requires_plugin`**: All plugin controllers must call `requires_plugin` (`Discourse/Plugins/CallRequiresPlugin`)
+- **Use `plugin_instance.on`**: For event listeners in plugins (`Discourse/Plugins/UsePluginInstanceOn`)
+- **Namespace methods**: Plugin methods must be namespaced (`Discourse/Plugins/NamespaceMethods`)
+- **Namespace constants**: Plugin constants must be namespaced (`Discourse/Plugins/NamespaceConstants`)
+- **Use `require_relative`**: Not `require` for plugin-internal files (`Discourse/Plugins/UseRequireRelative`)
+- **SyntaxTree formatting**: Ruby code is also checked by SyntaxTree for formatting consistency
+
+#### Locale Files (i18n)
+- **English locale lint**: `plugins/**/locales/{client,server}.en.yml` are validated by `script/i18n_lint.rb`
+- Use proper YAML formatting, no duplicate keys, valid interpolation syntax
+
 ### Ruby
 - **Guardian Extensions**: NEVER use `Guardian.class_eval`. Always use prepend mixin pattern:
 ```ruby
