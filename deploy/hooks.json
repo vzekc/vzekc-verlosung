@@ -2,7 +2,7 @@
   {
     "id": "discourse-rebuild",
     "execute-command": "/usr/local/bin/rebuild-discourse.sh",
-    "command-working-directory": "/var/www/discourse",
+    "command-working-directory": "/var/discourse",
     "pass-arguments-to-command": [
       { "source": "payload", "name": "repository.full_name" },
       { "source": "payload", "name": "workflow_run.html_url" }

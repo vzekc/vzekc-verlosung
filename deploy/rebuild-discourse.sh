@@ -3,7 +3,7 @@ set -euo pipefail
 
 LOCK_FILE="/var/lock/discourse-rebuild.lock"
 LOG_FILE="/var/log/discourse-rebuild.log"
-DISCOURSE_DIR="/var/www/discourse"
+DISCOURSE_DIR="/var/discourse"
 
 REPO="${1:-unknown}"
 WORKFLOW_URL="${2:-}"
