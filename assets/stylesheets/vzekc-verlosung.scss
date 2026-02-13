@@ -3859,3 +3859,208 @@
     }
   }
 }
+
+// Winner PM Packets (shown on winner notification PMs)
+.winner-pm-packets {
+  padding: 1em;
+  background: var(--primary-very-low);
+  border: 1px solid var(--primary-low);
+  border-radius: 8px;
+
+  &__title {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    margin: 0 0 0.75em 0;
+    font-size: 1.1em;
+    font-weight: 600;
+    color: var(--primary);
+
+    .d-icon {
+      color: var(--tertiary);
+    }
+  }
+
+  &__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  &__item {
+    padding: 0.75em 0;
+    border-top: 1px solid var(--primary-low);
+
+    &:first-child {
+      border-top: none;
+      padding-top: 0;
+    }
+  }
+
+  &__packet-header {
+    display: flex;
+    align-items: baseline;
+    gap: 0.35em;
+    margin-bottom: 0.5em;
+    flex-wrap: wrap;
+
+    .packet-ordinal {
+      font-weight: 600;
+      color: var(--primary);
+    }
+
+    .packet-title {
+      font-weight: 600;
+      color: var(--tertiary);
+      text-decoration: none;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+
+    .packet-lottery-link {
+      font-size: 0.9em;
+      color: var(--primary-medium);
+
+      a {
+        color: var(--primary-medium);
+        text-decoration: none;
+
+        &:hover {
+          color: var(--tertiary);
+          text-decoration: underline;
+        }
+      }
+    }
+  }
+
+  .packet-note {
+    margin-bottom: 0.5em;
+
+    .packet-note-input {
+      width: 100%;
+      min-height: 2.5em;
+      padding: 0.4em 0.5em;
+      border: 1px solid var(--tertiary);
+      border-radius: 4px;
+      font-size: 0.9em;
+      resize: vertical;
+
+      &:focus {
+        outline: none;
+        border-color: var(--tertiary);
+      }
+    }
+
+    .packet-note-text {
+      display: block;
+      cursor: pointer;
+      font-size: 0.9em;
+      color: var(--primary);
+      padding: 0.25em 0.5em;
+      border-radius: 4px;
+      border: 1px solid transparent;
+
+      &:hover {
+        background: var(--primary-low);
+        border-color: var(--primary-low-mid);
+      }
+
+      &.empty {
+        color: var(--primary-medium);
+        font-style: italic;
+      }
+    }
+  }
+
+  .packet-winner-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5em;
+
+    .packet-winner-identity {
+      flex-shrink: 0;
+    }
+
+    .winner-user-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35em;
+
+      .avatar {
+        width: 24px;
+        height: 24px;
+      }
+
+      .winner-name {
+        font-weight: 600;
+        color: var(--success);
+      }
+
+      &:hover .winner-name {
+        text-decoration: underline;
+      }
+    }
+
+    .winner-fulfillment-status {
+      .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25em;
+        padding: 0.2em 0.5em;
+        border-radius: 4px;
+        font-size: 0.85em;
+      }
+
+      .status-won {
+        color: var(--primary-medium);
+        background: var(--primary-very-low);
+      }
+
+      .status-shipped {
+        color: var(--primary-medium);
+        background: var(--primary-very-low);
+      }
+
+      .status-collected {
+        color: var(--success);
+        background: var(--success-low);
+      }
+
+      .status-finished {
+        color: var(--success);
+        background: var(--success-low);
+      }
+    }
+
+    .winner-fulfillment-actions {
+      display: inline-flex;
+      gap: 0.35em;
+
+      .mark-shipped-inline-button,
+      .mark-handed-over-inline-button,
+      .mark-collected-inline-button {
+        padding: 0.25em 0.5em;
+        font-size: 0.8em;
+        min-height: unset;
+
+        .d-icon {
+          margin-right: 0.25em;
+        }
+      }
+    }
+
+    .winner-fulfillment-links {
+      .winner-bericht-link {
+        color: var(--tertiary);
+        font-size: 0.9em;
+
+        &:hover {
+          color: var(--tertiary-hover);
+        }
+      }
+    }
+  }
+}

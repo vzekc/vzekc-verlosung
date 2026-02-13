@@ -250,6 +250,7 @@ de:
         from_lottery: "Erhaltungsbericht zum Paket aus:"
       winner_pm:
         view_link: "Gewinner-Nachricht anzeigen"
+        packets_title: "Pakete"
       time:
         just_now: "Gerade eben"
         minutes_ago:

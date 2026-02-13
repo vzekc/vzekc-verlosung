@@ -602,6 +602,70 @@ after_initialize do
       .compact
   end
 
+  # Packet data for winner PM topics
+  # Returns all packets linked to this PM via LotteryPacketWinner.winner_pm_topic_id
+  add_to_serializer(
+    :topic_view,
+    :winner_pm_packets,
+    include_condition: -> do
+      topic = object.topic
+      topic.archetype == Archetype.private_message && scope.user&.id == topic.user_id &&
+        VzekcVerlosung::LotteryPacketWinner.exists?(winner_pm_topic_id: topic.id)
+    end,
+  ) do
+    topic = object.topic
+
+    winner_entries =
+      VzekcVerlosung::LotteryPacketWinner.where(winner_pm_topic_id: topic.id).includes(
+        :winner,
+        :erhaltungsbericht_topic,
+        lottery_packet: {
+          post: :topic,
+          lottery: :topic,
+        },
+      )
+
+    winner_entries
+      .map do |lpw|
+        packet = lpw.lottery_packet
+        next unless packet&.post&.topic && packet.lottery&.topic
+
+        lottery_topic = packet.lottery.topic
+
+        winner_data = {
+          instance_number: lpw.instance_number,
+          id: lpw.winner.id,
+          username: lpw.winner.username,
+          name: lpw.winner.name,
+          avatar_template: lpw.winner.avatar_template,
+          fulfillment_state: lpw.fulfillment_state,
+        }
+        winner_data[:shipped_at] = lpw.shipped_at if lpw.shipped_at
+        winner_data[:collected_at] = lpw.collected_at if lpw.collected_at
+        if lpw.erhaltungsbericht_topic_id && lpw.erhaltungsbericht_topic
+          winner_data[:erhaltungsbericht_topic_id] = lpw.erhaltungsbericht_topic_id
+        end
+
+        {
+          post_id: packet.post_id,
+          post_number: packet.post.post_number,
+          title: packet.title,
+          ordinal: packet.ordinal,
+          quantity: packet.quantity,
+          note: packet.note,
+          notifications_silenced: packet.notifications_silenced,
+          abholerpaket: packet.abholerpaket,
+          erhaltungsbericht_required: packet.erhaltungsbericht_required,
+          state: packet.state,
+          lottery_topic_id: lottery_topic.id,
+          lottery_topic_title: lottery_topic.title,
+          lottery_topic_slug: lottery_topic.slug,
+          winner: winner_data,
+        }
+      end
+      .compact
+  end
+
   # Add ticket status to packet posts to prevent AJAX requests
   # This eliminates the need for lottery-widget to fetch ticket data
   add_to_serializer(
