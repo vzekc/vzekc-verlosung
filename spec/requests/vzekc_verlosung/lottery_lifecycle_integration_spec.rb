@@ -269,7 +269,7 @@ RSpec.describe "Lottery Full Lifecycle Integration" do
     uncollected_pm =
       Topic.where(archetype: Archetype.private_message).order(created_at: :desc).first
     expect(uncollected_pm.title).to include("3") # 3 uncollected user packets
-    expect(uncollected_pm.title.downcase).to include("received").or include("collected")
+    expect(uncollected_pm.title.downcase).to include("open").or include("still")
 
     # STEP 13: Mark first packet as collected (by the winner)
     sign_in(participant1)

@@ -136,18 +136,34 @@ de:
           Deine Verlosung **%{topic_title}** endet morgen am %{ending_at}.
 
           [Verlosung öffnen](%{topic_url})
-      uncollected:
+      uncollected_owner:
+        title: "Erinnerung: %{uncollected_count} Paket(e) noch offen"
+        state_shipped: "Versandt"
+        state_won: "Noch nicht versandt"
+        body: |
+          Hallo %{username},
+
+          Deine Verlosung **%{topic_title}** wurde vor %{days_since_drawn} Tagen gezogen, aber einige Pakete sind noch offen.
+
+          ## Offene Pakete
+
+          %{packet_list}
+
+          Bitte versende die noch nicht versandten Pakete und markiere sie als "Versandt" oder "Übergeben". Bereits versandte Pakete warten darauf, dass die Gewinner den Erhalt bestätigen.
+
+          [Verlosung öffnen](%{topic_url})
+      uncollected_winner:
         title: "Erinnerung: %{uncollected_count} Paket(e) noch nicht als erhalten markiert"
         body: |
           Hallo %{username},
 
-          Deine Verlosung **%{topic_title}** wurde vor %{days_since_drawn} Tagen gezogen, aber einige Pakete wurden noch nicht als erhalten markiert.
+          Du hast Pakete aus der Verlosung **%{topic_title}** gewonnen, die vor %{days_since_drawn} Tagen gezogen wurde. Bitte bestätige den Erhalt, sobald die Pakete bei dir angekommen sind.
 
           ## Noch nicht als erhalten markierte Pakete
 
           %{packet_list}
 
-          Bitte markiere diese Pakete als erhalten, sobald die Gewinner sie abgeholt oder empfangen haben haben.
+          Bitte markiere diese Pakete als "Erhalten", sobald du sie empfangen hast.
 
           [Verlosung öffnen](%{topic_url})
       erhaltungsbericht:

@@ -126,18 +126,34 @@ en:
           Your lottery **%{topic_title}** ends tomorrow on %{ending_at}.
 
           [Open lottery](%{topic_url})
-      uncollected:
+      uncollected_owner:
+        title: "Reminder: %{uncollected_count} packet(s) still open"
+        state_shipped: "Shipped"
+        state_won: "Not yet shipped"
+        body: |
+          Hello %{username},
+
+          Your lottery **%{topic_title}** was drawn %{days_since_drawn} days ago, but some packets are still open.
+
+          ## Open Packets
+
+          %{packet_list}
+
+          Please ship any unshipped packets and mark them as "Shipped" or "Handed over". Already shipped packets are waiting for the winners to confirm receipt.
+
+          [Open lottery](%{topic_url})
+      uncollected_winner:
         title: "Reminder: %{uncollected_count} packet(s) not yet marked as received"
         body: |
           Hello %{username},
 
-          Your lottery **%{topic_title}** was drawn %{days_since_drawn} days ago, but some packets have not been marked as received yet.
+          You won packets in the lottery **%{topic_title}** which was drawn %{days_since_drawn} days ago. Please confirm receipt once the packets have arrived.
 
           ## Packets Not Yet Marked as Received
 
           %{packet_list}
 
-          Please mark these packets as received once the winners have collected them.
+          Please mark these packets as "Received" once you have them.
 
           [Open lottery](%{topic_url})
       erhaltungsbericht:

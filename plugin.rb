@@ -192,7 +192,8 @@ after_initialize do
     Notification.types[:vzekc_verlosung_ticket_returned] = 814
     Notification.types[:vzekc_verlosung_did_not_win] = 815
     Notification.types[:vzekc_verlosung_ending_tomorrow] = 816
-    Notification.types[:vzekc_verlosung_uncollected_reminder] = 817
+    Notification.types[:vzekc_verlosung_uncollected_owner_reminder] = 817
+    Notification.types[:vzekc_verlosung_uncollected_winner_reminder] = 825
     Notification.types[:vzekc_verlosung_erhaltungsbericht_reminder] = 818
     Notification.types[:vzekc_verlosung_new_pickup_offer] = 819
     Notification.types[:vzekc_verlosung_new_lottery_interest] = 820

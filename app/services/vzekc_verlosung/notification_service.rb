@@ -81,9 +81,13 @@ module VzekcVerlosung
         delivery: :pm,
         template: "reminders.erhaltungsbericht",
       },
-      uncollected_reminder: {
+      uncollected_owner_reminder: {
         delivery: :pm,
-        template: "reminders.uncollected",
+        template: "reminders.uncollected_owner",
+      },
+      uncollected_winner_reminder: {
+        delivery: :pm,
+        template: "reminders.uncollected_winner",
       },
       merch_packet_ready: {
         delivery: :pm,
@@ -229,7 +233,7 @@ module VzekcVerlosung
       return false unless MemberChecker.active_member?(@recipient)
 
       # Check packet-level notification silence for uncollected reminders
-      if @type == :uncollected_reminder
+      if %i[uncollected_owner_reminder uncollected_winner_reminder].include?(@type)
         packet = @context[:packet]
         return false if packet&.notifications_silenced?
       end
@@ -311,8 +315,10 @@ module VzekcVerlosung
         build_donation_picked_up_reminder_pm_data
       when :erhaltungsbericht_reminder
         build_erhaltungsbericht_reminder_pm_data
-      when :uncollected_reminder
-        build_uncollected_reminder_pm_data
+      when :uncollected_owner_reminder
+        build_uncollected_owner_reminder_pm_data
+      when :uncollected_winner_reminder
+        build_uncollected_winner_reminder_pm_data
       when :merch_packet_ready
         build_merch_packet_ready_pm_data
       end
@@ -731,17 +737,26 @@ module VzekcVerlosung
       }
     end
 
-    def build_uncollected_reminder_pm_data
+    def build_uncollected_owner_reminder_pm_data
       lottery_topic = @context[:lottery_topic]
       uncollected_packets = @context[:uncollected_packets]
       days_since_drawn = @context[:days_since_drawn]
 
       return nil unless lottery_topic && uncollected_packets&.any?
 
+      locale = @recipient.effective_locale
+
       packet_list =
         uncollected_packets
           .map do |p|
-            line = "- #{p[:title]} (Winner: #{p[:winner]})"
+            state_key =
+              if p[:fulfillment_state] == "shipped"
+                "vzekc_verlosung.reminders.uncollected_owner.state_shipped"
+              else
+                "vzekc_verlosung.reminders.uncollected_owner.state_won"
+              end
+            state_label = I18n.t(state_key, locale: locale)
+            line = "- #{p[:title]} — #{p[:winner]} [#{state_label}]"
             if p[:winner_pm_topic_id]
               pm_url = "#{Discourse.base_url}/t/#{p[:winner_pm_topic_id]}"
               line += " — [PM](#{pm_url})"
@@ -754,14 +769,53 @@ module VzekcVerlosung
         sender: Discourse.system_user,
         title:
           I18n.t(
-            "vzekc_verlosung.reminders.uncollected.title",
-            locale: @recipient.effective_locale,
+            "vzekc_verlosung.reminders.uncollected_owner.title",
+            locale: locale,
             uncollected_count: uncollected_packets.count,
           ),
         body:
           I18n.t(
-            "vzekc_verlosung.reminders.uncollected.body",
-            locale: @recipient.effective_locale,
+            "vzekc_verlosung.reminders.uncollected_owner.body",
+            locale: locale,
+            username: @recipient.username,
+            topic_title: lottery_topic.title,
+            days_since_drawn: days_since_drawn,
+            packet_list: packet_list,
+            topic_url: "#{Discourse.base_url}#{lottery_topic.relative_url}",
+          ),
+        subtype: TopicSubtype.system_message,
+      }
+    end
+
+    def build_uncollected_winner_reminder_pm_data
+      lottery_topic = @context[:lottery_topic]
+      uncollected_packets = @context[:uncollected_packets]
+      days_since_drawn = @context[:days_since_drawn]
+
+      return nil unless lottery_topic && uncollected_packets&.any?
+
+      locale = @recipient.effective_locale
+
+      packet_list =
+        uncollected_packets
+          .map do |p|
+            packet_url = "#{Discourse.base_url}#{lottery_topic.relative_url}/#{p[:post_number]}"
+            "- [#{p[:title]}](#{packet_url})"
+          end
+          .join("\n")
+
+      {
+        sender: Discourse.system_user,
+        title:
+          I18n.t(
+            "vzekc_verlosung.reminders.uncollected_winner.title",
+            locale: locale,
+            uncollected_count: uncollected_packets.count,
+          ),
+        body:
+          I18n.t(
+            "vzekc_verlosung.reminders.uncollected_winner.body",
+            locale: locale,
             username: @recipient.username,
             topic_title: lottery_topic.title,
             days_since_drawn: days_since_drawn,

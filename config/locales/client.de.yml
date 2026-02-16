@@ -514,7 +514,8 @@ de:
             no_participants_reminder: "Keine Teilnehmer"
             donation_picked_up_reminder: "Abholungs-Erinnerung"
             erhaltungsbericht_reminder: "Bericht-Erinnerung"
-            uncollected_reminder: "Nicht abgeholt"
+            uncollected_owner_reminder: "Versand-Erinnerung"
+            uncollected_winner_reminder: "Empfangs-Erinnerung"
             new_pickup_offer: "Neues Abholangebot"
             new_lottery_interest: "Neues Verlosungsinteresse"
       user_stats:

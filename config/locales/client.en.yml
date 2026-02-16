@@ -468,7 +468,8 @@ en:
             no_participants_reminder: "No participants"
             donation_picked_up_reminder: "Pickup reminder"
             erhaltungsbericht_reminder: "Report reminder"
-            uncollected_reminder: "Uncollected reminder"
+            uncollected_owner_reminder: "Shipping reminder"
+            uncollected_winner_reminder: "Receipt reminder"
             new_pickup_offer: "New pickup offer"
             new_lottery_interest: "New lottery interest"
       user_stats:
