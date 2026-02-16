@@ -52,10 +52,7 @@ describe VzekcVerlosung::LotteryInterestsController do
 
       context "when user already has an interest" do
         before do
-          VzekcVerlosung::LotteryInterest.create!(
-            donation_id: donation.id,
-            user_id: user.id,
-          )
+          VzekcVerlosung::LotteryInterest.create!(donation_id: donation.id, user_id: user.id)
         end
 
         it "returns forbidden" do
@@ -77,10 +74,7 @@ describe VzekcVerlosung::LotteryInterestsController do
 
   describe "#destroy" do
     let!(:interest) do
-      VzekcVerlosung::LotteryInterest.create!(
-        donation_id: donation.id,
-        user_id: user.id,
-      )
+      VzekcVerlosung::LotteryInterest.create!(donation_id: donation.id, user_id: user.id)
     end
 
     context "when user is not logged in" do
@@ -94,9 +88,9 @@ describe VzekcVerlosung::LotteryInterestsController do
       before { sign_in(user) }
 
       it "deletes the interest" do
-        expect {
-          delete "/vzekc-verlosung/lottery-interests/#{interest.id}.json"
-        }.to change { VzekcVerlosung::LotteryInterest.count }.by(-1)
+        expect { delete "/vzekc-verlosung/lottery-interests/#{interest.id}.json" }.to change {
+          VzekcVerlosung::LotteryInterest.count
+        }.by(-1)
 
         expect(response.status).to eq(204)
       end
@@ -117,10 +111,7 @@ describe VzekcVerlosung::LotteryInterestsController do
   describe "#index" do
     before do
       sign_in(user)
-      VzekcVerlosung::LotteryInterest.create!(
-        donation_id: donation.id,
-        user_id: user.id,
-      )
+      VzekcVerlosung::LotteryInterest.create!(donation_id: donation.id, user_id: user.id)
     end
 
     it "returns lottery interests for a donation" do

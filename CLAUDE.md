@@ -26,6 +26,7 @@ Discourse is large with long history. Understand context before changes.
 
 ### All Files
 - Always lint changed files with `bundle exec rubocop -a` before committing
+- **Always run `bundle exec stree write` on changed Ruby files** before committing (Syntax Tree formatting)
 - Run `bundle exec rubocop plugin.rb app/ lib/ spec/` to verify main code passes
 - Make display strings translatable (use placeholders, not split strings)
 - Create subagent to review changes against this file after completing tasks
@@ -249,6 +250,25 @@ pnpm prettier --check assets/javascripts/discourse/components/my-component.gjs
 pnpm prettier --write assets/javascripts/discourse/components/my-component.gjs
 ```
 
+```bash
+# Syntax Tree (Ruby formatting) - From PLUGIN directory (CRITICAL!)
+cd /Users/hans/Development/vzekc/vzekc-verlosung
+
+# Check formatting (what CI runs)
+bundle exec stree check Gemfile $(git ls-files '*.rb') $(git ls-files '*.rake') $(git ls-files '*.thor')
+
+# Fix formatting issues (write in place)
+bundle exec stree write <file1.rb> <file2.rb> ...
+
+# Fix ALL Ruby files
+bundle exec stree write Gemfile $(git ls-files '*.rb') $(git ls-files '*.rake') $(git ls-files '*.thor')
+```
+
+**IMPORTANT**: Syntax Tree (`stree`) is a SEPARATE formatter from RuboCop. Code can pass RuboCop but fail Syntax Tree. Common differences:
+- **Line wrapping**: stree enforces 100-char print width (from `.streerc`). Short argument lists that fit on one line are collapsed; long lines are expanded.
+- **Argument formatting**: `method(arg1: val1, arg2: val2)` stays on one line if it fits within 100 chars, even if RuboCop allows multi-line.
+- Always run BOTH `rubocop -a` AND `stree write` on changed Ruby files.
+
 **Example workflow for this plugin:**
 ```bash
 # 1. Ruby/ESLint linting from Discourse root
@@ -261,9 +281,13 @@ bin/lint --fix \
 # 2. Prettier formatting from plugin directory
 cd /Users/hans/Development/vzekc/vzekc-verlosung
 pnpm prettier --write "assets/**/*.{scss,js,gjs,hbs}"
+
+# 3. Syntax Tree formatting from plugin directory (MUST NOT SKIP!)
+cd /Users/hans/Development/vzekc/vzekc-verlosung
+bundle exec stree write app/controllers/vzekc_verlosung/changed_file.rb spec/requests/changed_spec.rb
 ```
 
-**ALWAYS lint AND format your changes before committing!**
+**ALWAYS lint, format with Prettier, AND format with Syntax Tree before committing!**
 
 ## Schema Annotations
 

@@ -23,10 +23,7 @@ module VzekcVerlosung
 
       unless guardian.can_express_lottery_interest?(donation)
         return(
-          render_json_error(
-            "You cannot express interest in this donation",
-            status: :forbidden,
-          )
+          render_json_error("You cannot express interest in this donation", status: :forbidden)
         )
       end
 

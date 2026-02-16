@@ -16,7 +16,11 @@ module VzekcVerlosung
         Donation
           .joins(:topic)
           .where.not(state: "draft")
-          .includes(:pickup_offers, :lottery_interests, topic: [:category, { user: :primary_group }])
+          .includes(
+            :pickup_offers,
+            :lottery_interests,
+            topic: [:category, { user: :primary_group }],
+          )
           .order(published_at: :desc)
 
       read_topic_ids = read_topic_ids_for(donations)
