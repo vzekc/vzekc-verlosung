@@ -767,8 +767,8 @@ export default class LotteryWidget extends Component {
                         }}
                         @title={{if
                           this.notificationsSilenced
-                          (i18n "vzekc_verlosung.notifications.unmute_packet")
-                          (i18n "vzekc_verlosung.notifications.mute_packet")
+                          "vzekc_verlosung.notifications.unmute_packet"
+                          "vzekc_verlosung.notifications.mute_packet"
                         }}
                         class="btn-flat notification-toggle-button"
                       />

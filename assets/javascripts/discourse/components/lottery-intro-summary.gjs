@@ -1374,12 +1374,8 @@ export default class LotteryIntroSummary extends Component {
                                 }}
                                 @title={{if
                                   packet.notifications_silenced
-                                  (i18n
-                                    "vzekc_verlosung.notifications.unmute_packet"
-                                  )
-                                  (i18n
-                                    "vzekc_verlosung.notifications.mute_packet"
-                                  )
+                                  "vzekc_verlosung.notifications.unmute_packet"
+                                  "vzekc_verlosung.notifications.mute_packet"
                                 }}
                                 class="btn-flat notification-toggle-button"
                               />
