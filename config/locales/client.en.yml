@@ -533,3 +533,11 @@ en:
           donation: "Donation"
           picked_up_at: "Picked up"
           outcome: "Outcome"
+      silence_reminders:
+        title: "Stop Lottery Reminders"
+        description: "You will no longer receive weekly reminders about uncollected packets for this lottery. Winners will still receive their reminders."
+        confirm_button: "Stop reminders"
+        cancel_button: "Cancel"
+        success: "Reminders have been stopped for this lottery."
+        error_not_owner: "Only the lottery owner can stop reminders."
+        error_not_found: "Lottery not found."

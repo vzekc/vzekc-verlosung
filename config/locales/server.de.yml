@@ -152,6 +152,10 @@ de:
           Bitte versende die noch nicht versandten Pakete und markiere sie als "Versandt" oder "Übergeben". Bereits versandte Pakete warten darauf, dass die Gewinner den Erhalt bestätigen.
 
           [Verlosung öffnen](%{topic_url})
+
+          ---
+
+          [Erinnerungen für diese Verlosung abschalten](%{silence_reminders_url})
       uncollected_winner:
         title: "Erinnerung: %{uncollected_count} Paket(e) noch nicht als erhalten markiert"
         body: |

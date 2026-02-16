@@ -142,6 +142,10 @@ en:
           Please ship any unshipped packets and mark them as "Shipped" or "Handed over". Already shipped packets are waiting for the winners to confirm receipt.
 
           [Open lottery](%{topic_url})
+
+          ---
+
+          [Stop reminders for this lottery](%{silence_reminders_url})
       uncollected_winner:
         title: "Reminder: %{uncollected_count} packet(s) not yet marked as received"
         body: |

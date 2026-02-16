@@ -5,7 +5,16 @@ module VzekcVerlosung
   class LotteriesController < ::ApplicationController
     requires_plugin VzekcVerlosung::PLUGIN_NAME
 
-    before_action :ensure_logged_in
+    before_action :ensure_logged_in, except: [:silence_reminders_page]
+
+    # GET /vzekc_verlosung/silence-reminders/:topic_id
+    #
+    # Serves the Discourse app shell so the Ember route can handle
+    # the silence-reminders page on the client side.
+    # Needed because PM links trigger full page loads.
+    def silence_reminders_page
+      render html: "", layout: true
+    end
 
     # POST /vzekc_verlosung/lotteries
     #
@@ -560,6 +569,38 @@ module VzekcVerlosung
       ] = "attachment; filename=\"lottery-#{topic.id}-results.json\""
 
       render json: lottery.results
+    end
+
+    # PUT /vzekc_verlosung/lotteries/:topic_id/silence-reminders
+    #
+    # Silences owner reminders for a drawn lottery
+    #
+    # @param topic_id [Integer] Topic ID
+    #
+    # @return [JSON] Success or error
+    def silence_reminders
+      topic = Topic.find_by(id: params[:topic_id])
+      return render_json_error("Topic not found", status: :not_found) unless topic
+
+      lottery = Lottery.find_by(topic_id: topic.id)
+      return render_json_error("Lottery not found", status: :not_found) unless lottery
+
+      unless topic.user_id == current_user.id
+        return(
+          render_json_error(
+            I18n.t("js.vzekc_verlosung.silence_reminders.error_not_owner"),
+            status: :forbidden,
+          )
+        )
+      end
+
+      unless lottery.drawn?
+        return(render_json_error("Lottery has not been drawn yet", status: :unprocessable_entity))
+      end
+
+      lottery.update!(owner_reminders_silenced: true)
+
+      render json: success_json
     end
 
     private

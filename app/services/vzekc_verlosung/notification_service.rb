@@ -782,6 +782,7 @@ module VzekcVerlosung
             days_since_drawn: days_since_drawn,
             packet_list: packet_list,
             topic_url: "#{Discourse.base_url}#{lottery_topic.relative_url}",
+            silence_reminders_url: "#{Discourse.base_url}/silence-reminders/#{lottery_topic.id}",
           ),
         subtype: TopicSubtype.system_message,
       }

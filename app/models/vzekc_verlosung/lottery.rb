@@ -143,18 +143,19 @@ end
 #
 # Table name: vzekc_verlosung_lotteries
 #
-#  id            :bigint           not null, primary key
-#  drawing_mode  :string           default("automatic"), not null
-#  drawn_at      :datetime
-#  duration_days :integer
-#  ends_at       :datetime
-#  packet_mode   :string           default("mehrere"), not null
-#  results       :jsonb
-#  state         :string           default("draft"), not null
-#  created_at    :datetime         not null
-#  updated_at    :datetime         not null
-#  donation_id   :bigint
-#  topic_id      :bigint           not null
+#  id                       :bigint           not null, primary key
+#  drawing_mode             :string           default("automatic"), not null
+#  drawn_at                 :datetime
+#  duration_days            :integer
+#  ends_at                  :datetime
+#  owner_reminders_silenced :boolean          default(FALSE), not null
+#  packet_mode              :string           default("mehrere"), not null
+#  results                  :jsonb
+#  state                    :string           default("draft"), not null
+#  created_at               :datetime         not null
+#  updated_at               :datetime         not null
+#  donation_id              :bigint
+#  topic_id                 :bigint           not null
 #
 # Indexes
 #

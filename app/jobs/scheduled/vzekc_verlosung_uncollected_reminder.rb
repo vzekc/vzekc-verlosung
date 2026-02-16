@@ -54,7 +54,9 @@ module Jobs
 
           next if uncollected_entries.none?
 
-          send_owner_reminder(owner, topic, uncollected_entries, days_since_drawn)
+          unless lottery.owner_reminders_silenced?
+            send_owner_reminder(owner, topic, uncollected_entries, days_since_drawn)
+          end
           send_winner_reminders(owner, topic, uncollected_entries, days_since_drawn)
         end
     end

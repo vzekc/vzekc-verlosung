@@ -579,3 +579,11 @@ de:
           donation: "Spende"
           picked_up_at: "Abgeholt am"
           outcome: "Ergebnis"
+      silence_reminders:
+        title: "Erinnerungen abschalten"
+        description: "Du erhältst keine wöchentlichen Erinnerungen mehr über offene Pakete für diese Verlosung. Gewinner erhalten weiterhin ihre Erinnerungen."
+        confirm_button: "Erinnerungen abschalten"
+        cancel_button: "Abbrechen"
+        success: "Erinnerungen für diese Verlosung wurden abgeschaltet."
+        error_not_owner: "Nur der Verlosungsersteller kann Erinnerungen abschalten."
+        error_not_found: "Verlosung nicht gefunden."

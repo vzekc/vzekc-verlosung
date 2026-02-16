@@ -18,6 +18,7 @@ VzekcVerlosung::Engine.routes.draw do
   post "/lotteries/:topic_id/draw" => "lotteries#draw"
   post "/lotteries/:topic_id/draw-manual" => "lotteries#draw_manual"
   get "/lotteries/:topic_id/results.json" => "lotteries#results"
+  put "/lotteries/:topic_id/silence-reminders" => "lotteries#silence_reminders"
 
   post "/tickets" => "tickets#create"
   delete "/tickets/:post_id" => "tickets#destroy"
@@ -57,4 +58,11 @@ VzekcVerlosung::Engine.routes.draw do
   get "/users/:username/notification-logs" => "notification_logs#user_index"
 end
 
-Discourse::Application.routes.draw { mount ::VzekcVerlosung::Engine, at: "vzekc-verlosung" }
+Discourse::Application.routes.draw do
+  # Ember page route — serves the Discourse app shell so the client-side
+  # Ember route can take over.  Needed because PM links trigger full page
+  # loads and the engine mount would swallow unmatched paths.
+  get "silence-reminders/:topic_id" => "vzekc_verlosung/lotteries#silence_reminders_page"
+
+  mount ::VzekcVerlosung::Engine, at: "vzekc-verlosung"
+end
