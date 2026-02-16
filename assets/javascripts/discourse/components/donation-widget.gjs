@@ -39,6 +39,8 @@ export default class DonationWidget extends Component {
   @tracked donationData = null;
   @tracked pickupOffers = [];
   @tracked userOffer = null;
+  @tracked lotteryInterests = [];
+  @tracked userInterest = null;
   @tracked loading = true;
   @tracked actionInProgress = false;
 
@@ -101,7 +103,7 @@ export default class DonationWidget extends Component {
       );
       this.donationData = donationResult.donation;
 
-      // Load pickup offers (except for drafts)
+      // Load pickup offers and lottery interests (except for drafts)
       if (this.donationData.state !== "draft") {
         const offersResult = await ajax(
           `/vzekc-verlosung/donations/${this.donationData.id}/pickup-offers`
@@ -113,6 +115,16 @@ export default class DonationWidget extends Component {
           (offer) =>
             offer.user.id === this.currentUser.id &&
             (offer.state === "pending" || offer.state === "assigned")
+        );
+
+        const interestsResult = await ajax(
+          `/vzekc-verlosung/donations/${this.donationData.id}/lottery-interests`
+        );
+        this.lotteryInterests = interestsResult.interests || [];
+
+        // Find user's interest if any
+        this.userInterest = this.lotteryInterests.find(
+          (interest) => interest.user.id === this.currentUser.id
         );
       }
     } catch (error) {
@@ -295,6 +307,24 @@ export default class DonationWidget extends Component {
   }
 
   /**
+   * Check if user can express lottery interest
+   *
+   * @type {boolean}
+   */
+  get canExpressInterest() {
+    return this.donationData?.state === "open" && !this.userInterest;
+  }
+
+  /**
+   * Check if user can retract their lottery interest
+   *
+   * @type {boolean}
+   */
+  get canRetractInterest() {
+    return this.donationData?.state === "open" && this.userInterest;
+  }
+
+  /**
    * Offer to pick up this donation
    */
   @action
@@ -448,6 +478,57 @@ export default class DonationWidget extends Component {
     });
   }
 
+  /**
+   * Express lottery interest
+   */
+  @action
+  async expressInterest() {
+    if (this.actionInProgress) {
+      return;
+    }
+
+    this.actionInProgress = true;
+
+    try {
+      await ajax(
+        `/vzekc-verlosung/donations/${this.donationData.id}/lottery-interests`,
+        {
+          type: "POST",
+        }
+      );
+
+      this.appEvents.trigger("donation:data-changed", this.post.id);
+    } catch (error) {
+      popupAjaxError(error);
+    } finally {
+      this.actionInProgress = false;
+    }
+  }
+
+  /**
+   * Retract lottery interest
+   */
+  @action
+  async retractInterest() {
+    if (this.actionInProgress || !this.userInterest) {
+      return;
+    }
+
+    this.actionInProgress = true;
+
+    try {
+      await ajax(`/vzekc-verlosung/lottery-interests/${this.userInterest.id}`, {
+        type: "DELETE",
+      });
+
+      this.appEvents.trigger("donation:data-changed", this.post.id);
+    } catch (error) {
+      popupAjaxError(error);
+    } finally {
+      this.actionInProgress = false;
+    }
+  }
+
   <template>
     {{#if this.shouldShow}}
       <div class="donation-widget">
@@ -599,6 +680,56 @@ export default class DonationWidget extends Component {
                 @icon="arrow-rotate-left"
                 @disabled={{this.actionInProgress}}
                 class="btn-danger retract-offer-button"
+              />
+            </div>
+          {{/if}}
+
+          {{! Lottery interest list }}
+          {{#if (gt this.lotteryInterests.length 0)}}
+            <div class="lottery-interests-list">
+              <h4>{{i18n "vzekc_verlosung.donation.lottery_interests"}}</h4>
+              {{#each this.lotteryInterests as |interest|}}
+                <div class="lottery-interest-item">
+                  <a
+                    class="trigger-user-card offer-user-info"
+                    data-user-card={{interest.user.username}}
+                    title={{interest.user.username}}
+                  >
+                    {{avatar interest.user imageSize="medium"}}
+                    <span class="offer-username">
+                      {{formatUsername interest.user.username}}
+                    </span>
+                  </a>
+                </div>
+              {{/each}}
+            </div>
+          {{/if}}
+
+          {{! Express interest button }}
+          {{#if this.canExpressInterest}}
+            <div class="donation-actions">
+              <DButton
+                @action={{this.expressInterest}}
+                @label="vzekc_verlosung.donation.express_interest"
+                @icon="hand-holding-heart"
+                @disabled={{this.actionInProgress}}
+                class="btn-primary express-interest-button"
+              />
+            </div>
+          {{/if}}
+
+          {{#if this.canRetractInterest}}
+            <div class="donation-user-interest">
+              <div class="user-interest-notice">
+                {{icon "check"}}
+                {{i18n "vzekc_verlosung.donation.your_interest"}}
+              </div>
+              <DButton
+                @action={{this.retractInterest}}
+                @label="vzekc_verlosung.donation.retract_interest"
+                @icon="arrow-rotate-left"
+                @disabled={{this.actionInProgress}}
+                class="btn-danger retract-interest-button"
               />
             </div>
           {{/if}}

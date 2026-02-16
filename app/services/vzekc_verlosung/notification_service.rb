@@ -32,6 +32,14 @@ module VzekcVerlosung
         delivery: :in_app,
         discourse_type: :vzekc_verlosung_did_not_win,
       },
+      new_pickup_offer: {
+        delivery: :in_app,
+        discourse_type: :vzekc_verlosung_new_pickup_offer,
+      },
+      new_lottery_interest: {
+        delivery: :in_app,
+        discourse_type: :vzekc_verlosung_new_lottery_interest,
+      },
       # PM notifications (12)
       winner_pm: {
         delivery: :pm,
@@ -274,6 +282,10 @@ module VzekcVerlosung
         build_lottery_won_data
       when :did_not_win
         build_did_not_win_data
+      when :new_pickup_offer
+        build_new_pickup_offer_data
+      when :new_lottery_interest
+        build_new_lottery_interest_data
       end
     end
 
@@ -392,6 +404,38 @@ module VzekcVerlosung
         data: {
           topic_title: topic.title,
           message: "vzekc_verlosung.notifications.did_not_win",
+        },
+      }
+    end
+
+    def build_new_pickup_offer_data
+      donation = @context[:donation]
+      offerer = @context[:offerer]
+
+      return nil unless donation&.topic && offerer
+
+      {
+        topic_id: donation.topic_id,
+        post_number: 1,
+        data: {
+          display_username: offerer.username,
+          topic_title: donation.topic.title,
+        },
+      }
+    end
+
+    def build_new_lottery_interest_data
+      donation = @context[:donation]
+      interested_user = @context[:interested_user]
+
+      return nil unless donation&.topic && interested_user
+
+      {
+        topic_id: donation.topic_id,
+        post_number: 1,
+        data: {
+          display_username: interested_user.username,
+          topic_title: donation.topic.title,
         },
       }
     end
@@ -799,7 +843,8 @@ module VzekcVerlosung
     end
 
     def extract_actor_id
-      @context[:buyer]&.id || @context[:returner]&.id || @context[:sender]&.id
+      @context[:buyer]&.id || @context[:returner]&.id || @context[:sender]&.id ||
+        @context[:offerer]&.id || @context[:interested_user]&.id
     end
 
     def serialize_for_payload(value)

@@ -43,6 +43,11 @@ VzekcVerlosung::Engine.routes.draw do
   put "/pickup-offers/:id/assign" => "pickup_offers#assign"
   put "/pickup-offers/:id/mark-picked-up" => "pickup_offers#mark_picked_up"
 
+  # Lottery interest routes
+  post "/donations/:donation_id/lottery-interests" => "lottery_interests#create"
+  delete "/lottery-interests/:id" => "lottery_interests#destroy"
+  get "/donations/:donation_id/lottery-interests" => "lottery_interests#index"
+
   # Merch packet routes
   get "/merch-packets" => "merch_packets#index"
   put "/merch-packets/:id/ship" => "merch_packets#ship"

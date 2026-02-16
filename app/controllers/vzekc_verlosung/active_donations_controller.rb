@@ -16,7 +16,7 @@ module VzekcVerlosung
         Donation
           .joins(:topic)
           .where.not(state: "draft")
-          .includes(:pickup_offers, topic: [:category, { user: :primary_group }])
+          .includes(:pickup_offers, :lottery_interests, topic: [:category, { user: :primary_group }])
           .order(published_at: :desc)
 
       read_topic_ids = read_topic_ids_for(donations)
@@ -53,8 +53,9 @@ module VzekcVerlosung
     def build_donation_response(donation, read_topic_ids)
       topic = donation.topic
 
-      # Count pickup offers
+      # Count pickup offers and lottery interests
       pickup_offer_count = donation.pickup_offers.count
+      lottery_interest_count = donation.lottery_interests.count
 
       # Find the assigned picker if any
       assigned_offer = donation.pickup_offers.find_by(state: %w[assigned picked_up])
@@ -84,6 +85,7 @@ module VzekcVerlosung
         created_at: topic.created_at,
         unread: is_unread,
         pickup_offer_count: pickup_offer_count,
+        lottery_interest_count: lottery_interest_count,
         assigned_picker: assigned_picker,
         has_lottery: donation.lottery.present?,
         has_erhaltungsbericht: donation.erhaltungsbericht_topic_id.present?,

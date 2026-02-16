@@ -91,6 +91,18 @@ module VzekcVerlosung
       !VzekcVerlosung::PickupOffer.exists?(donation_id: donation.id, user_id: @user.id)
     end
 
+    # Check if user can express lottery interest for a donation
+    #
+    # @param donation [Donation] the donation to check
+    # @return [Boolean] true if user can express interest
+    def can_express_lottery_interest?(donation)
+      return false unless @user
+      return false unless donation.open?
+
+      # Can't express interest if already expressed
+      !VzekcVerlosung::LotteryInterest.exists?(donation_id: donation.id, user_id: @user.id)
+    end
+
     # Override can_delete_post to prevent deletion of lottery packet posts
     #
     # @param post [Post] the post to check

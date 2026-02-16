@@ -34,6 +34,15 @@ module VzekcVerlosung
           notes: create_params[:notes],
         )
 
+      NotificationService.notify(
+        :new_pickup_offer,
+        recipient: donation.facilitator,
+        context: {
+          donation: donation,
+          offerer: current_user,
+        },
+      )
+
       render json: success_json.merge(offer: serialize_offer(offer))
     rescue ActiveRecord::RecordInvalid => e
       render json: failed_json.merge(errors: e.record.errors.full_messages),

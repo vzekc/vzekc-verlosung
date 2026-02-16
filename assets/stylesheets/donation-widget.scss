@@ -230,6 +230,60 @@
       }
     }
 
+    .lottery-interests-list {
+      margin-top: 15px;
+
+      h4 {
+        margin-bottom: 10px;
+        color: var(--primary);
+      }
+
+      .lottery-interest-item {
+        display: flex;
+        align-items: center;
+        padding: 6px 10px;
+        margin: 3px 0;
+        background: var(--primary-very-low);
+        border-radius: 5px;
+
+        .offer-user-info {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          text-decoration: none;
+          cursor: pointer;
+
+          .offer-username {
+            color: var(--primary-high);
+            font-weight: 500;
+          }
+
+          &:hover {
+            .offer-username {
+              color: var(--tertiary);
+              text-decoration: underline;
+            }
+          }
+        }
+      }
+    }
+
+    .donation-user-interest {
+      padding: 15px;
+      background: var(--success-low);
+      border-radius: 5px;
+      margin: 15px 0;
+
+      .user-interest-notice {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--success);
+        font-weight: bold;
+        margin-bottom: 10px;
+      }
+    }
+
     .donation-erhaltungsbericht-link {
       display: flex;
       align-items: center;

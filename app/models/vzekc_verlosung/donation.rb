@@ -23,6 +23,7 @@ module VzekcVerlosung
     # Alias for backwards compatibility
     alias_method :creator, :facilitator
     has_many :pickup_offers, dependent: :destroy
+    has_many :lottery_interests, dependent: :destroy
     has_one :lottery, class_name: "VzekcVerlosung::Lottery", dependent: :nullify
     has_one :merch_packet, class_name: "VzekcVerlosung::MerchPacket", dependent: :destroy
 

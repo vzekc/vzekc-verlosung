@@ -14,6 +14,8 @@ en:
         vzekc_verlosung_ticket_returned: "%{display_username} returned ticket"
         vzekc_verlosung_did_not_win: "Unfortunately not won"
         vzekc_verlosung_ending_tomorrow: "Lottery ending tomorrow"
+        vzekc_verlosung_new_pickup_offer: "%{display_username} offered pickup"
+        vzekc_verlosung_new_lottery_interest: "%{display_username} interested in lottery"
     vzekc_verlosung:
       map_providers:
         google: "Google Maps"
@@ -323,6 +325,10 @@ en:
           erhaltungsbericht: "Report"
           bericht_date: "Report date"
         no_packets: "No packets found"
+      active_donations:
+        interests:
+          one: "Interest"
+          other: "Interests"
       donation:
         neue_spende: "New Donation Offer"
         donation_number: "Donation No"
@@ -336,6 +342,10 @@ en:
         confirm_assign: "Do you want to assign this donation to this user? This action cannot be undone."
         no_offers: "No pickup offers yet"
         your_offer: "You have offered to pick this up"
+        express_interest: "Interested in lottery"
+        retract_interest: "Retract interest"
+        lottery_interests: "Lottery interests"
+        your_interest: "You have expressed interest in a lottery"
         assigned_to_you: "This donation has been assigned to you"
         lottery_created: "Lottery Created"
         lottery_created_description: "A lottery has already been created for this donation."
@@ -459,6 +469,8 @@ en:
             donation_picked_up_reminder: "Pickup reminder"
             erhaltungsbericht_reminder: "Report reminder"
             uncollected_reminder: "Uncollected reminder"
+            new_pickup_offer: "New pickup offer"
+            new_lottery_interest: "New lottery interest"
       user_stats:
         nav_title: "Lotteries"
         tabs:

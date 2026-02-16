@@ -14,6 +14,8 @@ de:
         vzekc_verlosung_ticket_returned: "%{display_username} zog Los zurück"
         vzekc_verlosung_did_not_win: "Leider nichts gewonnen"
         vzekc_verlosung_ending_tomorrow: "Verlosung endet morgen"
+        vzekc_verlosung_new_pickup_offer: "%{display_username} bietet Abholung an"
+        vzekc_verlosung_new_lottery_interest: "%{display_username} interessiert an Verlosung"
     vzekc_verlosung:
       map_providers:
         google: "Google Maps"
@@ -50,6 +52,9 @@ de:
         offers:
           one: "Angebot"
           other: "Angebote"
+        interests:
+          one: "Interesse"
+          other: "Interessen"
         picker: "Abholer"
         no_donations: "Keine Spendenangebote"
         lottery_created: "Verlosung erstellt"
@@ -383,6 +388,10 @@ de:
         confirm_assign: "Möchtest Du diesem Benutzer die Spende zuweisen? Diese Aktion kann nicht rückgängig gemacht werden."
         no_offers: "Noch keine Abholangebote"
         your_offer: "Du hast Dich zum Abholen gemeldet"
+        express_interest: "bin interessiert"
+        retract_interest: "Interesse zurückziehen"
+        lottery_interests: "Verlosungsinteresse"
+        your_interest: "Du hast Interesse an einer Verlosung bekundet"
         assigned_to_you: "Diese Spende wurde Dir zugewiesen"
         lottery_created: "Verlosung erstellt"
         lottery_created_description: "Für diese Spende wurde bereits eine Verlosung erstellt."
@@ -506,6 +515,8 @@ de:
             donation_picked_up_reminder: "Abholungs-Erinnerung"
             erhaltungsbericht_reminder: "Bericht-Erinnerung"
             uncollected_reminder: "Nicht abgeholt"
+            new_pickup_offer: "Neues Abholangebot"
+            new_lottery_interest: "Neues Verlosungsinteresse"
       user_stats:
         nav_title: "Verlosungen"
         tabs:

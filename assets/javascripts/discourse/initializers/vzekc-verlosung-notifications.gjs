@@ -165,6 +165,74 @@ export default apiInitializer((api) => {
     }
   );
 
+  // Register renderer for "new pickup offer" notifications
+  api.registerNotificationTypeRenderer(
+    "vzekc_verlosung_new_pickup_offer",
+    (NotificationTypeBase) => {
+      return class extends NotificationTypeBase {
+        get icon() {
+          return "hand-point-up";
+        }
+
+        get label() {
+          const data = this.notification.data;
+          return i18n("notifications.titles.vzekc_verlosung_new_pickup_offer", {
+            display_username: data.display_username,
+          });
+        }
+
+        get description() {
+          const data = this.notification.data;
+          return data.topic_title || "";
+        }
+
+        get linkTitle() {
+          const data = this.notification.data;
+          return i18n("notifications.titles.vzekc_verlosung_new_pickup_offer", {
+            display_username: data.display_username,
+          });
+        }
+      };
+    }
+  );
+
+  // Register renderer for "new lottery interest" notifications
+  api.registerNotificationTypeRenderer(
+    "vzekc_verlosung_new_lottery_interest",
+    (NotificationTypeBase) => {
+      return class extends NotificationTypeBase {
+        get icon() {
+          return "hand-holding-heart";
+        }
+
+        get label() {
+          const data = this.notification.data;
+          return i18n(
+            "notifications.titles.vzekc_verlosung_new_lottery_interest",
+            {
+              display_username: data.display_username,
+            }
+          );
+        }
+
+        get description() {
+          const data = this.notification.data;
+          return data.topic_title || "";
+        }
+
+        get linkTitle() {
+          const data = this.notification.data;
+          return i18n(
+            "notifications.titles.vzekc_verlosung_new_lottery_interest",
+            {
+              display_username: data.display_username,
+            }
+          );
+        }
+      };
+    }
+  );
+
   // Register renderer for "lottery ending tomorrow" notifications
   api.registerNotificationTypeRenderer(
     "vzekc_verlosung_ending_tomorrow",

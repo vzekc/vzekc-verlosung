@@ -145,6 +145,16 @@ function stateClass(state) {
                     count=donation.pickup_offer_count
                   }}</span>
               </div>
+              {{#if donation.lottery_interest_count}}
+                <div class="donation-detail donation-interests">
+                  {{icon "hand-holding-heart"}}
+                  <span class="detail-value">{{donation.lottery_interest_count}}
+                    {{i18n
+                      "vzekc_verlosung.active_donations.interests"
+                      count=donation.lottery_interest_count
+                    }}</span>
+                </div>
+              {{/if}}
 
               <div class={{stateClass donation.state}}>
                 {{#if (eq donation.state "open")}}
