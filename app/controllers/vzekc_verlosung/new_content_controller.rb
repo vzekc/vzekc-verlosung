@@ -13,13 +13,15 @@ module VzekcVerlosung
 
     # GET /vzekc-verlosung/has-new-content.json
     #
-    # @return [JSON] { donations: bool, lotteries: bool, erhaltungsberichte: bool, merch_packets: bool }
+    # @return [JSON] { donations: bool, lotteries: bool, erhaltungsberichte: bool, merch_packets: bool, has_won_packets: bool }
     def index
       render json: {
                donations: VzekcVerlosung.has_unread_donations?(current_user.id),
                lotteries: VzekcVerlosung.has_unread_lotteries?(current_user.id),
                erhaltungsberichte: VzekcVerlosung.has_unread_erhaltungsberichte?(current_user.id),
                merch_packets: has_pending_merch_packets?,
+               has_won_packets:
+                 VzekcVerlosung::LotteryPacketWinner.where(winner_user_id: current_user.id).exists?,
              }
     end
 

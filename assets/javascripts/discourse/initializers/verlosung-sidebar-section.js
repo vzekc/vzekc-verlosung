@@ -7,6 +7,7 @@ const newContentState = {
   lotteries: false,
   erhaltungsberichte: false,
   merch_packets: false,
+  has_won_packets: false,
 };
 
 const LINK_SELECTORS = {
@@ -58,6 +59,7 @@ function fetchNewContentStatus() {
       newContentState.lotteries = result.lotteries;
       newContentState.erhaltungsberichte = result.erhaltungsberichte;
       newContentState.merch_packets = result.merch_packets;
+      newContentState.has_won_packets = result.has_won_packets;
       updateIndicatorStyles();
     })
     .catch(() => {});
@@ -237,6 +239,32 @@ export default {
             }
           };
 
+          const MyWinsLink = class extends BaseCustomSidebarSectionLink {
+            get name() {
+              return "my-wins";
+            }
+
+            get href() {
+              return `/u/${currentUser.username}/verlosungen?tab=won`;
+            }
+
+            get text() {
+              return i18n("vzekc_verlosung.nav.meine_gewinne");
+            }
+
+            get title() {
+              return i18n("vzekc_verlosung.nav.meine_gewinne");
+            }
+
+            get prefixType() {
+              return "icon";
+            }
+
+            get prefixValue() {
+              return "trophy";
+            }
+          };
+
           return class VerlosungSection extends BaseCustomSidebarSection {
             get name() {
               return "verlosung";
@@ -264,6 +292,10 @@ export default {
 
               if (isMerchHandler) {
                 links.push(new MerchPacketsLink());
+              }
+
+              if (currentUser && newContentState.has_won_packets) {
+                links.push(new MyWinsLink());
               }
 
               return links;
