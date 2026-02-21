@@ -367,7 +367,7 @@ export default class WinnerPmPackets extends Component {
                   }}
                     <span class="status-badge status-finished">
                       {{icon "file-lines"}}
-                      {{i18n "vzekc_verlosung.status.finished"}}
+                      {{i18n "vzekc_verlosung.status.completed"}}
                     </span>
                   {{else if
                     (or
@@ -388,7 +388,7 @@ export default class WinnerPmPackets extends Component {
                       }}
                     >
                       {{icon "check"}}
-                      {{i18n "vzekc_verlosung.status.collected"}}
+                      {{i18n "vzekc_verlosung.status.received"}}
                     </span>
                   {{else if (eq packet.winner.fulfillment_state "shipped")}}
                     <span

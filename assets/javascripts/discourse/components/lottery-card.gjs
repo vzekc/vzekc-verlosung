@@ -556,7 +556,7 @@ export default class LotteryCard extends Component {
                                 class="status-finished"
                               >
                                 {{icon "file-lines"}}
-                                {{i18n "vzekc_verlosung.status.finished"}}
+                                {{i18n "vzekc_verlosung.status.completed"}}
                               </a>
                             {{else if
                               (or
@@ -566,7 +566,7 @@ export default class LotteryCard extends Component {
                             }}
                               <span class="status-collected">
                                 {{icon "check"}}
-                                {{i18n "vzekc_verlosung.status.collected"}}
+                                {{i18n "vzekc_verlosung.status.received"}}
                               </span>
                             {{else if
                               (eq winnerEntry.fulfillment_state "shipped")

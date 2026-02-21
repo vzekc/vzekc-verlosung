@@ -821,7 +821,7 @@ module VzekcVerlosung
             topic_title: lottery_topic.title,
             days_since_drawn: days_since_drawn,
             packet_list: packet_list,
-            topic_url: "#{Discourse.base_url}#{lottery_topic.relative_url}",
+            topic_url: "#{Discourse.base_url}/u/#{@recipient.username}/verlosungen?tab=won",
           ),
         subtype: TopicSubtype.system_message,
       }

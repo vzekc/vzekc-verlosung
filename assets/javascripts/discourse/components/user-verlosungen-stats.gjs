@@ -7,6 +7,7 @@ import { service } from "@ember/service";
 import avatar from "discourse/helpers/bound-avatar-template";
 import icon from "discourse/helpers/d-icon";
 import { ajax } from "discourse/lib/ajax";
+import { popupAjaxError } from "discourse/lib/ajax-error";
 import { eq, gt } from "discourse/truth-helpers";
 import I18n, { i18n } from "discourse-i18n";
 
@@ -20,6 +21,8 @@ import I18n, { i18n } from "discourse-i18n";
  */
 export default class UserVerlosungenStats extends Component {
   @service currentUser;
+  @service dialog;
+  @service packetFulfillment;
 
   @tracked isLoading = true;
   @tracked stats = null;
@@ -27,6 +30,8 @@ export default class UserVerlosungenStats extends Component {
   @tracked wonPackets = [];
   @tracked lotteriesCreated = [];
   @tracked pickups = [];
+
+  @tracked markAllInProgress = false;
 
   // Notification logs
   @tracked notificationLogs = [];
@@ -222,6 +227,38 @@ export default class UserVerlosungenStats extends Component {
   }
 
   /**
+   * Check if viewing own profile
+   *
+   * @returns {Boolean}
+   */
+  get isOwnProfile() {
+    return this.currentUser && this.currentUser.id === this.args.user.id;
+  }
+
+  /**
+   * Get won packets that can be marked as received
+   *
+   * @returns {Array}
+   */
+  get collectablePackets() {
+    if (!this.isOwnProfile) {
+      return [];
+    }
+    return this.wonPackets.filter(
+      (p) => p.fulfillment_state === "won" || p.fulfillment_state === "shipped"
+    );
+  }
+
+  /**
+   * Whether there are collectable packets
+   *
+   * @returns {Boolean}
+   */
+  get hasCollectablePackets() {
+    return this.collectablePackets.length > 0;
+  }
+
+  /**
    * Check if user has participated in any lotteries
    *
    * @returns {Boolean} True if user has participated
@@ -253,11 +290,15 @@ export default class UserVerlosungenStats extends Component {
   /**
    * Get icon component for fulfillment state
    *
-   * @param {String} state - Fulfillment state
+   * @param {Object} packet - Packet object with fulfillment_state and erhaltungsbericht
    * @returns {String} Icon name
    */
   @action
-  fulfillmentIcon(state) {
+  fulfillmentIcon(packet) {
+    const state = packet.fulfillment_state;
+    if (state === "completed") {
+      return "box";
+    }
     const icons = {
       won: "trophy",
       shipped: "truck",
@@ -270,12 +311,157 @@ export default class UserVerlosungenStats extends Component {
   /**
    * Get localized label for fulfillment state
    *
-   * @param {String} state - Fulfillment state
+   * @param {Object} packet - Packet object with fulfillment_state and erhaltungsbericht
    * @returns {String} Localized label
    */
   @action
-  fulfillmentLabel(state) {
+  fulfillmentLabel(packet) {
+    const state = packet.fulfillment_state;
+    if (state === "completed") {
+      return i18n("vzekc_verlosung.status.received");
+    }
     return i18n(`vzekc_verlosung.status.${state}`);
+  }
+
+  /**
+   * Check if a packet can be marked as received
+   *
+   * @param {Object} packet
+   * @returns {Boolean}
+   */
+  @action
+  isPacketCollectable(packet) {
+    return (
+      packet.fulfillment_state === "won" ||
+      packet.fulfillment_state === "shipped"
+    );
+  }
+
+  /**
+   * Check if a packet needs an Erhaltungsbericht
+   *
+   * @param {Object} packet
+   * @returns {Boolean}
+   */
+  @action
+  needsBerichtForPacket(packet) {
+    return (
+      packet.erhaltungsbericht_required &&
+      !packet.erhaltungsbericht &&
+      (packet.fulfillment_state === "received" ||
+        packet.fulfillment_state === "completed")
+    );
+  }
+
+  /**
+   * Mark a single packet as received
+   *
+   * @param {Object} packet
+   */
+  @action
+  async markAsReceived(packet) {
+    const entry = {
+      username: packet.winner_username,
+      instance_number: packet.instance_number,
+      fulfillment_state: packet.fulfillment_state,
+    };
+
+    const result = await this.packetFulfillment.markEntryAsCollected(
+      packet.post_id,
+      entry,
+      { packetTitle: packet.title }
+    );
+
+    if (result) {
+      this.wonPackets = this.wonPackets.map((p) =>
+        p === packet
+          ? {
+              ...p,
+              fulfillment_state: "received",
+              collected_at: new Date().toISOString(),
+            }
+          : p
+      );
+    }
+  }
+
+  /**
+   * Mark all collectable packets as received
+   */
+  @action
+  async markAllAsReceived() {
+    const collectable = this.collectablePackets;
+    if (!collectable.length) {
+      return;
+    }
+
+    const confirmed = await this.dialog.confirm({
+      message: i18n("vzekc_verlosung.user_stats.mark_all_confirm", {
+        count: collectable.length,
+      }),
+      didConfirm: () => true,
+      didCancel: () => false,
+    });
+
+    if (!confirmed) {
+      return;
+    }
+
+    this.markAllInProgress = true;
+
+    for (const packet of collectable) {
+      try {
+        await ajax(
+          `/vzekc-verlosung/packets/${packet.post_id}/mark-collected`,
+          {
+            type: "POST",
+            data: { instance_number: packet.instance_number },
+          }
+        );
+
+        this.wonPackets = this.wonPackets.map((p) =>
+          p === packet
+            ? {
+                ...p,
+                fulfillment_state: "received",
+                collected_at: new Date().toISOString(),
+              }
+            : p
+        );
+      } catch (error) {
+        popupAjaxError(error);
+        break;
+      }
+    }
+
+    this.markAllInProgress = false;
+  }
+
+  /**
+   * Open composer to write Erhaltungsbericht for a packet
+   *
+   * @param {Object} packet
+   */
+  @action
+  writeErhaltungsbericht(packet) {
+    const entry = {
+      username: packet.winner_username,
+      instance_number: packet.instance_number,
+      fulfillment_state: packet.fulfillment_state,
+      erhaltungsbericht_topic_id: packet.erhaltungsbericht?.id,
+    };
+
+    const post = {
+      id: packet.post_id,
+      post_number: packet.post_number,
+      topic: { title: packet.lottery.title },
+      topic_id: packet.lottery.id,
+    };
+
+    this.packetFulfillment.createErhaltungsbericht(entry, {
+      post,
+      packetTitle: packet.title,
+    });
   }
 
   <template>
@@ -418,6 +604,24 @@ export default class UserVerlosungenStats extends Component {
         {{#if (eq this.activeTab "won")}}
           <div class="won-packets-list">
             {{#if this.wonPackets.length}}
+              {{#if this.hasCollectablePackets}}
+                <div class="won-packets-actions">
+                  <button
+                    type="button"
+                    class="btn btn-primary mark-all-received"
+                    disabled={{this.markAllInProgress}}
+                    {{on "click" this.markAllAsReceived}}
+                  >
+                    {{#if this.markAllInProgress}}
+                      {{icon "spinner" class="fa-spin"}}
+                      {{i18n "vzekc_verlosung.user_stats.marking_all"}}
+                    {{else}}
+                      {{icon "check"}}
+                      {{i18n "vzekc_verlosung.user_stats.mark_all_received"}}
+                    {{/if}}
+                  </button>
+                </div>
+              {{/if}}
               <table class="user-verlosungen-table">
                 <thead>
                   <tr>
@@ -426,6 +630,11 @@ export default class UserVerlosungenStats extends Component {
                     <th>{{i18n "vzekc_verlosung.user_stats.table.won_at"}}</th>
                     <th>{{i18n "vzekc_verlosung.user_stats.table.status"}}</th>
                     <th>{{i18n "vzekc_verlosung.user_stats.table.bericht"}}</th>
+                    {{#if this.isOwnProfile}}
+                      <th>{{i18n
+                          "vzekc_verlosung.user_stats.table.actions"
+                        }}</th>
+                    {{/if}}
                   </tr>
                 </thead>
                 <tbody>
@@ -434,6 +643,11 @@ export default class UserVerlosungenStats extends Component {
                       <td>
                         <a href={{packet.url}} class="packet-link">
                           {{packet.title}}
+                          {{#if (gt packet.quantity 1)}}
+                            <span
+                              class="instance-number"
+                            >(#{{packet.instance_number}})</span>
+                          {{/if}}
                         </a>
                       </td>
                       <td>
@@ -446,10 +660,8 @@ export default class UserVerlosungenStats extends Component {
                         <span
                           class="fulfillment-status fulfillment-{{packet.fulfillment_state}}"
                         >
-                          {{icon
-                            (this.fulfillmentIcon packet.fulfillment_state)
-                          }}
-                          {{this.fulfillmentLabel packet.fulfillment_state}}
+                          {{icon (this.fulfillmentIcon packet)}}
+                          {{this.fulfillmentLabel packet}}
                         </span>
                       </td>
                       <td class="status-cell">
@@ -468,6 +680,37 @@ export default class UserVerlosungenStats extends Component {
                           <span class="status-na">-</span>
                         {{/if}}
                       </td>
+                      {{#if this.isOwnProfile}}
+                        <td class="actions-cell">
+                          {{#if (this.isPacketCollectable packet)}}
+                            <button
+                              type="button"
+                              class="btn btn-small btn-primary mark-received-btn"
+                              {{on "click" (fn this.markAsReceived packet)}}
+                            >
+                              {{icon "check"}}
+                              {{i18n
+                                "vzekc_verlosung.user_stats.mark_received_button"
+                              }}
+                            </button>
+                          {{/if}}
+                          {{#if (this.needsBerichtForPacket packet)}}
+                            <button
+                              type="button"
+                              class="btn btn-small write-bericht-btn"
+                              {{on
+                                "click"
+                                (fn this.writeErhaltungsbericht packet)
+                              }}
+                            >
+                              {{icon "file-lines"}}
+                              {{i18n
+                                "vzekc_verlosung.user_stats.write_bericht_button"
+                              }}
+                            </button>
+                          {{/if}}
+                        </td>
+                      {{/if}}
                     </tr>
                   {{/each}}
                 </tbody>

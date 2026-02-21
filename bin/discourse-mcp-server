@@ -17,6 +17,10 @@ class DiscourseMcpServer
     @log_file = File.open("/tmp/discourse-mcp-server.log", "a")
     @log_file.sync = true
     log("Starting Discourse MCP Server for #{discourse_path}")
+
+    # Eager-load Rails at startup so the slow boot happens before any tool call
+    # timeout kicks in. Claude Code is more patient during initial server startup.
+    load_rails_environment
   end
 
   def log(message)

@@ -159,7 +159,7 @@ en:
 
           Please mark these packets as "Received" once you have them.
 
-          [Open lottery](%{topic_url})
+          **[→ Manage packets](%{topic_url})**
       erhaltungsbericht:
         title: "Please write a reception report for '%{packet_title}'"
         body: |

@@ -3260,7 +3260,7 @@
 
       &.fulfillment-won {
         background: var(--highlight-low);
-        color: var(--highlight);
+        color: var(--highlight-high);
       }
 
       &.fulfillment-shipped {
@@ -3276,6 +3276,84 @@
       &.fulfillment-completed {
         background: var(--success-low);
         color: var(--success);
+      }
+    }
+  }
+
+  // Won packets tab
+  .won-packets-list {
+    .won-packets-actions {
+      margin-bottom: 0.75em;
+    }
+
+    .user-verlosungen-table {
+      table-layout: fixed;
+
+      // Column widths: Packet | Lottery | Won At | Status | Bericht | Actions
+      th:nth-child(1),
+      td:nth-child(1) {
+        width: 22%;
+      }
+
+      th:nth-child(2),
+      td:nth-child(2) {
+        width: 28%;
+      }
+
+      th:nth-child(3),
+      td:nth-child(3) {
+        width: 10%;
+      }
+
+      th:nth-child(4),
+      td:nth-child(4) {
+        width: 14%;
+        text-align: left;
+      }
+
+      th:nth-child(5),
+      td:nth-child(5) {
+        width: 6%;
+      }
+
+      th:nth-child(6),
+      td:nth-child(6) {
+        width: 20%;
+      }
+
+      td {
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .packet-link,
+      .lottery-link {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .status-cell {
+        width: auto;
+      }
+
+      .fulfillment-status {
+        white-space: normal;
+        font-size: 0.8em;
+      }
+
+      .actions-cell {
+        text-align: left;
+
+        .btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.25em;
+          font-size: 0.8em;
+          padding: 0.35em 0.5em;
+          margin-bottom: 0.25em;
+        }
       }
     }
   }

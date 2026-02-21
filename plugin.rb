@@ -30,6 +30,7 @@ register_svg_icon "calendar-check"
 register_svg_icon "clover"
 register_svg_icon "cloud-rain"
 register_svg_icon "truck"
+register_svg_icon "box"
 register_svg_icon "hand-paper"
 register_svg_icon "map"
 

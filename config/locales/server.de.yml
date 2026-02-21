@@ -169,7 +169,7 @@ de:
 
           Bitte markiere diese Pakete als "Erhalten", sobald du sie empfangen hast.
 
-          [Verlosung öffnen](%{topic_url})
+          **[→ Pakete verwalten](%{topic_url})**
       erhaltungsbericht:
         title: "Bitte schreibe einen Erhaltungsbericht für '%{packet_title}'"
         body: |

@@ -634,7 +634,7 @@ export default class LotteryWidget extends Component {
                           <span class="status-badge status-finished">{{icon
                               "file-lines"
                             }}
-                            {{i18n "vzekc_verlosung.status.finished"}}</span>
+                            {{i18n "vzekc_verlosung.status.completed"}}</span>
                         {{else if
                           (or
                             (eq winnerEntry.fulfillment_state "received")
@@ -653,7 +653,7 @@ export default class LotteryWidget extends Component {
                               )
                             }}
                           >{{icon "check"}}
-                            {{i18n "vzekc_verlosung.status.collected"}}</span>
+                            {{i18n "vzekc_verlosung.status.received"}}</span>
                         {{else if (eq winnerEntry.fulfillment_state "shipped")}}
                           <span
                             class="status-badge status-shipped"

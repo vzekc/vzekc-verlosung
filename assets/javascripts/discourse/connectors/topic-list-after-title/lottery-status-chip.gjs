@@ -159,7 +159,7 @@ export default class LotteryStatusChip extends Component {
           >
             {{dIcon "circle-check"}}
             <span class="lottery-status-chip__text">{{i18n
-                "vzekc_verlosung.status.finished"
+                "vzekc_verlosung.status.completed"
               }}</span>
           </span>
         {{/if}}

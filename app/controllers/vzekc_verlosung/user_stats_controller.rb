@@ -162,8 +162,13 @@ module VzekcVerlosung
           title: packet.title,
           quantity: packet.quantity,
           url: "#{topic.relative_url}/#{packet.post.post_number}",
+          post_id: packet.post_id,
+          post_number: packet.post.post_number,
           won_at: winner_entry.won_at,
           fulfillment_state: winner_entry.fulfillment_state,
+          winner_username: @user.username,
+          shipped_at: winner_entry.shipped_at,
+          collected_at: winner_entry.collected_at,
           lottery: {
             id: topic.id,
             title: topic.title,

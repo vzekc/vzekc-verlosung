@@ -1205,7 +1205,7 @@ export default class LotteryIntroSummary extends Component {
                                     class="status-badge status-finished"
                                   >{{icon "file-lines"}}
                                     {{i18n
-                                      "vzekc_verlosung.status.finished"
+                                      "vzekc_verlosung.status.completed"
                                     }}</span>
                                 {{else if
                                   (or
@@ -1230,7 +1230,7 @@ export default class LotteryIntroSummary extends Component {
                                     }}
                                   >{{icon "check"}}
                                     {{i18n
-                                      "vzekc_verlosung.status.collected"
+                                      "vzekc_verlosung.status.received"
                                     }}</span>
                                 {{else if
                                   (eq winnerEntry.fulfillment_state "shipped")
