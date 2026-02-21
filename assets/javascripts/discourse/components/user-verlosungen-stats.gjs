@@ -626,7 +626,6 @@ export default class UserVerlosungenStats extends Component {
                 <thead>
                   <tr>
                     <th>{{i18n "vzekc_verlosung.user_stats.table.packet"}}</th>
-                    <th>{{i18n "vzekc_verlosung.user_stats.table.lottery"}}</th>
                     <th>{{i18n "vzekc_verlosung.user_stats.table.won_at"}}</th>
                     <th>{{i18n "vzekc_verlosung.user_stats.table.status"}}</th>
                     <th>{{i18n "vzekc_verlosung.user_stats.table.bericht"}}</th>
@@ -648,11 +647,6 @@ export default class UserVerlosungenStats extends Component {
                               class="instance-number"
                             >(#{{packet.instance_number}})</span>
                           {{/if}}
-                        </a>
-                      </td>
-                      <td>
-                        <a href={{packet.lottery.url}} class="lottery-link">
-                          {{packet.lottery.title}}
                         </a>
                       </td>
                       <td>{{this.formatDate packet.won_at}}</td>
