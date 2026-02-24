@@ -236,7 +236,7 @@ export default class OnsiteLotteryModal extends Component {
               "vzekc_verlosung.onsite_lottery.creating"
               "vzekc_verlosung.onsite_lottery.confirm_button"
             }}
-            @disabled={{(not this.canSubmit)}}
+            @disabled={{not this.canSubmit}}
             class="btn-primary"
           />
         {{else}}
@@ -247,7 +247,7 @@ export default class OnsiteLotteryModal extends Component {
               "vzekc_verlosung.onsite_lottery.creating"
               "vzekc_verlosung.onsite_lottery.create_and_confirm_button"
             }}
-            @disabled={{(not this.canSubmit)}}
+            @disabled={{not this.canSubmit}}
             class="btn-primary"
           />
         {{/if}}
