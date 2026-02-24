@@ -789,6 +789,14 @@ export default class UserVerlosungenStats extends Component {
                                 "vzekc_verlosung.user_stats.outcome_lottery"
                               }}
                             </a>
+                          {{else if (eq pickup.outcome.type "onsite_lottery")}}
+                            <span class="outcome-link">
+                              {{icon "calendar-check"}}
+                              {{i18n
+                                "vzekc_verlosung.user_stats.outcome_onsite_lottery"
+                              }}:
+                              {{pickup.outcome.name}}
+                            </span>
                           {{else}}
                             <a href={{pickup.outcome.url}} class="outcome-link">
                               {{icon "file-lines"}}

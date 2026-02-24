@@ -93,6 +93,10 @@ module VzekcVerlosung
         delivery: :pm,
         template: "notifications.merch_packet_ready",
       },
+      onsite_lottery_reminder: {
+        delivery: :pm,
+        template: "reminders.onsite_lottery",
+      },
     }.freeze
 
     class << self
@@ -321,6 +325,8 @@ module VzekcVerlosung
         build_uncollected_winner_reminder_pm_data
       when :merch_packet_ready
         build_merch_packet_ready_pm_data
+      when :onsite_lottery_reminder
+        build_onsite_lottery_reminder_pm_data
       end
     end
 
@@ -850,6 +856,35 @@ module VzekcVerlosung
             topic_title: topic.title,
             topic_url: "#{Discourse.base_url}#{topic.relative_url}",
             merch_packets_url: "#{Discourse.base_url}/merch-packets?ship=#{merch_packet.id}",
+          ),
+        subtype: TopicSubtype.system_message,
+      }
+    end
+
+    def build_onsite_lottery_reminder_pm_data
+      event = @context[:event]
+      donation_list = @context[:donation_list]
+      days_until = @context[:days_until]
+
+      return nil unless event && donation_list
+
+      {
+        sender: Discourse.system_user,
+        title:
+          I18n.t(
+            "vzekc_verlosung.reminders.onsite_lottery.title",
+            locale: @recipient.effective_locale,
+            event_name: event.name,
+          ),
+        body:
+          I18n.t(
+            "vzekc_verlosung.reminders.onsite_lottery.body",
+            locale: @recipient.effective_locale,
+            username: @recipient.username,
+            event_name: event.name,
+            event_date: event.event_date.strftime("%d.%m.%Y"),
+            donation_list: donation_list,
+            days_until: days_until,
           ),
         subtype: TopicSubtype.system_message,
       }

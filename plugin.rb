@@ -27,6 +27,7 @@ register_svg_icon "hand-pointer"
 register_svg_icon "user-plus"
 register_svg_icon "ticket"
 register_svg_icon "calendar-check"
+register_svg_icon "calendar-plus"
 register_svg_icon "clover"
 register_svg_icon "cloud-rain"
 register_svg_icon "truck"
@@ -1008,6 +1009,12 @@ after_initialize do
         { id: donation.lottery.id, topic_id: lottery_topic.id, url: lottery_topic.url }
       end
 
+    onsite_event = donation.onsite_lottery_event
+    onsite_lottery_event_data =
+      if onsite_event
+        { id: onsite_event.id, name: onsite_event.name, event_date: onsite_event.event_date }
+      end
+
     {
       id: donation.id,
       state: donation.state,
@@ -1016,6 +1023,7 @@ after_initialize do
       published_at: donation.published_at,
       lottery_id: donation.lottery&.id,
       lottery: lottery_data,
+      onsite_lottery_event: onsite_lottery_event_data,
     }
   end
 
@@ -1035,6 +1043,12 @@ after_initialize do
         { id: donation.lottery.id, topic_id: lottery_topic.id, url: lottery_topic.url }
       end
 
+    onsite_event = donation.onsite_lottery_event
+    onsite_lottery_event_data =
+      if onsite_event
+        { id: onsite_event.id, name: onsite_event.name, event_date: onsite_event.event_date }
+      end
+
     {
       id: donation.id,
       state: donation.state,
@@ -1043,6 +1057,7 @@ after_initialize do
       published_at: donation.published_at,
       lottery_id: donation.lottery&.id,
       lottery: lottery_data,
+      onsite_lottery_event: onsite_lottery_event_data,
     }
   end
 

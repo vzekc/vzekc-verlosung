@@ -49,6 +49,11 @@ VzekcVerlosung::Engine.routes.draw do
   delete "/lottery-interests/:id" => "lottery_interests#destroy"
   get "/donations/:donation_id/lottery-interests" => "lottery_interests#index"
 
+  # Onsite lottery event routes
+  get "/onsite-lottery-events/current" => "onsite_lottery_events#current"
+  post "/onsite-lottery-events" => "onsite_lottery_events#create"
+  post "/donations/:donation_id/assign-onsite-lottery" => "onsite_lottery_events#assign_donation"
+
   # Merch packet routes
   get "/merch-packets" => "merch_packets#index"
   put "/merch-packets/:id/ship" => "merch_packets#ship"

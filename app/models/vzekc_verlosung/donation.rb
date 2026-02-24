@@ -26,6 +26,9 @@ module VzekcVerlosung
     has_many :lottery_interests, dependent: :destroy
     has_one :lottery, class_name: "VzekcVerlosung::Lottery", dependent: :nullify
     has_one :merch_packet, class_name: "VzekcVerlosung::MerchPacket", dependent: :destroy
+    belongs_to :onsite_lottery_event,
+               class_name: "VzekcVerlosung::OnsiteLotteryEvent",
+               optional: true
 
     validates :state, presence: true, inclusion: { in: %w[draft open assigned picked_up closed] }
     validates :postcode, presence: true
@@ -34,14 +37,19 @@ module VzekcVerlosung
 
     private
 
-    # Ensure a donation can have either a lottery OR an Erhaltungsbericht, but not both
+    # Ensure a donation can have at most one outcome:
+    # lottery, Erhaltungsbericht, or onsite lottery event
     def ensure_exclusive_outcome
-      return if lottery.blank? || erhaltungsbericht_topic_id.blank?
+      outcomes = 0
+      outcomes += 1 if lottery.present?
+      outcomes += 1 if erhaltungsbericht_topic_id.present?
+      outcomes += 1 if onsite_lottery_event_id.present?
+      return if outcomes <= 1
 
       errors.add(
         :base,
-        "A donation cannot have both a lottery and an Erhaltungsbericht. " \
-          "Please choose one outcome.",
+        "A donation can only have one outcome (lottery, Erhaltungsbericht, " \
+          "or onsite lottery event). Please choose one.",
       )
     end
 
@@ -156,7 +164,10 @@ module VzekcVerlosung
       return true if lottery&.active? || lottery&.finished?
 
       # Check if an Erhaltungsbericht exists for this donation (use direct association)
-      erhaltungsbericht_topic_id.present?
+      return true if erhaltungsbericht_topic_id.present?
+
+      # Check if assigned to an onsite lottery event
+      onsite_lottery_event_id.present?
     end
 
     private
@@ -229,19 +240,22 @@ end
 #  updated_at                 :datetime         not null
 #  creator_user_id            :bigint           not null
 #  erhaltungsbericht_topic_id :bigint
+#  onsite_lottery_event_id    :bigint
 #  topic_id                   :bigint
 #
 # Indexes
 #
-#  index_donations_on_erhaltungsbericht_topic_id              (erhaltungsbericht_topic_id) UNIQUE
-#  index_vzekc_verlosung_donations_on_creator_user_id         (creator_user_id)
-#  index_vzekc_verlosung_donations_on_state                   (state)
-#  index_vzekc_verlosung_donations_on_state_and_published_at  (state,published_at)
-#  index_vzekc_verlosung_donations_on_topic_id                (topic_id) UNIQUE
+#  index_donations_on_erhaltungsbericht_topic_id               (erhaltungsbericht_topic_id) UNIQUE
+#  index_vzekc_verlosung_donations_on_creator_user_id          (creator_user_id)
+#  index_vzekc_verlosung_donations_on_onsite_lottery_event_id  (onsite_lottery_event_id)
+#  index_vzekc_verlosung_donations_on_state                    (state)
+#  index_vzekc_verlosung_donations_on_state_and_published_at   (state,published_at)
+#  index_vzekc_verlosung_donations_on_topic_id                 (topic_id) UNIQUE
 #
 # Foreign Keys
 #
 #  fk_rails_...  (creator_user_id => users.id) ON DELETE => cascade
 #  fk_rails_...  (erhaltungsbericht_topic_id => topics.id) ON DELETE => nullify
+#  fk_rails_...  (onsite_lottery_event_id => vzekc_verlosung_onsite_lottery_events.id) ON DELETE => nullify
 #  fk_rails_...  (topic_id => topics.id) ON DELETE => cascade
 #

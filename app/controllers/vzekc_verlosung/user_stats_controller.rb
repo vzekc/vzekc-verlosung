@@ -234,7 +234,7 @@ module VzekcVerlosung
       pickup_offers =
         PickupOffer
           .joins(donation: :topic)
-          .includes(donation: { topic: :category })
+          .includes(donation: [:topic, :onsite_lottery_event, { topic: :category }])
           .where(user_id: @user.id, state: "picked_up")
           .order("vzekc_verlosung_pickup_offers.picked_up_at DESC")
           .limit(50)
@@ -276,6 +276,9 @@ module VzekcVerlosung
                   title: bericht_topic&.title,
                   url: bericht_topic&.relative_url,
                 }
+              elsif donation.onsite_lottery_event_id.present?
+                event = donation.onsite_lottery_event
+                { type: "onsite_lottery", name: event&.name, event_date: event&.event_date }
               end,
           }
         end

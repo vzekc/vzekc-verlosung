@@ -211,9 +211,25 @@ de:
           - Wenn die Spende mehrere Systeme enthielt oder du ein einzelnes System nicht für dich behalten möchtest, erstelle bitte eine Verlosung
           - Teile die Hardware in Pakete auf und starte die Verlosung
 
-          Bitte öffne das Spendenangebot und wähle dort eine der beiden Optionen. Du erhältst wöchentliche Erinnerungen, bis du eine Aktion durchgeführt hast.
+          **Option 3: Zur Präsenzverlosung mitbringen**
+          - Wenn du die Spende zu einer Präsenzverlosung mitbringen möchtest
+          - Wähle "Zur Präsenzverlosung mitbringen" und gib die Veranstaltungsdaten ein
+
+          Bitte öffne das Spendenangebot und wähle dort eine der Optionen. Du erhältst wöchentliche Erinnerungen, bis du eine Aktion durchgeführt hast.
 
           **[→ Spendenangebot öffnen und Option wählen](%{topic_url})**
+      onsite_lottery:
+        title: "Erinnerung: Präsenzverlosung '%{event_name}' in %{days_until} Tagen"
+        body: |
+          Hallo %{username},
+
+          Die Präsenzverlosung **%{event_name}** findet am **%{event_date}** statt (in %{days_until} Tagen).
+
+          Bitte denke daran, die folgenden Spenden zur Veranstaltung mitzubringen:
+
+          %{donation_list}
+
+          Vielen Dank für dein Engagement!
     winner_message:
       title: "Glückwunsch! Du hast in der Verlosung gewonnen: %{topic_title}"
       body: |

@@ -330,6 +330,7 @@ en:
         interests:
           one: "Interest"
           other: "Interests"
+        onsite_lottery_assigned: "On-site lottery: %{event_name}"
       donation:
         neue_spende: "New Donation Offer"
         donation_number: "Donation No"
@@ -358,6 +359,8 @@ en:
         next_steps_description: "Please choose one of the following options:"
         write_erhaltungsbericht: "Write Reception Report"
         create_lottery_action: "Create Lottery"
+        assign_onsite_lottery: "Bring to on-site lottery"
+        onsite_lottery_assigned: "Assigned to on-site lottery: %{event_name}"
         state:
           title: "Status"
           draft: "Draft"
@@ -366,6 +369,19 @@ en:
           picked_up: "Picked up"
           closed: "Picked up"
         assigned_at_datetime: "Assigned on %{date} at %{time}"
+      onsite_lottery:
+        modal_title: "Bring to On-Site Lottery"
+        existing_event_description: "An on-site lottery event is already scheduled. Your donation will be added to this event."
+        create_event_description: "No on-site lottery event is currently scheduled. Please enter the event details."
+        event_name_label: "Event Name"
+        event_name_placeholder: "e.g., VzEkC Meeting 2026"
+        event_date_label: "Event Date"
+        confirm_button: "Confirm"
+        create_and_confirm_button: "Create Event and Confirm"
+        creating: "Submitting..."
+        donations_count:
+          one: "%{count} donation already assigned"
+          other: "%{count} donations already assigned"
       donation_modal:
         title: "Create New Donation Offer"
         title_label: "Title"
@@ -473,6 +489,7 @@ en:
             uncollected_winner_reminder: "Receipt reminder"
             new_pickup_offer: "New pickup offer"
             new_lottery_interest: "New lottery interest"
+            onsite_lottery_reminder: "On-site lottery reminder"
       user_stats:
         nav_title: "Lotteries"
         tabs:
@@ -520,6 +537,7 @@ en:
         no_pickups: "No pickups yet"
         outcome_lottery: "Lottery"
         outcome_bericht: "Report"
+        outcome_onsite_lottery: "On-site lottery"
         outcome_pending: "Pending"
         table:
           packet: "Packet"

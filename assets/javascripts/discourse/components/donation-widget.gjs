@@ -15,6 +15,7 @@ import { eq, gt } from "discourse/truth-helpers";
 import { i18n } from "discourse-i18n";
 import LocationMapLink from "./location-map-link";
 import AssignOfferModal from "./modal/assign-offer-modal";
+import OnsiteLotteryModal from "./modal/onsite-lottery-modal";
 
 /**
  * Donation widget component for managing pickup offers
@@ -274,6 +275,15 @@ export default class DonationWidget extends Component {
   }
 
   /**
+   * Check if donation is assigned to an onsite lottery event
+   *
+   * @type {boolean}
+   */
+  get hasOnsiteLottery() {
+    return this.donationData?.onsite_lottery_event != null;
+  }
+
+  /**
    * Check if current user picked up the donation and needs to take action
    *
    * @type {boolean}
@@ -295,6 +305,11 @@ export default class DonationWidget extends Component {
 
     // Don't show next steps if Erhaltungsbericht already written
     if (this.hasErhaltungsberichtCreated) {
+      return false;
+    }
+
+    // Don't show next steps if assigned to onsite lottery
+    if (this.hasOnsiteLottery) {
       return false;
     }
 
@@ -474,6 +489,21 @@ export default class DonationWidget extends Component {
       queryParams: {
         donation_id: this.donationData.id,
         donation_title: topic.title,
+      },
+    });
+  }
+
+  /**
+   * Open modal to assign donation to onsite lottery event
+   */
+  @action
+  assignOnsiteLottery() {
+    this.modal.show(OnsiteLotteryModal, {
+      model: {
+        donationId: this.donationData.id,
+        onAssigned: () => {
+          this.appEvents.trigger("donation:data-changed", this.post.id);
+        },
       },
     });
   }
@@ -771,6 +801,14 @@ export default class DonationWidget extends Component {
                 {{i18n "vzekc_verlosung.donation.view_erhaltungsbericht"}}
               </a>
             </div>
+          {{else if this.hasOnsiteLottery}}
+            <div class="donation-onsite-lottery-assigned">
+              {{icon "calendar-check"}}
+              <span>{{i18n
+                  "vzekc_verlosung.donation.onsite_lottery_assigned"
+                  event_name=this.donationData.onsite_lottery_event.name
+                }}</span>
+            </div>
           {{else if this.needsPickupAction}}
             <div class="donation-next-steps">
               <h4>{{i18n "vzekc_verlosung.donation.next_steps"}}</h4>
@@ -787,6 +825,12 @@ export default class DonationWidget extends Component {
                   @label="vzekc_verlosung.donation.create_lottery_action"
                   @icon="gift"
                   class="btn-primary create-lottery-button"
+                />
+                <DButton
+                  @action={{this.assignOnsiteLottery}}
+                  @label="vzekc_verlosung.donation.assign_onsite_lottery"
+                  @icon="calendar-plus"
+                  class="btn-primary assign-onsite-lottery-button"
                 />
               </div>
             </div>

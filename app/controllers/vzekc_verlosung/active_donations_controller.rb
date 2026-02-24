@@ -93,6 +93,8 @@ module VzekcVerlosung
         assigned_picker: assigned_picker,
         has_lottery: donation.lottery.present?,
         has_erhaltungsbericht: donation.erhaltungsbericht_topic_id.present?,
+        has_onsite_lottery: donation.onsite_lottery_event_id.present?,
+        onsite_lottery_event_name: donation.onsite_lottery_event&.name,
         category: {
           id: topic.category&.id,
           name: topic.category&.name,

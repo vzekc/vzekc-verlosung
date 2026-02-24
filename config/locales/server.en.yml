@@ -201,9 +201,25 @@ en:
           - If the donation contained multiple systems, please create a lottery
           - Divide the hardware into packets and start the lottery
 
-          Please open the donation offer and choose one of the two options there. You will receive weekly reminders until you have taken action.
+          **Option 3: Bring to on-site lottery**
+          - If you want to bring the donation to an on-site lottery event
+          - Select "Bring to on-site lottery" and enter the event details
+
+          Please open the donation offer and choose one of the options there. You will receive weekly reminders until you have taken action.
 
           **[→ Open donation offer and choose option](%{topic_url})**
+      onsite_lottery:
+        title: "Reminder: On-site lottery '%{event_name}' in %{days_until} days"
+        body: |
+          Hello %{username},
+
+          The on-site lottery event **%{event_name}** is coming up on **%{event_date}** (in %{days_until} days).
+
+          Please remember to bring the following donations to the event:
+
+          %{donation_list}
+
+          Thank you for your commitment!
     winner_message:
       title: "Congratulations! You won in the lottery: %{topic_title}"
       body: |

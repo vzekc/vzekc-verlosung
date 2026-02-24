@@ -210,6 +210,14 @@ function stateClass(state) {
                     "vzekc_verlosung.active_donations.erhaltungsbericht_created"
                   }}</span>
               </div>
+            {{else if donation.has_onsite_lottery}}
+              <div class="active-donation-outcome">
+                {{icon "calendar-check"}}
+                <span>{{i18n
+                    "vzekc_verlosung.active_donations.onsite_lottery_assigned"
+                    event_name=donation.onsite_lottery_event_name
+                  }}</span>
+              </div>
             {{/if}}
           </div>
         </div>

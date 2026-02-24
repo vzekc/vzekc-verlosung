@@ -270,9 +270,6 @@ RSpec.describe "Donation Full Lifecycle Integration" do
     end
 
     it "validates exclusive outcome - cannot have both lottery and Erhaltungsbericht" do
-      # This test verifies the model validation at app/models/vzekc_verlosung/donation.rb:36
-      # A donation can have EITHER a lottery OR an Erhaltungsbericht, but not both
-
       donation =
         VzekcVerlosung::Donation.create!(
           postcode: "11111",
@@ -280,23 +277,21 @@ RSpec.describe "Donation Full Lifecycle Integration" do
           state: "closed",
         )
 
-      # Create lottery
-      lottery =
-        VzekcVerlosung::Lottery.create!(
-          topic_id: Fabricate(:topic).id,
-          state: "active",
-          donation_id: donation.id,
-        )
+      VzekcVerlosung::Lottery.create!(
+        topic_id: Fabricate(:topic).id,
+        state: "active",
+        donation_id: donation.id,
+      )
 
       donation.reload
 
-      # Try to set erhaltungsbericht_topic_id - should fail validation
       erhaltungsbericht_topic = Fabricate(:topic)
       donation.erhaltungsbericht_topic_id = erhaltungsbericht_topic.id
 
       expect(donation.valid?).to be false
       expect(donation.errors[:base]).to include(
-        "A donation cannot have both a lottery and an Erhaltungsbericht. Please choose one outcome.",
+        "A donation can only have one outcome (lottery, Erhaltungsbericht, " \
+          "or onsite lottery event). Please choose one.",
       )
     end
 

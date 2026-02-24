@@ -36,6 +36,16 @@ module VzekcVerlosung
           { id: erhaltungsbericht_topic.id, url: erhaltungsbericht_topic.url }
         end
 
+      onsite_lottery_event = donation.onsite_lottery_event
+      onsite_lottery_event_data =
+        if onsite_lottery_event
+          {
+            id: onsite_lottery_event.id,
+            name: onsite_lottery_event.name,
+            event_date: onsite_lottery_event.event_date,
+          }
+        end
+
       render json: {
                donation: {
                  id: donation.id,
@@ -47,6 +57,7 @@ module VzekcVerlosung
                  lottery_id: donation.lottery&.id,
                  lottery: lottery_data,
                  erhaltungsbericht: erhaltungsbericht_data,
+                 onsite_lottery_event: onsite_lottery_event_data,
                },
              }
     end

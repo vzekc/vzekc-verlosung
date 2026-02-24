@@ -60,6 +60,7 @@ de:
         no_donations: "Keine Spendenangebote"
         lottery_created: "Verlosung erstellt"
         erhaltungsbericht_created: "Erhaltungsbericht geschrieben"
+        onsite_lottery_assigned: "Präsenzverlosung: %{event_name}"
       neue_verlosung: "Neue Verlosung"
       create_lottery: "Verlosung erstellen"
       create_draft: "Entwurf anlegen"
@@ -404,6 +405,8 @@ de:
         next_steps_description: "Bitte wähle eine der folgenden Optionen:"
         write_erhaltungsbericht: "Erhaltungsbericht schreiben"
         create_lottery_action: "Verlosung erstellen"
+        assign_onsite_lottery: "Zur Präsenzverlosung mitbringen"
+        onsite_lottery_assigned: "Zur Präsenzverlosung: %{event_name}"
         state:
           title: "Status"
           draft: "Entwurf"
@@ -412,6 +415,19 @@ de:
           picked_up: "Abgeholt"
           closed: "Abgeholt"
         assigned_at_datetime: "Zugewiesen am %{date} um %{time}"
+      onsite_lottery:
+        modal_title: "Zur Präsenzverlosung mitbringen"
+        existing_event_description: "Eine Präsenzverlosung ist bereits geplant. Deine Spende wird dieser Veranstaltung zugeordnet."
+        create_event_description: "Derzeit ist keine Präsenzverlosung geplant. Bitte gib die Veranstaltungsdaten ein."
+        event_name_label: "Name der Veranstaltung"
+        event_name_placeholder: "z.B. VzEkC-Treffen 2026"
+        event_date_label: "Datum der Veranstaltung"
+        confirm_button: "Bestätigen"
+        create_and_confirm_button: "Veranstaltung erstellen und bestätigen"
+        creating: "Wird übermittelt..."
+        donations_count:
+          one: "%{count} Spende bereits zugeordnet"
+          other: "%{count} Spenden bereits zugeordnet"
       donation_modal:
         title: "Neues Spendenangebot erstellen"
         title_label: "Titel"
@@ -519,6 +535,7 @@ de:
             uncollected_winner_reminder: "Empfangs-Erinnerung"
             new_pickup_offer: "Neues Abholangebot"
             new_lottery_interest: "Neues Verlosungsinteresse"
+            onsite_lottery_reminder: "Präsenzverlosungs-Erinnerung"
       user_stats:
         nav_title: "Verlosungen"
         tabs:
@@ -566,6 +583,7 @@ de:
         no_pickups: "Noch keine Abholungen"
         outcome_lottery: "Verlosung"
         outcome_bericht: "Erhaltungsbericht"
+        outcome_onsite_lottery: "Präsenzverlosung"
         outcome_pending: "Ausstehend"
         table:
           packet: "Paket"
