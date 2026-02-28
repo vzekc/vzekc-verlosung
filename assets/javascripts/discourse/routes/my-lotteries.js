@@ -21,10 +21,11 @@ export default class MyLotteries extends DiscourseRoute {
   }
 
   /**
-   * Restore scroll position after render
+   * Set lotteries on controller and restore scroll position
    */
   setupController(controller, model) {
     super.setupController(controller, model);
+    controller.setLotteries(model.lotteries);
 
     schedule("afterRender", () => {
       const scrollPosition = controller.getScrollPosition();

@@ -12,7 +12,7 @@ import MyLotteriesDashboard from "../components/my-lotteries-dashboard";
     </div>
 
     <MyLotteriesDashboard
-      @lotteries={{@model.lotteries}}
+      @lotteries={{@controller.lotteries}}
       @onFulfillmentChanged={{@controller.refreshModel}}
     />
   </div>
