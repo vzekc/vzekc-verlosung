@@ -21,5 +21,5 @@ else
   exit 1
 fi
 
-# Run our custom MCP server
-exec ruby "$SCRIPT_DIR/discourse-mcp-server"
+# Run our custom MCP server (bundle exec resolves gem version conflicts)
+exec bundle exec ruby "$SCRIPT_DIR/discourse-mcp-server"
