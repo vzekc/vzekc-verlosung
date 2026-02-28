@@ -1,15 +1,18 @@
+import { tracked } from "@glimmer/tracking";
 import { ajax } from "discourse/lib/ajax";
 import { withPluginApi } from "discourse/lib/plugin-api";
 import { i18n } from "discourse-i18n";
 
-const newContentState = {
-  donations: false,
-  lotteries: false,
-  erhaltungsberichte: false,
-  merch_packets: false,
-  has_won_packets: false,
-  has_open_lotteries: false,
-};
+class NewContentState {
+  @tracked donations = false;
+  @tracked lotteries = false;
+  @tracked erhaltungsberichte = false;
+  @tracked merch_packets = false;
+  @tracked has_won_packets = false;
+  @tracked has_open_lotteries = false;
+}
+
+const newContentState = new NewContentState();
 
 const LINK_SELECTORS = {
   donations: '.sidebar-section-link[data-link-name="active-donations"]',
