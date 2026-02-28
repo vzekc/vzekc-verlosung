@@ -13,6 +13,7 @@ enabled_site_setting :vzekc_verlosung_enabled
 register_asset "stylesheets/vzekc-verlosung.scss"
 register_asset "stylesheets/lottery-history.scss"
 register_asset "stylesheets/donation-widget.scss"
+register_asset "stylesheets/my-lotteries.scss"
 
 register_svg_icon "trophy"
 register_svg_icon "dice"

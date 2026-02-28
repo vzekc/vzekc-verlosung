@@ -54,6 +54,9 @@ VzekcVerlosung::Engine.routes.draw do
   post "/onsite-lottery-events" => "onsite_lottery_events#create"
   post "/donations/:donation_id/assign-onsite-lottery" => "onsite_lottery_events#assign_donation"
 
+  # My lotteries (owner dashboard)
+  get "/my-lotteries" => "my_lotteries#index"
+
   # Merch packet routes
   get "/merch-packets" => "merch_packets#index"
   put "/merch-packets/:id/ship" => "merch_packets#ship"
@@ -68,6 +71,7 @@ Discourse::Application.routes.draw do
   # Ember route can take over.  Needed because PM links trigger full page
   # loads and the engine mount would swallow unmatched paths.
   get "silence-reminders/:topic_id" => "vzekc_verlosung/lotteries#silence_reminders_page"
+  get "my-lotteries" => "vzekc_verlosung/my_lotteries#page"
 
   mount ::VzekcVerlosung::Engine, at: "vzekc-verlosung"
 end
