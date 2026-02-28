@@ -30,6 +30,12 @@ en:
         historie: "Lottery History"
         merch_packets: "Merch Packets"
         meine_gewinne: "My Wins"
+        meine_verlosungen: "My Lotteries"
+      my_lotteries:
+        title: "My Lotteries"
+        drawn_on: "Drawn on %{date}"
+        no_open_lotteries: "All done! No lotteries with pending fulfillment."
+        winner_pm: "Message"
       active:
         title: "Lotteries"
         tabs:

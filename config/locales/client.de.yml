@@ -36,6 +36,12 @@ de:
         historie: "Statistik"
         merch_packets: "Merch-Pakete"
         meine_gewinne: "Meine Gewinne"
+        meine_verlosungen: "Meine Verlosungen"
+      my_lotteries:
+        title: "Meine Verlosungen"
+        drawn_on: "Gezogen am %{date}"
+        no_open_lotteries: "Alles erledigt! Keine Verlosungen mit offener Zustellung."
+        winner_pm: "Nachricht"
       active:
         title: "Verlosungen"
         tabs:
