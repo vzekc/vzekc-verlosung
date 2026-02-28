@@ -29,23 +29,16 @@ Discourse is large with long history. Understand context before changes.
 - Avoid compound Bash commands with quoted strings when possible - they trigger safety checks that interrupt the user's workflow.
 
 ### Screenshots (Dev Server)
-To take screenshots of the local dev server (`http://127.0.0.1:4200/`), use `bin/screenshot.mjs`. It connects to Chrome via CDP (port 9222) using the authenticated session.
+To take screenshots of the local dev server (`http://127.0.0.1:4200/`), use the Puppeteer MCP tools. They connect to Chrome via CDP (port 9222) using the authenticated session.
 
 **Prerequisites**: Chrome must be running with remote debugging: `bin/chrome-debug.sh`
 
 **Usage**:
-```bash
-node bin/screenshot.mjs <path> [output.png] [--width=1280] [--height=800] [--port=9222]
-```
+1. `mcp__puppeteer__puppeteer_connect_active_tab` — connect to the running Chrome
+2. `mcp__puppeteer__puppeteer_navigate` — go to a page (e.g. `http://127.0.0.1:4200/verlosungen`)
+3. `mcp__puppeteer__puppeteer_screenshot` — capture the page (returns image inline)
 
-**Examples**:
-```bash
-node bin/screenshot.mjs /                                    # homepage → /tmp/screenshot.png
-node bin/screenshot.mjs /verlosungen /tmp/lotteries.png      # specific page, custom output
-node bin/screenshot.mjs /t/some-topic/123 --width=1920       # custom viewport width
-```
-
-The script outputs the path to the saved PNG. Use the `Read` tool on the output file to view the screenshot.
+Other available tools: `puppeteer_click`, `puppeteer_fill`, `puppeteer_select`, `puppeteer_hover`, `puppeteer_evaluate`.
 
 ### All Files
 - Always lint changed files with `bundle exec rubocop -a` before committing
