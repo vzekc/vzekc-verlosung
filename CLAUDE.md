@@ -24,6 +24,29 @@ Clear role names used throughout the codebase:
 ## Development Rules
 Discourse is large with long history. Understand context before changes.
 
+### Tool Usage (CRITICAL)
+- **NEVER use Bash for file reading** (`cat`, `head`, `tail`), **searching** (`find`, `grep`, `rg`), or **editing** (`sed`, `awk`). Always use the dedicated Read, Glob, Grep, and Edit tools. This avoids unnecessary permission prompts and safety check interruptions.
+- Avoid compound Bash commands with quoted strings when possible - they trigger safety checks that interrupt the user's workflow.
+
+### Screenshots (Dev Server)
+To take screenshots of the local dev server (`http://127.0.0.1:4200/`), use `bin/screenshot.mjs`. It connects to Chrome via CDP (port 9222) using the authenticated session.
+
+**Prerequisites**: Chrome must be running with remote debugging: `bin/chrome-debug.sh`
+
+**Usage**:
+```bash
+node bin/screenshot.mjs <path> [output.png] [--width=1280] [--height=800] [--port=9222]
+```
+
+**Examples**:
+```bash
+node bin/screenshot.mjs /                                    # homepage → /tmp/screenshot.png
+node bin/screenshot.mjs /verlosungen /tmp/lotteries.png      # specific page, custom output
+node bin/screenshot.mjs /t/some-topic/123 --width=1920       # custom viewport width
+```
+
+The script outputs the path to the saved PNG. Use the `Read` tool on the output file to view the screenshot.
+
 ### All Files
 - Always lint changed files with `bundle exec rubocop -a` before committing
 - **Always run `bundle exec stree write` on changed Ruby files** before committing (Syntax Tree formatting)
