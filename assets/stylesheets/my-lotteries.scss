@@ -216,7 +216,7 @@
   }
 }
 
-@media screen and (max-width: 600px) {
+@media screen and (width <= 600px) {
   .lottery-section-header {
     flex-direction: column;
     gap: 0.25em !important;
