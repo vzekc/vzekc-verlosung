@@ -231,7 +231,7 @@ de:
 
           Vielen Dank für dein Engagement!
     winner_message:
-      title: "Glückwunsch! Du hast in der Verlosung gewonnen: %{topic_title}"
+      title: "Gewonnen: %{packet_titles}"
       body: |
         Hallo %{username},
 

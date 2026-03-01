@@ -475,13 +475,15 @@ module VzekcVerlosung
           end
           .join("\n")
 
+      packet_titles = packets.map { |p| p[:title] }.join(", ")
+
       {
         sender: sender,
         title:
           I18n.t(
             "vzekc_verlosung.winner_message.title",
             locale: @recipient.effective_locale,
-            topic_title: topic.title,
+            packet_titles: packet_titles,
           ),
         body:
           I18n.t(
