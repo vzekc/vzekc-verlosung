@@ -47,6 +47,20 @@ describe VzekcVerlosung::TicketsController do
         expect(json["ticket_count"]).to eq(1)
       end
 
+      it "logs ticket_bought notification with lottery and packet context" do
+        post "/vzekc-verlosung/tickets.json", params: { post_id: lottery_post.id }
+
+        log =
+          VzekcVerlosung::NotificationLog.find_by(
+            notification_type: "ticket_bought",
+            recipient_user_id: admin.id,
+          )
+        expect(log).to be_present
+        expect(log.lottery_id).to eq(lottery.id)
+        expect(log.lottery_packet_id).to eq(lottery_packet.id)
+        expect(log.success).to eq(true)
+      end
+
       it "returns error if post not found" do
         post "/vzekc-verlosung/tickets.json", params: { post_id: 999_999 }
         expect(response.status).to eq(404)
@@ -153,6 +167,20 @@ describe VzekcVerlosung::TicketsController do
         json = response.parsed_body
         expect(json["success"]).to eq("OK")
         expect(json["has_ticket"]).to eq(false)
+      end
+
+      it "logs ticket_returned notification with lottery and packet context" do
+        delete "/vzekc-verlosung/tickets/#{lottery_post.id}.json"
+
+        log =
+          VzekcVerlosung::NotificationLog.find_by(
+            notification_type: "ticket_returned",
+            recipient_user_id: admin.id,
+          )
+        expect(log).to be_present
+        expect(log.lottery_id).to eq(lottery.id)
+        expect(log.lottery_packet_id).to eq(lottery_packet.id)
+        expect(log.success).to eq(true)
       end
 
       it "returns error if ticket not found" do

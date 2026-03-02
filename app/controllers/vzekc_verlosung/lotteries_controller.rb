@@ -187,6 +187,10 @@ module VzekcVerlosung
       # Set end time to now so lottery becomes drawable
       lottery.update!(ends_at: Time.zone.now)
 
+      # Cancel the previously scheduled end notification and fire immediately
+      Jobs.cancel_scheduled_job(:vzekc_verlosung_notify_lottery_ended, lottery_id: lottery.id)
+      Jobs.enqueue(:vzekc_verlosung_notify_lottery_ended, lottery_id: lottery.id)
+
       head :no_content
     end
 

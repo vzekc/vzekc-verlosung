@@ -106,6 +106,24 @@ RSpec.describe "Lottery Full Lifecycle Integration" do
     # Lottery is now ready to draw
     expect(VzekcVerlosung::Lottery.ready_to_draw).to include(lottery)
 
+    # STEP 4b: PM notification fires when lottery ends
+    pm_count_before_4b = Topic.where(archetype: Archetype.private_message).count
+
+    Jobs::VzekcVerlosungNotifyLotteryEnded.new.execute(lottery_id: lottery.id)
+
+    expect(Topic.where(archetype: Archetype.private_message).count).to eq(pm_count_before_4b + 1)
+
+    ended_notification_pm =
+      Topic.where(archetype: Archetype.private_message).order(created_at: :desc).first
+    expect(ended_notification_pm.title.downcase).to include("ended").or include("draw").or include(
+                "beendet",
+              )
+
+    # Verify dedup: running again should not create duplicate
+    Jobs::VzekcVerlosungNotifyLotteryEnded.new.execute(lottery_id: lottery.id)
+
+    expect(Topic.where(archetype: Archetype.private_message).count).to eq(pm_count_before_4b + 1)
+
     # STEP 5: Ended reminder (next day at 7 AM)
     freeze_time(lottery.ends_at + 1.day)
     freeze_time(Time.zone.parse("#{Date.current} 07:00:00"))
@@ -484,6 +502,13 @@ RSpec.describe "Lottery Full Lifecycle Integration" do
     freeze_time(lottery.ends_at + 2.hours)
 
     expect(VzekcVerlosung::Lottery.ready_to_draw).to include(lottery)
+
+    # STEP 4b: PM notification fires when lottery ends
+    pm_count_before_4b = Topic.where(archetype: Archetype.private_message).count
+
+    Jobs::VzekcVerlosungNotifyLotteryEnded.new.execute(lottery_id: lottery.id)
+
+    expect(Topic.where(archetype: Archetype.private_message).count).to eq(pm_count_before_4b + 1)
 
     # STEP 5: Draw winners
     freeze_time(lottery.ends_at + 1.day + 2.hours)

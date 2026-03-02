@@ -590,6 +590,9 @@ module VzekcVerlosung
       creator = User.find_by(id: topic.user_id)
       return unless creator
 
+      lottery = Lottery.find_by(topic_id: topic.id)
+      packet = LotteryPacket.find_by(post_id: post.id)
+
       NotificationService.notify(
         :ticket_bought,
         recipient: creator,
@@ -597,6 +600,8 @@ module VzekcVerlosung
           topic: topic,
           post: post,
           buyer: buyer,
+          lottery: lottery,
+          packet: packet,
         },
       )
     end
@@ -608,6 +613,9 @@ module VzekcVerlosung
       creator = User.find_by(id: topic.user_id)
       return unless creator
 
+      lottery = Lottery.find_by(topic_id: topic.id)
+      packet = LotteryPacket.find_by(post_id: post.id)
+
       NotificationService.notify(
         :ticket_returned,
         recipient: creator,
@@ -615,6 +623,8 @@ module VzekcVerlosung
           topic: topic,
           post: post,
           returner: returner,
+          lottery: lottery,
+          packet: packet,
         },
       )
     end

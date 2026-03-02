@@ -3027,6 +3027,13 @@
         }
       }
 
+      .context-packet {
+        display: block;
+        font-size: var(--font-down-1);
+        color: var(--primary-medium);
+        margin-top: 0.15em;
+      }
+
       tr.status-failed {
         background: var(--danger-low);
       }
@@ -3239,6 +3246,13 @@
         .d-icon {
           flex-shrink: 0;
         }
+      }
+
+      .context-packet {
+        display: block;
+        font-size: var(--font-down-1);
+        color: var(--primary-medium);
+        margin-top: 0.15em;
       }
     }
 

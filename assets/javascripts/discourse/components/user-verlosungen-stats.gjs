@@ -900,6 +900,12 @@ export default class UserVerlosungenStats extends Component {
                             {{icon "gift"}}
                             {{entry.lottery.title}}
                           </a>
+                          {{#if entry.packet}}
+                            <span class="context-packet">
+                              {{icon "box"}}
+                              {{entry.packet.title}}
+                            </span>
+                          {{/if}}
                         {{else if entry.donation}}
                           <a href={{entry.donation.url}} class="context-link">
                             {{icon "hand-holding-heart"}}

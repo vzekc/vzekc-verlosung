@@ -58,6 +58,16 @@ en:
           Please mark the packet as "Received" once it arrives.
 
           **[→ Open lottery](%{lottery_url})**
+      lottery_ended:
+        title: "Your lottery has ended - please draw the winners"
+        body: |
+          Hello %{username},
+
+          Your lottery **[%{topic_title}](%{topic_url})** has ended on %{ended_at} and is waiting for the winners to be drawn.
+
+          Please open the lottery and draw the winners now.
+
+          **[→ Open lottery and draw winners](%{topic_url})**
       merch_packet_ready:
         title: "Please ship merch packet: %{topic_title}"
         body: |

@@ -127,6 +127,9 @@ module VzekcVerlosung
       context[:main_topic] = post.topic
       context[:lottery] = lottery
 
+      # Schedule in-app notification for when the lottery ends
+      Jobs.enqueue_at(ends_at, :vzekc_verlosung_notify_lottery_ended, lottery_id: lottery.id)
+
       VzekcVerlosung.notify_new_content("lotteries")
     end
 

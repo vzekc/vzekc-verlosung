@@ -541,6 +541,7 @@ de:
             uncollected_winner_reminder: "Empfangs-Erinnerung"
             new_pickup_offer: "Neues Abholangebot"
             new_lottery_interest: "Neues Verlosungsinteresse"
+            lottery_ended: "Verlosung beendet (PN)"
             onsite_lottery_reminder: "Präsenzverlosungs-Erinnerung"
       user_stats:
         nav_title: "Verlosungen"

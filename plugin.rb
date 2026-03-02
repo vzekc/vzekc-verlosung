@@ -200,6 +200,7 @@ after_initialize do
     Notification.types[:vzekc_verlosung_erhaltungsbericht_reminder] = 818
     Notification.types[:vzekc_verlosung_new_pickup_offer] = 819
     Notification.types[:vzekc_verlosung_new_lottery_interest] = 820
+    Notification.types[:vzekc_verlosung_ended] = 821
   end
 
   # Extend Guardian with custom permissions and override can_create_post

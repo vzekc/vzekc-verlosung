@@ -58,6 +58,16 @@ de:
           Bitte markiere das Paket als "Erhalten", sobald es bei dir angekommen ist.
 
           **[→ Verlosung öffnen](%{lottery_url})**
+      lottery_ended:
+        title: "Deine Verlosung ist beendet - bitte ziehe die Gewinner"
+        body: |
+          Hallo %{username},
+
+          Deine Verlosung **[%{topic_title}](%{topic_url})** ist am %{ended_at} beendet und wartet darauf, dass die Gewinner gezogen werden.
+
+          Bitte öffne die Verlosung und ziehe jetzt die Gewinner.
+
+          **[→ Verlosung öffnen und Gewinner ziehen](%{topic_url})**
       merch_packet_ready:
         title: "Bitte Merch-Paket versenden: %{topic_title}"
         body: |
