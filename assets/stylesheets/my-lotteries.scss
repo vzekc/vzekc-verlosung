@@ -3,6 +3,10 @@
   margin: 0 auto;
   padding: 1em;
 
+  .nav-pills {
+    margin-bottom: 1em;
+  }
+
   .my-lotteries-header {
     margin-bottom: 1.5em;
 
@@ -214,6 +218,90 @@
     font-size: 1.1em;
     margin: 0;
   }
+}
+
+.lottery-stats-line {
+  display: flex;
+  align-items: center;
+  gap: 1.5em;
+  padding: 0.5em 1em;
+  font-size: 0.9em;
+  color: var(--primary-medium);
+
+  .lottery-stat {
+    display: flex;
+    align-items: center;
+    gap: 0.35em;
+  }
+}
+
+.lottery-time-remaining {
+  font-size: 0.85em;
+  color: var(--primary-medium);
+  white-space: nowrap;
+}
+
+.active-lottery-packets {
+  padding: 0 1em 0.5em;
+}
+
+.active-lottery-packet {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75em;
+  padding: 0.4em 0;
+  border-bottom: 1px solid var(--primary-low);
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  .packet-title {
+    font-weight: 600;
+    font-size: 0.95em;
+  }
+}
+
+.packet-participants-row {
+  display: flex;
+  align-items: center;
+
+  .participants-avatars {
+    display: flex;
+    align-items: center;
+    gap: 0.15em;
+
+    .participant-avatar img {
+      border-radius: 50%;
+    }
+  }
+
+  .participants-more {
+    font-size: 0.8em;
+    color: var(--primary-medium);
+    margin-left: 0.25em;
+  }
+
+  .no-participants {
+    font-size: 0.85em;
+    color: var(--primary-low-mid);
+    font-style: italic;
+  }
+}
+
+.lottery-draw-action {
+  padding: 0.75em 1em;
+  border-top: 1px solid var(--primary-low);
+}
+
+.loading-lotteries {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  padding: 2em;
+  color: var(--primary-medium);
+  justify-content: center;
 }
 
 @media screen and (width <= 600px) {

@@ -55,6 +55,7 @@ VzekcVerlosung::Engine.routes.draw do
   post "/donations/:donation_id/assign-onsite-lottery" => "onsite_lottery_events#assign_donation"
 
   # My lotteries (owner dashboard)
+  get "/my-lotteries/active" => "my_lotteries#active"
   get "/my-lotteries" => "my_lotteries#index"
 
   # Merch packet routes

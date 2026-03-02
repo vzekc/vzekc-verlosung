@@ -33,8 +33,13 @@ en:
         meine_verlosungen: "My Lotteries"
       my_lotteries:
         title: "My Lotteries"
+        tabs:
+          active: "Active"
+          finished: "Finished"
         drawn_on: "Drawn on %{date}"
         no_open_lotteries: "All done! No lotteries with pending fulfillment."
+        no_active_lotteries: "No active lotteries"
+        waiting_for_draw: "Waiting for draw"
         winner_pm: "Message"
       active:
         title: "Lotteries"

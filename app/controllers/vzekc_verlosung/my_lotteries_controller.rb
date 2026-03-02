@@ -4,11 +4,24 @@ module VzekcVerlosung
   class MyLotteriesController < ::ApplicationController
     requires_plugin VzekcVerlosung::PLUGIN_NAME
 
-    before_action :ensure_logged_in, only: [:index]
+    before_action :ensure_logged_in, only: %i[index active]
 
     # Serves the Ember app shell for direct page loads at /my-lotteries
     def page
       render html: "", layout: true
+    end
+
+    # GET /vzekc-verlosung/my-lotteries/active.json
+    def active
+      lotteries =
+        Lottery
+          .joins(:topic)
+          .where(topics: { user_id: current_user.id })
+          .where(state: "active")
+          .includes(:lottery_packets, topic: :category)
+          .order(ends_at: :asc)
+
+      render json: { lotteries: lotteries.map { |lottery| serialize_active_lottery(lottery) } }
     end
 
     # GET /vzekc-verlosung/my-lotteries.json
@@ -39,6 +52,49 @@ module VzekcVerlosung
     end
 
     private
+
+    def serialize_active_lottery(lottery)
+      topic = lottery.topic
+      packets = lottery.lottery_packets.where(abholerpaket: false).sort_by(&:ordinal)
+
+      packet_post_ids = packets.map(&:post_id)
+
+      participant_count =
+        LotteryTicket.where(post_id: packet_post_ids).select(:user_id).distinct.count
+
+      tickets_by_post =
+        LotteryTicket.where(post_id: packet_post_ids).includes(:user).group_by(&:post_id)
+
+      {
+        id: lottery.id,
+        topic_id: topic.id,
+        title: topic.title,
+        slug: topic.slug,
+        url: topic.relative_url,
+        ends_at: lottery.ends_at,
+        drawing_mode: lottery.drawing_mode,
+        drawn_at: lottery.drawn_at,
+        participant_count: participant_count,
+        packets:
+          packets.map do |packet|
+            tickets = tickets_by_post[packet.post_id] || []
+            {
+              ordinal: packet.ordinal,
+              title: packet.title,
+              post_id: packet.post_id,
+              ticket_count: tickets.size,
+              users:
+                tickets.map do |ticket|
+                  {
+                    id: ticket.user.id,
+                    username: ticket.user.username,
+                    avatar_template: ticket.user.avatar_template,
+                  }
+                end,
+            }
+          end,
+      }
+    end
 
     def serialize_lottery(lottery)
       topic = lottery.topic

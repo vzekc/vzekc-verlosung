@@ -39,8 +39,13 @@ de:
         meine_verlosungen: "Meine Verlosungen"
       my_lotteries:
         title: "Meine Verlosungen"
+        tabs:
+          active: "Aktiv"
+          finished: "Beendet"
         drawn_on: "Gezogen am %{date}"
         no_open_lotteries: "Alles erledigt! Keine Verlosungen mit offener Zustellung."
+        no_active_lotteries: "Keine aktiven Verlosungen"
+        waiting_for_draw: "Wartet auf Ziehung"
         winner_pm: "Nachricht"
       active:
         title: "Verlosungen"

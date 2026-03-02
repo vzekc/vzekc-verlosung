@@ -15,17 +15,18 @@ export default class MyLotteries extends DiscourseRoute {
   }
 
   model() {
-    return ajax("/vzekc-verlosung/my-lotteries.json", {
+    return ajax("/vzekc-verlosung/my-lotteries/active.json", {
       type: "GET",
     }).catch(popupAjaxError);
   }
 
   /**
-   * Set lotteries on controller and restore scroll position
+   * Set active lotteries on controller, restore state and scroll position
    */
   setupController(controller, model) {
     super.setupController(controller, model);
-    controller.setLotteries(model.lotteries);
+    controller.setActiveLotteries(model.lotteries);
+    controller.restoreState();
 
     schedule("afterRender", () => {
       const scrollPosition = controller.getScrollPosition();
