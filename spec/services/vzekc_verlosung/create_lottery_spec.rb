@@ -126,14 +126,15 @@ RSpec.describe VzekcVerlosung::CreateLottery do
 
       it "schedules lottery ended notification job at ends_at" do
         freeze_time
+        allow(Jobs).to receive(:enqueue_at)
 
-        expect(Jobs).to receive(:enqueue_at) do |at, job_name, args|
-          expect(at).to eq(14.days.from_now)
-          expect(job_name).to eq(:vzekc_verlosung_notify_lottery_ended)
-          expect(args[:lottery_id]).to be_present
-        end
+        result = described_class.call(**valid_params)
 
-        described_class.call(**valid_params)
+        expect(Jobs).to have_received(:enqueue_at).with(
+          14.days.from_now,
+          :vzekc_verlosung_notify_lottery_ended,
+          { lottery_id: result.lottery.id },
+        )
       end
 
       it "stores correct ordinals for packets" do
