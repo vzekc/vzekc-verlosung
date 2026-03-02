@@ -262,6 +262,7 @@ de:
         ---
 
         [Verlosungsbeitrag vollständig ansehen](%{topic_url})
+    packet_fallback_title: "Paket #%{number}"
     errors:
       packet_title_required: "Paket %{ordinal} Titel darf nicht entfernt werden. Der Beitrag muss mit einer Überschrift im Format beginnen: # Paket %{ordinal}: Titel"
       packet_ordinal_mismatch: "Paketnummer stimmt nicht überein. Erwartet '# Paket %{expected}:', aber gefunden '# Paket %{actual}:'. Die Paketnummer im Titel muss mit der Datenbank übereinstimmen."

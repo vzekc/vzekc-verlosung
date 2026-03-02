@@ -345,7 +345,9 @@ module VzekcVerlosung
 
       return nil unless topic && post && buyer
 
-      packet_title = TitleExtractor.extract_title(post.raw) || "Packet ##{post.post_number}"
+      packet_title =
+        TitleExtractor.extract_title(post.raw) ||
+          I18n.t("vzekc_verlosung.packet_fallback_title", number: post.post_number)
 
       {
         topic_id: topic.id,
@@ -364,7 +366,9 @@ module VzekcVerlosung
 
       return nil unless topic && post && returner
 
-      packet_title = TitleExtractor.extract_title(post.raw) || "Packet ##{post.post_number}"
+      packet_title =
+        TitleExtractor.extract_title(post.raw) ||
+          I18n.t("vzekc_verlosung.packet_fallback_title", number: post.post_number)
 
       {
         topic_id: topic.id,

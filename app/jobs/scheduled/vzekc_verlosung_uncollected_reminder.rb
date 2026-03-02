@@ -39,7 +39,7 @@ module Jobs
                 post = packet.post
                 packet_title =
                   VzekcVerlosung::TitleExtractor.extract_title(post.raw) ||
-                    "Packet ##{post.post_number}"
+                    I18n.t("vzekc_verlosung.packet_fallback_title", number: post.post_number)
                 title_with_instance =
                   packet.quantity > 1 ? "#{packet_title} (##{entry.instance_number})" : packet_title
                 {
