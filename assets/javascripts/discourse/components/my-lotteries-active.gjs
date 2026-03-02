@@ -192,10 +192,10 @@ export default class MyLotteriesActive extends Component {
             <div class="active-lottery-packets">
               {{#each lottery.packets as |packet|}}
                 <div class="active-lottery-packet">
-                  <span class="packet-title">
+                  <a href="/p/{{packet.post_id}}" class="packet-title">
                     {{packet.ordinal}}.
                     {{packet.title}}
-                  </span>
+                  </a>
                   <div class="packet-participants-row">
                     {{#if (gt packet.users.length 0)}}
                       <div class="participants-avatars">

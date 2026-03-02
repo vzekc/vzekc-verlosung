@@ -257,9 +257,14 @@
     border-bottom: none;
   }
 
-  .packet-title {
+  a.packet-title {
     font-weight: 600;
     font-size: 0.95em;
+    color: var(--tertiary);
+
+    &:hover {
+      text-decoration: underline;
+    }
   }
 }
 
