@@ -36,6 +36,7 @@ export default class LotteryWidget extends Component {
   @tracked loading = true;
   @tracked markingCollected = false;
   @tracked markingShipped = false;
+  @tracked markingUnclaimed = false;
   @tracked notificationsSilenced = false;
 
   constructor() {
@@ -455,6 +456,47 @@ export default class LotteryWidget extends Component {
     );
   }
 
+  /**
+   * Check if this winner entry can be marked as unclaimed by the lottery owner
+   *
+   * @param {Object} winnerEntry
+   * @returns {boolean}
+   */
+  @action
+  canMarkEntryAsUnclaimedForEntry(winnerEntry) {
+    return this.packetFulfillment.canMarkEntryAsUnclaimed(winnerEntry, {
+      isLotteryOwner: this.isLotteryOwner,
+      isActionInProgress:
+        this.markingCollected || this.markingShipped || this.markingUnclaimed,
+      drawnAt: this.post?.topic?.lottery_drawn_at,
+    });
+  }
+
+  @action
+  async handleMarkUnclaimed(winnerEntry) {
+    if (this.markingCollected || this.markingShipped || this.markingUnclaimed) {
+      return;
+    }
+
+    this.markingUnclaimed = true;
+    try {
+      const result = await this.packetFulfillment.markEntryAsUnclaimed(
+        this.post.id,
+        winnerEntry,
+        { packetTitle: this.packetTitle }
+      );
+      if (result?.winners) {
+        this.winnersData = result.winners;
+        this.appEvents.trigger("lottery:fulfillment-changed", {
+          postId: this.post.id,
+          winners: result.winners,
+        });
+      }
+    } finally {
+      this.markingUnclaimed = false;
+    }
+  }
+
   @action
   async handleMarkCollected(winnerEntry) {
     if (this.markingCollected || this.markingShipped) {
@@ -654,6 +696,22 @@ export default class LotteryWidget extends Component {
                             }}
                           >{{icon "check"}}
                             {{i18n "vzekc_verlosung.status.received"}}</span>
+                        {{else if
+                          (eq winnerEntry.fulfillment_state "unclaimed")
+                        }}
+                          <span
+                            class="status-badge status-unclaimed"
+                            title={{if
+                              winnerEntry.unclaimed_at
+                              (i18n
+                                "vzekc_verlosung.unclaimed.unclaimed_on"
+                                date=(this.packetFulfillment.formatCollectedDate
+                                  winnerEntry.unclaimed_at
+                                )
+                              )
+                            }}
+                          >{{icon "ban"}}
+                            {{i18n "vzekc_verlosung.status.unclaimed"}}</span>
                         {{else if (eq winnerEntry.fulfillment_state "shipped")}}
                           <span
                             class="status-badge status-shipped"
@@ -712,6 +770,20 @@ export default class LotteryWidget extends Component {
                             class="btn-small btn-default mark-handed-over-inline-button"
                             title={{i18n
                               "vzekc_verlosung.handover.mark_handed_over"
+                            }}
+                          />
+                        {{/if}}
+                        {{#if
+                          (this.canMarkEntryAsUnclaimedForEntry winnerEntry)
+                        }}
+                          <DButton
+                            @action={{fn this.handleMarkUnclaimed winnerEntry}}
+                            @icon="ban"
+                            @label="vzekc_verlosung.status.unclaimed"
+                            @disabled={{this.markingUnclaimed}}
+                            class="btn-small btn-danger mark-unclaimed-inline-button"
+                            title={{i18n
+                              "vzekc_verlosung.unclaimed.mark_unclaimed"
                             }}
                           />
                         {{/if}}

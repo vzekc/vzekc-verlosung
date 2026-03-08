@@ -258,6 +258,11 @@ de:
         confirm_button: "Als erhalten markieren"
         success_title: "Erfolg"
         success_message: "Das Paket wurde als erhalten markiert."
+      unclaimed:
+        mark_unclaimed: "Als nicht abgeholt markieren"
+        confirm_message: "Bist du sicher, dass du das Paket '%{packet}' als nicht von %{winner} abgeholt markieren möchtest? Das bedeutet, dass der Gewinner das Paket nicht abgeholt hat und es nicht erhalten wird."
+        unclaimed_on: "Nicht abgeholt am %{date}"
+        not_eligible_yet: "Kann erst 4 Wochen nach der Ziehung als nicht abgeholt markiert werden"
       erhaltungsbericht:
         create_button: "Erhaltungsbericht schreiben"
         view_link: "Erhaltungsbericht"
@@ -285,6 +290,7 @@ de:
         shipped: "Versandt"
         received: "Erhalten"
         completed: "Erhaltungsbericht geschrieben"
+        unclaimed: "Nicht abgeholt"
         drawn: "Verlost"
         no_winner: "Kein Gewinner"
         ready_to_draw: "Ziehung ausstehend"

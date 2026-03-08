@@ -597,7 +597,8 @@
             .status-won,
             .status-shipped,
             .status-collected,
-            .status-finished {
+            .status-finished,
+            .status-unclaimed {
               display: inline-flex;
               align-items: center;
               gap: 0.25em;
@@ -617,6 +618,15 @@
 
               .d-icon {
                 color: var(--success);
+              }
+            }
+
+            .status-unclaimed {
+              color: var(--danger);
+              background: var(--danger-low);
+
+              .d-icon {
+                color: var(--danger);
               }
             }
           }
@@ -2185,6 +2195,13 @@
         gap: 0.3em;
         color: var(--primary-medium);
       }
+
+      .status-unclaimed {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3em;
+        color: var(--danger);
+      }
     }
 
     // For active lotteries (only 2 columns: packet + participants)
@@ -2891,6 +2908,11 @@
       &.fulfillment-completed {
         background: var(--success-low);
         color: var(--success);
+      }
+
+      &.fulfillment-unclaimed {
+        background: var(--danger-low);
+        color: var(--danger);
       }
     }
   }
@@ -3733,6 +3755,11 @@
       .status-finished {
         color: var(--success);
         background: var(--success-low);
+      }
+
+      .status-unclaimed {
+        color: var(--danger);
+        background: var(--danger-low);
       }
     }
 

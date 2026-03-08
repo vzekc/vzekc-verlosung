@@ -58,6 +58,13 @@ de:
           Bitte markiere das Paket als "Erhalten", sobald es bei dir angekommen ist.
 
           **[→ Verlosung öffnen](%{lottery_url})**
+      packet_unclaimed:
+        body: |
+          Hallo %{username},
+
+          %{sender_username} hat das Paket **%{packet_title}** aus der Verlosung **[%{lottery_title}](%{lottery_url})** als nicht abgeholt markiert.
+
+          Das bedeutet, dass das Paket nicht mehr für dich reserviert ist. Falls du glaubst, dass dies ein Fehler ist, kontaktiere bitte %{sender_username} direkt.
       lottery_ended:
         title: "Deine Verlosung ist beendet - bitte ziehe die Gewinner"
         body: |

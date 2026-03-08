@@ -58,6 +58,13 @@ en:
           Please mark the packet as "Received" once it arrives.
 
           **[→ Open lottery](%{lottery_url})**
+      packet_unclaimed:
+        body: |
+          Hello %{username},
+
+          %{sender_username} has marked the packet **%{packet_title}** from the lottery **[%{lottery_title}](%{lottery_url})** as unclaimed.
+
+          This means the packet will no longer be held for you. If you believe this is a mistake, please contact %{sender_username} directly.
       lottery_ended:
         title: "Your lottery has ended - please draw the winners"
         body: |

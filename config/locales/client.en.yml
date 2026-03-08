@@ -239,6 +239,11 @@ en:
         confirm_button: "Mark as Received"
         success_title: "Success"
         success_message: "The packet has been marked as received."
+      unclaimed:
+        mark_unclaimed: "Mark as unclaimed"
+        confirm_message: "Are you sure you want to mark the packet '%{packet}' as unclaimed by %{winner}? This means the winner did not collect the packet and will not receive it."
+        unclaimed_on: "Unclaimed on %{date}"
+        not_eligible_yet: "Can only mark as unclaimed 4 weeks after drawing"
       erhaltungsbericht:
         create_button: "Write Reception Report"
         view_link: "Reception Report"
@@ -266,6 +271,7 @@ en:
         shipped: "Shipped"
         received: "Received"
         completed: "Report written"
+        unclaimed: "Unclaimed"
         drawn: "Drawn"
         no_winner: "No winner"
         ready_to_draw: "Ready to draw"

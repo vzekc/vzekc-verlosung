@@ -79,6 +79,18 @@ export default class MyLotteriesDashboard extends Component {
   }
 
   @action
+  canMarkAsUnclaimed(entry, drawnAt) {
+    return this.packetFulfillment.canMarkEntryAsUnclaimed(entry, {
+      isLotteryOwner: true,
+      isActionInProgress: this._isActionInProgress(
+        entry.post_id,
+        entry.instance_number
+      ),
+      drawnAt,
+    });
+  }
+
+  @action
   canMarkAsCollected(entry) {
     return this.packetFulfillment.canMarkEntryAsCollected(entry, {
       isLotteryOwner: true,
@@ -157,6 +169,35 @@ export default class MyLotteriesDashboard extends Component {
 
     try {
       const result = await this.packetFulfillment.markEntryAsHandedOver(
+        entry.post_id,
+        entry,
+        { packetTitle: entry.title }
+      );
+      if (result) {
+        this.appEvents.trigger("lottery:fulfillment-changed", {
+          postId: entry.post_id,
+          winners: result.winners,
+        });
+        this.args.onFulfillmentChanged?.();
+      }
+    } finally {
+      this.actionInProgress = null;
+    }
+  }
+
+  @action
+  async handleMarkUnclaimed(entry) {
+    if (this._isActionInProgress(entry.post_id, entry.instance_number)) {
+      return;
+    }
+
+    this.actionInProgress = {
+      postId: entry.post_id,
+      instanceNumber: entry.instance_number,
+    };
+
+    try {
+      const result = await this.packetFulfillment.markEntryAsUnclaimed(
         entry.post_id,
         entry,
         { packetTitle: entry.title }
@@ -306,7 +347,10 @@ export default class MyLotteriesDashboard extends Component {
                         <span
                           class="fulfillment-status fulfillment-{{entry.fulfillment_state}}"
                         >
-                          {{#if (eq entry.fulfillment_state "shipped")}}
+                          {{#if (eq entry.fulfillment_state "unclaimed")}}
+                            {{icon "ban"}}
+                            {{i18n "vzekc_verlosung.status.unclaimed"}}
+                          {{else if (eq entry.fulfillment_state "shipped")}}
                             {{icon "paper-plane"}}
                             {{i18n "vzekc_verlosung.status.shipped"}}
                           {{else if (eq entry.fulfillment_state "received")}}
@@ -363,6 +407,18 @@ export default class MyLotteriesDashboard extends Component {
                             @label="vzekc_verlosung.handover.handed_over"
                             @disabled={{this.actionInProgress}}
                             class="btn-small btn-default mark-handed-over-inline-button"
+                          />
+                        {{/if}}
+                        {{#if (this.canMarkAsUnclaimed entry lottery.drawn_at)}}
+                          <DButton
+                            @action={{fn this.handleMarkUnclaimed entry}}
+                            @icon="ban"
+                            @label="vzekc_verlosung.status.unclaimed"
+                            @disabled={{this.actionInProgress}}
+                            class="btn-small btn-danger mark-unclaimed-inline-button"
+                            title={{i18n
+                              "vzekc_verlosung.unclaimed.mark_unclaimed"
+                            }}
                           />
                         {{/if}}
                       </span>

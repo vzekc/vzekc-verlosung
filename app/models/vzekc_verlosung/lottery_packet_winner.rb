@@ -5,7 +5,7 @@ module VzekcVerlosung
     self.table_name = "vzekc_verlosung_lottery_packet_winners"
 
     # Fulfillment state constants
-    FULFILLMENT_STATES = %w[won shipped received completed].freeze
+    FULFILLMENT_STATES = %w[won shipped received completed unclaimed].freeze
 
     # Associations
     belongs_to :lottery_packet, class_name: "VzekcVerlosung::LotteryPacket"
@@ -58,7 +58,8 @@ module VzekcVerlosung
     scope :fulfillment_shipped, -> { where(fulfillment_state: "shipped") }
     scope :received, -> { where(fulfillment_state: "received") }
     scope :completed, -> { where(fulfillment_state: "completed") }
-    scope :pending_fulfillment, -> { where.not(fulfillment_state: "completed") }
+    scope :unclaimed, -> { where(fulfillment_state: "unclaimed") }
+    scope :pending_fulfillment, -> { where.not(fulfillment_state: %w[completed unclaimed]) }
 
     # Fulfillment state helpers
     def won?
@@ -75,6 +76,10 @@ module VzekcVerlosung
 
     def fulfillment_completed?
       fulfillment_state == "completed"
+    end
+
+    def unclaimed?
+      fulfillment_state == "unclaimed"
     end
 
     # State-based helpers (use these for business logic decisions)
@@ -113,6 +118,10 @@ module VzekcVerlosung
       update!(fulfillment_state: "completed")
     end
 
+    def mark_unclaimed!(timestamp = Time.zone.now)
+      update!(unclaimed_at: timestamp, fulfillment_state: "unclaimed")
+    end
+
     private
 
     def instance_number_within_quantity
@@ -135,6 +144,7 @@ end
 #  instance_number            :integer          not null
 #  shipped_at                 :datetime
 #  tracking_info              :text
+#  unclaimed_at               :datetime
 #  won_at                     :datetime
 #  created_at                 :datetime         not null
 #  updated_at                 :datetime         not null

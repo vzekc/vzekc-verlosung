@@ -580,6 +580,7 @@ after_initialize do
             is_authorized = object.topic.user_id == scope.user&.id || is_this_winner
             winner_data[:shipped_at] = lpw.shipped_at if is_authorized && lpw.shipped_at
             winner_data[:collected_at] = lpw.collected_at if is_authorized && lpw.collected_at
+            winner_data[:unclaimed_at] = lpw.unclaimed_at if is_authorized && lpw.unclaimed_at
 
             winner_data
           end
@@ -649,6 +650,7 @@ after_initialize do
         }
         winner_data[:shipped_at] = lpw.shipped_at if lpw.shipped_at
         winner_data[:collected_at] = lpw.collected_at if lpw.collected_at
+        winner_data[:unclaimed_at] = lpw.unclaimed_at if lpw.unclaimed_at
         if lpw.erhaltungsbericht_topic_id && lpw.erhaltungsbericht_topic
           winner_data[:erhaltungsbericht_topic_id] = lpw.erhaltungsbericht_topic_id
         end
@@ -729,6 +731,7 @@ after_initialize do
         is_authorized = topic&.user_id == scope.user&.id || is_this_winner
         winner_data[:shipped_at] = lpw.shipped_at if is_authorized && lpw.shipped_at
         winner_data[:collected_at] = lpw.collected_at if is_authorized && lpw.collected_at
+        winner_data[:unclaimed_at] = lpw.unclaimed_at if is_authorized && lpw.unclaimed_at
 
         winner_data
       end

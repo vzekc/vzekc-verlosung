@@ -329,6 +329,96 @@ module VzekcVerlosung
       render json: ticket_packet_status_response(post, current_user)
     end
 
+    # POST /vzekc_verlosung/packets/:post_id/mark-unclaimed
+    #
+    # Marks a packet winner as unclaimed by the lottery owner.
+    # Only allowed 4 weeks after the lottery was drawn.
+    #
+    # @param post_id [Integer] Post ID of the packet
+    # @param instance_number [Integer] Instance number of the winner entry to mark
+    #
+    # @return [JSON] Updated packet status
+    def mark_unclaimed
+      post = Post.find_by(id: params[:post_id])
+      return render_json_error("Post not found", status: :not_found) unless post
+
+      packet = LotteryPacket.includes(:lottery_packet_winners).find_by(post_id: post.id)
+      return render_json_error("Not a lottery packet", status: :bad_request) unless packet
+
+      topic = post.topic
+      return render_json_error("Topic not found", status: :not_found) unless topic
+
+      lottery = packet.lottery
+      return render_json_error("Lottery not found", status: :not_found) unless lottery
+
+      # Check if lottery is finished and drawn
+      unless lottery.finished? && lottery.drawn?
+        return(
+          render_json_error(
+            "Lottery must be finished and drawn before marking packets as unclaimed",
+            status: :unprocessable_entity,
+          )
+        )
+      end
+
+      # Only lottery owner can mark as unclaimed
+      unless topic.user_id == current_user.id
+        return(
+          render_json_error(
+            "Only the lottery owner can mark packets as unclaimed",
+            status: :forbidden,
+          )
+        )
+      end
+
+      # Check 4-week eligibility
+      unless lottery.drawn_at && lottery.drawn_at <= 4.weeks.ago
+        return(
+          render_json_error(
+            I18n.t("js.vzekc_verlosung.unclaimed.not_eligible_yet"),
+            status: :unprocessable_entity,
+          )
+        )
+      end
+
+      # Find the winner entry by instance number
+      instance_number = params[:instance_number].to_i
+      winner_entry = packet.lottery_packet_winners.find { |w| w.instance_number == instance_number }
+
+      unless winner_entry
+        return(
+          render_json_error(
+            "Winner entry not found for instance #{instance_number}",
+            status: :not_found,
+          )
+        )
+      end
+
+      # Can only mark as unclaimed if in "won" or "shipped" state
+      if %w[won shipped].exclude?(winner_entry.fulfillment_state)
+        return(
+          render_json_error(
+            "Can only mark as unclaimed when in 'won' or 'shipped' state",
+            status: :unprocessable_entity,
+          )
+        )
+      end
+
+      # Mark as unclaimed
+      winner_entry.mark_unclaimed!
+
+      # Notify the winner by replying to their existing PM
+      notify_winner_unclaimed(
+        winner_entry: winner_entry,
+        packet: packet,
+        lottery_topic: topic,
+        sender: current_user,
+      )
+
+      # Return updated packet status
+      render json: ticket_packet_status_response(post, current_user)
+    end
+
     # POST /vzekc_verlosung/packets/:post_id/create-erhaltungsbericht
     #
     # Creates an Erhaltungsbericht topic for a collected packet
@@ -556,6 +646,7 @@ module VzekcVerlosung
           winner_data[:fulfillment_state] = lpw.fulfillment_state if is_authorized
           winner_data[:shipped_at] = lpw.shipped_at if is_authorized && lpw.shipped_at
           winner_data[:collected_at] = lpw.collected_at if is_authorized && lpw.collected_at
+          winner_data[:unclaimed_at] = lpw.unclaimed_at if is_authorized && lpw.unclaimed_at
 
           winner_data
         end || []
@@ -567,6 +658,32 @@ module VzekcVerlosung
         users: users,
         winners: winners,
       }
+    end
+
+    # Reply to the winner's existing PM when a packet is marked as unclaimed
+    def notify_winner_unclaimed(winner_entry:, packet:, lottery_topic:, sender:)
+      pm_topic_id = winner_entry.winner_pm_topic_id
+      return unless pm_topic_id
+
+      pm_topic = Topic.find_by(id: pm_topic_id)
+      return unless pm_topic
+
+      packet_title = packet.title || "Paket ##{packet.ordinal}"
+
+      body =
+        I18n.t(
+          "vzekc_verlosung.notifications.packet_unclaimed.body",
+          locale: winner_entry.winner.effective_locale,
+          username: winner_entry.winner.username,
+          sender_username: sender.username,
+          packet_title: packet_title,
+          lottery_title: lottery_topic.title,
+          lottery_url: "#{Discourse.base_url}#{lottery_topic.relative_url}",
+        )
+
+      PostCreator.create!(sender, topic_id: pm_topic.id, raw: body, skip_validations: true)
+    rescue => e
+      Rails.logger.error("Failed to notify winner about unclaimed packet: #{e.message}")
     end
 
     # Send PM to winner when packet is marked as shipped

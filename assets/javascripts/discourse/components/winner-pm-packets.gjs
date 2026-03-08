@@ -390,6 +390,22 @@ export default class WinnerPmPackets extends Component {
                       {{icon "check"}}
                       {{i18n "vzekc_verlosung.status.received"}}
                     </span>
+                  {{else if (eq packet.winner.fulfillment_state "unclaimed")}}
+                    <span
+                      class="status-badge status-unclaimed"
+                      title={{if
+                        packet.winner.unclaimed_at
+                        (i18n
+                          "vzekc_verlosung.unclaimed.unclaimed_on"
+                          date=(this.packetFulfillment.formatCollectedDate
+                            packet.winner.unclaimed_at
+                          )
+                        )
+                      }}
+                    >
+                      {{icon "ban"}}
+                      {{i18n "vzekc_verlosung.status.unclaimed"}}
+                    </span>
                   {{else if (eq packet.winner.fulfillment_state "shipped")}}
                     <span
                       class="status-badge status-shipped"

@@ -119,6 +119,89 @@ export default class PacketFulfillmentService extends Service {
   }
 
   /**
+   * Check if a winner entry can be marked as unclaimed (state is "won" or "shipped"
+   * and at least 4 weeks have passed since drawing)
+   *
+   * @param {Object} winnerEntry
+   * @param {string} drawnAt - ISO date string of when the lottery was drawn
+   * @returns {boolean}
+   */
+  isUnclaimable(winnerEntry, drawnAt) {
+    if (!winnerEntry || !drawnAt) {
+      return false;
+    }
+    if (
+      winnerEntry.fulfillment_state !== "won" &&
+      winnerEntry.fulfillment_state !== "shipped"
+    ) {
+      return false;
+    }
+    const fourWeeksMs = 4 * 7 * 24 * 60 * 60 * 1000;
+    return new Date(drawnAt).getTime() + fourWeeksMs <= Date.now();
+  }
+
+  /**
+   * Check if current user (lottery owner) can mark a winner entry as unclaimed.
+   *
+   * @param {Object} winnerEntry
+   * @param {Object} opts
+   * @param {boolean} opts.isLotteryOwner
+   * @param {boolean} opts.isActionInProgress
+   * @param {string} opts.drawnAt - ISO date string
+   * @returns {boolean}
+   */
+  canMarkEntryAsUnclaimed(
+    winnerEntry,
+    { isLotteryOwner = false, isActionInProgress = false, drawnAt = null } = {}
+  ) {
+    if (!winnerEntry || !this.isUnclaimable(winnerEntry, drawnAt)) {
+      return false;
+    }
+    if (isActionInProgress) {
+      return false;
+    }
+    return isLotteryOwner;
+  }
+
+  /**
+   * Mark a specific winner entry as unclaimed (with confirmation dialog)
+   *
+   * @param {number} postId
+   * @param {Object} entry - The winner entry
+   * @param {Object} opts
+   * @param {string} opts.packetTitle
+   * @returns {Promise<Object|null>} API response or null if cancelled/failed
+   */
+  async markEntryAsUnclaimed(postId, entry, { packetTitle } = {}) {
+    if (!entry) {
+      return null;
+    }
+
+    const confirmed = await this.dialog.confirm({
+      message: i18n("vzekc_verlosung.unclaimed.confirm_message", {
+        winner: entry.username,
+        packet: packetTitle,
+      }),
+      didConfirm: () => true,
+      didCancel: () => false,
+    });
+
+    if (!confirmed) {
+      return null;
+    }
+
+    try {
+      return await ajax(`/vzekc-verlosung/packets/${postId}/mark-unclaimed`, {
+        type: "POST",
+        data: { instance_number: entry.instance_number },
+      });
+    } catch (error) {
+      popupAjaxError(error);
+      return null;
+    }
+  }
+
+  /**
    * Check if current user can create Erhaltungsbericht for a specific winner entry
    *
    * @param {Object} winnerEntry
