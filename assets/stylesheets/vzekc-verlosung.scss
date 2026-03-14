@@ -3508,6 +3508,10 @@
 
     .actions-cell {
       text-align: right;
+
+      .btn + .btn {
+        margin-top: 0.35em;
+      }
     }
 
     .shipped-badge {
