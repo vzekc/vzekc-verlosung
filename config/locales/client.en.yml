@@ -456,6 +456,7 @@ en:
           shipped_at: "Shipped"
           actions: "Actions"
         mark_shipped: "Mark as shipped"
+        edit: "Edit"
         ship: "Ship"
         shipped: "Shipped"
         tracking_link: "Tracking"

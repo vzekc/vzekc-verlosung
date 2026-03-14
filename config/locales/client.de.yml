@@ -502,6 +502,7 @@ de:
           shipped_at: "Versandt"
           actions: "Aktionen"
         mark_shipped: "Als versandt markieren"
+        edit: "Bearbeiten"
         ship: "Versenden"
         shipped: "Versandt"
         tracking_link: "Tracking"

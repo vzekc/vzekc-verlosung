@@ -46,27 +46,6 @@ export default class MerchPacketsList extends Component {
   }
 
   /**
-   * Handle click on a table row - open edit modal for pending packets
-   * Ignores clicks on buttons, links, and other interactive elements
-   *
-   * @param {Object} packet - The packet
-   * @param {Event} event - Click event
-   */
-  @action
-  handleRowClick(packet, event) {
-    if (packet.state !== "pending") {
-      return;
-    }
-
-    const target = event.target;
-    if (target.closest("button, a, .btn")) {
-      return;
-    }
-
-    this.openEditModal(packet);
-  }
-
-  /**
    * Open the edit address modal for a pending packet
    *
    * @param {Object} packet - The packet to edit
@@ -252,11 +231,7 @@ export default class MerchPacketsList extends Component {
           </thead>
           <tbody>
             {{#each this.packetsToShow as |packet|}}
-              <tr
-                class={{if (eq packet.state "pending") "clickable-row"}}
-                role="button"
-                {{on "click" (fn this.handleRowClick packet)}}
-              >
+              <tr class={{if (eq packet.state "pending") "clickable-row"}}>
                 <td class="donation-cell">
                   {{#if packet.donation.url}}
                     <a href={{packet.donation.url}}>
@@ -298,6 +273,12 @@ export default class MerchPacketsList extends Component {
                 {{/if}}
                 <td class="actions-cell">
                   {{#if (eq packet.state "pending")}}
+                    <DButton
+                      @action={{fn this.openEditModal packet}}
+                      @icon="pen"
+                      @label="vzekc_verlosung.merch_packets.edit"
+                      class="btn-default"
+                    />
                     <DButton
                       @action={{fn this.openShipModal packet}}
                       @icon="truck"

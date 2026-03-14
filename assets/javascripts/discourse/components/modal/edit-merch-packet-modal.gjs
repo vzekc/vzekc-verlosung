@@ -26,8 +26,8 @@ export default class EditMerchPacketModal extends Component {
   @tracked donorName = this.args.model.merch_packet?.donor_name || "";
   @tracked donorCompany = this.args.model.merch_packet?.donor_company || "";
   @tracked donorStreet = this.args.model.merch_packet?.donor_street || "";
-  @tracked donorStreetNumber =
-    this.args.model.merch_packet?.donor_street_number || "";
+  @tracked
+  donorStreetNumber = this.args.model.merch_packet?.donor_street_number || "";
   @tracked donorPostcode = this.args.model.merch_packet?.donor_postcode || "";
   @tracked donorCity = this.args.model.merch_packet?.donor_city || "";
   @tracked donorEmail = this.args.model.merch_packet?.donor_email || "";
