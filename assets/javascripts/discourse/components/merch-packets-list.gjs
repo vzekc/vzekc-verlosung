@@ -254,6 +254,7 @@ export default class MerchPacketsList extends Component {
             {{#each this.packetsToShow as |packet|}}
               <tr
                 class={{if (eq packet.state "pending") "clickable-row"}}
+                role={{if (eq packet.state "pending") "button"}}
                 {{on "click" (fn this.handleRowClick packet)}}
               >
                 <td class="donation-cell">
