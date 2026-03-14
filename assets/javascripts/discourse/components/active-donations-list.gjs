@@ -1,8 +1,14 @@
+import Component from "@glimmer/component";
+import { fn } from "@ember/helper";
+import { on } from "@ember/modifier";
+import { action } from "@ember/object";
+import { service } from "@ember/service";
 import avatar from "discourse/helpers/avatar";
 import icon from "discourse/helpers/d-icon";
 import { eq } from "discourse/truth-helpers";
 import { i18n } from "discourse-i18n";
 import LocationMapLink from "./location-map-link";
+import EditMerchPacketModal from "./modal/edit-merch-packet-modal";
 
 /**
  * Builds CSS class for username based on user roles
@@ -79,153 +85,208 @@ function stateClass(state) {
  *
  * @component ActiveDonationsList
  * @param {Array} donations - Array of donation objects
+ * @param {Function} onChanged - Callback when data changes
  */
-<template>
-  {{#if @donations.length}}
-    <div class="active-donations-list">
-      {{#each @donations as |donation|}}
-        <div
-          class="active-donation-card
-            {{if donation.assigned_picker 'has-picker'}}
-            {{if donation.unread 'is-unread'}}"
-        >
-          <div class="active-donation-header">
-            <h3 class="active-donation-title">
-              <a href={{donation.url}}>{{donation.title}}</a>
-            </h3>
-            <div class="active-donation-meta">
-              <div class="names trigger-user-card">
-                {{avatar donation.facilitator imageSize="tiny"}}
-                <span class={{usernameClass donation.facilitator}}>
-                  <a
-                    href="/u/{{donation.facilitator.username}}"
-                    data-user-card={{donation.facilitator.username}}
-                  >
-                    {{donation.facilitator.username}}
-                    {{#if donation.facilitator.moderator}}
-                      <span
-                        class="svg-icon-title"
-                        title={{i18n "user.moderator_tooltip"}}
-                      >
-                        {{icon "shield-halved"}}
-                      </span>
-                    {{/if}}
-                  </a>
-                </span>
-                {{#if donation.facilitator.title}}
-                  <span class={{titleClass donation.facilitator}}>
-                    {{donation.facilitator.title}}
+export default class ActiveDonationsList extends Component {
+  @service modal;
+
+  /**
+   * Open the edit/create merch packet modal
+   *
+   * @param {Object} donation - The donation object
+   */
+  @action
+  openMerchPacketModal(donation) {
+    this.modal.show(EditMerchPacketModal, {
+      model: {
+        donation,
+        merch_packet: donation.merch_packet,
+        onSaved: this.args.onChanged,
+        onDeleted: this.args.onChanged,
+      },
+    });
+  }
+
+  <template>
+    {{#if @donations.length}}
+      <div class="active-donations-list">
+        {{#each @donations as |donation|}}
+          <div
+            class="active-donation-card
+              {{if donation.assigned_picker 'has-picker'}}
+              {{if donation.unread 'is-unread'}}"
+          >
+            <div class="active-donation-header">
+              <h3 class="active-donation-title">
+                <a href={{donation.url}}>{{donation.title}}</a>
+              </h3>
+              <div class="active-donation-meta">
+                <div class="names trigger-user-card">
+                  {{avatar donation.facilitator imageSize="tiny"}}
+                  <span class={{usernameClass donation.facilitator}}>
+                    <a
+                      href="/u/{{donation.facilitator.username}}"
+                      data-user-card={{donation.facilitator.username}}
+                    >
+                      {{donation.facilitator.username}}
+                      {{#if donation.facilitator.moderator}}
+                        <span
+                          class="svg-icon-title"
+                          title={{i18n "user.moderator_tooltip"}}
+                        >
+                          {{icon "shield-halved"}}
+                        </span>
+                      {{/if}}
+                    </a>
                   </span>
+                  {{#if donation.facilitator.title}}
+                    <span class={{titleClass donation.facilitator}}>
+                      {{donation.facilitator.title}}
+                    </span>
+                  {{/if}}
+                </div>
+              </div>
+            </div>
+
+            <div class="active-donation-info">
+              <div class="active-donation-details">
+                <div class="donation-detail donation-age">
+                  {{icon "clock"}}
+                  <span class="detail-value">{{formatTimeAgo
+                      donation.published_at
+                    }}</span>
+                </div>
+                {{#if donation.postcode}}
+                  <div class="donation-detail donation-location">
+                    <LocationMapLink @postcode={{donation.postcode}} />
+                  </div>
                 {{/if}}
               </div>
-            </div>
-          </div>
 
-          <div class="active-donation-info">
-            <div class="active-donation-details">
-              <div class="donation-detail donation-age">
-                {{icon "clock"}}
-                <span class="detail-value">{{formatTimeAgo
-                    donation.published_at
-                  }}</span>
-              </div>
-              {{#if donation.postcode}}
-                <div class="donation-detail donation-location">
-                  <LocationMapLink @postcode={{donation.postcode}} />
-                </div>
-              {{/if}}
-            </div>
-
-            <div class="active-donation-status">
-              <div class="donation-detail donation-offers">
-                {{icon "hand-paper"}}
-                <span class="detail-value">{{donation.pickup_offer_count}}
-                  {{i18n
-                    "vzekc_verlosung.active_donations.offers"
-                    count=donation.pickup_offer_count
-                  }}</span>
-              </div>
-              {{#if donation.lottery_interest_count}}
-                <div class="donation-detail donation-interests">
-                  {{icon "hand-holding-heart"}}
-                  <span class="detail-value">{{donation.lottery_interest_count}}
+              <div class="active-donation-status">
+                <div class="donation-detail donation-offers">
+                  {{icon "hand-paper"}}
+                  <span class="detail-value">{{donation.pickup_offer_count}}
                     {{i18n
-                      "vzekc_verlosung.active_donations.interests"
-                      count=donation.lottery_interest_count
+                      "vzekc_verlosung.active_donations.offers"
+                      count=donation.pickup_offer_count
                     }}</span>
+                </div>
+                {{#if donation.lottery_interest_count}}
+                  <div class="donation-detail donation-interests">
+                    {{icon "hand-holding-heart"}}
+                    <span
+                      class="detail-value"
+                    >{{donation.lottery_interest_count}}
+                      {{i18n
+                        "vzekc_verlosung.active_donations.interests"
+                        count=donation.lottery_interest_count
+                      }}</span>
+                  </div>
+                {{/if}}
+
+                <div class={{stateClass donation.state}}>
+                  {{#if (eq donation.state "open")}}
+                    {{icon "circle"}}
+                    <span>{{i18n "vzekc_verlosung.donation.state.open"}}</span>
+                  {{else if (eq donation.state "assigned")}}
+                    {{icon "user-check"}}
+                    <span>{{i18n
+                        "vzekc_verlosung.donation.state.assigned"
+                      }}</span>
+                  {{else if (eq donation.state "picked_up")}}
+                    {{icon "circle-check"}}
+                    <span>{{i18n
+                        "vzekc_verlosung.donation.state.picked_up"
+                      }}</span>
+                  {{else if (eq donation.state "closed")}}
+                    {{icon "circle-check"}}
+                    <span>{{i18n
+                        "vzekc_verlosung.donation.state.closed"
+                      }}</span>
+                  {{/if}}
+                </div>
+
+                {{#if donation.can_manage_merch}}
+                  <div class="active-donation-merch">
+                    {{icon "gift"}}
+                    {{#if donation.merch_packet}}
+                      {{#if (eq donation.merch_packet.state "pending")}}
+                        <button
+                          type="button"
+                          class="btn-link merch-packet-link"
+                          {{on "click" (fn this.openMerchPacketModal donation)}}
+                        >{{i18n
+                            "vzekc_verlosung.active_donations.merch_packet.edit"
+                          }}</button>
+                      {{else}}
+                        <span class="merch-packet-shipped">{{i18n
+                            "vzekc_verlosung.active_donations.merch_packet.shipped"
+                          }}</span>
+                      {{/if}}
+                    {{else}}
+                      <button
+                        type="button"
+                        class="btn-link merch-packet-link"
+                        {{on "click" (fn this.openMerchPacketModal donation)}}
+                      >{{i18n
+                          "vzekc_verlosung.active_donations.merch_packet.request"
+                        }}</button>
+                    {{/if}}
+                  </div>
+                {{/if}}
+              </div>
+
+              {{#if donation.assigned_picker}}
+                <div class="active-donation-picker">
+                  <div class="picker-info">
+                    {{icon "truck"}}
+                    <span class="picker-label">{{i18n
+                        "vzekc_verlosung.active_donations.picker"
+                      }}:</span>
+                    {{avatar donation.assigned_picker imageSize="tiny"}}
+                    <a
+                      href="/u/{{donation.assigned_picker.username}}"
+                      class="picker-username"
+                      data-user-card={{donation.assigned_picker.username}}
+                    >
+                      {{donation.assigned_picker.username}}
+                    </a>
+                  </div>
                 </div>
               {{/if}}
 
-              <div class={{stateClass donation.state}}>
-                {{#if (eq donation.state "open")}}
-                  {{icon "circle"}}
-                  <span>{{i18n "vzekc_verlosung.donation.state.open"}}</span>
-                {{else if (eq donation.state "assigned")}}
-                  {{icon "user-check"}}
+              {{#if donation.has_lottery}}
+                <div class="active-donation-outcome">
+                  {{icon "dice"}}
                   <span>{{i18n
-                      "vzekc_verlosung.donation.state.assigned"
+                      "vzekc_verlosung.active_donations.lottery_created"
                     }}</span>
-                {{else if (eq donation.state "picked_up")}}
-                  {{icon "circle-check"}}
-                  <span>{{i18n
-                      "vzekc_verlosung.donation.state.picked_up"
-                    }}</span>
-                {{else if (eq donation.state "closed")}}
-                  {{icon "circle-check"}}
-                  <span>{{i18n "vzekc_verlosung.donation.state.closed"}}</span>
-                {{/if}}
-              </div>
-            </div>
-
-            {{#if donation.assigned_picker}}
-              <div class="active-donation-picker">
-                <div class="picker-info">
-                  {{icon "truck"}}
-                  <span class="picker-label">{{i18n
-                      "vzekc_verlosung.active_donations.picker"
-                    }}:</span>
-                  {{avatar donation.assigned_picker imageSize="tiny"}}
-                  <a
-                    href="/u/{{donation.assigned_picker.username}}"
-                    class="picker-username"
-                    data-user-card={{donation.assigned_picker.username}}
-                  >
-                    {{donation.assigned_picker.username}}
-                  </a>
                 </div>
-              </div>
-            {{/if}}
-
-            {{#if donation.has_lottery}}
-              <div class="active-donation-outcome">
-                {{icon "dice"}}
-                <span>{{i18n
-                    "vzekc_verlosung.active_donations.lottery_created"
-                  }}</span>
-              </div>
-            {{else if donation.has_erhaltungsbericht}}
-              <div class="active-donation-outcome">
-                {{icon "file-lines"}}
-                <span>{{i18n
-                    "vzekc_verlosung.active_donations.erhaltungsbericht_created"
-                  }}</span>
-              </div>
-            {{else if donation.has_onsite_lottery}}
-              <div class="active-donation-outcome">
-                {{icon "calendar-check"}}
-                <span>{{i18n
-                    "vzekc_verlosung.active_donations.onsite_lottery_assigned"
-                    event_name=donation.onsite_lottery_event_name
-                  }}</span>
-              </div>
-            {{/if}}
+              {{else if donation.has_erhaltungsbericht}}
+                <div class="active-donation-outcome">
+                  {{icon "file-lines"}}
+                  <span>{{i18n
+                      "vzekc_verlosung.active_donations.erhaltungsbericht_created"
+                    }}</span>
+                </div>
+              {{else if donation.has_onsite_lottery}}
+                <div class="active-donation-outcome">
+                  {{icon "calendar-check"}}
+                  <span>{{i18n
+                      "vzekc_verlosung.active_donations.onsite_lottery_assigned"
+                      event_name=donation.onsite_lottery_event_name
+                    }}</span>
+                </div>
+              {{/if}}
+            </div>
           </div>
-        </div>
-      {{/each}}
-    </div>
-  {{else}}
-    <div class="no-active-donations">
-      {{i18n "vzekc_verlosung.active_donations.no_donations"}}
-    </div>
-  {{/if}}
-</template>
+        {{/each}}
+      </div>
+    {{else}}
+      <div class="no-active-donations">
+        {{i18n "vzekc_verlosung.active_donations.no_donations"}}
+      </div>
+    {{/if}}
+  </template>
+}

@@ -19,7 +19,7 @@
     "puppeteer": {
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "puppeteer-mcp-server"],
+      "args": ["-y", "@modelcontextprotocol/server-puppeteer"],
       "env": {}
     }
   }

@@ -38,6 +38,11 @@ VzekcVerlosung::Engine.routes.draw do
   put "/donations/:id/publish" => "donations#publish"
   put "/donations/:id/close" => "donations#close"
 
+  # Donation merch packet routes
+  put "/donations/:donation_id/merch-packet" => "donations#update_merch_packet"
+  post "/donations/:donation_id/merch-packet" => "donations#create_merch_packet"
+  delete "/donations/:donation_id/merch-packet" => "donations#destroy_merch_packet"
+
   # Pickup offer routes
   post "/donations/:donation_id/pickup-offers" => "pickup_offers#create"
   delete "/pickup-offers/:id" => "pickup_offers#destroy"
@@ -61,6 +66,8 @@ VzekcVerlosung::Engine.routes.draw do
 
   # Merch packet routes
   get "/merch-packets" => "merch_packets#index"
+  post "/merch-packets" => "merch_packets#create"
+  put "/merch-packets/:id" => "merch_packets#update"
   put "/merch-packets/:id/ship" => "merch_packets#ship"
 
   # Notification logs routes

@@ -5,7 +5,7 @@ RSpec.describe VzekcVerlosung::MerchPacket do
   fab!(:donation)
 
   describe "associations" do
-    it { is_expected.to belong_to(:donation).class_name("VzekcVerlosung::Donation") }
+    it { is_expected.to belong_to(:donation).class_name("VzekcVerlosung::Donation").optional }
     it { is_expected.to belong_to(:shipped_by_user).class_name("User").optional }
   end
 
@@ -14,6 +14,21 @@ RSpec.describe VzekcVerlosung::MerchPacket do
 
     it { is_expected.to validate_presence_of(:state) }
     it { is_expected.to validate_inclusion_of(:state).in_array(%w[pending shipped archived]) }
+
+    context "when donation_id is nil" do
+      it "requires title" do
+        packet = Fabricate.build(:standalone_merch_packet, title: nil)
+        expect(packet).not_to be_valid
+        expect(packet.errors[:title]).to be_present
+      end
+    end
+
+    context "when donation is present" do
+      it "does not require title" do
+        expect(merch_packet).to be_valid
+        expect(merch_packet.title).to be_nil
+      end
+    end
 
     context "when not archived" do
       it "requires donor_name" do
@@ -154,6 +169,27 @@ RSpec.describe VzekcVerlosung::MerchPacket do
       expect(packet.pending?).to be false
       expect(packet.shipped?).to be false
       expect(packet.archived?).to be true
+    end
+  end
+
+  describe "#display_title" do
+    it "returns title for standalone packets" do
+      packet = Fabricate(:standalone_merch_packet, title: "Custom Title")
+      expect(packet.display_title).to eq("Custom Title")
+    end
+
+    it "returns donation topic title for linked packets" do
+      topic = Fabricate(:topic, title: "Hardware Donation")
+      linked_donation = Fabricate(:donation, topic: topic)
+      packet = Fabricate(:merch_packet, donation: linked_donation)
+      expect(packet.display_title).to eq("Hardware Donation")
+    end
+
+    it "prefers title over donation topic title" do
+      topic = Fabricate(:topic, title: "Hardware Donation")
+      linked_donation = Fabricate(:donation, topic: topic)
+      packet = Fabricate(:merch_packet, donation: linked_donation, title: "Override Title")
+      expect(packet.display_title).to eq("Override Title")
     end
   end
 

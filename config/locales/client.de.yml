@@ -72,6 +72,15 @@ de:
         lottery_created: "Verlosung erstellt"
         erhaltungsbericht_created: "Erhaltungsbericht geschrieben"
         onsite_lottery_assigned: "Präsenzverlosung: %{event_name}"
+        merch_packet:
+          edit: "Merch-Paket bearbeiten"
+          request: "Merch-Paket anfordern"
+          delete: "Löschen"
+          shipped: "Merch-Paket versandt"
+          delete_confirm: "Bist du sicher, dass du diese Merch-Paket-Anfrage löschen möchtest?"
+          edit_title: "Merch-Paket bearbeiten"
+          create_title: "Merch-Paket anfordern"
+          create_button: "Anfordern"
       neue_verlosung: "Neue Verlosung"
       create_lottery: "Verlosung erstellen"
       create_draft: "Entwurf anlegen"
@@ -481,11 +490,12 @@ de:
         assigning: "Sende..."
       merch_packets:
         title: "Merch-Pakete"
+        add: "Merch-Paket hinzufügen"
         tabs:
           pending: "Ausstehend"
           shipped: "Versandt"
         table:
-          donation: "Spende"
+          packet: "Paket"
           donor: "Spender"
           address: "Adresse"
           created: "Erstellt"
@@ -494,11 +504,20 @@ de:
         mark_shipped: "Als versandt markieren"
         ship: "Versenden"
         shipped: "Versandt"
+        tracking_link: "Tracking"
         no_pending: "Keine ausstehenden Merch-Pakete"
         no_shipped: "Keine versandten Merch-Pakete"
+        edit_modal:
+          title: "Merch-Paket bearbeiten"
+        create_modal:
+          title: "Merch-Paket hinzufügen"
+          packet_title_label: "Titel"
+          packet_title_placeholder: "z.B. Dankespaket für Max"
+          create: "Erstellen"
+          creating: "Erstelle..."
         ship_modal:
           title: "Merch-Paket Versand"
-          donation: "Spende"
+          packet: "Paket"
           shipping_to: "Versand an"
           email_notice: "Eine Benachrichtigungs-E-Mail wird gesendet an:"
           tracking_label: "Sendungsverfolgung (optional)"

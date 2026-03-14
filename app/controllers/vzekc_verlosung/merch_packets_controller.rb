@@ -19,13 +19,85 @@ module VzekcVerlosung
     def index
       packets =
         MerchPacket
-          .joins(:donation)
+          .left_joins(:donation)
           .includes(donation: :topic)
-          .where.not(state: "archived")
-          .where(vzekc_verlosung_donations: { state: %w[picked_up closed] })
+          .references(:vzekc_verlosung_donations)
+          .where.not(vzekc_verlosung_merch_packets: { state: "archived" })
+          .where(
+            "vzekc_verlosung_donations.state IN (?) OR vzekc_verlosung_merch_packets.donation_id IS NULL",
+            %w[picked_up closed],
+          )
           .order(created_at: :desc)
 
-      render json: { merch_packets: packets.map do |packet| serialize_merch_packet(packet) end }
+      render json: { merch_packets: packets.map { |packet| serialize_merch_packet(packet) } }
+    end
+
+    # POST /vzekc-verlosung/merch-packets
+    #
+    # Creates a standalone merch packet (not linked to a donation)
+    #
+    # @param title [String] Required title for the packet
+    # @param donor_name [String] Donor's name
+    # @param donor_company [String] Optional company
+    # @param donor_street [String] Street name
+    # @param donor_street_number [String] Street number
+    # @param donor_postcode [String] Postal code
+    # @param donor_city [String] City
+    # @param donor_email [String] Optional email
+    #
+    # @return [JSON] Serialized merch packet (201)
+    def create
+      packet =
+        MerchPacket.new(
+          title: params[:title],
+          donor_name: params[:donor_name],
+          donor_company: params[:donor_company],
+          donor_street: params[:donor_street],
+          donor_street_number: params[:donor_street_number],
+          donor_postcode: params[:donor_postcode],
+          donor_city: params[:donor_city],
+          donor_email: params[:donor_email],
+          state: "pending",
+        )
+
+      if packet.save
+        render json: { merch_packet: serialize_merch_packet(packet) }, status: :created
+      else
+        render_json_error(packet)
+      end
+    end
+
+    # PUT /vzekc-verlosung/merch-packets/:id
+    #
+    # Updates a pending merch packet's address fields
+    #
+    # @param id [Integer] Merch packet ID
+    #
+    # @return [HTTP 204] No content on success
+    def update
+      packet = MerchPacket.find(params[:id])
+
+      unless packet.pending?
+        return render_json_error("Packet is not pending", status: :unprocessable_entity)
+      end
+
+      update_params =
+        params.permit(
+          :title,
+          :donor_name,
+          :donor_company,
+          :donor_street,
+          :donor_street_number,
+          :donor_postcode,
+          :donor_city,
+          :donor_email,
+        )
+
+      if packet.update(update_params)
+        render json: { merch_packet: serialize_merch_packet(packet) }
+      else
+        render_json_error(packet)
+      end
     end
 
     # PUT /vzekc-verlosung/merch-packets/:id/ship
@@ -66,9 +138,10 @@ module VzekcVerlosung
       donation = packet.donation
       topic = donation&.topic
 
-      {
+      result = {
         id: packet.id,
         state: packet.state,
+        title: packet.display_title,
         donor_name: packet.donor_name,
         donor_company: packet.donor_company,
         donor_street: packet.donor_street,
@@ -80,13 +153,18 @@ module VzekcVerlosung
         tracking_info: packet.tracking_info,
         shipped_at: packet.shipped_at,
         created_at: packet.created_at,
-        donation: {
-          id: donation&.id,
+      }
+
+      if donation
+        result[:donation] = {
+          id: donation.id,
           topic_id: topic&.id,
           title: topic&.title,
           url: topic&.url,
-        },
-      }
+        }
+      end
+
+      result
     end
   end
 end

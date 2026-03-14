@@ -79,6 +79,80 @@ describe VzekcVerlosung::MerchPacketsController do
         expect(packet["state"]).to eq("pending")
         expect(packet["donor_name"]).to eq(pending_packet.donor_name)
         expect(packet["formatted_address"]).to be_present
+        expect(packet).to have_key("donation")
+      end
+
+      it "includes standalone packets" do
+        standalone = Fabricate(:standalone_merch_packet)
+        get "/vzekc-verlosung/merch-packets.json"
+
+        json = response.parsed_body
+        packet_ids = json["merch_packets"].map { |p| p["id"] }
+        expect(packet_ids).to include(standalone.id)
+      end
+
+      it "returns nil donation for standalone packets" do
+        standalone = Fabricate(:standalone_merch_packet)
+        get "/vzekc-verlosung/merch-packets.json"
+
+        json = response.parsed_body
+        packet = json["merch_packets"].find { |p| p["id"] == standalone.id }
+        expect(packet["donation"]).to be_nil
+        expect(packet["title"]).to eq(standalone.title)
+      end
+    end
+  end
+
+  describe "#create" do
+    let(:valid_params) do
+      {
+        title: "Dankespaket für Max",
+        donor_name: "Max Mustermann",
+        donor_street: "Musterstraße",
+        donor_street_number: "42",
+        donor_postcode: "12345",
+        donor_city: "Musterstadt",
+      }
+    end
+
+    context "when not logged in" do
+      it "returns 403" do
+        post "/vzekc-verlosung/merch-packets.json", params: valid_params
+        expect(response.status).to eq(403)
+      end
+    end
+
+    context "when logged in as regular user" do
+      before { sign_in(user) }
+
+      it "returns 403" do
+        post "/vzekc-verlosung/merch-packets.json", params: valid_params
+        expect(response.status).to eq(403)
+      end
+    end
+
+    context "when logged in as merch handler" do
+      before { sign_in(merch_handler) }
+
+      it "creates a standalone merch packet" do
+        post "/vzekc-verlosung/merch-packets.json", params: valid_params
+        expect(response.status).to eq(201)
+
+        json = response.parsed_body
+        expect(json["merch_packet"]["title"]).to eq("Dankespaket für Max")
+        expect(json["merch_packet"]["donor_name"]).to eq("Max Mustermann")
+        expect(json["merch_packet"]["state"]).to eq("pending")
+        expect(json["merch_packet"]["donation"]).to be_nil
+      end
+
+      it "returns 422 when title is missing" do
+        post "/vzekc-verlosung/merch-packets.json", params: valid_params.except(:title)
+        expect(response.status).to eq(422)
+      end
+
+      it "returns 422 when address fields are missing" do
+        post "/vzekc-verlosung/merch-packets.json", params: { title: "Test" }
+        expect(response.status).to eq(422)
       end
     end
   end

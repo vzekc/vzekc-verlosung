@@ -65,10 +65,8 @@ export default class MarkMerchShippedModal extends Component {
       <:body>
         <div class="ship-modal-content">
           <div class="packet-info">
-            <h4>{{i18n
-                "vzekc_verlosung.merch_packets.ship_modal.donation"
-              }}</h4>
-            <p>{{this.packet.donation.title}}</p>
+            <h4>{{i18n "vzekc_verlosung.merch_packets.ship_modal.packet"}}</h4>
+            <p>{{this.packet.title}}</p>
           </div>
 
           <div class="donor-address">

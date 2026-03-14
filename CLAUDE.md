@@ -29,14 +29,14 @@ Discourse is large with long history. Understand context before changes.
 - Avoid compound Bash commands with quoted strings when possible - they trigger safety checks that interrupt the user's workflow.
 
 ### Screenshots (Dev Server)
-To take screenshots of the local dev server (`http://127.0.0.1:4200/`), use the Puppeteer MCP tools. They connect to Chrome via CDP (port 9222) using the authenticated session.
-
-**Prerequisites**: Chrome must be running with remote debugging: `bin/chrome-debug.sh`
+To take screenshots of the local dev server (`http://127.0.0.1:4200/`), use the Puppeteer MCP tools (`@modelcontextprotocol/server-puppeteer`). The server launches its own headless Chrome, so you must authenticate before taking screenshots.
 
 **Usage**:
-1. `mcp__puppeteer__puppeteer_connect_active_tab` — connect to the running Chrome
-2. `mcp__puppeteer__puppeteer_navigate` — go to a page (e.g. `http://127.0.0.1:4200/verlosungen`)
+1. `mcp__puppeteer__puppeteer_navigate` — authenticate via the dev-mode become endpoint: `http://127.0.0.1:4200/session/<username>/become` (e.g. `hans`)
+2. `mcp__puppeteer__puppeteer_navigate` — go to the target page (e.g. `http://127.0.0.1:4200/verlosungen`)
 3. `mcp__puppeteer__puppeteer_screenshot` — capture the page (returns image inline)
+
+**Authentication**: In development, Discourse exposes `/session/<username>/become` which logs you in as that user without a password. Always navigate to this URL first before taking screenshots.
 
 Other available tools: `puppeteer_click`, `puppeteer_fill`, `puppeteer_select`, `puppeteer_hover`, `puppeteer_evaluate`.
 

@@ -1,5 +1,6 @@
 import icon from "discourse/helpers/d-icon";
 import { i18n } from "discourse-i18n";
+import AddMerchPacketButton from "../components/add-merch-packet-button";
 import MerchPacketsList from "../components/merch-packets-list";
 
 <template>
@@ -9,6 +10,9 @@ import MerchPacketsList from "../components/merch-packets-list";
         {{icon "gift"}}
         {{i18n "vzekc_verlosung.merch_packets.title"}}
       </h1>
+      <div class="header-actions">
+        <AddMerchPacketButton @onCreated={{@controller.refreshModel}} />
+      </div>
     </div>
 
     <MerchPacketsList

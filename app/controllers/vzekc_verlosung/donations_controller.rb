@@ -165,7 +165,119 @@ module VzekcVerlosung
       head :no_content
     end
 
+    # PUT /vzekc-verlosung/donations/:donation_id/merch-packet
+    #
+    # Updates merch packet address for a donation
+    #
+    # @return [HTTP 204] No content on success
+    def update_merch_packet
+      donation = Donation.find(params[:donation_id])
+
+      unless guardian.can_manage_donation?(donation) || guardian.can_manage_merch_packets?
+        return(
+          render_json_error("You don't have permission to manage this donation", status: :forbidden)
+        )
+      end
+
+      packet = donation.merch_packet
+      return render_json_error("No merch packet found", status: :not_found) unless packet
+
+      unless packet.pending?
+        return(
+          render_json_error("Merch packet has already been shipped", status: :unprocessable_entity)
+        )
+      end
+
+      if packet.update(merch_packet_params)
+        head :no_content
+      else
+        render_json_error(packet)
+      end
+    end
+
+    # POST /vzekc-verlosung/donations/:donation_id/merch-packet
+    #
+    # Creates a merch packet for a donation that doesn't have one
+    #
+    # @return [JSON] Merch packet data (201)
+    def create_merch_packet
+      donation = Donation.find(params[:donation_id])
+
+      unless guardian.can_manage_donation?(donation) || guardian.can_manage_merch_packets?
+        return(
+          render_json_error("You don't have permission to manage this donation", status: :forbidden)
+        )
+      end
+
+      if donation.merch_packet.present?
+        return(
+          render_json_error("Donation already has a merch packet", status: :unprocessable_entity)
+        )
+      end
+
+      packet = MerchPacket.new(merch_packet_params.merge(donation: donation, state: "pending"))
+
+      if packet.save
+        render json: { merch_packet: serialize_donation_merch_packet(packet) }, status: :created
+      else
+        render_json_error(packet)
+      end
+    end
+
+    # DELETE /vzekc-verlosung/donations/:donation_id/merch-packet
+    #
+    # Deletes a pending merch packet for a donation
+    #
+    # @return [HTTP 204] No content on success
+    def destroy_merch_packet
+      donation = Donation.find(params[:donation_id])
+
+      unless guardian.can_manage_donation?(donation) || guardian.can_manage_merch_packets?
+        return(
+          render_json_error("You don't have permission to manage this donation", status: :forbidden)
+        )
+      end
+
+      packet = donation.merch_packet
+      return render_json_error("No merch packet found", status: :not_found) unless packet
+
+      unless packet.pending?
+        return(
+          render_json_error("Merch packet has already been shipped", status: :unprocessable_entity)
+        )
+      end
+
+      packet.destroy!
+      head :no_content
+    end
+
     private
+
+    def merch_packet_params
+      params.permit(
+        :donor_name,
+        :donor_company,
+        :donor_street,
+        :donor_street_number,
+        :donor_postcode,
+        :donor_city,
+        :donor_email,
+      )
+    end
+
+    def serialize_donation_merch_packet(packet)
+      {
+        id: packet.id,
+        state: packet.state,
+        donor_name: packet.donor_name,
+        donor_company: packet.donor_company,
+        donor_street: packet.donor_street,
+        donor_street_number: packet.donor_street_number,
+        donor_postcode: packet.donor_postcode,
+        donor_city: packet.donor_city,
+        donor_email: packet.donor_email,
+      }
+    end
 
     def create_params
       params.permit(

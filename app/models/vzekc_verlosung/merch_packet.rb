@@ -14,16 +14,17 @@
 #  donor_street_number :string
 #  shipped_at          :datetime
 #  state               :string           default("pending"), not null
+#  title               :string
 #  tracking_info       :text
 #  created_at          :datetime         not null
 #  updated_at          :datetime         not null
-#  donation_id         :bigint           not null
+#  donation_id         :bigint
 #  shipped_by_user_id  :bigint
 #
 # Indexes
 #
 #  idx_merch_packets_for_archival                             (state,shipped_at)
-#  index_vzekc_verlosung_merch_packets_on_donation_id         (donation_id) UNIQUE
+#  index_vzekc_verlosung_merch_packets_on_donation_id         (donation_id) UNIQUE WHERE (donation_id IS NOT NULL)
 #  index_vzekc_verlosung_merch_packets_on_shipped_by_user_id  (shipped_by_user_id)
 #  index_vzekc_verlosung_merch_packets_on_state               (state)
 #
@@ -61,16 +62,27 @@ module VzekcVerlosung
 
     STATES = %w[pending shipped archived].freeze
 
-    belongs_to :donation, class_name: "VzekcVerlosung::Donation"
+    belongs_to :donation, class_name: "VzekcVerlosung::Donation", optional: true
     belongs_to :shipped_by_user, class_name: "User", optional: true
 
     validates :state, presence: true, inclusion: { in: STATES }
+    validates :title, presence: true, if: -> { donation_id.nil? }
     validate :address_required_unless_archived
 
     scope :pending, -> { where(state: "pending") }
     scope :shipped, -> { where(state: "shipped") }
     scope :archived, -> { where(state: "archived") }
     scope :needs_archival, -> { shipped.where("shipped_at < ?", 4.weeks.ago) }
+
+    # Returns the display title for this packet
+    #
+    # For standalone packets, returns the title field.
+    # For donation-linked packets, returns the donation topic title.
+    #
+    # @return [String, nil]
+    def display_title
+      title.presence || donation&.topic&.title
+    end
 
     # Check if in pending state
     #

@@ -11,6 +11,9 @@ import NeueSpendeButton from "../components/neue-spende-button";
       </div>
     </div>
 
-    <ActiveDonationsList @donations={{@model.donations}} />
+    <ActiveDonationsList
+      @donations={{@model.donations}}
+      @onChanged={{@controller.refreshModel}}
+    />
   </div>
 </template>

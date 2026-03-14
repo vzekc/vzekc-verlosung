@@ -348,6 +348,15 @@ en:
           one: "Interest"
           other: "Interests"
         onsite_lottery_assigned: "On-site lottery: %{event_name}"
+        merch_packet:
+          edit: "Edit merch packet"
+          request: "Request merch packet"
+          delete: "Delete"
+          shipped: "Merch packet shipped"
+          delete_confirm: "Are you sure you want to delete this merch packet request?"
+          edit_title: "Edit Merch Packet"
+          create_title: "Request Merch Packet"
+          create_button: "Request"
       donation:
         neue_spende: "New Donation Offer"
         donation_number: "Donation No"
@@ -435,11 +444,12 @@ en:
         assigning: "Sending..."
       merch_packets:
         title: "Merch Packets"
+        add: "Add Merch Packet"
         tabs:
           pending: "Pending"
           shipped: "Shipped"
         table:
-          donation: "Donation"
+          packet: "Packet"
           donor: "Donor"
           address: "Address"
           created: "Created"
@@ -448,11 +458,20 @@ en:
         mark_shipped: "Mark as shipped"
         ship: "Ship"
         shipped: "Shipped"
+        tracking_link: "Tracking"
         no_pending: "No pending merch packets"
         no_shipped: "No shipped merch packets"
+        edit_modal:
+          title: "Edit Merch Packet"
+        create_modal:
+          title: "Add Merch Packet"
+          packet_title_label: "Title"
+          packet_title_placeholder: "e.g., Thank-you packet for John"
+          create: "Create"
+          creating: "Creating..."
         ship_modal:
           title: "Merch Packet Shipping"
-          donation: "Donation"
+          packet: "Packet"
           shipping_to: "Shipping to"
           email_notice: "A notification email will be sent to:"
           tracking_label: "Tracking Information (optional)"

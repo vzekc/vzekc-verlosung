@@ -2532,6 +2532,46 @@
       color: var(--primary-medium);
     }
   }
+
+  .active-donation-merch {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+    font-size: 0.85em;
+    color: var(--primary-medium);
+    padding: 0.25em 0.6em;
+    background: var(--primary-very-low);
+    border-radius: 12px;
+
+    .d-icon {
+      color: var(--primary-medium);
+    }
+
+    .btn-link {
+      padding: 0;
+      border: none;
+      background: none;
+      font-size: inherit;
+      cursor: pointer;
+      color: var(--tertiary);
+
+      &:hover {
+        color: var(--tertiary-hover);
+      }
+    }
+
+    .merch-packet-delete {
+      color: var(--danger);
+
+      &:hover {
+        color: var(--danger-hover);
+      }
+    }
+
+    .merch-packet-shipped {
+      color: var(--success);
+    }
+  }
 }
 
 .no-active-donations {
@@ -3348,8 +3388,16 @@
   margin: 0 auto;
   padding: 1em;
 
-  h1 {
-    margin-bottom: 1em;
+  .merch-packets-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5em;
+
+    h1 {
+      margin: 0;
+      font-size: 1.8em;
+    }
   }
 }
 
@@ -3424,6 +3472,10 @@
 
     tbody tr:hover {
       background: var(--primary-very-low);
+    }
+
+    tbody tr.clickable-row {
+      cursor: pointer;
     }
 
     .donation-cell {

@@ -13,6 +13,7 @@ import { ajax } from "discourse/lib/ajax";
 import { popupAjaxError } from "discourse/lib/ajax-error";
 import { eq } from "discourse/truth-helpers";
 import { i18n } from "discourse-i18n";
+import EditMerchPacketAddressModal from "./modal/edit-merch-packet-address-modal";
 import MarkMerchShippedModal from "./modal/mark-merch-shipped-modal";
 
 /**
@@ -42,6 +43,42 @@ export default class MerchPacketsList extends Component {
     return this.activeTab === "pending"
       ? this.pendingPackets
       : this.shippedPackets;
+  }
+
+  /**
+   * Handle click on a table row - open edit modal for pending packets
+   * Ignores clicks on buttons, links, and other interactive elements
+   *
+   * @param {Object} packet - The packet
+   * @param {Event} event - Click event
+   */
+  @action
+  handleRowClick(packet, event) {
+    if (packet.state !== "pending") {
+      return;
+    }
+
+    const target = event.target;
+    if (target.closest("button, a, .btn")) {
+      return;
+    }
+
+    this.openEditModal(packet);
+  }
+
+  /**
+   * Open the edit address modal for a pending packet
+   *
+   * @param {Object} packet - The packet to edit
+   */
+  @action
+  openEditModal(packet) {
+    this.modal.show(EditMerchPacketAddressModal, {
+      model: {
+        packet,
+        onSaved: this.args.onPacketShipped,
+      },
+    });
   }
 
   /**
@@ -146,6 +183,16 @@ export default class MerchPacketsList extends Component {
   }
 
   /**
+   * Check if a string is a URL
+   *
+   * @param {string} str
+   * @returns {boolean}
+   */
+  isUrl(str) {
+    return str && (str.startsWith("http://") || str.startsWith("https://"));
+  }
+
+  /**
    * Format a date for display
    *
    * @param {string} dateStr - ISO date string
@@ -192,7 +239,7 @@ export default class MerchPacketsList extends Component {
         <table class="merch-packets-table">
           <thead>
             <tr>
-              <th>{{i18n "vzekc_verlosung.merch_packets.table.donation"}}</th>
+              <th>{{i18n "vzekc_verlosung.merch_packets.table.packet"}}</th>
               <th>{{i18n "vzekc_verlosung.merch_packets.table.donor"}}</th>
               <th>{{i18n "vzekc_verlosung.merch_packets.table.created"}}</th>
               {{#if (eq this.activeTab "shipped")}}
@@ -205,14 +252,17 @@ export default class MerchPacketsList extends Component {
           </thead>
           <tbody>
             {{#each this.packetsToShow as |packet|}}
-              <tr>
+              <tr
+                class={{if (eq packet.state "pending") "clickable-row"}}
+                {{on "click" (fn this.handleRowClick packet)}}
+              >
                 <td class="donation-cell">
                   {{#if packet.donation.url}}
                     <a href={{packet.donation.url}}>
-                      {{packet.donation.title}}
+                      {{packet.title}}
                     </a>
                   {{else}}
-                    {{packet.donation.title}}
+                    {{packet.title}}
                   {{/if}}
                 </td>
                 <td class="donor-cell">
@@ -230,7 +280,17 @@ export default class MerchPacketsList extends Component {
                     {{#if packet.tracking_info}}
                       <div class="tracking-info">
                         {{icon "truck"}}
-                        {{packet.tracking_info}}
+                        {{#if (this.isUrl packet.tracking_info)}}
+                          <a
+                            href={{packet.tracking_info}}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >{{i18n
+                              "vzekc_verlosung.merch_packets.tracking_link"
+                            }}</a>
+                        {{else}}
+                          {{packet.tracking_info}}
+                        {{/if}}
                       </div>
                     {{/if}}
                   </td>

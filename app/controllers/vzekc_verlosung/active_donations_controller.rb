@@ -19,6 +19,7 @@ module VzekcVerlosung
           .includes(
             :pickup_offers,
             :lottery_interests,
+            :merch_packet,
             topic: [:category, { user: :primary_group }],
           )
           .order(published_at: :desc)
@@ -52,6 +53,27 @@ module VzekcVerlosung
         .where.not(first_visited_at: nil)
         .pluck(:topic_id)
         .to_set
+    end
+
+    def build_merch_packet_data(donation)
+      packet = donation.merch_packet
+      is_facilitator = current_user && donation.creator_user_id == current_user.id
+
+      return nil unless is_facilitator || guardian.can_manage_merch_packets?
+
+      return nil unless packet
+
+      {
+        id: packet.id,
+        state: packet.state,
+        donor_name: packet.donor_name,
+        donor_company: packet.donor_company,
+        donor_street: packet.donor_street,
+        donor_street_number: packet.donor_street_number,
+        donor_postcode: packet.donor_postcode,
+        donor_city: packet.donor_city,
+        donor_email: packet.donor_email,
+      }
     end
 
     def build_donation_response(donation, read_topic_ids)
@@ -95,6 +117,11 @@ module VzekcVerlosung
         has_erhaltungsbericht: donation.erhaltungsbericht_topic_id.present?,
         has_onsite_lottery: donation.onsite_lottery_event_id.present?,
         onsite_lottery_event_name: donation.onsite_lottery_event&.name,
+        is_facilitator: current_user && donation.creator_user_id == current_user.id,
+        can_manage_merch:
+          current_user &&
+            (donation.creator_user_id == current_user.id || guardian.can_manage_merch_packets?),
+        merch_packet: build_merch_packet_data(donation),
         category: {
           id: topic.category&.id,
           name: topic.category&.name,
