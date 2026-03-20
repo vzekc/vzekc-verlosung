@@ -242,7 +242,7 @@ en:
       body: |
         Hello %{username},
 
-        Congratulations! You have won in the lottery **[%{topic_title}](%{topic_url})**!
+        Congratulations! You have won in the lottery %{topic_title}!
 
         ## Your Prize(s)
 
@@ -250,15 +250,9 @@ en:
 
         ## Next Steps
 
-        Please review the lottery details below and get in touch about how to proceed with claiming your prize(s). The main post contains information about the available options.
+        **Reply directly to this message** to discuss how to proceed with claiming your prize(s).
 
-        ## Lottery Details
-
-        %{main_post_content}
-
-        ---
-
-        [View the full lottery post](%{topic_url})
+        You can find conditions and details in the [lottery post](%{topic_url}).
     packet_fallback_title: "Packet #%{number}"
     errors:
       packet_title_required: "Packet %{ordinal} title cannot be removed. The post must start with a heading in the format: # Paket %{ordinal}: Title"

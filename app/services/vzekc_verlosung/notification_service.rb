@@ -472,18 +472,7 @@ module VzekcVerlosung
 
       sender = topic.user
 
-      # Get the main post content (excluding images)
-      main_post = topic.posts.first
-      main_post_content = strip_images_from_markdown(main_post.raw)
-
-      # Build packet list with links
-      packet_list =
-        packets
-          .map do |packet|
-            packet_url = "#{Discourse.base_url}#{topic.relative_url}/#{packet[:post_number]}"
-            "- [#{packet[:title]}](#{packet_url})"
-          end
-          .join("\n")
+      packet_list = packets.map { |packet| "- #{packet[:title]}" }.join("\n")
 
       packet_titles = packets.map { |p| p[:title] }.join(", ")
 
@@ -503,7 +492,6 @@ module VzekcVerlosung
             topic_title: topic.title,
             topic_url: "#{Discourse.base_url}#{topic.relative_url}",
             packet_list: packet_list,
-            main_post_content: main_post_content,
           ),
         subtype: nil, # Not a system message, from lottery owner
       }

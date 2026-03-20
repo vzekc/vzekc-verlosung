@@ -252,7 +252,7 @@ de:
       body: |
         Hallo %{username},
 
-        Glückwunsch! Du hast in der Verlosung **[%{topic_title}](%{topic_url})** gewonnen!
+        Glückwunsch! Du hast in der Verlosung %{topic_title} gewonnen!
 
         ## Dein(e) Gewinn(e)
 
@@ -260,15 +260,9 @@ de:
 
         ## Nächste Schritte
 
-        Bitte schau dir die Verlosungsdetails unten an und melde dich, um das weitere Vorgehen zur Abholung deines Gewinns bzw. deiner Gewinne zu besprechen. Der Hauptbeitrag enthält Informationen über die verfügbaren Optionen.
+        **Antworte direkt auf diese Nachricht**, um das weitere Vorgehen zur Abholung deines Gewinns bzw. deiner Gewinne zu besprechen.
 
-        ## Verlosungsdetails
-
-        %{main_post_content}
-
-        ---
-
-        [Verlosungsbeitrag vollständig ansehen](%{topic_url})
+        Bedingungen und Details findest du im [Verlosungsbeitrag](%{topic_url}).
     packet_fallback_title: "Paket #%{number}"
     errors:
       packet_title_required: "Paket %{ordinal} Titel darf nicht entfernt werden. Der Beitrag muss mit einer Überschrift im Format beginnen: # Paket %{ordinal}: Titel"
