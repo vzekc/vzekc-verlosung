@@ -1230,15 +1230,14 @@
       margin-bottom: 1em;
     }
 
-    // Override FormKit's fixed width constraint (325px) on composer field
-    // This is the root cause fix - without this, the container is locked to 325px
-    .form-kit__field-composer {
+    // FormKit uses align-items: flex-start at multiple levels which
+    // prevents fields from stretching to full width. Override this so
+    // the editor occupies the full content width.
+    > .form-kit__field {
       width: 100% !important;
-      max-width: 100% !important;
 
       .form-kit__container-content {
         width: 100% !important;
-        max-width: 100% !important;
       }
     }
 
