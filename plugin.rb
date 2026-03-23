@@ -961,7 +961,7 @@ after_initialize do
         category = Category.find_by(id: category_id)
         next unless category
 
-        category.update(topic_template: template)
+        Category.where(id: category.id).update_all(topic_template: template)
         Rails.logger.info("Synced erhaltungsbericht template to category #{category_id}")
       end
 
@@ -981,7 +981,7 @@ after_initialize do
     if category_id.present? && template.present?
       category = Category.find_by(id: category_id)
       if category
-        category.update(topic_template: template)
+        Category.where(id: category.id).update_all(topic_template: template)
         Rails.logger.info(
           "Synced erhaltungsbericht template to category #{category_id} on plugin load",
         )
