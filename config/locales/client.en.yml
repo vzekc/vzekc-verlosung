@@ -163,6 +163,7 @@ en:
         no_participants: "No participants yet"
         no_participants_ended: "No participants"
         participants: "Participants"
+        quantity_available: "%{count} pieces available"
       draft:
         notice: "This lottery is still a draft and not publicly visible."
         publish_button: "Publish Lottery"

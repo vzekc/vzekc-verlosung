@@ -264,7 +264,7 @@ export default class LotteryWidget extends Component {
    * @type {number}
    */
   get packetQuantity() {
-    return this.post?.packet_quantity || 1;
+    return this.post?.packet_ticket_status?.quantity || 1;
   }
 
   /**
@@ -957,6 +957,14 @@ export default class LotteryWidget extends Component {
                   class="btn-primary lottery-ticket-button"
                 />
               </div>
+              {{#if this.isMultiInstance}}
+                <div class="quantity-info">
+                  {{i18n
+                    "vzekc_verlosung.ticket.quantity_available"
+                    count=this.packetQuantity
+                  }}
+                </div>
+              {{/if}}
               <div class="participants-display">
                 <span class="participants-label">{{i18n
                     "vzekc_verlosung.ticket.participants"
