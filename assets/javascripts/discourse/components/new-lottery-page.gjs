@@ -75,8 +75,9 @@ export default class NewLotteryPage extends Component {
   _saveDraftDebounce = null;
   _saveDraftPromise = null;
 
-  // Packet paste handlers - keyed by packet index
+  // Packet paste handlers and editor elements - keyed by packet index
   _packetPasteHandlers = {};
+  _packetEditorElements = {};
 
   // TextManipulation objects from DEditor for placeholder handling
   _bodyTextManipulation = null;
@@ -123,6 +124,8 @@ export default class NewLotteryPage extends Component {
       uploadDone: (upload) => {
         this.insertUploadMarkdown(upload);
       },
+      uploadDropTargetOptions: () =>
+        this._bodyEditorElement ? { target: this._bodyEditorElement } : null,
     });
   }
 
@@ -347,6 +350,10 @@ export default class NewLotteryPage extends Component {
         uploadDone: (upload) => {
           this.insertPacketUploadMarkdown(index, upload);
         },
+        uploadDropTargetOptions: () =>
+          this._packetEditorElements[index]
+            ? { target: this._packetEditorElements[index] }
+            : null,
       });
     }
     this._packetUploaders[index].setup(fileInputEl);
@@ -389,6 +396,7 @@ export default class NewLotteryPage extends Component {
    */
   @action
   setupPacketPasteHandler(index, element) {
+    this._packetEditorElements[index] = element;
     const handler = (event) => this._handlePacketPaste(event, index);
     this._packetPasteHandlers[index] = handler;
     element.addEventListener("paste", handler, { capture: true });
@@ -404,6 +412,7 @@ export default class NewLotteryPage extends Component {
       element.removeEventListener("paste", handler, { capture: true });
       delete this._packetPasteHandlers[index];
     }
+    delete this._packetEditorElements[index];
   }
 
   /**
