@@ -75,9 +75,8 @@ export default class NewLotteryPage extends Component {
   _saveDraftDebounce = null;
   _saveDraftPromise = null;
 
-  // Packet paste handlers and editor elements - keyed by packet index
+  // Packet paste handlers - keyed by packet index
   _packetPasteHandlers = {};
-  _packetEditorElements = {};
 
   // TextManipulation objects from DEditor for placeholder handling
   _bodyTextManipulation = null;
@@ -124,8 +123,6 @@ export default class NewLotteryPage extends Component {
       uploadDone: (upload) => {
         this.insertUploadMarkdown(upload);
       },
-      uploadDropTargetOptions: () =>
-        this._bodyEditorElement ? { target: this._bodyEditorElement } : null,
     });
   }
 
@@ -138,6 +135,23 @@ export default class NewLotteryPage extends Component {
       if (!this._publishedSuccessfully) {
         this._performDraftSave();
       }
+    }
+
+    // Clean up drop handlers
+    if (this._bodyDropTarget) {
+      this._bodyDropTarget.removeEventListener(
+        "dragover",
+        this._bodyDragOverHandler
+      );
+      this._bodyDropTarget.removeEventListener("drop", this._bodyDropHandler);
+    }
+    if (this._packetDropHandlers) {
+      Object.values(this._packetDropHandlers).forEach(
+        ({ target, dropHandler, dragOverHandler }) => {
+          target.removeEventListener("dragover", dragOverHandler);
+          target.removeEventListener("drop", dropHandler);
+        }
+      );
     }
   }
 
@@ -181,6 +195,43 @@ export default class NewLotteryPage extends Component {
   registerBodyFileInput(fileInputEl) {
     this.uppyUpload.setup(fileInputEl);
     this._setupBodyPlaceholderHandlers();
+    this._setupBodyDropHandler();
+  }
+
+  /**
+   * Set up drop handler on body editor for drag-and-drop image uploads
+   */
+  _setupBodyDropHandler() {
+    const target = document.querySelector(".lottery-body-editor");
+    if (!target) {
+      return;
+    }
+
+    this._bodyDropHandler = (event) => {
+      if (!event.dataTransfer?.types?.includes("Files") || !this.allowUpload) {
+        return;
+      }
+      event.preventDefault();
+      event.stopPropagation();
+      const files = [...event.dataTransfer.files].filter((f) =>
+        f.type.startsWith("image/")
+      );
+      if (files.length > 0) {
+        this.uppyUpload.addFiles(files);
+      }
+    };
+
+    this._bodyDragOverHandler = (event) => {
+      if (!event.dataTransfer?.types?.includes("Files")) {
+        return;
+      }
+      event.preventDefault();
+      event.stopPropagation();
+    };
+
+    target.addEventListener("dragover", this._bodyDragOverHandler, false);
+    target.addEventListener("drop", this._bodyDropHandler, false);
+    this._bodyDropTarget = target;
   }
 
   /**
@@ -350,14 +401,51 @@ export default class NewLotteryPage extends Component {
         uploadDone: (upload) => {
           this.insertPacketUploadMarkdown(index, upload);
         },
-        uploadDropTargetOptions: () =>
-          this._packetEditorElements[index]
-            ? { target: this._packetEditorElements[index] }
-            : null,
       });
     }
     this._packetUploaders[index].setup(fileInputEl);
     this._setupPacketPlaceholderHandlers(index);
+    this._setupPacketDropHandler(index, fileInputEl);
+  }
+
+  /**
+   * Set up drop handler on a packet editor for drag-and-drop image uploads
+   */
+  _setupPacketDropHandler(index, fileInputEl) {
+    const target = fileInputEl.closest(".packet-editor");
+    if (!target || this._packetDropHandlers?.[index]) {
+      return;
+    }
+
+    if (!this._packetDropHandlers) {
+      this._packetDropHandlers = {};
+    }
+
+    const dropHandler = (event) => {
+      if (!event.dataTransfer?.types?.includes("Files") || !this.allowUpload) {
+        return;
+      }
+      event.preventDefault();
+      event.stopPropagation();
+      const files = [...event.dataTransfer.files].filter((f) =>
+        f.type.startsWith("image/")
+      );
+      if (files.length > 0) {
+        this._packetUploaders[index]?.addFiles(files);
+      }
+    };
+
+    const dragOverHandler = (event) => {
+      if (!event.dataTransfer?.types?.includes("Files")) {
+        return;
+      }
+      event.preventDefault();
+      event.stopPropagation();
+    };
+
+    target.addEventListener("dragover", dragOverHandler, false);
+    target.addEventListener("drop", dropHandler, false);
+    this._packetDropHandlers[index] = { target, dropHandler, dragOverHandler };
   }
 
   /**
@@ -396,7 +484,6 @@ export default class NewLotteryPage extends Component {
    */
   @action
   setupPacketPasteHandler(index, element) {
-    this._packetEditorElements[index] = element;
     const handler = (event) => this._handlePacketPaste(event, index);
     this._packetPasteHandlers[index] = handler;
     element.addEventListener("paste", handler, { capture: true });
@@ -412,7 +499,6 @@ export default class NewLotteryPage extends Component {
       element.removeEventListener("paste", handler, { capture: true });
       delete this._packetPasteHandlers[index];
     }
-    delete this._packetEditorElements[index];
   }
 
   /**
