@@ -255,7 +255,7 @@ module VzekcVerlosung
 
       # Count totals
       all_entries = winner_entries.values.flatten
-      total_quantity = packets_with_winners.sum(&:quantity)
+      total_quantity = packets_with_winners.size
       collected_count = all_entries.count { |e| e.collected_at.present? }
       bericht_count = all_entries.count { |e| e.erhaltungsbericht_topic_id.present? }
 
