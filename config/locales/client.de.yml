@@ -86,6 +86,9 @@ de:
       create_draft: "Entwurf anlegen"
       save_as_draft: "Als Entwurf speichern"
       publish_lottery: "Verlosung veröffentlichen"
+      confirm_publish:
+        title: "Verlosung veröffentlichen?"
+        message: "Nach der Veröffentlichung ist die Verlosung für alle Benutzer sichtbar und Teilnehmer können sich eintragen. Bist du sicher, dass du veröffentlichen möchtest?"
       draft_saved: "Entwurf erfolgreich gespeichert"
       draft_saving: "Speichert..."
       discard_draft: "Entwurf verwerfen"

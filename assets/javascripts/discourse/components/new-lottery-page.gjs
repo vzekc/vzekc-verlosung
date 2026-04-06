@@ -1190,6 +1190,17 @@ export default class NewLotteryPage extends Component {
         requestData.donation_id = this.donationId;
       }
 
+      // Confirm before publishing
+      const confirmed = await this.dialog.confirm({
+        title: i18n("vzekc_verlosung.confirm_publish.title"),
+        message: i18n("vzekc_verlosung.confirm_publish.message"),
+      });
+
+      if (!confirmed) {
+        this.isSubmitting = false;
+        return;
+      }
+
       const response = await ajax("/vzekc-verlosung/lotteries", {
         type: "POST",
         contentType: "application/json",

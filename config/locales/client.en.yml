@@ -58,6 +58,9 @@ en:
       create_draft: "Create Draft"
       save_as_draft: "Save as Draft"
       publish_lottery: "Publish Lottery"
+      confirm_publish:
+        title: "Publish Lottery?"
+        message: "Once published, the lottery will be visible to all users and participants can start entering. Are you sure you want to publish?"
       draft_saved: "Draft saved successfully"
       draft_saving: "Saving..."
       discard_draft: "Discard Draft"
