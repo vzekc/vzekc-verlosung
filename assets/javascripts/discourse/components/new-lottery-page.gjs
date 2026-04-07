@@ -1096,24 +1096,31 @@ export default class NewLotteryPage extends Component {
    */
   @action
   async discardDraft() {
+    const confirmed = await this.dialog.confirm({
+      title: i18n("vzekc_verlosung.confirm_discard_draft.title"),
+      message: i18n("vzekc_verlosung.confirm_discard_draft.message"),
+    });
+
+    if (!confirmed) {
+      return;
+    }
+
     try {
       // Fetch the current draft to get the correct sequence number
       const draftResult = await Draft.get("new_topic");
       if (draftResult && draftResult.draft_sequence !== undefined) {
         await Draft.clear("new_topic", draftResult.draft_sequence);
       }
-      this.draftSequence = 0;
-      // Reset form to defaults
-      this.title = "";
-      this.body = this.template;
-      this.durationDays = 14;
-      this.drawingMode = "automatic";
-      this.noAbholerpaket = false;
-      this.abholerpaketTitle = "";
-      this.abholerpaketErhaltungsberichtNotRequired = false;
-      this.packets = [
-        { raw: "# Paket 1\n\n", erhaltungsberichtNotRequired: false },
-      ];
+      // Reset form dirty state so FormKit doesn't show a second confirmation
+      if (this.formApi) {
+        await this.formApi.reset();
+      }
+      if (this._saveDraftDebounce) {
+        cancel(this._saveDraftDebounce);
+        this._saveDraftDebounce = null;
+      }
+      this._publishedSuccessfully = true;
+      this.router.transitionTo("activeLotteries");
     } catch (error) {
       const errorMessage = extractError(error);
       this.dialog.alert(errorMessage);

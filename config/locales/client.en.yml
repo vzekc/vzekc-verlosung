@@ -64,6 +64,9 @@ en:
       draft_saved: "Draft saved successfully"
       draft_saving: "Saving..."
       discard_draft: "Discard Draft"
+      confirm_discard_draft:
+        title: "Discard Draft?"
+        message: "Are you sure you want to discard this draft? This action cannot be undone."
       draft_conflict:
         title: "Existing Draft"
         message: "You already have a draft for a different lottery. Do you want to discard it and start fresh, or continue with the existing draft?"
