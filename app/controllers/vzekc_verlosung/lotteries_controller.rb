@@ -135,7 +135,7 @@ module VzekcVerlosung
               winner_data
             end
 
-          packet_data = {
+          {
             post_id: packet.post_id,
             post_number: packet.post.post_number,
             title: packet.title,
@@ -148,11 +148,6 @@ module VzekcVerlosung
             erhaltungsbericht_required: packet.erhaltungsbericht_required,
             state: packet.state,
           }
-
-          # Include owner-only fields
-          packet_data[:note] = packet.note if topic.user_id == current_user&.id
-
-          packet_data
         end
 
       render json: { packets: packets }

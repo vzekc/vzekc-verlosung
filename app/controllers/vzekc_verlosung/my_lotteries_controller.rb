@@ -141,7 +141,7 @@ module VzekcVerlosung
         erhaltungsbericht_topic_id: entry.erhaltungsbericht_topic_id,
         erhaltungsbericht_required: packet.erhaltungsbericht_required,
         abholerpaket: packet.abholerpaket,
-        note: packet.note,
+        note: entry.note,
         username: entry.winner.username,
       }
     end

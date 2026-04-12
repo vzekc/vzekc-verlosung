@@ -5,7 +5,7 @@ module VzekcVerlosung
     self.table_name = "vzekc_verlosung_lottery_packets"
 
     # Ignore old columns that are being deprecated (now stored in lottery_packet_winners)
-    self.ignored_columns += %w[winner_user_id won_at collected_at erhaltungsbericht_topic_id]
+    self.ignored_columns += %w[winner_user_id won_at collected_at erhaltungsbericht_topic_id note]
 
     # State constants
     STATES = %w[pending no_tickets drawn].freeze

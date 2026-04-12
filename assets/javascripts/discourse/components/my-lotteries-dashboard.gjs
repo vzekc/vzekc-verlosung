@@ -242,7 +242,7 @@ export default class MyLotteriesDashboard extends Component {
     try {
       await ajax(`/vzekc-verlosung/packets/${entry.post_id}/note`, {
         type: "PUT",
-        data: { note: newNote },
+        data: { note: newNote, instance_number: entry.instance_number },
       });
       this.args.onFulfillmentChanged?.();
     } catch (error) {

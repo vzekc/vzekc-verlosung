@@ -142,6 +142,7 @@ end
 #  collected_at               :datetime
 #  fulfillment_state          :string           default("won"), not null
 #  instance_number            :integer          not null
+#  note                       :text
 #  shipped_at                 :datetime
 #  tracking_info              :text
 #  unclaimed_at               :datetime

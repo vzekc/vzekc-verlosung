@@ -263,7 +263,10 @@ export default class WinnerPmPackets extends Component {
         `/vzekc-verlosung/packets/${packet.post_id}/note`,
         {
           type: "PUT",
-          data: { note: newNote },
+          data: {
+            note: newNote,
+            instance_number: packet.winner.instance_number,
+          },
         }
       );
 

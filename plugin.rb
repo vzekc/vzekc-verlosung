@@ -602,7 +602,6 @@ after_initialize do
         # Include owner-only fields
         if scope.user&.id == object.topic.user_id
           packet_data[:notifications_silenced] = packet.notifications_silenced
-          packet_data[:note] = packet.note
         end
 
         packet_data
@@ -661,7 +660,7 @@ after_initialize do
           title: packet.title,
           ordinal: packet.ordinal,
           quantity: packet.quantity,
-          note: packet.note,
+          note: lpw.note,
           notifications_silenced: packet.notifications_silenced,
           abholerpaket: packet.abholerpaket,
           erhaltungsbericht_required: packet.erhaltungsbericht_required,

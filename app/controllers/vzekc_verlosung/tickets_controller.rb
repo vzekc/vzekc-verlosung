@@ -531,13 +531,14 @@ module VzekcVerlosung
 
     # PUT /vzekc_verlosung/packets/:post_id/note
     #
-    # Updates the owner note for a lottery packet
+    # Updates the owner note for a specific winner instance of a lottery packet
     # Only the lottery owner can update notes
     #
     # @param post_id [Integer] Post ID of the packet
+    # @param instance_number [Integer] Instance number of the winner entry
     # @param note [String] Note text (can be blank to clear)
     #
-    # @return [JSON] Updated note
+    # @return [JSON] Updated note and instance number
     def update_note
       post = Post.find_by(id: params[:post_id])
       return render_json_error("Post not found", status: :not_found) unless post
@@ -554,8 +555,27 @@ module VzekcVerlosung
         )
       end
 
-      packet.update!(note: params[:note].presence)
-      render json: success_json.merge(note: packet.note)
+      instance_number = params[:instance_number].presence&.to_i
+      unless instance_number
+        return render_json_error("instance_number is required", status: :bad_request)
+      end
+
+      winner_entry = packet.lottery_packet_winners.find_by(instance_number: instance_number)
+      unless winner_entry
+        return(
+          render_json_error(
+            "Winner entry not found for instance #{instance_number}",
+            status: :not_found,
+          )
+        )
+      end
+
+      winner_entry.update!(note: params[:note].presence)
+      render json:
+               success_json.merge(
+                 note: winner_entry.note,
+                 instance_number: winner_entry.instance_number,
+               )
     end
 
     # PUT /vzekc_verlosung/packets/:post_id/toggle-notifications
