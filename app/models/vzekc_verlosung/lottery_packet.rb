@@ -131,7 +131,6 @@ end
 #  id                         :bigint           not null, primary key
 #  abholerpaket               :boolean          default(FALSE), not null
 #  erhaltungsbericht_required :boolean          default(TRUE), not null
-#  note                       :text
 #  notifications_silenced     :boolean          default(FALSE), not null
 #  ordinal                    :integer          not null
 #  quantity                   :integer          default(1), not null
@@ -144,10 +143,10 @@ end
 #
 # Indexes
 #
+#  idx_lottery_packets_on_state                             (state)
 #  index_packets_on_collected_and_winner                    (collected_at,winner_user_id) WHERE ((winner_user_id IS NOT NULL) AND (collected_at IS NULL))
 #  index_vzekc_verlosung_lottery_packets_on_lottery_id      (lottery_id)
 #  index_vzekc_verlosung_lottery_packets_on_post_id         (post_id) UNIQUE
-#  idx_lottery_packets_on_state                             (state)
 #  index_vzekc_verlosung_lottery_packets_on_winner_user_id  (winner_user_id)
 #
 # Foreign Keys
