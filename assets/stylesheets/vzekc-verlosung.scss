@@ -441,6 +441,46 @@
       }
     }
   }
+
+  .lottery-your-tickets {
+    background: var(--primary-very-low);
+    border: 1px solid var(--primary-low);
+    border-radius: 6px;
+    padding: 1em;
+    margin-bottom: 1.5em;
+
+    .your-tickets-header {
+      font-weight: 600;
+      margin-bottom: 0.5em;
+      display: flex;
+      align-items: center;
+
+      .d-icon {
+        margin-right: 0.5em;
+      }
+    }
+
+    .your-ticket {
+      padding: 0.25em 0 0.25em 1.5em;
+
+      a {
+        color: var(--tertiary);
+        text-decoration: none;
+
+        &:hover {
+          text-decoration: underline;
+        }
+      }
+
+      &.won a {
+        color: var(--success);
+      }
+
+      &.lost a {
+        color: var(--primary-medium);
+      }
+    }
+  }
 }
 
 // Lottery packet status (displayed in packet posts)
@@ -2046,6 +2086,11 @@
 
     &--user-tickets {
       color: var(--tertiary);
+      text-decoration: none;
+
+      &:hover {
+        text-decoration: underline;
+      }
 
       .d-icon {
         color: var(--tertiary);

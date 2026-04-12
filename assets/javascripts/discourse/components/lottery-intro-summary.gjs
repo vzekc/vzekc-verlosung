@@ -1,7 +1,8 @@
 import Component from "@glimmer/component";
 import { tracked } from "@glimmer/tracking";
 import { registerDestructor } from "@ember/destroyable";
-import { concat } from "@ember/helper";
+import { concat, fn } from "@ember/helper";
+import { on } from "@ember/modifier";
 import { action } from "@ember/object";
 import { service } from "@ember/service";
 import DButton from "discourse/components/d-button";
@@ -9,6 +10,7 @@ import icon from "discourse/helpers/d-icon";
 import { ajax } from "discourse/lib/ajax";
 import { popupAjaxError } from "discourse/lib/ajax-error";
 import { bind } from "discourse/lib/decorators";
+import DiscourseURL from "discourse/lib/url";
 import { and, gt, or } from "discourse/truth-helpers";
 import { i18n } from "discourse-i18n";
 import DrawLotteryModal from "./modal/draw-lottery-modal";
@@ -371,6 +373,32 @@ export default class LotteryIntroSummary extends Component {
   }
 
   /**
+   * @returns {Array|null} current user's tickets with won/lost state (when finished) or just titles (when active)
+   */
+  get currentUserTickets() {
+    if (!this.currentUser) {
+      return null;
+    }
+    const userId = this.currentUser.id;
+    const myPackets = this.regularPackets.filter((p) =>
+      p.users?.some((u) => u.id === userId)
+    );
+    if (myPackets.length === 0) {
+      return null;
+    }
+    return myPackets.map((packet) => {
+      const result = {
+        title: packet.title,
+        postNumber: packet.post_number,
+      };
+      if (this.isFinished) {
+        result.won = packet.winners?.some((w) => w.id === userId) ?? false;
+      }
+      return result;
+    });
+  }
+
+  /**
    * @type {number}
    */
   get totalParticipants() {
@@ -618,6 +646,18 @@ export default class LotteryIntroSummary extends Component {
     }
   }
 
+  @action
+  goToPacket(postNumber, event) {
+    event.preventDefault();
+    history.replaceState(
+      history.state,
+      "",
+      location.pathname + "#your-tickets"
+    );
+    history.pushState(history.state, "", location.pathname);
+    DiscourseURL.jumpToPost(postNumber);
+  }
+
   <template>
     <div class="lottery-intro-summary">
       {{#if this.loading}}
@@ -777,6 +817,32 @@ export default class LotteryIntroSummary extends Component {
                 />
               </div>
             {{/if}}
+          </div>
+        {{/if}}
+
+        {{#if this.currentUserTickets}}
+          <div id="your-tickets" class="lottery-your-tickets">
+            <div class="your-tickets-header">
+              {{icon "ticket"}}
+              <span>{{i18n "vzekc_verlosung.your_tickets.title"}}</span>
+            </div>
+            {{#each this.currentUserTickets as |entry|}}
+              {{#if this.isFinished}}
+                <div class="your-ticket {{if entry.won 'won' 'lost'}}">
+                  <a
+                    href={{concat "#post_" entry.postNumber}}
+                    {{on "click" (fn this.goToPacket entry.postNumber)}}
+                  >{{entry.title}}</a>
+                </div>
+              {{else}}
+                <div class="your-ticket">
+                  <a
+                    href={{concat "#post_" entry.postNumber}}
+                    {{on "click" (fn this.goToPacket entry.postNumber)}}
+                  >{{entry.title}}</a>
+                </div>
+              {{/if}}
+            {{/each}}
           </div>
         {{/if}}
       {{/if}}

@@ -67,9 +67,13 @@ export default apiInitializer((api) => {
         }
 
         get description() {
-          // this.notification.data is already an object, not a JSON string
           const data = this.notification.data;
-          return data.packet_title || "";
+          let desc = data.packet_title || "";
+          if (data.lost_packet_titles?.length) {
+            const lostList = data.lost_packet_titles.join(", ");
+            desc += ` (${i18n("vzekc_verlosung.notifications.also_lost")}: ${lostList})`;
+          }
+          return desc;
         }
 
         get linkTitle() {
@@ -155,6 +159,10 @@ export default apiInitializer((api) => {
         }
 
         get description() {
+          const data = this.notification.data;
+          if (data.packet_titles?.length) {
+            return data.packet_titles.join(", ");
+          }
           return this.notification.fancy_title;
         }
 

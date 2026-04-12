@@ -716,8 +716,11 @@ module VzekcVerlosung
       lottery = Lottery.find_by(topic_id: topic.id)
       return unless lottery
 
+      tickets_by_user = build_tickets_by_user(topic)
+
       # Group drawings by winner to send one message per winner with all packets won
       winners_packets = Hash.new { |h, k| h[k] = [] }
+      won_titles_by_user = Hash.new { |h, k| h[k] = Set.new }
 
       results["drawings"].each_with_index do |drawing, index|
         packet_title = drawing["text"]
@@ -740,6 +743,10 @@ module VzekcVerlosung
           winner_user = User.find_by(username: winner_username)
           next unless winner_user
 
+          won_titles_by_user[winner_user.id] << lottery_packet.title
+          lost_packet_titles =
+            (tickets_by_user[winner_user.id] || []) - won_titles_by_user[winner_user.id].to_a
+
           # Create in-app notification via NotificationService
           NotificationService.notify(
             :lottery_won,
@@ -749,6 +756,7 @@ module VzekcVerlosung
               packet: lottery_packet,
               instance_number: instance_idx + 1,
               total_instances: winner_usernames.length,
+              lost_packet_titles: lost_packet_titles,
             },
           )
 
@@ -803,13 +811,33 @@ module VzekcVerlosung
       non_winners =
         User.where(id: participant_user_ids).reject { |u| winner_usernames.include?(u.username) }
 
-      NotificationService.notify_batch(
-        :did_not_win,
-        recipients: non_winners,
-        context: {
-          topic: topic,
-        },
-      )
+      tickets_by_user = build_tickets_by_user(topic)
+
+      non_winners.each do |user|
+        packet_titles = tickets_by_user[user.id] || []
+        NotificationService.notify(
+          :did_not_win,
+          recipient: user,
+          context: {
+            topic: topic,
+            packet_titles: packet_titles,
+          },
+        )
+      end
+    end
+
+    # Returns { user_id => ["Packet Title A", "Packet Title B"], ... }
+    def build_tickets_by_user(topic)
+      VzekcVerlosung::LotteryTicket
+        .joins(:post)
+        .joins(
+          "INNER JOIN vzekc_verlosung_lottery_packets ON vzekc_verlosung_lottery_packets.post_id = posts.id",
+        )
+        .where(posts: { topic_id: topic.id })
+        .where("vzekc_verlosung_lottery_packets.abholerpaket = false")
+        .pluck(:user_id, "vzekc_verlosung_lottery_packets.title")
+        .group_by(&:first)
+        .transform_values { |pairs| pairs.map(&:last) }
     end
 
     # Get all unique user IDs who have tickets in this lottery

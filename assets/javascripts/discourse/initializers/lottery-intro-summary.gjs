@@ -1,7 +1,14 @@
 import { apiInitializer } from "discourse/lib/api";
+import DiscourseURL from "discourse/lib/url";
 import LotteryIntroSummary from "../components/lottery-intro-summary";
 
 export default apiInitializer((api) => {
+  window.addEventListener("popstate", () => {
+    if (location.hash === "#your-tickets") {
+      DiscourseURL.jumpToPost(1, { anchor: "your-tickets" });
+    }
+  });
+
   api.decorateCookedElement(
     (element, helper) => {
       const post = helper.getModel();

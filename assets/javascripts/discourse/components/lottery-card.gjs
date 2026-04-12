@@ -1,6 +1,7 @@
 import Component from "@glimmer/component";
 import { tracked } from "@glimmer/tracking";
 import { registerDestructor } from "@ember/destroyable";
+import { concat } from "@ember/helper";
 import { on } from "@ember/modifier";
 import { action } from "@ember/object";
 import { service } from "@ember/service";
@@ -495,13 +496,16 @@ export default class LotteryCard extends Component {
               {{i18n "vzekc_verlosung.active.participants"}}</span>
           </div>
           {{#if this.currentUserTicketCount}}
-            <div class="lottery-card__stat lottery-card__stat--user-tickets">
+            <a
+              href={{concat @lottery.url "#your-tickets"}}
+              class="lottery-card__stat lottery-card__stat--user-tickets"
+            >
               {{icon "ticket"}}
               <span>{{i18n
                   "vzekc_verlosung.active.tickets_drawn"
                   count=this.currentUserTicketCount
                 }}</span>
-            </div>
+            </a>
           {{/if}}
         </div>
       </div>

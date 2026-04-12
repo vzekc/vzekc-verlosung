@@ -403,16 +403,17 @@ module VzekcVerlosung
 
       return nil unless topic && packet
 
-      {
-        topic_id: topic.id,
-        post_number: packet.post&.post_number || 1,
-        data: {
-          packet_title: packet.title,
-          instance_number: instance_number,
-          total_instances: total_instances,
-          message: "vzekc_verlosung.notifications.lottery_won",
-        },
+      notification_data = {
+        packet_title: packet.title,
+        instance_number: instance_number,
+        total_instances: total_instances,
+        message: "vzekc_verlosung.notifications.lottery_won",
       }
+
+      lost_packet_titles = @context[:lost_packet_titles]
+      notification_data[:lost_packet_titles] = lost_packet_titles if lost_packet_titles.present?
+
+      { topic_id: topic.id, post_number: packet.post&.post_number || 1, data: notification_data }
     end
 
     def build_did_not_win_data
@@ -420,14 +421,15 @@ module VzekcVerlosung
 
       return nil unless topic
 
-      {
-        topic_id: topic.id,
-        post_number: 1,
-        data: {
-          topic_title: topic.title,
-          message: "vzekc_verlosung.notifications.did_not_win",
-        },
+      notification_data = {
+        topic_title: topic.title,
+        message: "vzekc_verlosung.notifications.did_not_win",
       }
+
+      packet_titles = @context[:packet_titles]
+      notification_data[:packet_titles] = packet_titles if packet_titles.present?
+
+      { topic_id: topic.id, post_number: 1, data: notification_data }
     end
 
     def build_new_pickup_offer_data
