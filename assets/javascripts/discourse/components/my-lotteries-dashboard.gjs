@@ -216,7 +216,7 @@ export default class MyLotteriesDashboard extends Component {
 
   @action
   noteKey(entry) {
-    return `${entry.post_id}`;
+    return `${entry.post_id}_${entry.instance_number}`;
   }
 
   @action
