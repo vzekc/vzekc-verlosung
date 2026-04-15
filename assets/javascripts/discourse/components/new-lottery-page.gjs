@@ -1533,7 +1533,7 @@ export default class NewLotteryPage extends Component {
             <div class="lottery-packets-section">
               <h3>{{i18n "vzekc_verlosung.modal.packets_label"}}</h3>
               <div class="packets-list">
-                {{#each this.packets as |packet index|}}
+                {{#each this.packets key="ordinal" as |packet index|}}
                   <div
                     class="packet-item
                       {{if packet.isAbholerpaket 'is-abholerpaket'}}"
