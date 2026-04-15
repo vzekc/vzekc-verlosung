@@ -19,6 +19,58 @@ RSpec.describe VzekcVerlosung::LotteryPacket do
     it { is_expected.to validate_uniqueness_of(:post_id) }
     it { is_expected.to validate_presence_of(:title) }
     it { is_expected.to validate_numericality_of(:quantity).only_integer.is_greater_than(0) }
+
+    describe "price validations" do
+      it "allows a nil price without a reason" do
+        packet.price_cents = nil
+        packet.price_reason = nil
+        expect(packet).to be_valid
+      end
+
+      it "rejects a zero or negative price" do
+        packet.price_cents = 0
+        expect(packet).not_to be_valid
+        packet.price_cents = -10
+        expect(packet).not_to be_valid
+      end
+
+      it "requires a reason when a price is set" do
+        packet.price_cents = 500
+        packet.price_reason = nil
+        expect(packet).not_to be_valid
+        expect(packet.errors[:price_reason]).to be_present
+      end
+
+      it "is valid with both price and reason" do
+        packet.price_cents = 500
+        packet.price_reason = "Versandkosten"
+        expect(packet).to be_valid
+      end
+    end
+
+    describe "#has_price?" do
+      it "is true when price_cents is positive" do
+        packet.price_cents = 500
+        expect(packet.has_price?).to be(true)
+      end
+
+      it "is false when price_cents is nil" do
+        packet.price_cents = nil
+        expect(packet.has_price?).to be(false)
+      end
+    end
+
+    describe "#price_euros" do
+      it "returns euros as a float when priced" do
+        packet.price_cents = 1250
+        expect(packet.price_euros).to eq(12.5)
+      end
+
+      it "returns nil when unpriced" do
+        packet.price_cents = nil
+        expect(packet.price_euros).to be_nil
+      end
+    end
   end
 
   describe "scopes" do

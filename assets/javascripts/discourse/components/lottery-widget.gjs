@@ -10,6 +10,7 @@ import icon from "discourse/helpers/d-icon";
 import { ajax } from "discourse/lib/ajax";
 import { popupAjaxError } from "discourse/lib/ajax-error";
 import { bind } from "discourse/lib/decorators";
+import { escapeExpression } from "discourse/lib/utilities";
 import { and, eq, or } from "discourse/truth-helpers";
 import { i18n } from "discourse-i18n";
 import TicketCountBadge from "./ticket-count-badge";
@@ -28,6 +29,7 @@ export default class LotteryWidget extends Component {
   @service currentUser;
   @service appEvents;
   @service packetFulfillment;
+  @service dialog;
 
   @tracked hasTicket = false;
   @tracked ticketCount = 0;
@@ -154,6 +156,19 @@ export default class LotteryWidget extends Component {
   async toggleTicket() {
     if (this.loading) {
       return;
+    }
+
+    if (!this.hasTicket && this.hasPrice) {
+      const confirmed = await this.dialog.confirm({
+        title: i18n("vzekc_verlosung.ticket.price_confirm.title"),
+        message: i18n("vzekc_verlosung.ticket.price_confirm.message", {
+          price: escapeExpression(this.priceFormatted),
+          reason: escapeExpression(this.priceReason).replace(/\n/g, "<br>"),
+        }),
+      });
+      if (!confirmed) {
+        return;
+      }
     }
 
     this.loading = true;
@@ -346,6 +361,46 @@ export default class LotteryWidget extends Component {
    */
   get erhaltungsberichtRequired() {
     return this.post?.erhaltungsbericht_required !== false;
+  }
+
+  /**
+   * @type {number|null}
+   */
+  get priceCents() {
+    const value = this.post?.packet_price_cents;
+    return typeof value === "number" && value > 0 ? value : null;
+  }
+
+  /**
+   * @type {string|null}
+   */
+  get priceReason() {
+    return this.post?.packet_price_reason || null;
+  }
+
+  /**
+   * @type {boolean}
+   */
+  get hasPrice() {
+    return this.priceCents !== null;
+  }
+
+  /**
+   * @type {string}
+   */
+  get priceFormatted() {
+    if (!this.hasPrice) {
+      return "";
+    }
+    const euros = this.priceCents / 100;
+    try {
+      return new Intl.NumberFormat("de-DE", {
+        style: "currency",
+        currency: "EUR",
+      }).format(euros);
+    } catch {
+      return `${euros.toFixed(2)} €`;
+    }
   }
 
   /**
@@ -948,6 +1003,18 @@ export default class LotteryWidget extends Component {
                 </div>
               {{/if}}
             {{else}}
+              {{#if this.hasPrice}}
+                <div class="packet-price-display">
+                  <span class="packet-price-amount">
+                    {{icon "tag"}}
+                    {{i18n
+                      "vzekc_verlosung.ticket.price_label"
+                      price=this.priceFormatted
+                    }}
+                  </span>
+                  <span class="packet-price-reason">{{this.priceReason}}</span>
+                </div>
+              {{/if}}
               <div class="action-section">
                 <DButton
                   @action={{this.toggleTicket}}

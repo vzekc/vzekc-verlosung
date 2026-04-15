@@ -169,6 +169,75 @@ RSpec.describe VzekcVerlosung::LotteriesController do
         expect(response.status).to eq(422)
       end
     end
+
+    context "with packet prices" do
+      it "persists price_cents and price_reason on packets" do
+        params =
+          valid_params.merge(
+            has_abholerpaket: false,
+            packets: [
+              {
+                title: "Priced Packet",
+                raw: "Priced content",
+                price_cents: 1500,
+                price_reason: "Versandkosten",
+              },
+              { title: "Free Packet", raw: "Free content" },
+            ],
+          )
+
+        post "/vzekc-verlosung/lotteries.json", params: params
+
+        expect(response.status).to eq(200)
+        topic = Topic.find(response.parsed_body["main_topic"]["id"])
+        lottery = VzekcVerlosung::Lottery.find_by(topic_id: topic.id)
+        packets = VzekcVerlosung::LotteryPacket.where(lottery_id: lottery.id).order(:ordinal)
+
+        priced = packets.find { |p| p.title == "Priced Packet" }
+        free = packets.find { |p| p.title == "Free Packet" }
+
+        expect(priced.price_cents).to eq(1500)
+        expect(priced.price_reason).to eq("Versandkosten")
+        expect(free.price_cents).to be_nil
+        expect(free.price_reason).to be_nil
+      end
+
+      it "rejects a priced packet without a reason" do
+        params =
+          valid_params.merge(
+            has_abholerpaket: false,
+            packets: [
+              { title: "Priced Packet", raw: "Priced content", price_cents: 1500 },
+              { title: "Free Packet", raw: "Free content" },
+            ],
+          )
+
+        expect { post "/vzekc-verlosung/lotteries.json", params: params }.not_to change {
+          VzekcVerlosung::Lottery.count
+        }
+        expect(response.status).to be >= 400
+      end
+
+      it "ignores price on Abholerpaket" do
+        params =
+          valid_params.merge(
+            has_abholerpaket: true,
+            packets: [
+              { title: "Abholerpaket Title", is_abholerpaket: true, price_cents: 1000 },
+              { title: "Regular", raw: "x" },
+            ],
+          )
+
+        post "/vzekc-verlosung/lotteries.json", params: params
+
+        expect(response.status).to eq(200)
+        topic = Topic.find(response.parsed_body["main_topic"]["id"])
+        lottery = VzekcVerlosung::Lottery.find_by(topic_id: topic.id)
+        abholerpaket =
+          VzekcVerlosung::LotteryPacket.find_by(lottery_id: lottery.id, abholerpaket: true)
+        expect(abholerpaket.price_cents).to be_nil
+      end
+    end
   end
 
   describe "#create" do

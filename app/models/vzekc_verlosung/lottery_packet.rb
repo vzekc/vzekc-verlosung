@@ -40,6 +40,8 @@ module VzekcVerlosung
                 less_than_or_equal_to: 100,
               }
     validates :state, presence: true, inclusion: { in: STATES }
+    validates :price_cents, numericality: { only_integer: true, greater_than: 0 }, allow_nil: true
+    validates :price_reason, presence: true, if: :has_price?
 
     # Scopes
     scope :ordered, -> { order(:ordinal) }
@@ -71,6 +73,15 @@ module VzekcVerlosung
 
     def mark_drawn!
       update!(state: "drawn")
+    end
+
+    # Price helpers
+    def has_price?
+      price_cents.present? && price_cents.positive?
+    end
+
+    def price_euros
+      price_cents / 100.0 if has_price?
     end
 
     # Winner-related helper methods
@@ -133,6 +144,8 @@ end
 #  erhaltungsbericht_required :boolean          default(TRUE), not null
 #  notifications_silenced     :boolean          default(FALSE), not null
 #  ordinal                    :integer          not null
+#  price_cents                :integer
+#  price_reason               :text
 #  quantity                   :integer          default(1), not null
 #  state                      :string           default("pending"), not null
 #  title                      :string           not null

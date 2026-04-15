@@ -267,6 +267,16 @@ module VzekcVerlosung
           packet_quantity = packet_data[:quantity] || packet_data["quantity"] || 1
           packet_quantity = 1 if is_abholerpaket # Abholerpaket always has quantity 1
 
+          price_cents = packet_data[:price_cents] || packet_data["price_cents"]
+          price_cents = price_cents.to_i if price_cents.present?
+          price_cents = nil if price_cents.nil? || price_cents <= 0
+          price_reason = packet_data[:price_reason] || packet_data["price_reason"]
+          price_reason = price_reason.to_s.strip.presence
+          if is_abholerpaket
+            price_cents = nil
+            price_reason = nil
+          end
+
           # Create lottery packet record
           lottery_packet =
             LotteryPacket.create!(
@@ -277,6 +287,8 @@ module VzekcVerlosung
               quantity: packet_quantity,
               erhaltungsbericht_required: erhaltungsbericht_required,
               abholerpaket: is_abholerpaket,
+              price_cents: price_cents,
+              price_reason: price_reason,
             )
 
           # If this is Abholerpaket, assign to creator and mark collected

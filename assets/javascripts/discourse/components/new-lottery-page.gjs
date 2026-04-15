@@ -580,6 +580,8 @@ export default class NewLotteryPage extends Component {
             raw: "",
             erhaltungsberichtNotRequired: false,
             quantity: 1, // Abholerpaket always has quantity 1
+            priceEuros: "",
+            priceReason: "",
             isAbholerpaket: true,
             ordinal: 0,
           },
@@ -588,6 +590,8 @@ export default class NewLotteryPage extends Component {
             raw: "",
             erhaltungsberichtNotRequired: false,
             quantity: 1,
+            priceEuros: "",
+            priceReason: "",
             ordinal: 1,
           },
         ];
@@ -599,6 +603,8 @@ export default class NewLotteryPage extends Component {
             raw: "",
             erhaltungsberichtNotRequired: false,
             quantity: 1,
+            priceEuros: "",
+            priceReason: "",
             ordinal: 1,
           },
         ];
@@ -648,6 +654,8 @@ export default class NewLotteryPage extends Component {
       raw: "",
       erhaltungsberichtNotRequired: false,
       quantity: 1,
+      priceEuros: "",
+      priceReason: "",
       ordinal,
     };
   }
@@ -657,6 +665,19 @@ export default class NewLotteryPage extends Component {
    */
   getPacketNumber(index) {
     return index + 1;
+  }
+
+  /**
+   * Whether the packet has a positive price (user entered more than 0).
+   */
+  @action
+  packetHasPrice(packet) {
+    const raw = (packet?.priceEuros ?? "").toString().trim();
+    if (raw.length === 0) {
+      return false;
+    }
+    const parsed = parseFloat(raw.replace(",", "."));
+    return !isNaN(parsed) && parsed > 0;
   }
 
   /**
@@ -736,8 +757,9 @@ export default class NewLotteryPage extends Component {
       event.target.type === "checkbox"
         ? event.target.checked
         : event.target.value;
-    this.packets[index][field] = value;
-    this.packets = [...this.packets];
+    this.packets = this.packets.map((p, i) =>
+      i === index ? { ...p, [field]: value } : p
+    );
     this._scheduleDraftSave();
   }
 
@@ -1048,6 +1070,10 @@ export default class NewLotteryPage extends Component {
         raw: typeof packet.raw === "string" ? packet.raw : "",
         erhaltungsberichtNotRequired: packet.erhaltungsberichtNotRequired,
         quantity: parseInt(packet.quantity, 10) || 1,
+        priceEuros:
+          typeof packet.priceEuros === "string" ? packet.priceEuros : "",
+        priceReason:
+          typeof packet.priceReason === "string" ? packet.priceReason : "",
         ordinal: packet.ordinal,
         isAbholerpaket: packet.isAbholerpaket || false,
       }));
@@ -1147,18 +1173,56 @@ export default class NewLotteryPage extends Component {
           return;
         }
 
+        // Validate prices: if a price is entered it must be > 0 and have a reason
+        for (const packet of this.packets) {
+          if (packet.isAbholerpaket) {
+            continue;
+          }
+          const rawPrice = (packet.priceEuros ?? "").toString().trim();
+          if (rawPrice.length === 0) {
+            continue;
+          }
+          const priceNumber = parseFloat(rawPrice.replace(",", "."));
+          if (isNaN(priceNumber) || priceNumber <= 0) {
+            this.dialog.alert(
+              i18n("vzekc_verlosung.errors.packet_price_invalid")
+            );
+            this.isSubmitting = false;
+            return;
+          }
+          if (!packet.priceReason || packet.priceReason.trim().length === 0) {
+            this.dialog.alert(
+              i18n("vzekc_verlosung.errors.packet_price_reason_required")
+            );
+            this.isSubmitting = false;
+            return;
+          }
+        }
+
         // Prepare packet data - include all packets with their ordinals
         // Abholerpaket always has quantity 1
-        packets = this.packets.map((packet) => ({
-          title: packet.title.trim(),
-          raw: packet.raw.trim(),
-          ordinal: packet.ordinal,
-          quantity: packet.isAbholerpaket
-            ? 1
-            : parseInt(packet.quantity, 10) || 1,
-          erhaltungsbericht_required: !packet.erhaltungsberichtNotRequired,
-          is_abholerpaket: packet.isAbholerpaket || false,
-        }));
+        packets = this.packets.map((packet) => {
+          const rawPrice = (packet.priceEuros ?? "").toString().trim();
+          let priceCents = null;
+          if (!packet.isAbholerpaket && rawPrice.length > 0) {
+            const priceNumber = parseFloat(rawPrice.replace(",", "."));
+            if (!isNaN(priceNumber) && priceNumber > 0) {
+              priceCents = Math.round(priceNumber * 100);
+            }
+          }
+          return {
+            title: packet.title.trim(),
+            raw: packet.raw.trim(),
+            ordinal: packet.ordinal,
+            quantity: packet.isAbholerpaket
+              ? 1
+              : parseInt(packet.quantity, 10) || 1,
+            erhaltungsbericht_required: !packet.erhaltungsberichtNotRequired,
+            is_abholerpaket: packet.isAbholerpaket || false,
+            price_cents: priceCents,
+            price_reason: priceCents ? packet.priceReason.trim() : null,
+          };
+        });
 
         // Validate that at least one packet has content (title is required, raw is optional)
         if (packets.length === 0) {
@@ -1547,6 +1611,48 @@ export default class NewLotteryPage extends Component {
                         @acceptedFormatsOverride="image/*"
                       />
                     </div>
+                    {{#unless packet.isAbholerpaket}}
+                      <div class="packet-price-row">
+                        <div class="packet-price-input">
+                          <label>{{i18n
+                              "vzekc_verlosung.modal.packet_price_label"
+                            }}</label>
+                          <input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={{packet.priceEuros}}
+                            {{on
+                              "input"
+                              (fn this.updatePacket index "priceEuros")
+                            }}
+                            placeholder={{i18n
+                              "vzekc_verlosung.modal.packet_price_placeholder"
+                            }}
+                            class="packet-price-field"
+                          />
+                        </div>
+                        {{#if (this.packetHasPrice packet)}}
+                          <div class="packet-price-reason-input">
+                            <label>{{i18n
+                                "vzekc_verlosung.modal.packet_price_reason_label"
+                              }}</label>
+                            <textarea
+                              rows="2"
+                              {{on
+                                "input"
+                                (fn this.updatePacket index "priceReason")
+                              }}
+                              placeholder={{i18n
+                                "vzekc_verlosung.modal.packet_price_reason_placeholder"
+                              }}
+                              class="packet-price-reason-field"
+                              required
+                            >{{packet.priceReason}}</textarea>
+                          </div>
+                        {{/if}}
+                      </div>
+                    {{/unless}}
                     <div class="packet-checkbox-group">
                       <label class="checkbox-label">
                         <input

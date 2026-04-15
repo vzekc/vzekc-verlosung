@@ -107,6 +107,8 @@ de:
       errors:
         at_least_one_packet_required: "Bitte geben Sie mindestens einen Pakettitel ein"
         packet_title_required: "Bitte geben Sie für alle Pakete einen Titel ein"
+        packet_price_invalid: "Bitte gib einen gültigen Preis (größer als 0) an oder lass das Feld leer"
+        packet_price_reason_required: "Bitte gib einen Grund an, warum das Paket nicht kostenlos ist"
       composer:
         title_label: "Titel"
         title_placeholder: "Titel der Verlosung"
@@ -172,6 +174,10 @@ de:
         packet_title_label: "Titel:"
         packet_title_placeholder: "Titel (z.B. Commodore C64 mit Floppy)"
         packet_quantity_label: "Anzahl"
+        packet_price_label: "Preis (€)"
+        packet_price_placeholder: "0,00"
+        packet_price_reason_label: "Grund für den Preis"
+        packet_price_reason_placeholder: "z.B. Versandkosten, Einkaufsbeteiligung"
         packet_description_label: "Paketbeschreibung"
         packet_description_placeholder: "Beschreibe, was in diesem Paket enthalten ist..."
         packet_badge: "Paket %{number}"
@@ -201,6 +207,10 @@ de:
         no_participants_ended: "Keine Teilnehmer"
         participants: "Teilnehmer"
         quantity_available: "%{count} Stück verfügbar"
+        price_label: "Preis: %{price}"
+        price_confirm:
+          title: "Paket kostet etwas"
+          message: "<p>Dieses Paket ist nicht kostenlos. Bist du bereit, <strong>%{price}</strong> zu zahlen?</p><p><strong>Grund:</strong><br>%{reason}</p>"
       draft:
         notice: "Diese Verlosung ist noch ein Entwurf und noch nicht öffentlich sichtbar."
         publish_button: "Verlosung veröffentlichen"

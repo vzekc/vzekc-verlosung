@@ -146,6 +146,8 @@ module VzekcVerlosung
             ordinal: packet.ordinal,
             abholerpaket: packet.abholerpaket,
             erhaltungsbericht_required: packet.erhaltungsbericht_required,
+            price_cents: packet.price_cents,
+            price_reason: packet.price_reason,
             state: packet.state,
           }
         end
@@ -617,7 +619,16 @@ module VzekcVerlosung
         :abholerpaket_erhaltungsbericht_required,
         :drawing_mode,
         :donation_id,
-        packets: %i[title raw erhaltungsbericht_required ordinal is_abholerpaket quantity],
+        packets: %i[
+          title
+          raw
+          erhaltungsbericht_required
+          ordinal
+          is_abholerpaket
+          quantity
+          price_cents
+          price_reason
+        ],
       )
     end
 

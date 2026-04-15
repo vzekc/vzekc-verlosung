@@ -79,6 +79,8 @@ en:
       errors:
         at_least_one_packet_required: "Please enter at least one packet title"
         packet_title_required: "Please enter a title for all packets"
+        packet_price_invalid: "Please enter a valid price greater than 0, or leave the field empty"
+        packet_price_reason_required: "Please state a reason why the packet is not free"
       composer:
         title_label: "Title"
         title_placeholder: "Lottery Title"
@@ -144,6 +146,10 @@ en:
         packet_title_label: "Title:"
         packet_title_placeholder: "Title (e.g., Commodore C64)"
         packet_quantity_label: "Quantity"
+        packet_price_label: "Price (€)"
+        packet_price_placeholder: "0.00"
+        packet_price_reason_label: "Reason for the price"
+        packet_price_reason_placeholder: "e.g. shipping cost, cost split"
         packet_description_label: "Packet description"
         packet_description_placeholder: "Describe what's in this packet..."
         packet_badge: "Packet %{number}"
@@ -173,6 +179,10 @@ en:
         no_participants_ended: "No participants"
         participants: "Participants"
         quantity_available: "%{count} pieces available"
+        price_label: "Price: %{price}"
+        price_confirm:
+          title: "This packet has a price"
+          message: "<p>This packet is not free. Are you willing to pay <strong>%{price}</strong>?</p><p><strong>Reason:</strong><br>%{reason}</p>"
       draft:
         notice: "This lottery is still a draft and not publicly visible."
         publish_button: "Publish Lottery"

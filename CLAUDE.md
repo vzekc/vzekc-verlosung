@@ -21,6 +21,22 @@ Clear role names used throughout the codebase:
 - Picker receives donor's contact info via PM when assigned
 - Picker chooses after pickup: keep it OR create lottery (no auto-created draft)
 
+## Blocking Misbehaving Lottery Users
+
+When a user has failed lottery obligations (no-show on donation pickup, never created the promised lottery, never collected a win, etc.), block them using **Discourse's built-in user suspension**. Do NOT build a parallel blocking system — suspension already invalidates sessions, shows an admin-authored message at next login, records a staff action log entry, and integrates with the existing admin UI.
+
+**How to block:**
+1. Go to `/admin/users/<username>` in the Discourse admin.
+2. Click **Suspend**.
+3. Set duration to **Forever** (or `100.years.from_now`) — blocks do not auto-expire for lottery obligations.
+4. Enter a short **Reason** (internal — shown in staff logs and on the user's admin page).
+5. Enter the user-facing text in the **Message** field — this is what the user sees at their next login attempt. Be specific (e.g. "Du hast am 2026-03-12 ein Paket gewonnen und nie abgeholt. Bitte kontaktiere den Vorstand, um die Sperre aufheben zu lassen.").
+6. Save. Discourse invalidates the user's auth tokens (`UserAuthToken.destroy_all` inside `UserSuspender`), so any existing browser sessions are logged out on their next request.
+
+**Don't use Silencing** for this — silencing only blocks posting, not login. For lottery-obligation blocks we want to deny login entirely.
+
+**Unblocking** uses the Unsuspend action on the same admin page.
+
 ## Development Rules
 Discourse is large with long history. Understand context before changes.
 

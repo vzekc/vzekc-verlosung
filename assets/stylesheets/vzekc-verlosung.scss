@@ -1610,6 +1610,64 @@
             }
           }
         }
+
+        .packet-price-row {
+          display: flex;
+          flex-direction: column;
+          gap: 0.75em;
+          margin-bottom: 1em;
+
+          .packet-price-input {
+            display: flex;
+            align-items: center;
+            gap: 0.75em;
+
+            label {
+              font-weight: 500;
+              color: var(--primary);
+              white-space: nowrap;
+            }
+
+            input[type="number"] {
+              width: 120px;
+              padding: 0.5em;
+              border: 1px solid var(--primary-low-mid);
+              border-radius: 3px;
+              font-size: 1em;
+
+              &:focus {
+                outline: none;
+                border-color: var(--tertiary);
+              }
+            }
+          }
+
+          .packet-price-reason-input {
+            display: flex;
+            flex-direction: column;
+            gap: 0.35em;
+
+            label {
+              font-weight: 500;
+              color: var(--primary);
+            }
+
+            .packet-price-reason-field {
+              width: 100%;
+              padding: 0.5em;
+              border: 1px solid var(--primary-low-mid);
+              border-radius: 3px;
+              font-size: 1em;
+              font-family: inherit;
+              resize: vertical;
+
+              &:focus {
+                outline: none;
+                border-color: var(--tertiary);
+              }
+            }
+          }
+        }
       }
     }
   }

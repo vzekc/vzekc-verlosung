@@ -431,6 +431,16 @@ after_initialize do
     packet&.erhaltungsbericht_required
   end
 
+  add_to_serializer(:post, :packet_price_cents) do
+    packet = VzekcVerlosung::LotteryPacket.find_by(post_id: object.id)
+    packet&.price_cents
+  end
+
+  add_to_serializer(:post, :packet_price_reason) do
+    packet = VzekcVerlosung::LotteryPacket.find_by(post_id: object.id)
+    packet&.price_reason
+  end
+
   # Include collection timestamp for lottery owner and winner
   add_to_serializer(
     :post,
