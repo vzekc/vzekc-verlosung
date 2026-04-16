@@ -424,7 +424,7 @@ module VzekcVerlosung
           next if user_stats[user_id][:packets_participated].include?(post_id)
 
           user_stats[user_id][:packets_participated].add(post_id)
-          user_stats[user_id][:expected] += quantity * count.to_f / total_tickets
+          user_stats[user_id][:expected] += [quantity * count.to_f / total_tickets, count].min
         end
 
         # Add actual win for this instance

@@ -123,7 +123,10 @@ module VzekcVerlosung
           packets_participated_ids.add(post_id)
           total_tickets = ticket_counts_by_post[post_id] || 0
           next if total_tickets.zero?
-          expected_wins += quantity * user_ticket_count.to_f / total_tickets
+          expected_wins += [
+            quantity * user_ticket_count.to_f / total_tickets,
+            user_ticket_count,
+          ].min
         end
 
         # Count actual win for this instance
