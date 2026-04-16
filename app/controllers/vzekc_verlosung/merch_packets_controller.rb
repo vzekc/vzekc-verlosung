@@ -126,6 +126,22 @@ module VzekcVerlosung
       head :no_content
     end
 
+    # GET /vzekc-verlosung/merch-packets/stats
+    #
+    # Returns monthly shipping statistics (all time, including archived)
+    #
+    # @return [JSON] Array of { month: "YYYY-MM", count: N }
+    def stats
+      rows =
+        MerchPacket
+          .where.not(shipped_at: nil)
+          .group(Arel.sql("TO_CHAR(shipped_at, 'YYYY-MM')"))
+          .order(Arel.sql("TO_CHAR(shipped_at, 'YYYY-MM')"))
+          .count
+
+      render json: { stats: rows.map { |month, count| { month: month, count: count } } }
+    end
+
     private
 
     def ensure_can_manage_merch_packets

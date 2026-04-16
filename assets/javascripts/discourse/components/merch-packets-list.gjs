@@ -13,6 +13,7 @@ import { ajax } from "discourse/lib/ajax";
 import { popupAjaxError } from "discourse/lib/ajax-error";
 import { eq } from "discourse/truth-helpers";
 import { i18n } from "discourse-i18n";
+import MerchPacketsStats from "./merch-packets-stats";
 import EditMerchPacketAddressModal from "./modal/edit-merch-packet-address-modal";
 import MarkMerchShippedModal from "./modal/mark-merch-shipped-modal";
 
@@ -212,9 +213,20 @@ export default class MerchPacketsList extends Component {
             ({{this.shippedPackets.length}})
           </button>
         </li>
+        <li>
+          <button
+            type="button"
+            class={{if (eq this.activeTab "statistics") "active"}}
+            {{on "click" (fn this.setActiveTab "statistics")}}
+          >
+            {{i18n "vzekc_verlosung.merch_packets.tabs.statistics"}}
+          </button>
+        </li>
       </ul>
 
-      {{#if this.packetsToShow.length}}
+      {{#if (eq this.activeTab "statistics")}}
+        <MerchPacketsStats />
+      {{else if this.packetsToShow.length}}
         <table class="merch-packets-table">
           <thead>
             <tr>

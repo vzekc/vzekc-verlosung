@@ -467,7 +467,8 @@ en:
         add: "Add Merch Packet"
         tabs:
           pending: "Pending"
-          shipped: "Shipped"
+          shipped: "Recently Shipped"
+          statistics: "Statistics"
         table:
           packet: "Packet"
           donor: "Donor"
@@ -482,6 +483,9 @@ en:
         tracking_link: "Tracking"
         no_pending: "No pending merch packets"
         no_shipped: "No shipped merch packets"
+        stats:
+          total_shipped: "packets shipped in total"
+          no_data: "No shipping statistics available yet"
         edit_modal:
           title: "Edit Merch Packet"
         create_modal:

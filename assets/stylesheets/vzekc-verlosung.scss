@@ -3643,6 +3643,67 @@
   }
 }
 
+// Merch Packets Statistics
+.merch-packets-stats {
+  .loading-container {
+    display: flex;
+    justify-content: center;
+    padding: 3em;
+  }
+
+  .stats-total {
+    font-size: 1.3em;
+    font-weight: 600;
+    color: var(--primary);
+    margin-bottom: 1.5em;
+    padding-bottom: 0.75em;
+    border-bottom: 1px solid var(--primary-low);
+  }
+
+  .stats-chart {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6em;
+  }
+
+  .stats-row {
+    display: flex;
+    align-items: center;
+    gap: 1em;
+  }
+
+  .stats-month {
+    flex: 0 0 140px;
+    text-align: right;
+    font-size: 0.9em;
+    color: var(--primary-high);
+    white-space: nowrap;
+  }
+
+  .stats-bar-container {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .stats-bar {
+    background: var(--tertiary);
+    border-radius: 4px;
+    min-width: 2em;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 0 0.5em;
+    transition: width 0.3s ease;
+  }
+
+  .stats-count {
+    color: var(--secondary);
+    font-weight: 600;
+    font-size: 0.85em;
+  }
+}
+
 // Mark Merch Shipped Modal
 .mark-merch-shipped-modal {
   .ship-modal-content {

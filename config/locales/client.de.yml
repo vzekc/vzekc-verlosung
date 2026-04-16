@@ -513,7 +513,8 @@ de:
         add: "Merch-Paket hinzufügen"
         tabs:
           pending: "Ausstehend"
-          shipped: "Versandt"
+          shipped: "Kürzlich versandt"
+          statistics: "Statistik"
         table:
           packet: "Paket"
           donor: "Spender"
@@ -528,6 +529,9 @@ de:
         tracking_link: "Tracking"
         no_pending: "Keine ausstehenden Merch-Pakete"
         no_shipped: "Keine versandten Merch-Pakete"
+        stats:
+          total_shipped: "Pakete insgesamt versandt"
+          no_data: "Noch keine Versandstatistiken vorhanden"
         edit_modal:
           title: "Merch-Paket bearbeiten"
         create_modal:

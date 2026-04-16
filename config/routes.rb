@@ -66,6 +66,7 @@ VzekcVerlosung::Engine.routes.draw do
 
   # Merch packet routes
   get "/merch-packets" => "merch_packets#index"
+  get "/merch-packets/stats" => "merch_packets#stats"
   post "/merch-packets" => "merch_packets#create"
   put "/merch-packets/:id" => "merch_packets#update"
   put "/merch-packets/:id/ship" => "merch_packets#ship"
