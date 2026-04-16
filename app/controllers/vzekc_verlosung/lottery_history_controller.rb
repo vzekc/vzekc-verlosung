@@ -395,13 +395,14 @@ module VzekcVerlosung
           .pluck(
             "vzekc_verlosung_lottery_packets.id",
             "vzekc_verlosung_lottery_packets.post_id",
+            "vzekc_verlosung_lottery_packets.quantity",
             :winner_user_id,
           )
 
       return { luckiest: [], unluckiest: [] } if finished_entries.empty?
 
       # Get unique post_ids
-      post_ids = finished_entries.map { |_, post_id, _| post_id }.compact.uniq
+      post_ids = finished_entries.map { |_, post_id, _, _| post_id }.compact.uniq
 
       # Get ticket counts per packet
       ticket_counts_by_post = LotteryTicket.where(post_id: post_ids).group(:post_id).count
@@ -413,7 +414,7 @@ module VzekcVerlosung
       user_stats =
         Hash.new { |h, k| h[k] = { expected: 0.0, wins: 0, packets_participated: Set.new } }
 
-      finished_entries.each do |_packet_id, post_id, winner_user_id|
+      finished_entries.each do |_packet_id, post_id, quantity, winner_user_id|
         total_tickets = ticket_counts_by_post[post_id] || 0
         next if total_tickets.zero?
 
@@ -423,7 +424,7 @@ module VzekcVerlosung
           next if user_stats[user_id][:packets_participated].include?(post_id)
 
           user_stats[user_id][:packets_participated].add(post_id)
-          user_stats[user_id][:expected] += count.to_f / total_tickets
+          user_stats[user_id][:expected] += quantity * count.to_f / total_tickets
         end
 
         # Add actual win for this instance
