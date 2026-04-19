@@ -272,6 +272,11 @@ en:
         category_not_configured: "Reception reports category is not configured. Please contact an administrator."
         from_donation: "Reception report for donation:"
         from_lottery: "Reception report for packet from:"
+        toggle:
+          currently_required: "Reception report required"
+          currently_not_required: "No reception report required"
+          set_required: "Click to require a reception report"
+          set_not_required: "Click to not require a reception report"
       winner_pm:
         view_link: "View winner message"
         packets_title: "Packets"

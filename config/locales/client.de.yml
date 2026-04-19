@@ -300,6 +300,11 @@ de:
         category_not_configured: "Die Kategorie für Erhaltungsberichte ist nicht konfiguriert. Bitte kontaktiere einen Administrator."
         from_donation: "Erhaltungsbericht zur Spende:"
         from_lottery: "Erhaltungsbericht zum Paket aus:"
+        toggle:
+          currently_required: "Erhaltungsbericht erforderlich"
+          currently_not_required: "Kein Erhaltungsbericht erforderlich"
+          set_required: "Klicken, um Erhaltungsbericht zu verlangen"
+          set_not_required: "Klicken, um keinen Erhaltungsbericht zu verlangen"
       winner_pm:
         view_link: "Gewinner-Nachricht anzeigen"
         packets_title: "Pakete"

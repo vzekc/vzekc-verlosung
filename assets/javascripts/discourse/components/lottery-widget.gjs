@@ -40,6 +40,9 @@ export default class LotteryWidget extends Component {
   @tracked markingShipped = false;
   @tracked markingUnclaimed = false;
   @tracked notificationsSilenced = false;
+  @tracked
+  erhaltungsberichtRequired = this.post?.erhaltungsbericht_required !== false;
+  @tracked togglingErhaltungsbericht = false;
 
   constructor() {
     super(...arguments);
@@ -357,13 +360,6 @@ export default class LotteryWidget extends Component {
   }
 
   /**
-   * @type {boolean}
-   */
-  get erhaltungsberichtRequired() {
-    return this.post?.erhaltungsbericht_required !== false;
-  }
-
-  /**
    * @type {number|null}
    */
   get priceCents() {
@@ -465,6 +461,13 @@ export default class LotteryWidget extends Component {
     return (
       this.currentUser && this.post?.topic?.user_id === this.currentUser.id
     );
+  }
+
+  /**
+   * @type {boolean}
+   */
+  get canEditErhaltungsberichtRequired() {
+    return this.isLotteryOwner && !this.isDrawn;
   }
 
   /**
@@ -635,6 +638,30 @@ export default class LotteryWidget extends Component {
   }
 
   @action
+  async handleToggleErhaltungsberichtRequired() {
+    if (this.togglingErhaltungsbericht) {
+      return;
+    }
+    this.togglingErhaltungsbericht = true;
+    try {
+      const newValue = !this.erhaltungsberichtRequired;
+      const result = await this.packetFulfillment.setErhaltungsberichtRequired(
+        this.post.id,
+        newValue
+      );
+      if (result) {
+        this.erhaltungsberichtRequired = result.erhaltungsbericht_required;
+        if (this.post) {
+          this.post.erhaltungsbericht_required =
+            result.erhaltungsbericht_required;
+        }
+      }
+    } finally {
+      this.togglingErhaltungsbericht = false;
+    }
+  }
+
+  @action
   createErhaltungsberichtForEntry(winnerEntry) {
     this.packetFulfillment.createErhaltungsbericht(winnerEntry, {
       post: this.post,
@@ -645,14 +672,33 @@ export default class LotteryWidget extends Component {
   <template>
     {{#if this.shouldShow}}
       <div class="lottery-packet-status">
-        {{#unless this.erhaltungsberichtRequired}}
-          <div class="no-erhaltungsbericht-notice">
-            {{icon "ban"}}
-            <span>{{i18n
-                "vzekc_verlosung.erhaltungsbericht.not_required"
-              }}</span>
+        {{#if this.canEditErhaltungsberichtRequired}}
+          <div class="erhaltungsbericht-required-toggle">
+            <DButton
+              @action={{this.handleToggleErhaltungsberichtRequired}}
+              @disabled={{this.togglingErhaltungsbericht}}
+              @icon={{if this.erhaltungsberichtRequired "check" "ban"}}
+              @label={{if
+                this.erhaltungsberichtRequired
+                "vzekc_verlosung.erhaltungsbericht.toggle.currently_required"
+                "vzekc_verlosung.erhaltungsbericht.toggle.currently_not_required"
+              }}
+              @title={{if
+                this.erhaltungsberichtRequired
+                "vzekc_verlosung.erhaltungsbericht.toggle.set_not_required"
+                "vzekc_verlosung.erhaltungsbericht.toggle.set_required"
+              }}
+              class="btn-flat erhaltungsbericht-required-toggle-button"
+            />
           </div>
-        {{/unless}}
+        {{else}}{{#unless this.erhaltungsberichtRequired}}
+            <div class="no-erhaltungsbericht-notice">
+              {{icon "ban"}}
+              <span>{{i18n
+                  "vzekc_verlosung.erhaltungsbericht.not_required"
+                }}</span>
+            </div>
+          {{/unless}}{{/if}}
 
         {{#if this.isDrawn}}
           {{#if this.hasWinner}}

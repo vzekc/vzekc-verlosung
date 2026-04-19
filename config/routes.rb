@@ -30,6 +30,7 @@ VzekcVerlosung::Engine.routes.draw do
   post "/packets/:post_id/create-erhaltungsbericht" => "tickets#create_erhaltungsbericht"
   put "/packets/:post_id/note" => "tickets#update_note"
   put "/packets/:post_id/toggle-notifications" => "tickets#toggle_notifications"
+  put "/packets/:post_id/erhaltungsbericht-required" => "tickets#set_erhaltungsbericht_required"
 
   # Donation routes
   post "/donations" => "donations#create"

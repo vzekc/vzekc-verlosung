@@ -374,6 +374,25 @@ export default class PacketFulfillmentService extends Service {
   }
 
   /**
+   * Set erhaltungsbericht_required flag on a packet (pre-draw only)
+   *
+   * @param {number} postId
+   * @param {boolean} required
+   * @returns {Promise<Object|null>} API response or null on failure
+   */
+  async setErhaltungsberichtRequired(postId, required) {
+    try {
+      return await ajax(
+        `/vzekc-verlosung/packets/${postId}/erhaltungsbericht-required`,
+        { type: "PUT", data: { required } }
+      );
+    } catch (error) {
+      popupAjaxError(error);
+      return null;
+    }
+  }
+
+  /**
    * Open composer to create Erhaltungsbericht for a winner entry
    *
    * @param {Object} entry - The winner entry

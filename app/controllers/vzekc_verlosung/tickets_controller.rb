@@ -614,6 +614,56 @@ module VzekcVerlosung
       render json: success_json.merge(notifications_silenced: packet.notifications_silenced)
     end
 
+    # PUT /vzekc_verlosung/packets/:post_id/erhaltungsbericht-required
+    #
+    # Sets the erhaltungsbericht_required flag on a lottery packet.
+    # Only available before the lottery has been drawn and only for the lottery owner.
+    #
+    # @param post_id [Integer] Post ID of the packet
+    # @param required [Boolean] New value for the flag
+    #
+    # @return [JSON] Updated erhaltungsbericht_required status
+    def set_erhaltungsbericht_required
+      post = Post.find_by(id: params[:post_id])
+      return render_json_error("Post not found", status: :not_found) unless post
+
+      packet = LotteryPacket.find_by(post_id: post.id)
+      return render_json_error("Not a lottery packet", status: :bad_request) unless packet
+
+      topic = post.topic
+      return render_json_error("Topic not found", status: :not_found) unless topic
+
+      lottery = packet.lottery
+      return render_json_error("Lottery not found", status: :not_found) unless lottery
+
+      if lottery.drawn_at.present?
+        return(
+          render_json_error(
+            "Cannot change Erhaltungsbericht requirement after the lottery has been drawn",
+            status: :unprocessable_entity,
+          )
+        )
+      end
+
+      unless topic.user_id == current_user.id
+        return(
+          render_json_error(
+            "Only the lottery owner can change the Erhaltungsbericht requirement",
+            status: :forbidden,
+          )
+        )
+      end
+
+      if params[:required].nil?
+        return render_json_error("required parameter is required", status: :bad_request)
+      end
+
+      required = ActiveModel::Type::Boolean.new.cast(params[:required])
+      packet.update!(erhaltungsbericht_required: required)
+
+      render json: success_json.merge(erhaltungsbericht_required: packet.erhaltungsbericht_required)
+    end
+
     private
 
     def ticket_packet_status_response(post_or_id, user = nil)

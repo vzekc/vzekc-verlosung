@@ -265,4 +265,123 @@ describe VzekcVerlosung::TicketsController do
       end
     end
   end
+
+  describe "#set_erhaltungsbericht_required" do
+    fab!(:other_user, :user)
+    let!(:lottery_post) { Fabricate(:post, topic: topic, user: admin) }
+    let!(:lottery_packet) do
+      VzekcVerlosung::LotteryPacket.create!(
+        lottery_id: lottery.id,
+        post_id: lottery_post.id,
+        ordinal: 1,
+        title: "Test Packet",
+        erhaltungsbericht_required: true,
+        abholerpaket: false,
+      )
+    end
+
+    context "when user is not logged in" do
+      it "returns 403" do
+        put "/vzekc-verlosung/packets/#{lottery_post.id}/erhaltungsbericht-required.json",
+            params: {
+              required: false,
+            }
+        expect(response.status).to eq(403)
+      end
+    end
+
+    context "when user is the lottery owner and lottery is pre-draw" do
+      before { sign_in(admin) }
+
+      it "clears the flag" do
+        put "/vzekc-verlosung/packets/#{lottery_post.id}/erhaltungsbericht-required.json",
+            params: {
+              required: false,
+            }
+
+        expect(response.status).to eq(200)
+        expect(response.parsed_body["erhaltungsbericht_required"]).to eq(false)
+        expect(lottery_packet.reload.erhaltungsbericht_required).to eq(false)
+      end
+
+      it "sets the flag" do
+        lottery_packet.update!(erhaltungsbericht_required: false)
+
+        put "/vzekc-verlosung/packets/#{lottery_post.id}/erhaltungsbericht-required.json",
+            params: {
+              required: true,
+            }
+
+        expect(response.status).to eq(200)
+        expect(response.parsed_body["erhaltungsbericht_required"]).to eq(true)
+        expect(lottery_packet.reload.erhaltungsbericht_required).to eq(true)
+      end
+
+      it "is idempotent" do
+        put "/vzekc-verlosung/packets/#{lottery_post.id}/erhaltungsbericht-required.json",
+            params: {
+              required: true,
+            }
+
+        expect(response.status).to eq(200)
+        expect(lottery_packet.reload.erhaltungsbericht_required).to eq(true)
+      end
+
+      it "works for abholerpaket" do
+        lottery_packet.update!(abholerpaket: true)
+
+        put "/vzekc-verlosung/packets/#{lottery_post.id}/erhaltungsbericht-required.json",
+            params: {
+              required: false,
+            }
+
+        expect(response.status).to eq(200)
+        expect(lottery_packet.reload.erhaltungsbericht_required).to eq(false)
+      end
+
+      it "returns 400 if required parameter is missing" do
+        put "/vzekc-verlosung/packets/#{lottery_post.id}/erhaltungsbericht-required.json"
+        expect(response.status).to eq(400)
+      end
+
+      it "returns 404 if post does not exist" do
+        put "/vzekc-verlosung/packets/999999/erhaltungsbericht-required.json",
+            params: {
+              required: false,
+            }
+        expect(response.status).to eq(404)
+      end
+    end
+
+    context "when user is not the lottery owner" do
+      before { sign_in(other_user) }
+
+      it "returns 403" do
+        put "/vzekc-verlosung/packets/#{lottery_post.id}/erhaltungsbericht-required.json",
+            params: {
+              required: false,
+            }
+
+        expect(response.status).to eq(403)
+        expect(lottery_packet.reload.erhaltungsbericht_required).to eq(true)
+      end
+    end
+
+    context "when the lottery has already been drawn" do
+      before do
+        lottery.update!(drawn_at: 1.day.ago, state: "finished")
+        sign_in(admin)
+      end
+
+      it "returns 422" do
+        put "/vzekc-verlosung/packets/#{lottery_post.id}/erhaltungsbericht-required.json",
+            params: {
+              required: false,
+            }
+
+        expect(response.status).to eq(422)
+        expect(lottery_packet.reload.erhaltungsbericht_required).to eq(true)
+      end
+    end
+  end
 end
