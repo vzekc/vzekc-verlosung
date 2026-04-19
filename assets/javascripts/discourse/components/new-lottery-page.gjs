@@ -365,13 +365,20 @@ export default class NewLotteryPage extends Component {
   }
 
   // ===== PACKET UPLOAD METHODS =====
+  //
+  // All packet callbacks below are keyed by packet.ordinal (stable for the
+  // lifetime of a packet), not by the each-block index. DEditor's toolbar is
+  // only built once per instance (d-editor.gjs setupToolbar), so any closure
+  // over the each-block index goes stale as soon as the packets array is
+  // reshuffled (adding/removing packets, toggling the Abholerpaket). Ordinal
+  // lookup keeps the upload path pointed at the right packet.
 
-  getPacketFileInputId(index) {
-    return `lottery-packet-${index}-file-uploader`;
+  getPacketFileInputId(ordinal) {
+    return `lottery-packet-${ordinal}-file-uploader`;
   }
 
   @action
-  packetExtraButtons(index) {
+  packetExtraButtons(ordinal) {
     return (toolbar) => {
       if (this.allowUpload) {
         toolbar.addButton({
@@ -379,7 +386,7 @@ export default class NewLotteryPage extends Component {
           group: "fontStyles",
           icon: this.uploadIcon,
           title: "upload",
-          sendAction: () => this.showPacketUploadModal(index),
+          sendAction: () => this.showPacketUploadModal(ordinal),
           unshift: true,
         });
       }
@@ -387,33 +394,33 @@ export default class NewLotteryPage extends Component {
   }
 
   @action
-  showPacketUploadModal(index) {
-    const inputId = this.getPacketFileInputId(index);
+  showPacketUploadModal(ordinal) {
+    const inputId = this.getPacketFileInputId(ordinal);
     document.getElementById(inputId)?.click();
   }
 
   @action
-  registerPacketFileInput(index, fileInputEl) {
-    if (!this._packetUploaders[index]) {
-      this._packetUploaders[index] = new UppyUpload(getOwner(this), {
-        id: `lottery-packet-${index}-uploader`,
+  registerPacketFileInput(ordinal, fileInputEl) {
+    if (!this._packetUploaders[ordinal]) {
+      this._packetUploaders[ordinal] = new UppyUpload(getOwner(this), {
+        id: `lottery-packet-${ordinal}-uploader`,
         type: "composer",
         uploadDone: (upload) => {
-          this.insertPacketUploadMarkdown(index, upload);
+          this.insertPacketUploadMarkdown(ordinal, upload);
         },
       });
     }
-    this._packetUploaders[index].setup(fileInputEl);
-    this._setupPacketPlaceholderHandlers(index);
-    this._setupPacketDropHandler(index, fileInputEl);
+    this._packetUploaders[ordinal].setup(fileInputEl);
+    this._setupPacketPlaceholderHandlers(ordinal);
+    this._setupPacketDropHandler(ordinal, fileInputEl);
   }
 
   /**
    * Set up drop handler on a packet editor for drag-and-drop image uploads
    */
-  _setupPacketDropHandler(index, fileInputEl) {
+  _setupPacketDropHandler(ordinal, fileInputEl) {
     const target = fileInputEl.closest(".packet-editor");
-    if (!target || this._packetDropHandlers?.[index]) {
+    if (!target || this._packetDropHandlers?.[ordinal]) {
       return;
     }
 
@@ -431,7 +438,7 @@ export default class NewLotteryPage extends Component {
         f.type.startsWith("image/")
       );
       if (files.length > 0) {
-        this._packetUploaders[index]?.addFiles(files);
+        this._packetUploaders[ordinal]?.addFiles(files);
       }
     };
 
@@ -445,34 +452,38 @@ export default class NewLotteryPage extends Component {
 
     target.addEventListener("dragover", dragOverHandler, false);
     target.addEventListener("drop", dropHandler, false);
-    this._packetDropHandlers[index] = { target, dropHandler, dragOverHandler };
+    this._packetDropHandlers[ordinal] = {
+      target,
+      dropHandler,
+      dragOverHandler,
+    };
   }
 
   /**
    * Capture textManipulation from packet DEditor for placeholder handling
    */
   @action
-  onPacketEditorSetup(index, textManipulation) {
-    this._packetTextManipulations[index] = textManipulation;
+  onPacketEditorSetup(ordinal, textManipulation) {
+    this._packetTextManipulations[ordinal] = textManipulation;
   }
 
   /**
    * Set up Uppy event handlers for placeholder insertion in packet editors
    */
-  _setupPacketPlaceholderHandlers(index) {
-    const uploader = this._packetUploaders[index];
+  _setupPacketPlaceholderHandlers(ordinal) {
+    const uploader = this._packetUploaders[ordinal];
     const uppy = uploader?.uppyWrapper?.uppyInstance;
     if (!uppy) {
       return;
     }
 
-    if (!this._packetUppyFiles[index]) {
-      this._packetUppyFiles[index] = new Map();
+    if (!this._packetUppyFiles[ordinal]) {
+      this._packetUppyFiles[ordinal] = new Map();
     }
 
     uppy.on("file-added", (file) => {
-      this._packetUppyFiles[index].set(file.name, file);
-      const textManipulation = this._packetTextManipulations[index];
+      this._packetUppyFiles[ordinal].set(file.name, file);
+      const textManipulation = this._packetTextManipulations[ordinal];
       if (textManipulation?.placeholder) {
         textManipulation.placeholder.insert(file);
       }
@@ -483,9 +494,9 @@ export default class NewLotteryPage extends Component {
    * Set up paste handler for a specific packet editor
    */
   @action
-  setupPacketPasteHandler(index, element) {
-    const handler = (event) => this._handlePacketPaste(event, index);
-    this._packetPasteHandlers[index] = handler;
+  setupPacketPasteHandler(ordinal, element) {
+    const handler = (event) => this._handlePacketPaste(event, ordinal);
+    this._packetPasteHandlers[ordinal] = handler;
     element.addEventListener("paste", handler, { capture: true });
   }
 
@@ -493,18 +504,18 @@ export default class NewLotteryPage extends Component {
    * Clean up paste handler for a specific packet editor
    */
   @action
-  cleanupPacketPasteHandler(index, element) {
-    const handler = this._packetPasteHandlers[index];
+  cleanupPacketPasteHandler(ordinal, element) {
+    const handler = this._packetPasteHandlers[ordinal];
     if (handler) {
       element.removeEventListener("paste", handler, { capture: true });
-      delete this._packetPasteHandlers[index];
+      delete this._packetPasteHandlers[ordinal];
     }
   }
 
   /**
    * Handle paste events for packet editors
    */
-  _handlePacketPaste(event, index) {
+  _handlePacketPaste(event, ordinal) {
     if (!this.allowUpload) {
       return;
     }
@@ -521,8 +532,7 @@ export default class NewLotteryPage extends Component {
       if (imageFiles.length > 0) {
         event.preventDefault();
         event.stopPropagation();
-        // Add files to the packet's Uppy uploader
-        const uploader = this._packetUploaders[index];
+        const uploader = this._packetUploaders[ordinal];
         if (uploader) {
           uploader.addFiles(imageFiles);
         }
@@ -530,17 +540,17 @@ export default class NewLotteryPage extends Component {
     }
   }
 
-  insertPacketUploadMarkdown(index, upload) {
+  insertPacketUploadMarkdown(ordinal, upload) {
     const markdown = this.buildUploadMarkdown(upload);
-    const packet = this.packets[index];
+    const packet = this.packets.find((p) => p.ordinal === ordinal);
     if (!packet) {
       return;
     }
 
     // Try to find the original Uppy file to replace placeholder at cursor position
-    const uppyFiles = this._packetUppyFiles[index];
+    const uppyFiles = this._packetUppyFiles[ordinal];
     const uppyFile = uppyFiles?.get(upload.file_name);
-    const textManipulation = this._packetTextManipulations[index];
+    const textManipulation = this._packetTextManipulations[ordinal];
 
     if (uppyFile && textManipulation?.placeholder) {
       textManipulation.placeholder.success(uppyFile, markdown);
@@ -556,9 +566,8 @@ export default class NewLotteryPage extends Component {
         ? currentRaw + "\n" + markdown + "\n"
         : currentRaw + markdown + "\n";
 
-    // Create new packet object to trigger Glimmer reactivity
-    this.packets = this.packets.map((p, i) =>
-      i === index ? { ...p, raw: newRaw } : p
+    this.packets = this.packets.map((p) =>
+      p.ordinal === ordinal ? { ...p, raw: newRaw } : p
     );
     this._scheduleDraftSave();
   }
@@ -744,30 +753,31 @@ export default class NewLotteryPage extends Component {
   }
 
   @action
-  removePacket(index) {
+  removePacket(ordinal) {
     if (this.packets.length > 1) {
-      this.packets = this.packets.filter((_, i) => i !== index);
+      this.packets = this.packets.filter((p) => p.ordinal !== ordinal);
       this._scheduleDraftSave();
     }
   }
 
   @action
-  updatePacket(index, field, event) {
+  updatePacket(ordinal, field, event) {
     const value =
       event.target.type === "checkbox"
         ? event.target.checked
         : event.target.value;
-    this.packets = this.packets.map((p, i) =>
-      i === index ? { ...p, [field]: value } : p
+    this.packets = this.packets.map((p) =>
+      p.ordinal === ordinal ? { ...p, [field]: value } : p
     );
     this._scheduleDraftSave();
   }
 
   @action
-  updatePacketRaw(index, event) {
+  updatePacketRaw(ordinal, event) {
     // DEditor passes an event-like object { target: { value } } to @change
-    this.packets[index].raw = event.target.value;
-    this.packets = [...this.packets];
+    this.packets = this.packets.map((p) =>
+      p.ordinal === ordinal ? { ...p, raw: event.target.value } : p
+    );
     this._scheduleDraftSave();
   }
 
@@ -1548,7 +1558,7 @@ export default class NewLotteryPage extends Component {
                       {{/if}}
                       {{#if (this.canRemovePacket packet)}}
                         <DButton
-                          @action={{fn this.removePacket index}}
+                          @action={{fn this.removePacket packet.ordinal}}
                           @icon="trash-can"
                           @title="vzekc_verlosung.modal.remove_packet"
                           class="btn-danger btn-small"
@@ -1560,7 +1570,10 @@ export default class NewLotteryPage extends Component {
                         <input
                           type="text"
                           value={{packet.title}}
-                          {{on "input" (fn this.updatePacket index "title")}}
+                          {{on
+                            "input"
+                            (fn this.updatePacket packet.ordinal "title")
+                          }}
                           placeholder={{i18n
                             "vzekc_verlosung.modal.packet_title_placeholder"
                             number=(this.getPacketNumber index)
@@ -1580,7 +1593,7 @@ export default class NewLotteryPage extends Component {
                             value={{packet.quantity}}
                             {{on
                               "input"
-                              (fn this.updatePacket index "quantity")
+                              (fn this.updatePacket packet.ordinal "quantity")
                             }}
                             class="packet-quantity-field"
                           />
@@ -1589,14 +1602,18 @@ export default class NewLotteryPage extends Component {
                     </div>
                     <div
                       class="packet-editor"
-                      {{didInsert (fn this.setupPacketPasteHandler index)}}
-                      {{willDestroy (fn this.cleanupPacketPasteHandler index)}}
+                      {{didInsert
+                        (fn this.setupPacketPasteHandler packet.ordinal)
+                      }}
+                      {{willDestroy
+                        (fn this.cleanupPacketPasteHandler packet.ordinal)
+                      }}
                     >
                       <DEditor
                         @value={{readonly packet.raw}}
-                        @change={{fn this.updatePacketRaw index}}
-                        @extraButtons={{this.packetExtraButtons index}}
-                        @onSetup={{fn this.onPacketEditorSetup index}}
+                        @change={{fn this.updatePacketRaw packet.ordinal}}
+                        @extraButtons={{this.packetExtraButtons packet.ordinal}}
+                        @onSetup={{fn this.onPacketEditorSetup packet.ordinal}}
                         @preview={{false}}
                         @placeholder={{i18n
                           "vzekc_verlosung.modal.packet_description_placeholder"
@@ -1605,9 +1622,11 @@ export default class NewLotteryPage extends Component {
                       <PickFilesButton
                         @registerFileInput={{fn
                           this.registerPacketFileInput
-                          index
+                          packet.ordinal
                         }}
-                        @fileInputId={{this.getPacketFileInputId index}}
+                        @fileInputId={{this.getPacketFileInputId
+                          packet.ordinal
+                        }}
                         @acceptedFormatsOverride="image/*"
                       />
                     </div>
@@ -1624,7 +1643,7 @@ export default class NewLotteryPage extends Component {
                             value={{packet.priceEuros}}
                             {{on
                               "input"
-                              (fn this.updatePacket index "priceEuros")
+                              (fn this.updatePacket packet.ordinal "priceEuros")
                             }}
                             placeholder={{i18n
                               "vzekc_verlosung.modal.packet_price_placeholder"
@@ -1641,7 +1660,9 @@ export default class NewLotteryPage extends Component {
                               rows="2"
                               {{on
                                 "input"
-                                (fn this.updatePacket index "priceReason")
+                                (fn
+                                  this.updatePacket packet.ordinal "priceReason"
+                                )
                               }}
                               placeholder={{i18n
                                 "vzekc_verlosung.modal.packet_price_reason_placeholder"
@@ -1661,7 +1682,7 @@ export default class NewLotteryPage extends Component {
                             "change"
                             (fn
                               this.updatePacket
-                              index
+                              packet.ordinal
                               "erhaltungsberichtNotRequired"
                             )
                           }}
