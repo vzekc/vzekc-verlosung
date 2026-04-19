@@ -673,4 +673,109 @@ RSpec.describe VzekcVerlosung::LotteriesController do
       end
     end
   end
+
+  describe "#reset_lottery" do
+    fab!(:other_user, :user)
+    let!(:lottery_result) do
+      VzekcVerlosung::CreateLottery.call(
+        params: {
+          title: "Relistable Lottery",
+          raw: "Relistable lottery content",
+          category_id: category.id,
+          duration_days: 14,
+          has_abholerpaket: false,
+          packets: [{ title: "Hardware Bundle", raw: "Hardware bundle content" }],
+        },
+        user: user,
+        guardian: Guardian.new(user),
+      )
+    end
+    let(:topic) { lottery_result.main_topic }
+    let(:lottery) { lottery_result.lottery }
+
+    context "when lottery finished without participants" do
+      before do
+        sign_in(user)
+        lottery.update!(ends_at: 1.day.ago)
+        lottery.finish_without_participants!
+      end
+
+      it "resets the lottery to active with a new deadline" do
+        freeze_time do
+          post "/vzekc-verlosung/lotteries/#{topic.id}/reset.json", params: { duration_days: 21 }
+
+          expect(response.status).to eq(200)
+          lottery.reload
+          expect(lottery.state).to eq("active")
+          expect(lottery.drawn_at).to be_nil
+          expect(lottery.results).to be_nil
+          expect(lottery.duration_days).to eq(21)
+          expect(lottery.ends_at).to be_within(1.second).of(21.days.from_now)
+          expect(lottery.owner_reminders_silenced).to eq(false)
+        end
+      end
+
+      it "defaults to the previous duration_days when not provided" do
+        freeze_time do
+          post "/vzekc-verlosung/lotteries/#{topic.id}/reset.json"
+
+          expect(response.status).to eq(200)
+          lottery.reload
+          expect(lottery.duration_days).to eq(14)
+          expect(lottery.ends_at).to be_within(1.second).of(14.days.from_now)
+        end
+      end
+
+      it "rejects invalid durations" do
+        post "/vzekc-verlosung/lotteries/#{topic.id}/reset.json", params: { duration_days: 3 }
+
+        expect(response.status).to eq(422)
+      end
+    end
+
+    context "when lottery is still active" do
+      before do
+        sign_in(user)
+        lottery.update!(state: "active", ends_at: 5.days.from_now)
+      end
+
+      it "refuses to reset" do
+        post "/vzekc-verlosung/lotteries/#{topic.id}/reset.json"
+
+        expect(response.status).to eq(403)
+        lottery.reload
+        expect(lottery.state).to eq("active")
+      end
+    end
+
+    context "when lottery was drawn with winners" do
+      before do
+        sign_in(user)
+        lottery.update!(state: "finished", drawn_at: 1.hour.ago, results: { "drawings" => [] })
+      end
+
+      it "refuses to reset" do
+        post "/vzekc-verlosung/lotteries/#{topic.id}/reset.json"
+
+        expect(response.status).to eq(403)
+        lottery.reload
+        expect(lottery.drawn_at).to be_present
+        expect(lottery.results).to be_present
+      end
+    end
+
+    context "when user is not the owner" do
+      before do
+        sign_in(other_user)
+        lottery.update!(ends_at: 1.day.ago)
+        lottery.finish_without_participants!
+      end
+
+      it "refuses to reset" do
+        post "/vzekc-verlosung/lotteries/#{topic.id}/reset.json"
+
+        expect(response.status).to eq(403)
+      end
+    end
+  end
 end

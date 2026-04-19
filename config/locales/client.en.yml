@@ -633,3 +633,10 @@ en:
         success: "Reminders have been stopped for this lottery."
         error_not_owner: "Only the lottery owner can stop reminders."
         error_not_found: "Lottery not found."
+      reset_lottery:
+        button: "Relist lottery"
+        description: "Nobody entered this lottery. You can relist it with a fresh deadline."
+        modal_title: "Relist lottery"
+        modal_body: "The lottery will be set back to active with a new deadline. Existing packets stay."
+        duration_label: "New duration in days"
+        confirm_button: "Relist lottery"

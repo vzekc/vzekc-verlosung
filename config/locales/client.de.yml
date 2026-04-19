@@ -679,3 +679,10 @@ de:
         success: "Erinnerungen für diese Verlosung wurden abgeschaltet."
         error_not_owner: "Nur der Verlosungsersteller kann Erinnerungen abschalten."
         error_not_found: "Verlosung nicht gefunden."
+      reset_lottery:
+        button: "Verlosung neu einstellen"
+        description: "An dieser Verlosung hat niemand teilgenommen. Du kannst sie mit einer neuen Frist erneut einstellen."
+        modal_title: "Verlosung neu einstellen"
+        modal_body: "Die Verlosung wird wieder aktiv gesetzt und erhält eine neue Frist. Die bestehenden Pakete bleiben erhalten."
+        duration_label: "Neue Dauer in Tagen"
+        confirm_button: "Verlosung neu einstellen"

@@ -604,6 +604,43 @@ module VzekcVerlosung
       render json: success_json
     end
 
+    # POST /vzekc_verlosung/lotteries/:topic_id/reset
+    #
+    # Relists a finished lottery that ended without any participants.
+    # The lottery is returned to "active" state with a fresh deadline so the
+    # owner can try again without creating a whole new topic.
+    #
+    # @param topic_id [Integer] Topic ID
+    # @param duration_days [Integer] New duration in days (7-28); defaults to the
+    #   lottery's previous duration_days
+    #
+    # @return [JSON] Success with new ends_at, or error
+    def reset_lottery
+      topic = Topic.find_by(id: params[:topic_id])
+      return render_json_error("Topic not found", status: :not_found) unless topic
+
+      lottery = Lottery.find_by(topic_id: topic.id)
+      return render_json_error("Lottery not found", status: :not_found) unless lottery
+
+      unless guardian.can_reset_lottery?(topic, lottery)
+        return(render_json_error("This lottery cannot be relisted", status: :forbidden))
+      end
+
+      new_duration_days = (params[:duration_days] || lottery.duration_days || 14).to_i
+      unless new_duration_days.between?(7, 28)
+        return(
+          render_json_error("Duration must be between 7 and 28 days", status: :unprocessable_entity)
+        )
+      end
+
+      new_ends_at = lottery.reset_to_active!(new_duration_days)
+
+      Jobs.cancel_scheduled_job(:vzekc_verlosung_notify_lottery_ended, lottery_id: lottery.id)
+      Jobs.enqueue_at(new_ends_at, :vzekc_verlosung_notify_lottery_ended, lottery_id: lottery.id)
+
+      render json: success_json.merge(ends_at: new_ends_at.iso8601)
+    end
+
     private
 
     def create_params

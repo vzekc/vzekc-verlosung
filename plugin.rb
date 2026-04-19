@@ -526,6 +526,11 @@ after_initialize do
     lottery&.packet_mode || "mehrere" # Default to "mehrere" for backward compatibility
   end
 
+  add_to_serializer(:topic_view, :lottery_duration_days) do
+    lottery = VzekcVerlosung::Lottery.find_by(topic_id: object.topic.id)
+    lottery&.duration_days
+  end
+
   # Add all lottery packets data to topic view to prevent AJAX requests
   # This eliminates the need for lottery-intro-summary to fetch packet data
   add_to_serializer(:topic_view, :lottery_packets) do

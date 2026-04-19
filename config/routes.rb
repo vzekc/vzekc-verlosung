@@ -19,6 +19,7 @@ VzekcVerlosung::Engine.routes.draw do
   post "/lotteries/:topic_id/draw-manual" => "lotteries#draw_manual"
   get "/lotteries/:topic_id/results.json" => "lotteries#results"
   put "/lotteries/:topic_id/silence-reminders" => "lotteries#silence_reminders"
+  post "/lotteries/:topic_id/reset" => "lotteries#reset_lottery"
 
   post "/tickets" => "tickets#create"
   delete "/tickets/:post_id" => "tickets#destroy"

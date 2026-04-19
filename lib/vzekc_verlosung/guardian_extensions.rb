@@ -119,6 +119,17 @@ module VzekcVerlosung
       super
     end
 
+    # Check if user can relist a no-participants lottery back to active
+    #
+    # @param topic [Topic] the lottery topic
+    # @param lottery [VzekcVerlosung::Lottery] the lottery
+    # @return [Boolean] true if user is owner and lottery ended without participants
+    def can_reset_lottery?(topic, lottery)
+      return false unless topic && lottery
+      return false unless topic.user_id == @user&.id
+      lottery.no_participants?
+    end
+
     # Check if user can manage merch packets
     #
     # @return [Boolean] true if user is in merch handlers group

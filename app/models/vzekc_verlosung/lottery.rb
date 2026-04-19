@@ -136,6 +136,33 @@ module VzekcVerlosung
         },
       )
     end
+
+    # True when the lottery was auto-finished because nobody bought any tickets
+    def no_participants?
+      finished? && results.is_a?(Hash) && results["no_participants"] == true
+    end
+
+    # Reset a no-participants lottery back to active with a fresh deadline
+    # so the owner can try again. Only valid when #no_participants? is true.
+    # Non-abholerpaket packets are reset to pending; abholerpaket winners stay.
+    def reset_to_active!(new_duration_days)
+      new_ends_at = new_duration_days.days.from_now
+      transaction do
+        update!(
+          state: "active",
+          drawn_at: nil,
+          results: nil,
+          owner_reminders_silenced: false,
+          duration_days: new_duration_days,
+          ends_at: new_ends_at,
+        )
+        lottery_packets
+          .where(abholerpaket: false)
+          .where.not(state: "pending")
+          .find_each { |p| p.update!(state: "pending") }
+      end
+      new_ends_at
+    end
   end
 end
 

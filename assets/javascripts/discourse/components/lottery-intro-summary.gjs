@@ -14,6 +14,7 @@ import DiscourseURL from "discourse/lib/url";
 import { and, gt, or } from "discourse/truth-helpers";
 import { i18n } from "discourse-i18n";
 import DrawLotteryModal from "./modal/draw-lottery-modal";
+import ResetLotteryModal from "./modal/reset-lottery-modal";
 
 /**
  * Component to display lottery status notices on lottery intro posts
@@ -35,6 +36,7 @@ export default class LotteryIntroSummary extends Component {
   @tracked publishing = false;
   @tracked ending = false;
   @tracked openingDrawModal = false;
+  @tracked openingResetModal = false;
   @tracked resultsCopied = false;
   @tracked now = new Date();
 
@@ -202,6 +204,23 @@ export default class LotteryIntroSummary extends Component {
     }
     const results = this.topic?.lottery_results;
     return results && !results.no_participants;
+  }
+
+  /**
+   * @returns {Boolean} true if the lottery ended without any participants
+   */
+  get isNoParticipants() {
+    if (!this.isFinished) {
+      return false;
+    }
+    return this.topic?.lottery_results?.no_participants === true;
+  }
+
+  /**
+   * @returns {Boolean} true if the current user can relist this lottery
+   */
+  get canReset() {
+    return this.isNoParticipants && this.canPublish;
   }
 
   /**
@@ -479,6 +498,21 @@ export default class LotteryIntroSummary extends Component {
       });
     } finally {
       this.openingDrawModal = false;
+    }
+  }
+
+  @action
+  async resetLottery() {
+    this.openingResetModal = true;
+    try {
+      await this.modal.show(ResetLotteryModal, {
+        model: {
+          topicId: this.args.data.post.topic_id,
+          defaultDurationDays: this.topic?.lottery_duration_days || 14,
+        },
+      });
+    } finally {
+      this.openingResetModal = false;
     }
   }
 
@@ -775,6 +809,21 @@ export default class LotteryIntroSummary extends Component {
               {{icon "circle-check"}}
               <span>{{i18n "vzekc_verlosung.state.finished"}}</span>
             </div>
+            {{#if this.canReset}}
+              <div class="lottery-reset-notice">
+                <p>{{i18n "vzekc_verlosung.reset_lottery.description"}}</p>
+                <DButton
+                  @action={{this.resetLottery}}
+                  @translatedLabel={{i18n
+                    "vzekc_verlosung.reset_lottery.button"
+                  }}
+                  @icon={{if this.openingResetModal "spinner" "rotate"}}
+                  @disabled={{this.openingResetModal}}
+                  @isLoading={{this.openingResetModal}}
+                  class="btn-primary lottery-reset-button"
+                />
+              </div>
+            {{/if}}
             {{#if this.hasDownloadableResults}}
               <div class="download-results">
                 <span class="download-label">{{i18n
