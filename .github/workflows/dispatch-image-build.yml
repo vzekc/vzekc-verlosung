@@ -1,0 +1,17 @@
+name: dispatch image build
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.IMAGE_BUILD_PAT }}
+          repository: vzekc/discourse-image
+          event-type: plugin-updated
+          client-payload: |
+            {"source": "${{ github.repository }}", "sha": "${{ github.sha }}"}
