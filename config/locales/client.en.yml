@@ -267,6 +267,7 @@ en:
       erhaltungsbericht:
         create_button: "Write Reception Report"
         view_link: "Reception Report"
+        pending: "Reception report still pending"
         not_required: "No reception report required"
         packet_notice: "This is a reception report for the packet:"
         category_not_configured: "Reception reports category is not configured. Please contact an administrator."
@@ -296,6 +297,7 @@ en:
         shipped: "Shipped"
         received: "Received"
         completed: "Report written"
+        done: "Done"
         unclaimed: "Unclaimed"
         drawn: "Drawn"
         no_winner: "No winner"

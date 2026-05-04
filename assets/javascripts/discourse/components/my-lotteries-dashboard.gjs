@@ -356,6 +356,9 @@ export default class MyLotteriesDashboard extends Component {
                           {{else if (eq entry.fulfillment_state "received")}}
                             {{icon "check"}}
                             {{i18n "vzekc_verlosung.status.received"}}
+                          {{else if (eq entry.fulfillment_state "completed")}}
+                            {{icon "check"}}
+                            {{i18n "vzekc_verlosung.status.done"}}
                           {{else}}
                             {{icon "trophy"}}
                             {{i18n "vzekc_verlosung.status.won"}}
@@ -377,7 +380,12 @@ export default class MyLotteriesDashboard extends Component {
                             {{icon "file-lines"}}
                           </a>
                         {{else if entry.erhaltungsbericht_required}}
-                          <span class="bericht-pending">
+                          <span
+                            class="bericht-pending"
+                            title={{i18n
+                              "vzekc_verlosung.erhaltungsbericht.pending"
+                            }}
+                          >
                             {{icon "clock"}}
                           </span>
                         {{/if}}

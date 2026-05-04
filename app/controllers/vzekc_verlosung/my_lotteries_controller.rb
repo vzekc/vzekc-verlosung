@@ -100,20 +100,26 @@ module VzekcVerlosung
       topic = lottery.topic
       packets = lottery.lottery_packets.sort_by(&:ordinal)
 
+      all_entries =
+        packets.flat_map { |packet| packet.lottery_packet_winners.map { |e| [packet, e] } }
+      users_with_pending =
+        all_entries
+          .reject { |_, e| e.fulfillment_state == "completed" }
+          .map { |_, e| e.winner_user_id }
+          .to_set
+
       winner_groups = {}
-      packets.each do |packet|
-        packet.lottery_packet_winners.each do |entry|
-          next if entry.fulfillment_state == "completed"
+      all_entries.each do |packet, entry|
+        next if users_with_pending.exclude?(entry.winner_user_id)
 
-          winner_groups[entry.winner_user_id] ||= {
-            user: serialize_user(entry.winner),
-            winner_pm_topic_id: nil,
-            entries: [],
-          }
+        winner_groups[entry.winner_user_id] ||= {
+          user: serialize_user(entry.winner),
+          winner_pm_topic_id: nil,
+          entries: [],
+        }
 
-          winner_groups[entry.winner_user_id][:winner_pm_topic_id] ||= entry.winner_pm_topic_id
-          winner_groups[entry.winner_user_id][:entries] << serialize_entry(packet, entry)
-        end
+        winner_groups[entry.winner_user_id][:winner_pm_topic_id] ||= entry.winner_pm_topic_id
+        winner_groups[entry.winner_user_id][:entries] << serialize_entry(packet, entry)
       end
 
       {

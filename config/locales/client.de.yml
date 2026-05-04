@@ -295,6 +295,7 @@ de:
       erhaltungsbericht:
         create_button: "Erhaltungsbericht schreiben"
         view_link: "Erhaltungsbericht"
+        pending: "Erhaltungsbericht steht noch aus"
         not_required: "Kein Erhaltungsbericht erforderlich"
         packet_notice: "Dies ist ein Erhaltungsbericht für das Paket:"
         category_not_configured: "Die Kategorie für Erhaltungsberichte ist nicht konfiguriert. Bitte kontaktiere einen Administrator."
@@ -324,6 +325,7 @@ de:
         shipped: "Versandt"
         received: "Erhalten"
         completed: "Erhaltungsbericht geschrieben"
+        done: "Erledigt"
         unclaimed: "Nicht abgeholt"
         drawn: "Verlost"
         no_winner: "Kein Gewinner"
