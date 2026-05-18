@@ -34,6 +34,18 @@ RSpec.describe VzekcVerlosung::UserStatsController do
       end
     end
 
+    context "with a username containing a dot" do
+      fab!(:dotted_user) { Fabricate(:user, username: "Olaf.Friedrich") }
+
+      it "returns user stats" do
+        get "/vzekc-verlosung/users/#{dotted_user.username}.json"
+        expect(response.status).to eq(200)
+
+        json = response.parsed_body
+        expect(json).to have_key("won_packets")
+      end
+    end
+
     context "with lottery data" do
       fab!(:lottery_topic) { Fabricate(:topic, category: lottery_category, user: user) }
       fab!(:lottery) do
