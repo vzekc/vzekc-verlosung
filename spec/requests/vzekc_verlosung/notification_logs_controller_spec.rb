@@ -254,5 +254,16 @@ RSpec.describe VzekcVerlosung::NotificationLogsController do
         expect(response.status).to eq(404)
       end
     end
+
+    context "with a username containing a dot" do
+      fab!(:dotted_user) { Fabricate(:user, username: "Olaf.Friedrich") }
+
+      before { sign_in(dotted_user) }
+
+      it "returns the notification logs" do
+        get "/vzekc-verlosung/users/#{dotted_user.username}/notification-logs.json"
+        expect(response.status).to eq(200)
+      end
+    end
   end
 end

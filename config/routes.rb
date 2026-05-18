@@ -3,7 +3,7 @@
 VzekcVerlosung::Engine.routes.draw do
   get "/has-new-content" => "new_content#index"
   get "/examples" => "examples#index"
-  get "/users/:username" => "user_stats#show"
+  get "/users/:username" => "user_stats#show", :constraints => { username: RouteFormat.username }
   get "/history" => "lottery_history#index"
   get "/history/stats" => "lottery_history#stats"
   get "/history/leaderboard" => "lottery_history#leaderboard"
@@ -75,7 +75,10 @@ VzekcVerlosung::Engine.routes.draw do
 
   # Notification logs routes
   get "/admin/notification-logs" => "notification_logs#admin_index"
-  get "/users/:username/notification-logs" => "notification_logs#user_index"
+  get "/users/:username/notification-logs" => "notification_logs#user_index",
+      :constraints => {
+        username: RouteFormat.username,
+      }
 end
 
 Discourse::Application.routes.draw do
