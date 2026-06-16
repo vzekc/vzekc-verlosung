@@ -904,25 +904,43 @@ after_initialize do
     packet_topic_id = opts[:packet_topic_id]&.to_i
 
     if packet_post_id.present? && packet_topic_id.present?
-      # Save packet reference to topic custom fields (for backward compatibility)
-      topic.custom_fields["packet_post_id"] = packet_post_id
-      topic.custom_fields["packet_topic_id"] = packet_topic_id
-      topic.save_custom_fields
+      # CRITICAL: Only treat this as an Erhaltungsbericht if the topic was
+      # actually created in the Erhaltungsberichte category. The composer's
+      # category chooser is editable, so a user can submit the report under a
+      # different category (e.g. the parent Vereinsspenden). Linking such a
+      # topic produces a report that is correctly linked but filed in the wrong
+      # category and cannot be moved later (duplicate-title guard). Mirror the
+      # donation branch below, which already guards on category.
+      erhaltungsberichte_category_id =
+        SiteSetting.vzekc_verlosung_erhaltungsberichte_category_id.to_i
 
-      # Find the lottery packet
-      packet =
-        VzekcVerlosung::LotteryPacket.includes(:lottery_packet_winners).find_by(
-          post_id: packet_post_id,
+      if erhaltungsberichte_category_id <= 0 || topic.category_id != erhaltungsberichte_category_id
+        Rails.logger.warn(
+          "Topic #{topic.id} has packet_post_id #{packet_post_id} but is in category " \
+            "#{topic.category_id.inspect}, not the Erhaltungsberichte category " \
+            "#{erhaltungsberichte_category_id.inspect} - skipping erhaltungsbericht link",
         )
-      if packet
-        # Verify the post belongs to the correct topic
-        if packet.post.topic_id == packet_topic_id
-          # Verify the user is one of the winners and link to their winner entry
-          winner_entry = packet.lottery_packet_winners.find { |w| w.winner_user_id == user.id }
-          if winner_entry
-            # Establish reverse link from winner entry to Erhaltungsbericht
-            winner_entry.link_report!(topic)
-            VzekcVerlosung.notify_new_content("erhaltungsberichte")
+      else
+        # Save packet reference to topic custom fields (for backward compatibility)
+        topic.custom_fields["packet_post_id"] = packet_post_id
+        topic.custom_fields["packet_topic_id"] = packet_topic_id
+        topic.save_custom_fields
+
+        # Find the lottery packet
+        packet =
+          VzekcVerlosung::LotteryPacket.includes(:lottery_packet_winners).find_by(
+            post_id: packet_post_id,
+          )
+        if packet
+          # Verify the post belongs to the correct topic
+          if packet.post.topic_id == packet_topic_id
+            # Verify the user is one of the winners and link to their winner entry
+            winner_entry = packet.lottery_packet_winners.find { |w| w.winner_user_id == user.id }
+            if winner_entry
+              # Establish reverse link from winner entry to Erhaltungsbericht
+              winner_entry.link_report!(topic)
+              VzekcVerlosung.notify_new_content("erhaltungsberichte")
+            end
           end
         end
       end
