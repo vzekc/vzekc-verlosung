@@ -28,7 +28,7 @@ const INDICATOR_STYLE = `
   width: 8px;
   height: 8px;
   margin-left: 6px;
-  background-color: var(--tertiary);
+  background-color: var(--danger);
   border-radius: 50%;
   vertical-align: middle;
 `;
