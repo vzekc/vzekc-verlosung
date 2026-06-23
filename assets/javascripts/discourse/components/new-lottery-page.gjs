@@ -951,10 +951,8 @@ export default class NewLotteryPage extends Component {
             const confirmed = await this.dialog.confirm({
               title: i18n("vzekc_verlosung.draft_conflict.title"),
               message: i18n("vzekc_verlosung.draft_conflict.message"),
-              confirmButtonLabel: i18n(
-                "vzekc_verlosung.draft_conflict.discard"
-              ),
-              cancelButtonLabel: i18n("vzekc_verlosung.draft_conflict.keep"),
+              confirmButtonLabel: "vzekc_verlosung.draft_conflict.discard",
+              cancelButtonLabel: "vzekc_verlosung.draft_conflict.keep",
             });
 
             if (confirmed) {
