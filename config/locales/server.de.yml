@@ -264,6 +264,20 @@ de:
 
         Bedingungen und Details findest du im [Verlosungsbeitrag](%{topic_url}).
     packet_fallback_title: "Paket #%{number}"
+    assignment_post:
+      and: "und"
+      manual: "Ich habe diese Spende an %{picker} zugewiesen."
+      manual_override: "Ich habe diese Spende an %{picker} zugewiesen.\n\n**Begründung:** %{explanation}"
+      least_collected: "%{actor} hat diese Spende automatisch an %{picker} zugewiesen (wenigste Abholungen: %{count})."
+      random:
+        two:
+          zero: "%{actor} hat diese Spende automatisch an %{picker} zugewiesen. Die Auswahl erfolgte zufällig zwischen %{candidates}, die beide bisher noch keine Spende abgeholt haben."
+          one: "%{actor} hat diese Spende automatisch an %{picker} zugewiesen. Die Auswahl erfolgte zufällig zwischen %{candidates}, die beide bisher %{count} Spende abgeholt haben."
+          other: "%{actor} hat diese Spende automatisch an %{picker} zugewiesen. Die Auswahl erfolgte zufällig zwischen %{candidates}, die beide bisher %{count} Spenden abgeholt haben."
+        many:
+          zero: "%{actor} hat diese Spende automatisch an %{picker} zugewiesen. Die Auswahl erfolgte zufällig zwischen %{candidates}, die alle bisher noch keine Spende abgeholt haben."
+          one: "%{actor} hat diese Spende automatisch an %{picker} zugewiesen. Die Auswahl erfolgte zufällig zwischen %{candidates}, die alle bisher %{count} Spende abgeholt haben."
+          other: "%{actor} hat diese Spende automatisch an %{picker} zugewiesen. Die Auswahl erfolgte zufällig zwischen %{candidates}, die alle bisher %{count} Spenden abgeholt haben."
     errors:
       packet_title_required: "Paket %{ordinal} Titel darf nicht entfernt werden. Der Beitrag muss mit einer Überschrift im Format beginnen: # Paket %{ordinal}: Titel"
       packet_ordinal_mismatch: "Paketnummer stimmt nicht überein. Erwartet '# Paket %{expected}:', aber gefunden '# Paket %{actual}:'. Die Paketnummer im Titel muss mit der Datenbank übereinstimmen."

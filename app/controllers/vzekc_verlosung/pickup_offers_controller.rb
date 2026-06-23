@@ -118,7 +118,69 @@ module VzekcVerlosung
         return(render_json_error("Contact information is required", status: :unprocessable_entity))
       end
 
-      donation.assign_to!(offer, contact_info: contact_info)
+      explanation = assign_params[:explanation]
+      if donation.assignment_diverges?(offer) && explanation.blank?
+        return(
+          render_json_error(
+            "An explanation is required for this assignment",
+            status: :unprocessable_entity,
+          )
+        )
+      end
+
+      donation.assign_to!(
+        offer,
+        contact_info: contact_info,
+        actor: current_user,
+        method: "manual",
+        explanation: explanation,
+      )
+
+      head :no_content
+    end
+
+    # PUT /vzekc-verlosung/donations/:donation_id/auto-assign
+    #
+    # Automatically assigns the donation to the pending picker who has
+    # collected the fewest donations so far (ties broken randomly with a
+    # donation-seeded RNG). Facilitator provides the donor's contact
+    # information which is sent to the selected picker via PM.
+    #
+    # @param donation_id [Integer] Donation ID
+    # @param contact_info [String] Donor's contact information provided by facilitator
+    #
+    # @return [HTTP 204] No content on success
+    def auto_assign
+      donation = Donation.find(params[:donation_id])
+
+      unless guardian.can_manage_donation?(donation)
+        return(
+          render_json_error("You don't have permission to assign this donation", status: :forbidden)
+        )
+      end
+
+      unless donation.open?
+        return render_json_error("Donation is not in open state", status: :unprocessable_entity)
+      end
+
+      contact_info = assign_params[:contact_info]
+      if contact_info.blank?
+        return(render_json_error("Contact information is required", status: :unprocessable_entity))
+      end
+
+      selection = donation.auto_assign_selection
+      if selection.nil?
+        return render_json_error("No pickup offers to assign", status: :unprocessable_entity)
+      end
+
+      donation.assign_to!(
+        selection[:offer],
+        contact_info: contact_info,
+        actor: current_user,
+        method: selection[:method],
+        tied_offers: selection[:tied_offers],
+        collected_count: selection[:min_count],
+      )
 
       head :no_content
     end
@@ -162,7 +224,7 @@ module VzekcVerlosung
     end
 
     def assign_params
-      params.permit(:contact_info)
+      params.permit(:contact_info, :explanation)
     end
 
     # Serialize a pickup offer for JSON response
@@ -178,6 +240,7 @@ module VzekcVerlosung
           username: offer.user.username,
           name: offer.user.name,
           avatar_template: offer.user.avatar_template,
+          collected_count: PickupOffer.collected_count(offer.user_id),
         },
         state: offer.state,
         notes: offer.notes,

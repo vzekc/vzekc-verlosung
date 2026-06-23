@@ -110,12 +110,73 @@ module VzekcVerlosung
       update!(state: "open", published_at: Time.zone.now)
     end
 
+    # Select the pickup offer that should receive the donation when
+    # auto-assigning. The offer whose picker has collected the fewest
+    # donations so far wins. Ties are broken with a deterministic,
+    # donation-seeded RNG so that repeated calls (e.g. cancelling and
+    # re-submitting the auto-assign form) always yield the same picker.
+    #
+    # @return [Hash, nil] selection details or nil when there are no pending
+    #   offers. Keys:
+    #   - :offer [PickupOffer] the chosen offer
+    #   - :method [String] "least_collected" or "random"
+    #   - :min_count [Integer] the (lowest) collected count of the candidates
+    #   - :tied_offers [Array<PickupOffer>] candidates sharing the lowest count
+    def auto_assign_selection
+      candidates = pickup_offers.pending.includes(:user).to_a
+      return nil if candidates.empty?
+
+      counts = candidates.index_with { |offer| PickupOffer.collected_count(offer.user_id) }
+      min_count = counts.values.min
+      tied = candidates.select { |offer| counts[offer] == min_count }.sort_by(&:user_id)
+
+      if tied.size == 1
+        { offer: tied.first, method: "least_collected", min_count: min_count, tied_offers: tied }
+      else
+        rng = Random.new(auto_assign_seed)
+        {
+          offer: tied[rng.rand(tied.size)],
+          method: "random",
+          min_count: min_count,
+          tied_offers: tied,
+        }
+      end
+    end
+
+    # Whether manually assigning to +offer+ deviates from the fair-distribution
+    # rule: there is more than one pending offer and the chosen picker has
+    # collected more donations than the lowest count among the offerers.
+    #
+    # @param offer [PickupOffer] the offer the facilitator wants to assign
+    # @return [Boolean]
+    def assignment_diverges?(offer)
+      pending = pickup_offers.pending.includes(:user).to_a
+      return false if pending.size <= 1
+
+      min_count = pending.map { |o| PickupOffer.collected_count(o.user_id) }.min
+      PickupOffer.collected_count(offer.user_id) > min_count
+    end
+
     # Assign donation to a specific pickup offer
     #
     # @param pickup_offer [PickupOffer] The offer to assign
     # @param contact_info [String] Contact information from donation creator
+    # @param actor [User] The user who triggered the assignment
+    # @param method [String] "manual", "least_collected" or "random"
+    # @param tied_offers [Array<PickupOffer>] candidates for a random assignment
+    # @param collected_count [Integer] shared collected count for a random assignment
+    # @param explanation [String] facilitator's justification for a manual
+    #   assignment that diverges from the fair-distribution rule
     # @return [Boolean] true if successful
-    def assign_to!(pickup_offer, contact_info: nil)
+    def assign_to!(
+      pickup_offer,
+      contact_info: nil,
+      actor: nil,
+      method: "manual",
+      tied_offers: [],
+      collected_count: nil,
+      explanation: nil
+    )
       transaction do
         update!(state: "assigned")
         # Mark the selected offer as assigned
@@ -124,6 +185,16 @@ module VzekcVerlosung
       end
       # Send notification PM to assigned user
       send_assignment_notification!(pickup_offer, contact_info) if contact_info.present?
+      # Post a status reply documenting the assignment. Manual assignments are
+      # authored by the facilitator, automatic ones by the system account.
+      post_assignment_response!(
+        pickup_offer,
+        actor: actor,
+        method: method,
+        tied_offers: tied_offers,
+        collected_count: collected_count,
+        explanation: explanation,
+      )
     end
 
     # Mark donation as picked up
@@ -190,6 +261,91 @@ module VzekcVerlosung
           contact_info: contact_info,
         },
       )
+    end
+
+    # Deterministic RNG seed for tie-breaking during auto-assignment.
+    # Derived from the donation id so the random pick is stable across
+    # repeated calls for the same donation.
+    #
+    # @return [Integer]
+    def auto_assign_seed
+      Digest::MD5.hexdigest("vzekc-verlosung-auto-assign-#{id}")[0, 8].to_i(16)
+    end
+
+    # Join user mentions into a localized German-style list:
+    # "A und B" for two, "A, B und C" for three or more.
+    #
+    # @param mentions [Array<String>]
+    # @return [String]
+    def join_mentions(mentions)
+      return mentions.first.to_s if mentions.size <= 1
+
+      *head, tail = mentions
+      "#{head.join(", ")} #{I18n.t("vzekc_verlosung.assignment_post.and")} #{tail}"
+    end
+
+    # Post a public German reply to the donation topic documenting who
+    # assigned the donation, to whom, and how (manually, automatically by
+    # fewest collections, or randomly between tied pickers).
+    #
+    # @param pickup_offer [PickupOffer] the assigned offer
+    # @param actor [User] the user who triggered the assignment
+    # @param method [String] "manual", "least_collected" or "random"
+    # @param tied_offers [Array<PickupOffer>] candidates for a random assignment
+    # @param collected_count [Integer] shared collected count for a random assignment
+    # @param explanation [String] facilitator's justification for a diverging
+    #   manual assignment
+    def post_assignment_response!(
+      pickup_offer,
+      actor:,
+      method:,
+      tied_offers:,
+      collected_count:,
+      explanation:
+    )
+      return unless topic
+      return unless actor
+
+      picker = pickup_offer.user
+      return unless picker
+
+      # Manual assignments are authored by the facilitator (first person);
+      # automatic ones by the system account (naming the facilitator).
+      author = method == "manual" ? actor : Discourse.system_user
+
+      raw =
+        case method
+        when "least_collected"
+          I18n.t(
+            "vzekc_verlosung.assignment_post.least_collected",
+            actor: "@#{actor.username}",
+            picker: "@#{picker.username}",
+            count: collected_count,
+          )
+        when "random"
+          candidates = join_mentions(tied_offers.map { |offer| "@#{offer.user.username}" })
+          scope = tied_offers.size == 2 ? "two" : "many"
+          I18n.t(
+            "vzekc_verlosung.assignment_post.random.#{scope}",
+            actor: "@#{actor.username}",
+            picker: "@#{picker.username}",
+            candidates: candidates,
+            count: collected_count,
+          )
+        else
+          key = explanation.present? ? "assignment_post.manual_override" : "assignment_post.manual"
+          I18n.t("vzekc_verlosung.#{key}", picker: "@#{picker.username}", explanation: explanation)
+        end
+
+      begin
+        PostCreator.create!(author, topic_id: topic_id, raw: raw, skip_validations: true)
+      rescue StandardError => e
+        # The assignment itself has already succeeded; a failure to post the
+        # status reply must never surface as an error to the facilitator.
+        Rails.logger.error(
+          "[VzekcVerlosung] Failed to post assignment response for donation #{id}: #{e.class}: #{e.message}",
+        )
+      end
     end
 
     # Automatically close donation after pickup

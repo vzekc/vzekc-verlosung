@@ -50,6 +50,7 @@ VzekcVerlosung::Engine.routes.draw do
   delete "/pickup-offers/:id" => "pickup_offers#destroy"
   get "/donations/:donation_id/pickup-offers" => "pickup_offers#index"
   put "/pickup-offers/:id/assign" => "pickup_offers#assign"
+  put "/donations/:donation_id/auto-assign" => "pickup_offers#auto_assign"
   put "/pickup-offers/:id/mark-picked-up" => "pickup_offers#mark_picked_up"
 
   # Lottery interest routes

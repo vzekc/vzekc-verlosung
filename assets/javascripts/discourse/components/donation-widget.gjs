@@ -209,6 +209,20 @@ export default class DonationWidget extends Component {
   }
 
   /**
+   * Whether the facilitator can auto-assign the donation
+   * (open state with at least one pending offer)
+   *
+   * @type {boolean}
+   */
+  get canAutoAssign() {
+    return (
+      this.isFacilitator &&
+      this.donationData?.state === "open" &&
+      this.pickupOffers.some((offer) => offer.state === "pending")
+    );
+  }
+
+  /**
    * Get other (pending) offers
    *
    * @type {Array}
@@ -398,9 +412,38 @@ export default class DonationWidget extends Component {
    */
   @action
   assignOffer(offer) {
+    const pending = this.pickupOffers.filter((o) => o.state === "pending");
+    const counts = pending.map((o) => o.user.collected_count || 0);
+    const min = counts.length ? Math.min(...counts) : 0;
+    const requireExplanation =
+      pending.length > 1 && (offer.user.collected_count || 0) > min;
+    const systemChoice = pending
+      .filter((o) => (o.user.collected_count || 0) === min)
+      .map((o) => o.user.username);
+
     this.modal.show(AssignOfferModal, {
       model: {
         offer,
+        donationId: this.donationData.id,
+        requireExplanation,
+        systemChoice,
+        onAssigned: () => {
+          this.appEvents.trigger("donation:data-changed", this.post.id);
+        },
+      },
+    });
+  }
+
+  /**
+   * Auto-assign the donation to the picker with the fewest collections.
+   * Opens the assignment modal in automatic mode; the server selects the
+   * recipient when the contact-info form is submitted.
+   */
+  @action
+  autoAssign() {
+    this.modal.show(AssignOfferModal, {
+      model: {
+        auto: true,
         donationId: this.donationData.id,
         onAssigned: () => {
           this.appEvents.trigger("donation:data-changed", this.post.id);
@@ -601,7 +644,20 @@ export default class DonationWidget extends Component {
                     data-user-card={{this.assignedOffer.user.username}}
                     title={{this.assignedOffer.user.username}}
                   >
-                    {{avatar this.assignedOffer.user imageSize="medium"}}
+                    <span class="offer-avatar">
+                      {{avatar this.assignedOffer.user imageSize="medium"}}
+                      {{#if (gt this.assignedOffer.user.collected_count 0)}}
+                        <span
+                          class="collected-badge"
+                          title={{i18n
+                            "vzekc_verlosung.donation.collected_badge_title"
+                            count=this.assignedOffer.user.collected_count
+                          }}
+                        >
+                          {{this.assignedOffer.user.collected_count}}
+                        </span>
+                      {{/if}}
+                    </span>
                     <span class="offer-username">
                       {{formatUsername this.assignedOffer.user.username}}
                     </span>
@@ -626,7 +682,20 @@ export default class DonationWidget extends Component {
                       data-user-card={{offer.user.username}}
                       title={{offer.user.username}}
                     >
-                      {{avatar offer.user imageSize="medium"}}
+                      <span class="offer-avatar">
+                        {{avatar offer.user imageSize="medium"}}
+                        {{#if (gt offer.user.collected_count 0)}}
+                          <span
+                            class="collected-badge"
+                            title={{i18n
+                              "vzekc_verlosung.donation.collected_badge_title"
+                              count=offer.user.collected_count
+                            }}
+                          >
+                            {{offer.user.collected_count}}
+                          </span>
+                        {{/if}}
+                      </span>
                       <span class="offer-username">
                         {{formatUsername offer.user.username}}
                       </span>
@@ -648,7 +717,20 @@ export default class DonationWidget extends Component {
                         data-user-card={{offer.user.username}}
                         title={{offer.user.username}}
                       >
-                        {{avatar offer.user imageSize="medium"}}
+                        <span class="offer-avatar">
+                          {{avatar offer.user imageSize="medium"}}
+                          {{#if (gt offer.user.collected_count 0)}}
+                            <span
+                              class="collected-badge"
+                              title={{i18n
+                                "vzekc_verlosung.donation.collected_badge_title"
+                                count=offer.user.collected_count
+                              }}
+                            >
+                              {{offer.user.collected_count}}
+                            </span>
+                          {{/if}}
+                        </span>
                         <span class="offer-username">
                           {{formatUsername offer.user.username}}
                         </span>
@@ -677,6 +759,17 @@ export default class DonationWidget extends Component {
                     {{/if}}
                   </div>
                 {{/each}}
+                {{#if this.canAutoAssign}}
+                  <div class="pickup-offers-actions">
+                    <DButton
+                      @action={{this.autoAssign}}
+                      @label="vzekc_verlosung.donation.auto_assign"
+                      @icon="dice"
+                      @disabled={{this.actionInProgress}}
+                      class="btn-small auto-assign-button"
+                    />
+                  </div>
+                {{/if}}
               </div>
             {{else}}
               <div class="no-offers">

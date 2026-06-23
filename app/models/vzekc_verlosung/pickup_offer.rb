@@ -27,6 +27,14 @@ module VzekcVerlosung
     scope :picked_up, -> { where(state: "picked_up") }
     scope :active, -> { where(state: %w[pending assigned]) }
 
+    # Total number of donations a user has collected (picked up).
+    #
+    # @param user_id [Integer] the user to count for
+    # @return [Integer] number of donations the user has picked up
+    def self.collected_count(user_id)
+      picked_up.where(user_id: user_id).count
+    end
+
     # State helper methods
     #
     # @return [Boolean] true if in pending state
