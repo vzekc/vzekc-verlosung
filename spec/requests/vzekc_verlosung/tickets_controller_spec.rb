@@ -61,6 +61,17 @@ describe VzekcVerlosung::TicketsController do
         expect(log.success).to eq(true)
       end
 
+      it "names the packet in the ticket_bought notification" do
+        post "/vzekc-verlosung/tickets.json", params: { post_id: lottery_post.id }
+
+        notification =
+          Notification.find_by(
+            user_id: admin.id,
+            notification_type: Notification.types[:vzekc_verlosung_ticket_bought],
+          )
+        expect(notification.data_hash[:packet_title]).to eq("Test Packet")
+      end
+
       it "returns error if post not found" do
         post "/vzekc-verlosung/tickets.json", params: { post_id: 999_999 }
         expect(response.status).to eq(404)

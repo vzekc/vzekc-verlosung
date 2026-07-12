@@ -338,6 +338,16 @@ module VzekcVerlosung
 
     # In-app notification data builders
 
+    # The packet title as stored on the packet record, kept in sync with the post
+    # by the post_edited hook.
+    #
+    # @param post [Post] the post backing a lottery packet
+    # @returns [String]
+    def packet_title_for(post)
+      post.lottery_packet&.title.presence ||
+        I18n.t("vzekc_verlosung.packet_fallback_title", number: post.post_number)
+    end
+
     def build_ticket_bought_data
       topic = @context[:topic]
       post = @context[:post]
@@ -345,9 +355,7 @@ module VzekcVerlosung
 
       return nil unless topic && post && buyer
 
-      packet_title =
-        TitleExtractor.extract_title(post.raw) ||
-          I18n.t("vzekc_verlosung.packet_fallback_title", number: post.post_number)
+      packet_title = packet_title_for(post)
 
       {
         topic_id: topic.id,
@@ -366,9 +374,7 @@ module VzekcVerlosung
 
       return nil unless topic && post && returner
 
-      packet_title =
-        TitleExtractor.extract_title(post.raw) ||
-          I18n.t("vzekc_verlosung.packet_fallback_title", number: post.post_number)
+      packet_title = packet_title_for(post)
 
       {
         topic_id: topic.id,

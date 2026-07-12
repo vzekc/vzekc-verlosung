@@ -35,9 +35,7 @@ module Jobs
           packet_post = packet.post
 
           # Build packet title with instance number for multi-instance packets
-          packet_title =
-            VzekcVerlosung::TitleExtractor.extract_title(packet_post.raw) ||
-              "Paket ##{packet_post.post_number}"
+          packet_title = packet.title
           packet_title = "#{packet_title} (##{winner_entry.instance_number})" if packet.quantity > 1
 
           VzekcVerlosung::NotificationService.notify(

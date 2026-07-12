@@ -477,15 +477,18 @@ module VzekcVerlosung
         )
       end
 
-      # Extract packet title
-      packet_title =
-        VzekcVerlosung::TitleExtractor.extract_title(post.raw) || "Paket ##{post.post_number}"
-
-      # Get lottery topic title
       lottery_title = post.topic.title
 
-      # Compose topic title: "<packet-title> aus <lottery-title>"
-      topic_title = "#{packet_title} aus #{lottery_title}"
+      # Compose topic title: "<packet-title> aus <lottery-title>". A single packet
+      # carries the lottery title itself, so the lottery title stands alone.
+      topic_title =
+        (
+          if packet.single_packet_mode?
+            lottery_title
+          else
+            "#{packet.title} aus #{lottery_title}"
+          end
+        )
 
       # Get template (no placeholder replacement needed - links are stored as custom fields)
       template = SiteSetting.vzekc_verlosung_erhaltungsbericht_template
