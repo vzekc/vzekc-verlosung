@@ -151,6 +151,38 @@ RSpec.describe "Packet Title Synchronization" do
     end
   end
 
+  describe "with single packet mode" do
+    fab!(:single_lottery) do
+      topic =
+        Fabricate(:topic, category: category, user: user, title: "HP 7933 Festplattenlaufwerk")
+      Fabricate(:post, topic: topic, raw: "# Verlosungsbeschreibung\n\nEin Laufwerk.")
+      Fabricate(:lottery, topic: topic, packet_mode: "ein")
+    end
+    fab!(:single_packet) do
+      Fabricate(
+        :lottery_packet,
+        lottery_obj: single_lottery,
+        post: single_lottery.topic.first_post,
+        ordinal: 1,
+        title: "HP 7933 Festplattenlaufwerk",
+      )
+    end
+
+    it "allows editing the description post, which has no packet heading" do
+      revisor = PostRevisor.new(single_packet.post)
+      result = revisor.revise!(user, raw: "# Verlosungsbeschreibung\n\nEin HP 7933 Laufwerk.")
+
+      expect(result).to be true
+    end
+
+    it "syncs the packet title from the topic title" do
+      revisor = PostRevisor.new(single_packet.post)
+      revisor.revise!(user, title: "HP 7933 Laufwerk mit Plattenstapel")
+
+      expect(single_packet.reload.title).to eq("HP 7933 Laufwerk mit Plattenstapel")
+    end
+  end
+
   describe "edge cases" do
     it "handles title with colon in content" do
       revisor = PostRevisor.new(packet.post)

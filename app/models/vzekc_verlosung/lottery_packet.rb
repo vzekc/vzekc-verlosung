@@ -75,6 +75,13 @@ module VzekcVerlosung
       update!(state: "drawn")
     end
 
+    # True when the lottery has a single packet, in which case the packet is
+    # represented by the lottery's opening post. That post carries the lottery
+    # description and has no "# Paket N: Titel" heading.
+    def single_packet_mode?
+      lottery&.packet_mode == "ein"
+    end
+
     # Price helpers
     def has_price?
       price_cents.present? && price_cents.positive?

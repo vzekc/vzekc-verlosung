@@ -258,6 +258,7 @@ after_initialize do
     def validate_packet_title_present
       packet = VzekcVerlosung::LotteryPacket.find_by(post_id: id)
       return unless packet
+      return if packet.single_packet_mode?
 
       # Check if the post still has a valid packet title heading
       unless VzekcVerlosung::TitleExtractor.has_title?(raw)
@@ -317,6 +318,14 @@ after_initialize do
   on(:post_edited) do |post, topic_changed, user|
     packet = VzekcVerlosung::LotteryPacket.find_by(post_id: post.id)
     next unless packet
+
+    # In single packet mode the packet is the opening post, whose heading is the
+    # lottery description. The packet title follows the topic title instead.
+    if packet.single_packet_mode?
+      topic_title = post.topic&.title
+      packet.update!(title: topic_title) if topic_title.present? && topic_title != packet.title
+      next
+    end
 
     # Extract new title from post markdown
     new_title = VzekcVerlosung::TitleExtractor.extract_title(post.raw)
