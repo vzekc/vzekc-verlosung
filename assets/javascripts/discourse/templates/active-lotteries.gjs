@@ -1,5 +1,6 @@
 import { fn } from "@ember/helper";
 import { on } from "@ember/modifier";
+import LoadMore from "discourse/components/load-more";
 import icon from "discourse/helpers/d-icon";
 import { eq } from "discourse/truth-helpers";
 import { i18n } from "discourse-i18n";
@@ -54,11 +55,23 @@ import NeueVerlosungButton from "../components/neue-verlosung-button";
           {{i18n "loading"}}
         </div>
       {{else}}
-        <FinishedLotteriesList
-          @lotteries={{@controller.finishedLotteries}}
-          @expandedIds={{@controller.expandedIds}}
-          @onToggleExpanded={{@controller.toggleExpanded}}
-        />
+        <LoadMore
+          @action={{@controller.loadMoreFinished}}
+          @enabled={{@controller.canLoadMoreFinished}}
+          @isLoading={{@controller.loadingFinished}}
+        >
+          <FinishedLotteriesList
+            @lotteries={{@controller.finishedLotteries}}
+            @expandedIds={{@controller.expandedIds}}
+            @onToggleExpanded={{@controller.toggleExpanded}}
+          />
+          {{#if @controller.loadingMoreFinished}}
+            <div class="loading-lotteries">
+              {{icon "spinner" class="spinner"}}
+              {{i18n "loading"}}
+            </div>
+          {{/if}}
+        </LoadMore>
       {{/if}}
     {{/if}}
   </div>

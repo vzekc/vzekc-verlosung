@@ -5,6 +5,7 @@ import { service } from "@ember/service";
 import { ajax } from "discourse/lib/ajax";
 
 const CACHE_KEY = "lotteries-page-state";
+const FINISHED_PER_PAGE = 50;
 
 export default class ActiveLotteriesController extends Controller {
   @service historyStore;
@@ -12,7 +13,11 @@ export default class ActiveLotteriesController extends Controller {
   @tracked activeTab = "active";
   @tracked finishedLotteries = null;
   @tracked loadingFinished = false;
+  @tracked loadingMoreFinished = false;
+  @tracked canLoadMoreFinished = false;
   @tracked expandedIds = [];
+
+  finishedPage = 1;
 
   queryParams = ["tab"];
 
@@ -33,6 +38,8 @@ export default class ActiveLotteriesController extends Controller {
       this.expandedIds = cached.expandedIds || [];
       if (cached.finishedLotteries) {
         this.finishedLotteries = cached.finishedLotteries;
+        this.finishedPage = cached.finishedPage || 1;
+        this.canLoadMoreFinished = cached.canLoadMoreFinished || false;
       }
     }
   }
@@ -44,6 +51,8 @@ export default class ActiveLotteriesController extends Controller {
     this.historyStore.set(CACHE_KEY, {
       expandedIds: this.expandedIds,
       finishedLotteries: this.finishedLotteries,
+      finishedPage: this.finishedPage,
+      canLoadMoreFinished: this.canLoadMoreFinished,
       scrollPosition: window.scrollY,
     });
   }
@@ -81,7 +90,7 @@ export default class ActiveLotteriesController extends Controller {
   }
 
   /**
-   * Load finished lotteries from the API
+   * Load the first page of finished lotteries from the API
    */
   async loadFinishedLotteries() {
     this.loadingFinished = true;
@@ -89,14 +98,50 @@ export default class ActiveLotteriesController extends Controller {
     try {
       const result = await ajax("/vzekc-verlosung/history/lotteries.json", {
         type: "GET",
-        data: { per_page: 50 },
+        data: { page: 1, per_page: FINISHED_PER_PAGE },
       });
       this.finishedLotteries = result.lotteries || [];
+      this.finishedPage = 1;
+      this.canLoadMoreFinished =
+        this.finishedLotteries.length === FINISHED_PER_PAGE;
       this.saveState();
     } catch {
       this.finishedLotteries = [];
+      this.canLoadMoreFinished = false;
     } finally {
       this.loadingFinished = false;
+    }
+  }
+
+  /**
+   * Load the next page of finished lotteries and append it to the list
+   */
+  @action
+  async loadMoreFinished() {
+    if (
+      this.loadingFinished ||
+      this.loadingMoreFinished ||
+      !this.canLoadMoreFinished
+    ) {
+      return;
+    }
+
+    this.loadingMoreFinished = true;
+
+    try {
+      const result = await ajax("/vzekc-verlosung/history/lotteries.json", {
+        type: "GET",
+        data: { page: this.finishedPage + 1, per_page: FINISHED_PER_PAGE },
+      });
+      const lotteries = result.lotteries || [];
+      this.finishedLotteries = [...this.finishedLotteries, ...lotteries];
+      this.finishedPage += 1;
+      this.canLoadMoreFinished = lotteries.length === FINISHED_PER_PAGE;
+      this.saveState();
+    } catch {
+      this.canLoadMoreFinished = false;
+    } finally {
+      this.loadingMoreFinished = false;
     }
   }
 
