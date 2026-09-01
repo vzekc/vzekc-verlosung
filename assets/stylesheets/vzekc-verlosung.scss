@@ -1626,6 +1626,12 @@
             align-items: center;
             gap: 0.75em;
 
+            .field-title-with-tooltip {
+              display: flex;
+              align-items: center;
+              gap: 0.35em;
+            }
+
             label {
               font-weight: 500;
               color: var(--primary);

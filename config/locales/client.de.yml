@@ -175,6 +175,7 @@ de:
         packet_title_placeholder: "Titel (z.B. Commodore C64 mit Floppy)"
         packet_quantity_label: "Anzahl"
         packet_price_label: "Preis (€)"
+        packet_price_hint: "Optional: Gib nur einen Preis an, wenn du Geld in Reparaturen oder Erweiterungen investiert hast oder etwas zum Festpreis abgeben möchtest. Ohne Preis wird das Paket kostenlos verlost."
         packet_price_placeholder: "0,00"
         packet_price_reason_label: "Grund für den Preis"
         packet_price_reason_placeholder: "z.B. Versandkosten, Einkaufsbeteiligung"

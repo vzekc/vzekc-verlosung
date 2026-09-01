@@ -366,12 +366,13 @@ export default class NewLotteryPage extends Component {
 
   // ===== PACKET UPLOAD METHODS =====
   //
-  // All packet callbacks below are keyed by packet.ordinal (stable for the
-  // lifetime of a packet), not by the each-block index. DEditor's toolbar is
-  // only built once per instance (d-editor.gjs setupToolbar), so any closure
-  // over the each-block index goes stale as soon as the packets array is
-  // reshuffled (adding/removing packets, toggling the Abholerpaket). Ordinal
-  // lookup keeps the upload path pointed at the right packet.
+  // All packet callbacks below are keyed by packet.ordinal, not by the
+  // each-block index. DEditor's toolbar is only built once per instance
+  // (d-editor.gjs setupToolbar), so any closure over the each-block index
+  // goes stale as soon as the packets array is reshuffled (adding/removing
+  // packets, toggling the Abholerpaket). The callbacks resolve the packet by
+  // ordinal at call time, so they follow whichever packet currently holds
+  // the ordinal — including after toggleNoAbholerpaket renumbers packets.
 
   getPacketFileInputId(ordinal) {
     return `lottery-packet-${ordinal}-file-uploader`;
@@ -401,15 +402,20 @@ export default class NewLotteryPage extends Component {
 
   @action
   registerPacketFileInput(ordinal, fileInputEl) {
-    if (!this._packetUploaders[ordinal]) {
-      this._packetUploaders[ordinal] = new UppyUpload(getOwner(this), {
-        id: `lottery-packet-${ordinal}-uploader`,
-        type: "composer",
-        uploadDone: (upload) => {
-          this.insertPacketUploadMarkdown(ordinal, upload);
-        },
-      });
-    }
+    // This runs once per rendered file input. A packet with this ordinal may
+    // have been rendered before (e.g. the Abholerpaket was removed and
+    // re-added); tear the previous uploader down so its Uppy instance and
+    // listeners are released before a fresh one is bound to the new element.
+    this._packetUploaders[ordinal]?.teardown();
+    this._packetUppyFiles[ordinal]?.clear();
+
+    this._packetUploaders[ordinal] = new UppyUpload(getOwner(this), {
+      id: `lottery-packet-${ordinal}-uploader`,
+      type: "composer",
+      uploadDone: (upload) => {
+        this.insertPacketUploadMarkdown(ordinal, upload);
+      },
+    });
     this._packetUploaders[ordinal].setup(fileInputEl);
     this._setupPacketPlaceholderHandlers(ordinal);
     this._setupPacketDropHandler(ordinal, fileInputEl);
@@ -420,12 +426,25 @@ export default class NewLotteryPage extends Component {
    */
   _setupPacketDropHandler(ordinal, fileInputEl) {
     const target = fileInputEl.closest(".packet-editor");
-    if (!target || this._packetDropHandlers?.[ordinal]) {
+    if (!target) {
       return;
     }
 
     if (!this._packetDropHandlers) {
       this._packetDropHandlers = {};
+    }
+
+    // A packet with this ordinal may have been re-rendered onto a new DOM
+    // element (e.g. after removing and re-adding the Abholerpaket); detach
+    // the handlers bound to the old element before registering new ones.
+    const existing = this._packetDropHandlers[ordinal];
+    if (existing) {
+      if (existing.target === target) {
+        return;
+      }
+      existing.target.removeEventListener("dragover", existing.dragOverHandler);
+      existing.target.removeEventListener("drop", existing.dropHandler);
+      delete this._packetDropHandlers[ordinal];
     }
 
     const dropHandler = (event) => {
@@ -579,45 +598,12 @@ export default class NewLotteryPage extends Component {
     if (this.packetMode === "ein") {
       // Ein Paket mode: no packet posts needed
       this.packets = [];
+    } else if (!this.noAbholerpaket) {
+      // With Abholerpaket: start with Paket 0 (Abholerpaket) and Paket 1
+      this.packets = [this.createAbholerpaket(), this.createEmptyPacket(1)];
     } else {
-      // Mehrere Pakete mode
-      if (!this.noAbholerpaket) {
-        // With Abholerpaket: start with Paket 0 (Abholerpaket) and Paket 1
-        this.packets = [
-          {
-            title: "",
-            raw: "",
-            erhaltungsberichtNotRequired: false,
-            quantity: 1, // Abholerpaket always has quantity 1
-            priceEuros: "",
-            priceReason: "",
-            isAbholerpaket: true,
-            ordinal: 0,
-          },
-          {
-            title: "",
-            raw: "",
-            erhaltungsberichtNotRequired: false,
-            quantity: 1,
-            priceEuros: "",
-            priceReason: "",
-            ordinal: 1,
-          },
-        ];
-      } else {
-        // Without Abholerpaket: start with just Paket 1
-        this.packets = [
-          {
-            title: "",
-            raw: "",
-            erhaltungsberichtNotRequired: false,
-            quantity: 1,
-            priceEuros: "",
-            priceReason: "",
-            ordinal: 1,
-          },
-        ];
-      }
+      // Without Abholerpaket: start with just Paket 1
+      this.packets = [this.createEmptyPacket(1)];
     }
   }
 
@@ -667,6 +653,26 @@ export default class NewLotteryPage extends Component {
       priceReason: "",
       ordinal,
     };
+  }
+
+  /**
+   * Creates an empty Abholerpaket (Paket 0, always quantity 1)
+   */
+  createAbholerpaket() {
+    return {
+      ...this.createEmptyPacket(0),
+      isAbholerpaket: true,
+    };
+  }
+
+  /**
+   * Whether the user has entered a title or description for the packet
+   */
+  _packetHasContent(packet) {
+    return Boolean(
+      (packet.title && packet.title.trim().length > 0) ||
+        (packet.raw && packet.raw.trim().length > 0)
+    );
   }
 
   /**
@@ -787,11 +793,37 @@ export default class NewLotteryPage extends Component {
     this._scheduleDraftSave();
   }
 
+  /**
+   * Toggle whether the lottery has an Abholerpaket (Paket 0).
+   * Preserves all entered packet content: removing the Abholerpaket converts
+   * it into a regular packet when it has content (renumbering the packets),
+   * and re-enabling it adds an empty Abholerpaket in front of the existing
+   * packets.
+   */
   @action
   toggleNoAbholerpaket(event) {
     this.noAbholerpaket = event.target.checked;
-    // Reinitialize packets when Abholerpaket toggle changes
-    this.initializePackets();
+
+    if (this.noAbholerpaket) {
+      const abholerpaket = this.packets.find((p) => p.isAbholerpaket);
+      const rest = this.packets.filter((p) => !p.isAbholerpaket);
+
+      if (abholerpaket && this._packetHasContent(abholerpaket)) {
+        // Keep the entered content: the Abholerpaket becomes Paket 1
+        const converted = { ...abholerpaket, isAbholerpaket: false };
+        this.packets = [converted, ...rest].map((p, index) => ({
+          ...p,
+          ordinal: index + 1,
+        }));
+      } else if (rest.length > 0) {
+        this.packets = rest;
+      } else {
+        this.packets = [this.createEmptyPacket(1)];
+      }
+    } else if (!this.packets.some((p) => p.isAbholerpaket)) {
+      this.packets = [this.createAbholerpaket(), ...this.packets];
+    }
+
     this._scheduleDraftSave();
   }
 
@@ -841,11 +873,7 @@ export default class NewLotteryPage extends Component {
    */
   hasUnsavedPacketChanges() {
     // Check all packets for user-entered content
-    return this.packets.some(
-      (packet) =>
-        (packet.title && packet.title.trim().length > 0) ||
-        (packet.raw && packet.raw.trim().length > 0)
-    );
+    return this.packets.some((packet) => this._packetHasContent(packet));
   }
 
   /**
@@ -1631,9 +1659,17 @@ export default class NewLotteryPage extends Component {
                     {{#unless packet.isAbholerpaket}}
                       <div class="packet-price-row">
                         <div class="packet-price-input">
-                          <label>{{i18n
-                              "vzekc_verlosung.modal.packet_price_label"
-                            }}</label>
+                          <div class="field-title-with-tooltip">
+                            <label>{{i18n
+                                "vzekc_verlosung.modal.packet_price_label"
+                              }}</label>
+                            <DTooltip
+                              @icon="circle-question"
+                              @content={{i18n
+                                "vzekc_verlosung.modal.packet_price_hint"
+                              }}
+                            />
+                          </div>
                           <input
                             type="number"
                             min="0"

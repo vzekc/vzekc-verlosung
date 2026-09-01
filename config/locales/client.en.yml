@@ -147,6 +147,7 @@ en:
         packet_title_placeholder: "Title (e.g., Commodore C64)"
         packet_quantity_label: "Quantity"
         packet_price_label: "Price (€)"
+        packet_price_hint: "Optional: enter a price only if you have invested money in repairs or upgrades, or want to hand something over at a fixed price. Without a price, the packet is raffled for free."
         packet_price_placeholder: "0.00"
         packet_price_reason_label: "Reason for the price"
         packet_price_reason_placeholder: "e.g. shipping cost, cost split"
