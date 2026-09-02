@@ -144,6 +144,37 @@ RSpec.describe VzekcVerlosung::CreateLottery do
           VzekcVerlosung::LotteryPacket.where(lottery_id: result.lottery.id).order(:ordinal)
         expect(lottery_packets.pluck(:ordinal)).to eq([0, 1, 2])
       end
+
+      it "numbers packets sequentially regardless of submitted ordinals" do
+        packets = [
+          { "title" => "Packet A", "raw" => "Inhalt A", "ordinal" => 1 },
+          {
+            "title" => "Abholerpaket",
+            "raw" => "Inhalt Abholerpaket",
+            "ordinal" => 0,
+            "is_abholerpaket" => true,
+          },
+          { "title" => "Packet B", "raw" => "Inhalt B", "ordinal" => 8 },
+          { "title" => "Packet C", "raw" => "Inhalt C", "ordinal" => 12 },
+        ]
+        params = valid_params.merge(params: valid_params[:params].merge(packets: packets))
+
+        result = described_class.call(**params)
+
+        lottery_packets =
+          VzekcVerlosung::LotteryPacket.where(lottery_id: result.lottery.id).order(:ordinal)
+        expect(lottery_packets.map { |p| [p.ordinal, p.title] }).to eq(
+          [[0, "Abholerpaket"], [1, "Packet A"], [2, "Packet B"], [3, "Packet C"]],
+        )
+        expect(lottery_packets.map { |p| p.post.raw.lines.first.strip }).to eq(
+          [
+            "# Paket 0: Abholerpaket",
+            "# Paket 1: Packet A",
+            "# Paket 2: Packet B",
+            "# Paket 3: Packet C",
+          ],
+        )
+      end
     end
 
     context "with ein paket mode" do

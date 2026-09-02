@@ -161,7 +161,6 @@ module VzekcVerlosung
         )
       else
         # Mehrere Pakete mode: Create packet posts from packets array
-        # The packets array now includes ordinals and is_abholerpaket flags from frontend
 
         # Determine if Abholerpaket should be created
         has_abholerpaket = params.has_abholerpaket.nil? ? true : params.has_abholerpaket
@@ -224,21 +223,26 @@ module VzekcVerlosung
           )
         end
 
-        # Start ordinal at 1 if Abholerpaket exists
-        next_ordinal = has_abholerpaket ? 1 : 1
+        # Packets are numbered on publication: the Abholerpaket is always Paket 0
+        # and the remaining packets get 1, 2, 3, ... in the order they were
+        # submitted. Packets removed while composing therefore leave no gaps.
+        next_ordinal = 1
 
         # Track if we auto-created Abholerpaket above
         auto_created_abholerpaket = has_abholerpaket && !abholerpaket_in_packets
 
-        params.packets.each_with_index do |packet_data, index|
-          is_abholerpaket_packet = packet_data[:is_abholerpaket] || packet_data["is_abholerpaket"]
+        params.packets.each do |packet_data|
+          is_abholerpaket = packet_data[:is_abholerpaket] || packet_data["is_abholerpaket"] || false
           # Skip if this is an Abholerpaket AND we already auto-created one above
-          next if is_abholerpaket_packet && auto_created_abholerpaket
+          next if is_abholerpaket && auto_created_abholerpaket
           packet_title = packet_data[:title] || packet_data["title"]
           packet_raw = packet_data[:raw] || packet_data["raw"] || ""
-          # Auto-assign ordinal if not provided
-          packet_ordinal = packet_data[:ordinal] || packet_data["ordinal"] || (next_ordinal + index)
-          is_abholerpaket = packet_data[:is_abholerpaket] || packet_data["is_abholerpaket"] || false
+          if is_abholerpaket
+            packet_ordinal = 0
+          else
+            packet_ordinal = next_ordinal
+            next_ordinal += 1
+          end
 
           # Use nil check instead of key? to properly handle both string and symbol keys
           erb_value = packet_data[:erhaltungsbericht_required]

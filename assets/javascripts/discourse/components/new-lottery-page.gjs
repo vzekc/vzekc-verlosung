@@ -676,10 +676,20 @@ export default class NewLotteryPage extends Component {
   }
 
   /**
-   * Get packet number for display (1-indexed)
+   * Number the packet receives when the lottery is published: the Abholerpaket
+   * is Paket 0, the other packets are numbered 1, 2, 3, ... in display order.
+   * Ordinals of removed packets are not reused while composing, so the heading
+   * is derived from the packet's position.
+   *
+   * @param {Object} packet
    */
-  getPacketNumber(index) {
-    return index + 1;
+  @action
+  publishedPacketNumber(packet) {
+    if (packet.isAbholerpaket) {
+      return 0;
+    }
+    const regularPackets = this.packets.filter((p) => !p.isAbholerpaket);
+    return regularPackets.findIndex((p) => p.ordinal === packet.ordinal) + 1;
   }
 
   /**
@@ -1569,7 +1579,7 @@ export default class NewLotteryPage extends Component {
             <div class="lottery-packets-section">
               <h3>{{i18n "vzekc_verlosung.modal.packets_label"}}</h3>
               <div class="packets-list">
-                {{#each this.packets key="ordinal" as |packet index|}}
+                {{#each this.packets key="ordinal" as |packet|}}
                   <div
                     class="packet-item
                       {{if packet.isAbholerpaket 'is-abholerpaket'}}"
@@ -1580,7 +1590,7 @@ export default class NewLotteryPage extends Component {
                           {{i18n "vzekc_verlosung.modal.abholerpaket_badge"}}
                         </h4>
                       {{else}}
-                        <h4>Paket {{packet.ordinal}}</h4>
+                        <h4>Paket {{this.publishedPacketNumber packet}}</h4>
                       {{/if}}
                       {{#if (this.canRemovePacket packet)}}
                         <DButton
@@ -1602,7 +1612,6 @@ export default class NewLotteryPage extends Component {
                           }}
                           placeholder={{i18n
                             "vzekc_verlosung.modal.packet_title_placeholder"
-                            number=(this.getPacketNumber index)
                           }}
                           class="packet-title-field"
                         />
