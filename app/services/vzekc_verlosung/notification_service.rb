@@ -909,6 +909,7 @@ module VzekcVerlosung
             "vzekc_verlosung.reminders.onsite_lottery.title",
             locale: @recipient.effective_locale,
             event_name: event.name,
+            days_until: days_until,
           ),
         body:
           I18n.t(
