@@ -2057,6 +2057,21 @@
   .lottery-card__dates {
     display: flex;
     gap: 1.5em;
+
+    // Sorted by "ends soon": the end date leads
+    &--end-first .lottery-card__date--end {
+      order: -1;
+    }
+  }
+
+  .lottery-card__ended-badge {
+    padding: 0.1em 0.5em;
+    border-radius: 0.5em;
+    background: var(--danger-low);
+    color: var(--danger);
+    font-size: 0.85em;
+    font-weight: normal;
+    white-space: nowrap;
   }
 
   // Individual date cell
@@ -2095,10 +2110,10 @@
       }
     }
 
-    // Ended state
+    // Ended state: the badge carries the warning color, the date stays neutral
     &--ended {
       .date-value {
-        color: var(--danger);
+        color: var(--primary-high);
       }
     }
 

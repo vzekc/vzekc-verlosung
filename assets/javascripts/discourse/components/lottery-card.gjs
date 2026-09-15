@@ -144,6 +144,16 @@ export default class LotteryCard extends Component {
   }
 
   /**
+   * Whether the end date is shown before the start date. The list sorted by
+   * "ends soon" puts the date it is sorted by first.
+   *
+   * @returns {boolean}
+   */
+  get endDateFirst() {
+    return !this.args.isFinished && this.lotteryDisplayMode.isSortEndsSoon;
+  }
+
+  /**
    * Count of packets where current user has bought tickets
    *
    * @returns {number} Number of packets with user's tickets
@@ -181,17 +191,14 @@ export default class LotteryCard extends Component {
   }
 
   /**
-   * Formats the end date for display (active lotteries)
+   * Formats the end date for display (active lotteries). After the end the
+   * date stays visible; the countdown turns into the time elapsed since then.
    *
    * @returns {string} Formatted date string
    */
   get formattedEndDate() {
     if (!this.endDate) {
       return "";
-    }
-
-    if (this.hasEnded) {
-      return i18n("vzekc_verlosung.status.ended");
     }
 
     if (this.lotteryDisplayMode.isAbsoluteMode) {
@@ -202,6 +209,8 @@ export default class LotteryCard extends Component {
         hour: "2-digit",
         minute: "2-digit",
       });
+    } else if (this.hasEnded) {
+      return this._formatRelativeDate(this.endDate);
     } else {
       return this._formatRelativeTime(this.endDate);
     }
@@ -265,7 +274,9 @@ export default class LotteryCard extends Component {
     }
 
     if (this.lotteryDisplayMode.isAbsoluteMode) {
-      return this._formatRelativeTime(this.endDate);
+      return this.hasEnded
+        ? this._formatRelativeDate(this.endDate)
+        : this._formatRelativeTime(this.endDate);
     } else {
       return this.endDate.toLocaleDateString("de-DE", {
         weekday: "long",
@@ -439,7 +450,10 @@ export default class LotteryCard extends Component {
           {{/if}}
         </div>
 
-        <div class="lottery-card__dates">
+        <div
+          class="lottery-card__dates
+            {{if this.endDateFirst 'lottery-card__dates--end-first'}}"
+        >
           <div
             class="lottery-card__date lottery-card__date--start"
             title={{this.startDateTooltip}}
@@ -463,6 +477,11 @@ export default class LotteryCard extends Component {
             >
               {{icon "clock"}}
               <span class="date-value">{{this.formattedEndDate}}</span>
+              {{#if this.hasEnded}}
+                <span class="lottery-card__ended-badge">
+                  {{i18n "vzekc_verlosung.status.ended"}}
+                </span>
+              {{/if}}
             </div>
           {{/if}}
         </div>
