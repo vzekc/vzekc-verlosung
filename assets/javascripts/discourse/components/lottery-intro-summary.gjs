@@ -757,6 +757,12 @@ export default class LotteryIntroSummary extends Component {
                     {{i18n "vzekc_verlosung.status.without_tickets"}}
                   </span>
                 {{/if}}
+                {{#if this.topic.lottery_auto_draw}}
+                  <span class="status-item">
+                    {{icon "wand-magic-sparkles"}}
+                    {{i18n "vzekc_verlosung.status.auto_draw"}}
+                  </span>
+                {{/if}}
               </div>
               {{#if
                 (and this.isRunning this.canPublish this.showEndEarlyButton)
@@ -792,6 +798,14 @@ export default class LotteryIntroSummary extends Component {
                   )
                 }}</span>
             </div>
+            {{#if this.topic.lottery_auto_draw}}
+              <div class="auto-draw-pending">
+                {{icon "wand-magic-sparkles"}}
+                <span>{{i18n
+                    "vzekc_verlosung.drawing.auto_draw_pending"
+                  }}</span>
+              </div>
+            {{/if}}
             <DButton
               @action={{this.drawWinners}}
               @translatedLabel={{i18n "vzekc_verlosung.drawing.draw_button"}}

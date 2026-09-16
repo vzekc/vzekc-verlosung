@@ -75,6 +75,16 @@ en:
           Please open the lottery and draw the winners now.
 
           **[→ Open lottery and draw winners](%{topic_url})**
+      lottery_auto_drawn:
+        title: "The winners of your lottery have been drawn automatically"
+        body: |
+          Hello %{username},
+
+          Your lottery **[%{topic_title}](%{topic_url})** has ended on %{ended_at}. As chosen when the lottery was created, the winners have been drawn automatically and notified.
+
+          Please open the lottery to see the results and ship the packets.
+
+          **[→ Open lottery](%{topic_url})**
       merch_packet_ready:
         title: "Please ship merch packet: %{topic_title}"
         body: |
@@ -274,3 +284,4 @@ en:
       packet_title_too_short: "Packet title must be at least %{minimum} non-whitespace characters long."
       cannot_delete_packet_post: "Cannot delete this post. It is Packet %{ordinal} (%{title}) in a lottery. To remove this packet, delete the entire lottery topic."
       cannot_change_lottery_category: "Cannot change the category of a lottery topic."
+      auto_draw_requires_automatic: "Drawing the winners automatically when the lottery ends is only available with the automatic drawing mode."

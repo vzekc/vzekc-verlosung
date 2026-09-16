@@ -296,7 +296,7 @@ module VzekcVerlosung
 
       # Verify results by re-running drawing server-side
       begin
-        drawing_data = fetch_drawing_data_for_verification(lottery)
+        drawing_data = DrawLottery.drawing_data(lottery)
         server_results = VzekcVerlosung::JavascriptLotteryDrawer.draw(drawing_data)
 
         # Compare client and server results
@@ -335,59 +335,12 @@ module VzekcVerlosung
         )
       end
 
-      # Store verified results
-      results = server_results # Use server results as source of truth
-      drawn_at = Time.zone.now
-
-      # Update lottery state
-      lottery.finish!
-      lottery.mark_drawn!(results)
-
-      # Store winners on each packet and set packet state
-      # Drawings and packets arrays are in the same order, so use index to match
-      results["drawings"].each_with_index do |drawing, index|
-        # Get packet ID from the packets array at the same index
-        packet_data = results["packets"][index]
-        next unless packet_data
-
-        # Find the packet by post_id (stored as "id" in results)
-        packet = lottery.lottery_packets.find { |p| p.post_id == packet_data["id"] }
-        next unless packet
-
-        # Handle array of winners
-        winners = drawing["winners"] || []
-
-        if winners.compact.any?
-          # Mark packet as drawn
-          packet.mark_drawn!
-
-          winners.each_with_index do |winner_username, instance_idx|
-            next if winner_username.blank?
-            winner_user = User.find_by(username: winner_username)
-            if winner_user
-              packet.mark_winner!(winner_user, drawn_at, instance_number: instance_idx + 1)
-            end
-          end
-        else
-          # No winners means no tickets were bought for this packet
-          packet.mark_no_tickets!
-        end
+      # The server results are the source of truth
+      begin
+        DrawLottery.apply_results!(lottery, server_results)
+      rescue DrawLottery::AlreadyDrawnError
+        return render_json_error("Lottery has already been drawn", status: :unprocessable_entity)
       end
-
-      # Mark any remaining packets (not in results) as no_tickets
-      lottery
-        .lottery_packets
-        .where(abholerpaket: false, state: "pending")
-        .find_each { |packet| packet.mark_no_tickets! }
-
-      # Notify all participants that winners have been drawn
-      notify_lottery_drawn(topic)
-
-      # Send special notification to winners
-      notify_winners(topic, results)
-
-      # Send notification to participants who didn't win anything
-      notify_non_winners(topic, results)
 
       head :no_content
     end
@@ -489,59 +442,34 @@ module VzekcVerlosung
         end
       end
 
-      # All validations passed - mark winners and finish lottery
-      drawn_at = Time.zone.now
+      # All validations passed - build the results in the same shape as lottery.js
       drawings = []
       packets_data = []
 
       packets_with_participants.each do |packet|
-        selected_user_ids = Array(selections[packet.post_id.to_s]).map(&:to_i)
-        winner_usernames = []
+        winner_usernames =
+          Array(selections[packet.post_id.to_s]).map { |id| User.find(id.to_i).username }
 
-        # Mark packet as drawn since it has winners
-        packet.mark_drawn!
-
-        selected_user_ids.each_with_index do |winner_user_id, instance_idx|
-          winner_user = User.find(winner_user_id)
-          packet.mark_winner!(winner_user, drawn_at, instance_number: instance_idx + 1)
-          winner_usernames << winner_user.username
-        end
-
-        # Build results entry for this drawing
         drawings << {
           "text" => packet.title,
           "quantity" => packet.quantity,
           "winners" => winner_usernames,
         }
-        # Include packet data for notify_winners to match by index
         packets_data << { "id" => packet.post_id, "title" => packet.title }
       end
 
-      # Mark packets without participants as no_tickets
-      packets_without_participants =
-        lottery_packets.reject { |p| packets_with_participants.include?(p) }
-      packets_without_participants.each(&:mark_no_tickets!)
-
-      # Build results hash (simplified version without RNG seed since it's manual)
       results = {
         "manual" => true,
         "drawings" => drawings,
         "packets" => packets_data,
-        "drawn_at" => drawn_at.iso8601,
+        "drawn_at" => Time.zone.now.iso8601,
       }
 
-      # Update lottery state
-      lottery.finish!
-      lottery.mark_drawn!(results)
-
-      # Notify all participants that winners have been drawn
-      notify_lottery_drawn(topic)
-
-      # Send special notification to winners
-      notify_winners(topic, results)
-
-      # Send notification to participants who didn't win anything
-      notify_non_winners(topic, results)
+      begin
+        DrawLottery.apply_results!(lottery, results)
+      rescue DrawLottery::AlreadyDrawnError
+        return render_json_error("Lottery has already been drawn", status: :unprocessable_entity)
+      end
 
       head :no_content
     end
@@ -655,6 +583,7 @@ module VzekcVerlosung
         :abholerpaket_title,
         :abholerpaket_erhaltungsbericht_required,
         :drawing_mode,
+        :auto_draw,
         :donation_id,
         packets: %i[
           title
@@ -671,44 +600,6 @@ module VzekcVerlosung
 
     def serialize_topic(topic)
       { id: topic.id, title: topic.title, url: topic.url, slug: topic.slug }
-    end
-
-    # Fetches drawing data in the format expected by lottery.js
-    # This is similar to drawing_data endpoint but doesn't require permissions
-    def fetch_drawing_data_for_verification(lottery)
-      topic = lottery.topic
-
-      # Get all lottery packets with tickets (excluding Abholerpaket which is already assigned)
-      lottery_packets =
-        lottery
-          .lottery_packets
-          .where(abholerpaket: false)
-          .joins(:post)
-          .includes(lottery_tickets: :user)
-          .order("posts.post_number")
-
-      packets =
-        lottery_packets.map do |packet|
-          tickets = packet.lottery_tickets
-
-          participants =
-            tickets
-              .group_by(&:user)
-              .map { |user, user_tickets| { name: user.username, tickets: user_tickets.count } }
-
-          {
-            id: packet.post_id,
-            title: packet.title,
-            participants: participants,
-            quantity: packet.quantity,
-          }
-        end
-
-      # Calculate published_at from ends_at and duration
-      duration_days = lottery.duration_days || 14
-      published_at = lottery.ends_at ? lottery.ends_at - duration_days.days : topic.created_at
-
-      { title: topic.title, timestamp: published_at.iso8601, packets: packets }
     end
 
     # Compares client results with server results
@@ -738,158 +629,6 @@ module VzekcVerlosung
       end
 
       true
-    end
-
-    # Notify all users with tickets that winners have been drawn
-    def notify_lottery_drawn(topic)
-      participant_user_ids = get_lottery_participant_user_ids(topic)
-      recipients = User.where(id: participant_user_ids)
-
-      NotificationService.notify_batch(
-        :lottery_drawn,
-        recipients: recipients,
-        context: {
-          topic: topic,
-        },
-      )
-    end
-
-    # Notify winners that they won a packet
-    def notify_winners(topic, results)
-      lottery = Lottery.find_by(topic_id: topic.id)
-      return unless lottery
-
-      tickets_by_user = build_tickets_by_user(topic)
-
-      # Group drawings by winner to send one message per winner with all packets won
-      winners_packets = Hash.new { |h, k| h[k] = [] }
-      won_titles_by_user = Hash.new { |h, k| h[k] = Set.new }
-
-      results["drawings"].each_with_index do |drawing, index|
-        packet_title = drawing["text"]
-        winner_usernames = drawing["winners"] || []
-
-        # Find the packet by post_id using index to match with packets array
-        packet_data = results["packets"][index]
-        next unless packet_data
-
-        lottery_packet = lottery.lottery_packets.find { |p| p.post_id == packet_data["id"] }
-        next unless lottery_packet
-
-        packet_post = lottery_packet.post
-        post_number = packet_post ? packet_post.post_number : 1
-
-        # Process each winner for this packet
-        winner_usernames.each_with_index do |winner_username, instance_idx|
-          next if winner_username.blank?
-
-          winner_user = User.find_by(username: winner_username)
-          next unless winner_user
-
-          won_titles_by_user[winner_user.id] << lottery_packet.title
-          lost_packet_titles =
-            (tickets_by_user[winner_user.id] || []) - won_titles_by_user[winner_user.id].to_a
-
-          # Create in-app notification via NotificationService
-          NotificationService.notify(
-            :lottery_won,
-            recipient: winner_user,
-            context: {
-              topic: topic,
-              packet: lottery_packet,
-              instance_number: instance_idx + 1,
-              total_instances: winner_usernames.length,
-              lost_packet_titles: lost_packet_titles,
-            },
-          )
-
-          # Collect packet info for PM
-          winners_packets[winner_user] << {
-            title: packet_title,
-            instance_number: instance_idx + 1,
-            total_instances: winner_usernames.length,
-            post_number: post_number,
-            post: packet_post,
-          }
-        end
-      end
-
-      # Send personal message to each winner with all their packets
-      winners_packets.each do |winner_user, packets|
-        service =
-          NotificationService.notify_and_return(
-            :winner_pm,
-            recipient: winner_user,
-            context: {
-              topic: topic,
-              packets: packets,
-            },
-          )
-
-        # Store the PM topic_id on all winner records for this user in this lottery
-        pm_topic_id = service.pm_post&.topic_id
-        if pm_topic_id
-          LotteryPacketWinner
-            .joins(:lottery_packet)
-            .where(
-              winner_user_id: winner_user.id,
-              vzekc_verlosung_lottery_packets: {
-                lottery_id: lottery.id,
-              },
-            )
-            .update_all(winner_pm_topic_id: pm_topic_id)
-        end
-      end
-    end
-
-    # Notify participants who didn't win anything
-    def notify_non_winners(topic, results)
-      # Get all winner usernames from all drawings
-      winner_usernames = results["drawings"].flat_map { |drawing| drawing["winners"] || [] }.compact
-
-      # Get all participants
-      participant_user_ids = get_lottery_participant_user_ids(topic)
-
-      # Get non-winner users
-      non_winners =
-        User.where(id: participant_user_ids).reject { |u| winner_usernames.include?(u.username) }
-
-      tickets_by_user = build_tickets_by_user(topic)
-
-      non_winners.each do |user|
-        packet_titles = tickets_by_user[user.id] || []
-        NotificationService.notify(
-          :did_not_win,
-          recipient: user,
-          context: {
-            topic: topic,
-            packet_titles: packet_titles,
-          },
-        )
-      end
-    end
-
-    # Returns { user_id => ["Packet Title A", "Packet Title B"], ... }
-    def build_tickets_by_user(topic)
-      VzekcVerlosung::LotteryTicket
-        .joins(:post)
-        .joins(
-          "INNER JOIN vzekc_verlosung_lottery_packets ON vzekc_verlosung_lottery_packets.post_id = posts.id",
-        )
-        .where(posts: { topic_id: topic.id })
-        .where("vzekc_verlosung_lottery_packets.abholerpaket = false")
-        .pluck(:user_id, "vzekc_verlosung_lottery_packets.title")
-        .group_by(&:first)
-        .transform_values { |pairs| pairs.map(&:last) }
-    end
-
-    # Get all unique user IDs who have tickets in this lottery
-    def get_lottery_participant_user_ids(topic)
-      VzekcVerlosung::LotteryTicket
-        .joins(:post)
-        .where(posts: { topic_id: topic.id })
-        .distinct
-        .pluck(:user_id)
     end
   end
 end

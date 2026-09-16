@@ -31,6 +31,7 @@ module VzekcVerlosung
       attribute :abholerpaket_title, :string
       attribute :abholerpaket_erhaltungsbericht_required, :boolean
       attribute :drawing_mode, :string
+      attribute :auto_draw, :boolean, default: false
       attribute :donation_id, :integer
 
       validates :title, presence: true, length: { minimum: 3, maximum: 255 }
@@ -46,6 +47,9 @@ module VzekcVerlosung
       validates :packet_mode, inclusion: { in: %w[ein mehrere] }, allow_nil: true
       validates :drawing_mode, inclusion: { in: %w[automatic manual] }, allow_nil: true
 
+      # Only the RNG-based drawing can run unattended when the lottery ends
+      validate :auto_draw_requires_automatic_drawing
+
       # Packets validation depends on packet_mode
       # For "ein" mode: packets can be empty
       # For "mehrere" mode: at least one packet required
@@ -55,6 +59,11 @@ module VzekcVerlosung
                   minimum: 1,
                 },
                 if: -> { (packet_mode || "mehrere") == "mehrere" }
+
+      def auto_draw_requires_automatic_drawing
+        return unless auto_draw && drawing_mode == "manual"
+        errors.add(:auto_draw, I18n.t("vzekc_verlosung.errors.auto_draw_requires_automatic"))
+      end
     end
 
     model :category
@@ -119,6 +128,7 @@ module VzekcVerlosung
           state: "active",
           duration_days: params.duration_days,
           drawing_mode: params.drawing_mode || "automatic",
+          auto_draw: params.auto_draw,
           packet_mode: params.packet_mode || "mehrere",
           donation_id: params.donation_id,
           ends_at: ends_at,

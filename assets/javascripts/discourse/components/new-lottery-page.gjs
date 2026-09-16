@@ -49,6 +49,7 @@ export default class NewLotteryPage extends Component {
   @tracked body = "";
   @tracked durationDays = 14;
   @tracked drawingMode = "automatic";
+  @tracked autoDraw = false;
   @tracked packetMode = "mehrere"; // "ein" or "mehrere"
   @tracked noAbholerpaket = false;
   @tracked abholerpaketTitle = "";
@@ -748,6 +749,36 @@ export default class NewLotteryPage extends Component {
     this._scheduleDraftSave();
   }
 
+  /**
+   * Track the selected drawing mode so the auto-draw option is only offered
+   * for automatic drawings, then auto-save.
+   *
+   * @param {Event} event change event of the drawing mode select
+   */
+  @action
+  onDrawingModeChange(event) {
+    this.drawingMode = event.target.value;
+    this._scheduleDraftSave();
+  }
+
+  /**
+   * @returns {Boolean} true when the drawing runs unattended at the end
+   */
+  get autoDrawAvailable() {
+    return this.drawingMode === "automatic";
+  }
+
+  /**
+   * Record whether the winners are drawn by the system at the end and auto-save.
+   *
+   * @param {Event} event change event of the auto-draw checkbox
+   */
+  @action
+  toggleAutoDraw(event) {
+    this.autoDraw = event.target.checked;
+    this._scheduleDraftSave();
+  }
+
   @action
   validateDuration(name, value, { addError }) {
     const duration = parseInt(value, 10);
@@ -1015,6 +1046,7 @@ export default class NewLotteryPage extends Component {
               : this.template;
           this.durationDays = draft.metaData.lottery_duration_days || 14;
           this.drawingMode = draft.metaData.lottery_drawing_mode || "automatic";
+          this.autoDraw = draft.metaData.lottery_auto_draw === true;
           this.draftSequence = result.draft_sequence || 0;
 
           // Restore donation_id from draft if not set from URL
@@ -1132,6 +1164,7 @@ export default class NewLotteryPage extends Component {
         metaData: {
           lottery_duration_days: durationDays,
           lottery_drawing_mode: drawingMode,
+          lottery_auto_draw: this.autoDrawAvailable && this.autoDraw,
           packet_mode: this.packetMode,
           lottery_packets: normalizedPackets,
           single_packet_erhaltungsbericht_not_required:
@@ -1287,6 +1320,7 @@ export default class NewLotteryPage extends Component {
         category_id: this.lotteryCategoryId,
         duration_days: data.durationDays,
         drawing_mode: data.drawingMode,
+        auto_draw: data.drawingMode === "automatic" && this.autoDraw,
         packet_mode: this.packetMode,
         packets,
       };
@@ -1463,7 +1497,7 @@ export default class NewLotteryPage extends Component {
                   />
                 </div>
                 <field.Select
-                  {{on "change" this.onFormFieldChange}}
+                  {{on "change" this.onDrawingModeChange}}
                   as |select|
                 >
                   {{#each this.drawingModeOptions as |option|}}
@@ -1475,6 +1509,22 @@ export default class NewLotteryPage extends Component {
               </div>
             </form.Field>
           </div>
+
+          {{#if this.autoDrawAvailable}}
+            <div class="lottery-auto-draw-setting">
+              <label class="checkbox-label">
+                <input
+                  type="checkbox"
+                  {{on "change" this.toggleAutoDraw}}
+                  checked={{this.autoDraw}}
+                />
+                {{i18n "vzekc_verlosung.composer.auto_draw_label"}}
+              </label>
+              <div class="auto-draw-help">
+                {{i18n "vzekc_verlosung.composer.auto_draw_help"}}
+              </div>
+            </div>
+          {{/if}}
 
           <form.Field
             @name="body"

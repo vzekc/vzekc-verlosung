@@ -44,6 +44,10 @@ module VzekcVerlosung
         delivery: :pm,
         template: "notifications.lottery_ended",
       },
+      lottery_auto_drawn: {
+        delivery: :pm,
+        template: "notifications.lottery_auto_drawn",
+      },
       # PM notifications (12)
       winner_pm: {
         delivery: :pm,
@@ -331,6 +335,8 @@ module VzekcVerlosung
         build_merch_packet_ready_pm_data
       when :lottery_ended
         build_lottery_ended_pm_data
+      when :lottery_auto_drawn
+        build_lottery_auto_drawn_pm_data
       when :onsite_lottery_reminder
         build_onsite_lottery_reminder_pm_data
       end
@@ -885,6 +891,32 @@ module VzekcVerlosung
         body:
           I18n.t(
             "vzekc_verlosung.notifications.lottery_ended.body",
+            locale: @recipient.effective_locale,
+            username: @recipient.username,
+            topic_title: topic.title,
+            ended_at: lottery.ends_at.strftime("%d.%m.%Y"),
+            topic_url: "#{Discourse.base_url}#{topic.relative_url}",
+          ),
+        subtype: TopicSubtype.system_message,
+      }
+    end
+
+    def build_lottery_auto_drawn_pm_data
+      lottery = @context[:lottery]
+      topic = lottery&.topic
+
+      return nil unless topic && lottery&.ends_at
+
+      {
+        sender: Discourse.system_user,
+        title:
+          I18n.t(
+            "vzekc_verlosung.notifications.lottery_auto_drawn.title",
+            locale: @recipient.effective_locale,
+          ),
+        body:
+          I18n.t(
+            "vzekc_verlosung.notifications.lottery_auto_drawn.body",
             locale: @recipient.effective_locale,
             username: @recipient.username,
             topic_title: topic.title,

@@ -7,6 +7,10 @@ module Jobs
     def execute(args)
       return unless SiteSetting.vzekc_verlosung_enabled
 
+      # Lotteries that draw on end are normally drawn by the job scheduled for
+      # their deadline; this catches any that job missed, within the hour.
+      draw_auto_draw_lotteries
+
       # Only run at configured hour (server local time)
       return unless Time.zone.now.hour == (SiteSetting.vzekc_verlosung_reminder_hour || 7)
 
@@ -49,6 +53,16 @@ module Jobs
             },
           )
         end
+    end
+
+    private
+
+    def draw_auto_draw_lotteries
+      VzekcVerlosung::Lottery
+        .ready_to_draw
+        .where(auto_draw: true, drawing_mode: "automatic")
+        .includes(:topic)
+        .find_each { |lottery| VzekcVerlosung::DrawLottery.auto_draw!(lottery) }
     end
   end
 end

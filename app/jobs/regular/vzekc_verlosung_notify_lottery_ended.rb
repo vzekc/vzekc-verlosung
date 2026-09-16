@@ -21,6 +21,10 @@ module Jobs
       owner = topic.user
       return unless owner
 
+      # Lotteries configured to draw on end are drawn right away; the owner is
+      # only asked to draw when the automatic drawing did not go through.
+      return if VzekcVerlosung::DrawLottery.auto_draw!(lottery)
+
       # Dedup: skip if we already sent this notification for this lottery
       already_sent =
         VzekcVerlosung::NotificationLog.exists?(

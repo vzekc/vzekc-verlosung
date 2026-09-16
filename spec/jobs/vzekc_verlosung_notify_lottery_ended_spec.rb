@@ -125,6 +125,43 @@ describe Jobs::VzekcVerlosungNotifyLotteryEnded do
       end
     end
 
+    context "when lottery draws automatically on end" do
+      let!(:lottery) do
+        VzekcVerlosung::Lottery.create!(
+          topic_id: topic.id,
+          state: "active",
+          duration_days: 14,
+          ends_at: 1.hour.ago,
+          auto_draw: true,
+        )
+      end
+
+      it "draws the lottery and does not ask the owner to draw" do
+        allow(VzekcVerlosung::DrawLottery).to receive(:auto_draw!).with(lottery).and_return(true)
+
+        described_class.new.execute(lottery_id: lottery.id)
+
+        expect(VzekcVerlosung::DrawLottery).to have_received(:auto_draw!)
+        expect(VzekcVerlosung::NotificationLog.exists?(notification_type: "lottery_ended")).to eq(
+          false,
+        )
+      end
+
+      it "asks the owner to draw when the automatic drawing fails" do
+        allow(VzekcVerlosung::DrawLottery).to receive(:auto_draw!).with(lottery).and_return(false)
+
+        described_class.new.execute(lottery_id: lottery.id)
+
+        expect(
+          VzekcVerlosung::NotificationLog.exists?(
+            notification_type: "lottery_ended",
+            recipient_user_id: owner.id,
+            success: true,
+          ),
+        ).to eq(true)
+      end
+    end
+
     context "when notification was already sent (dedup)" do
       let!(:lottery) do
         VzekcVerlosung::Lottery.create!(

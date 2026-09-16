@@ -322,6 +322,19 @@
       }
     }
 
+    .auto-draw-pending {
+      display: flex;
+      align-items: center;
+      margin-bottom: 1em;
+      color: var(--primary-medium);
+      font-size: 0.95em;
+
+      .d-icon {
+        margin-right: 0.5em;
+        color: var(--tertiary);
+      }
+    }
+
     .lottery-draw-button {
       width: 100%;
     }
@@ -1269,6 +1282,35 @@
     input[type="number"],
     select {
       width: 100% !important;
+    }
+  }
+
+  // Opt-in drawing at the end of the lottery, offered for automatic drawings
+  .lottery-auto-draw-setting {
+    padding: 1em;
+    margin-bottom: 1.5em;
+    background: var(--secondary);
+    border: 1px solid var(--primary-low);
+    border-radius: 6px;
+
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      font-weight: normal;
+      cursor: pointer;
+      margin: 0;
+
+      input[type="checkbox"] {
+        margin-right: 0.5em;
+        cursor: pointer;
+      }
+    }
+
+    .auto-draw-help {
+      margin-top: 0.5em;
+      font-size: 0.9em;
+      color: var(--primary-medium);
+      line-height: 1.4;
     }
   }
 

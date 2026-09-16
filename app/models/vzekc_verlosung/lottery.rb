@@ -52,6 +52,12 @@ module VzekcVerlosung
       drawing_mode == "manual"
     end
 
+    # True when the winners are drawn by the system as soon as the lottery ends.
+    # Only automatic (RNG-based) drawings can run unattended.
+    def auto_draws_on_end?
+      auto_draw && automatic_drawing?
+    end
+
     # Transition methods
     def finish!
       update!(state: "finished")
@@ -171,6 +177,7 @@ end
 # Table name: vzekc_verlosung_lotteries
 #
 #  id                       :bigint           not null, primary key
+#  auto_draw                :boolean          default(FALSE), not null
 #  drawing_mode             :string           default("automatic"), not null
 #  drawn_at                 :datetime
 #  duration_days            :integer

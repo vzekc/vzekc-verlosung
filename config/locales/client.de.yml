@@ -119,6 +119,8 @@ de:
         drawing_mode_hint: "Bei manueller Auswahl bitte in der Beschreibung erklären"
         drawing_mode_automatic: "Automatisch (deterministischer RNG)"
         drawing_mode_manual: "Manuell (du wählst die Gewinner aus)"
+        auto_draw_label: "Gewinner automatisch ziehen, wenn die Verlosung endet"
+        auto_draw_help: "Die Ziehung wird zum Ende der Verlosung vom System durchgeführt und die Gewinner werden sofort benachrichtigt. Ohne diese Option ziehst du die Gewinner selbst, sobald die Verlosung beendet ist."
         template: |
           # Verlosungsbeschreibung
 
@@ -229,6 +231,7 @@ de:
         ending: "Beende..."
       drawing:
         ready: "Losziehung beendet - bereit zur %{mode} Auslosung"
+        auto_draw_pending: "Die Gewinner werden in Kürze automatisch gezogen. Du kannst die Ziehung auch jetzt selbst starten."
         draw_button: "Gewinner ziehen"
         mode_automatic: "automatischen"
         mode_manual: "manuellen"
@@ -352,6 +355,7 @@ de:
         participants: "Teilnehmer"
         tickets: "Lose"
         without_tickets: "ohne Lose"
+        auto_draw: "Automatische Ziehung zum Ende"
       history:
         title: "Statistik"
         description: "Übersicht über alle abgeschlossenen Verlosungen mit Gewinnern und Erhaltungsberichten"
@@ -617,6 +621,7 @@ de:
             new_pickup_offer: "Neues Abholangebot"
             new_lottery_interest: "Neues Verlosungsinteresse"
             lottery_ended: "Verlosung beendet (PN)"
+            lottery_auto_drawn: "Automatisch gezogen (PN)"
             onsite_lottery_reminder: "Präsenzverlosungs-Erinnerung"
       user_stats:
         nav_title: "Verlosungen"

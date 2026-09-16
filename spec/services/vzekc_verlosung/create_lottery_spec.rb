@@ -90,6 +90,33 @@ RSpec.describe VzekcVerlosung::CreateLottery do
         expect(lottery.drawing_mode).to eq("manual")
       end
 
+      it "creates lottery without automatic drawing on end by default" do
+        result = described_class.call(**valid_params)
+
+        lottery = VzekcVerlosung::Lottery.find_by(topic_id: result.main_topic.id)
+        expect(lottery.auto_draw).to eq(false)
+      end
+
+      it "creates lottery with automatic drawing on end when requested" do
+        auto_params = valid_params.merge(params: valid_params[:params].merge(auto_draw: true))
+        result = described_class.call(**auto_params)
+
+        lottery = VzekcVerlosung::Lottery.find_by(topic_id: result.main_topic.id)
+        expect(lottery.auto_draw).to eq(true)
+        expect(lottery.auto_draws_on_end?).to eq(true)
+      end
+
+      it "rejects automatic drawing on end for manual drawing mode" do
+        manual_auto_params =
+          valid_params.merge(
+            params: valid_params[:params].merge(drawing_mode: "manual", auto_draw: true),
+          )
+        result = described_class.call(**manual_auto_params)
+
+        expect(result).to be_failure
+        expect(Topic.count).to eq(0)
+      end
+
       it "creates packet posts in the main topic" do
         result = described_class.call(**valid_params)
 

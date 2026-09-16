@@ -91,6 +91,8 @@ en:
         drawing_mode_hint: "For manual selection, explain in description how you'll choose"
         drawing_mode_automatic: "Automatic (deterministic RNG)"
         drawing_mode_manual: "Manual (you select winners)"
+        auto_draw_label: "Draw winners automatically when the lottery ends"
+        auto_draw_help: "The system performs the drawing as soon as the lottery ends and notifies the winners right away. Without this option, you draw the winners yourself once the lottery has ended."
         template: |
           # Lottery Description
 
@@ -201,6 +203,7 @@ en:
         ending: "Ending..."
       drawing:
         ready: "Ticket registration ended - ready for %{mode} drawing"
+        auto_draw_pending: "The winners will be drawn automatically shortly. You can also start the drawing yourself now."
         draw_button: "Draw Winners"
         mode_automatic: "automatic"
         mode_manual: "manual"
@@ -322,6 +325,7 @@ en:
         participants: "participants"
         tickets: "tickets"
         without_tickets: "without tickets"
+        auto_draw: "Drawn automatically at the end"
       history:
         title: "Lottery History"
         description: "Overview of all completed lotteries with winners and reception reports"
@@ -571,6 +575,7 @@ en:
             new_pickup_offer: "New pickup offer"
             new_lottery_interest: "New lottery interest"
             lottery_ended: "Lottery ended (PM)"
+            lottery_auto_drawn: "Drawn automatically (PM)"
             onsite_lottery_reminder: "On-site lottery reminder"
       user_stats:
         nav_title: "Lotteries"

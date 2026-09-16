@@ -75,6 +75,16 @@ de:
           Bitte öffne die Verlosung und ziehe jetzt die Gewinner.
 
           **[→ Verlosung öffnen und Gewinner ziehen](%{topic_url})**
+      lottery_auto_drawn:
+        title: "Die Gewinner deiner Verlosung wurden automatisch gezogen"
+        body: |
+          Hallo %{username},
+
+          Deine Verlosung **[%{topic_title}](%{topic_url})** ist am %{ended_at} beendet. Wie bei der Erstellung festgelegt, wurden die Gewinner automatisch gezogen und benachrichtigt.
+
+          Bitte öffne die Verlosung, um die Ergebnisse zu sehen und die Pakete zu versenden.
+
+          **[→ Verlosung öffnen](%{topic_url})**
       merch_packet_ready:
         title: "Bitte Merch-Paket versenden: %{topic_title}"
         body: |
@@ -284,3 +294,4 @@ de:
       packet_title_too_short: "Paket Titel muss mindestens %{minimum} Zeichen (ohne Leerzeichen) lang sein."
       cannot_delete_packet_post: "Dieser Beitrag kann nicht gelöscht werden. Es ist Paket %{ordinal} (%{title}) in einer Verlosung. Um dieses Paket zu entfernen, lösche das gesamte Verlosungs-Thema."
       cannot_change_lottery_category: "Die Kategorie eines Verlosungs-Themas kann nicht geändert werden."
+      auto_draw_requires_automatic: "Die automatische Ziehung zum Ende der Verlosung ist nur im automatischen Ziehungsmodus möglich."

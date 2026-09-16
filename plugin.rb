@@ -17,6 +17,7 @@ register_asset "stylesheets/my-lotteries.scss"
 
 register_svg_icon "trophy"
 register_svg_icon "dice"
+register_svg_icon "wand-magic-sparkles"
 register_svg_icon "clock"
 register_svg_icon "pen"
 register_svg_icon "file"
@@ -528,6 +529,11 @@ after_initialize do
   add_to_serializer(:topic_view, :lottery_drawing_mode) do
     lottery = VzekcVerlosung::Lottery.find_by(topic_id: object.topic.id)
     lottery&.drawing_mode
+  end
+
+  add_to_serializer(:topic_view, :lottery_auto_draw) do
+    lottery = VzekcVerlosung::Lottery.find_by(topic_id: object.topic.id)
+    lottery&.auto_draws_on_end? || false
   end
 
   add_to_serializer(:topic_view, :lottery_packet_mode) do
