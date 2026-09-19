@@ -395,4 +395,107 @@ describe VzekcVerlosung::TicketsController do
       end
     end
   end
+
+  describe "#erhaltungsbericht_draft" do
+    fab!(:other_user, :user)
+    fab!(:erhaltungsberichte_category, :category)
+    let!(:lottery_post) { Fabricate(:post, topic: topic, user: admin) }
+    let!(:lottery_packet) do
+      VzekcVerlosung::LotteryPacket.create!(
+        lottery_id: lottery.id,
+        post_id: lottery_post.id,
+        ordinal: 1,
+        title: "Test Packet",
+        erhaltungsbericht_required: true,
+        abholerpaket: false,
+      )
+    end
+    let!(:winner_entry) do
+      VzekcVerlosung::LotteryPacketWinner.create!(
+        lottery_packet: lottery_packet,
+        winner_user_id: user.id,
+        instance_number: 1,
+        won_at: 2.days.ago,
+        collected_at: 1.day.ago,
+        fulfillment_state: "received",
+      )
+    end
+
+    before do
+      SiteSetting.vzekc_verlosung_erhaltungsberichte_category_id =
+        erhaltungsberichte_category.id.to_s
+    end
+
+    context "when user is not logged in" do
+      it "returns 403" do
+        get "/vzekc-verlosung/packets/#{lottery_post.id}/erhaltungsbericht-draft.json"
+        expect(response.status).to eq(403)
+      end
+    end
+
+    context "when the winner requests the draft" do
+      before { sign_in(user) }
+
+      it "returns the composer payload" do
+        get "/vzekc-verlosung/packets/#{lottery_post.id}/erhaltungsbericht-draft.json"
+
+        expect(response.status).to eq(200)
+        json = response.parsed_body
+        expect(json["category_id"]).to eq(erhaltungsberichte_category.id)
+        expect(json["title"]).to eq("Test Packet aus #{topic.title}")
+        expect(json["packet_post_id"]).to eq(lottery_post.id)
+        expect(json["packet_topic_id"]).to eq(topic.id)
+        expect(json["instance_number"]).to eq(1)
+        expect(json["packet_url"]).to eq("#{topic.relative_url}/#{lottery_post.post_number}")
+      end
+
+      it "returns the lottery title alone in single packet mode" do
+        lottery.update!(packet_mode: "ein")
+
+        get "/vzekc-verlosung/packets/#{lottery_post.id}/erhaltungsbericht-draft.json"
+
+        expect(response.parsed_body["title"]).to eq(topic.title)
+      end
+
+      it "returns the existing report when one was already written" do
+        report = Fabricate(:topic, user: user, category: erhaltungsberichte_category)
+        winner_entry.link_report!(report)
+
+        get "/vzekc-verlosung/packets/#{lottery_post.id}/erhaltungsbericht-draft.json"
+
+        expect(response.status).to eq(200)
+        expect(response.parsed_body["existing_topic_url"]).to eq(report.relative_url)
+      end
+
+      it "returns 422 when the packet is not collected yet" do
+        winner_entry.update!(fulfillment_state: "won", collected_at: nil)
+
+        get "/vzekc-verlosung/packets/#{lottery_post.id}/erhaltungsbericht-draft.json"
+
+        expect(response.status).to eq(422)
+      end
+
+      it "returns 422 when the Erhaltungsberichte category is not configured" do
+        SiteSetting.vzekc_verlosung_erhaltungsberichte_category_id = ""
+
+        get "/vzekc-verlosung/packets/#{lottery_post.id}/erhaltungsbericht-draft.json"
+
+        expect(response.status).to eq(422)
+      end
+
+      it "returns 404 when the post does not exist" do
+        get "/vzekc-verlosung/packets/999999/erhaltungsbericht-draft.json"
+        expect(response.status).to eq(404)
+      end
+    end
+
+    context "when a non-winner requests the draft" do
+      before { sign_in(other_user) }
+
+      it "returns 403" do
+        get "/vzekc-verlosung/packets/#{lottery_post.id}/erhaltungsbericht-draft.json"
+        expect(response.status).to eq(403)
+      end
+    end
+  end
 end

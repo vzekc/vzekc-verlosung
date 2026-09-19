@@ -206,7 +206,7 @@ de:
 
           Denke bitte daran, einen Erhaltungsbericht zu schreiben, in dem du beschreibst, was du erhalten hast.
 
-          Bitte klicke auf den Button "Erhaltungsbericht schreiben" beim Paket-Beitrag, um deinen Bericht zu erstellen.
+          **[Erhaltungsbericht jetzt schreiben](%{write_report_url})** — der Link öffnet das Editorfenster mit einer Vorlage.
 
           [Paket-Beitrag öffnen](%{packet_url})
       donation:
@@ -295,3 +295,7 @@ de:
       cannot_delete_packet_post: "Dieser Beitrag kann nicht gelöscht werden. Es ist Paket %{ordinal} (%{title}) in einer Verlosung. Um dieses Paket zu entfernen, lösche das gesamte Verlosungs-Thema."
       cannot_change_lottery_category: "Die Kategorie eines Verlosungs-Themas kann nicht geändert werden."
       auto_draw_requires_automatic: "Die automatische Ziehung zum Ende der Verlosung ist nur im automatischen Ziehungsmodus möglich."
+      erhaltungsbericht_not_a_packet: "Dieser Beitrag gehört zu keinem Verlosungspaket."
+      erhaltungsbericht_not_winner: "Nur der Gewinner eines Pakets kann einen Erhaltungsbericht schreiben."
+      erhaltungsbericht_not_collected: "Das Paket ist noch nicht als erhalten markiert. Markiere es beim Paket-Beitrag als erhalten, bevor du den Bericht schreibst."
+      erhaltungsbericht_category_missing: "Die Kategorie für Erhaltungsberichte ist nicht konfiguriert. Bitte wende dich an den Vorstand."

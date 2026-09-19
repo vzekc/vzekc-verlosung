@@ -196,7 +196,7 @@ en:
 
           As a winner, you are expected to write a reception report (Erhaltungsbericht) describing what you received.
 
-          Please click the "Write Reception Report" button on the packet post to create your report.
+          **[Write your reception report now](%{write_report_url})** — the link opens the composer with a template.
 
           [Open packet post](%{packet_url})
       donation:
@@ -285,3 +285,7 @@ en:
       cannot_delete_packet_post: "Cannot delete this post. It is Packet %{ordinal} (%{title}) in a lottery. To remove this packet, delete the entire lottery topic."
       cannot_change_lottery_category: "Cannot change the category of a lottery topic."
       auto_draw_requires_automatic: "Drawing the winners automatically when the lottery ends is only available with the automatic drawing mode."
+      erhaltungsbericht_not_a_packet: "This post does not belong to a lottery packet."
+      erhaltungsbericht_not_winner: "Only the winner of a packet can write a reception report."
+      erhaltungsbericht_not_collected: "The packet is not marked as received yet. Mark it as received on the packet post before writing the report."
+      erhaltungsbericht_category_missing: "The category for reception reports is not configured. Please contact the board."

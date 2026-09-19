@@ -5,7 +5,16 @@ module VzekcVerlosung
   class TicketsController < ::ApplicationController
     requires_plugin VzekcVerlosung::PLUGIN_NAME
 
-    before_action :ensure_logged_in
+    before_action :ensure_logged_in, except: [:erhaltungsbericht_page]
+
+    # GET /erhaltungsbericht-schreiben/:post_id
+    #
+    # Serves the Discourse app shell so the Ember route can open the prefilled
+    # Erhaltungsbericht composer on the client side. Needed because the link in
+    # the reminder PM triggers a full page load.
+    def erhaltungsbericht_page
+      render html: "", layout: true
+    end
 
     # POST /vzekc_verlosung/tickets
     # Creates a lottery ticket for the current user and post
@@ -419,6 +428,91 @@ module VzekcVerlosung
       render json: ticket_packet_status_response(post, current_user)
     end
 
+    # GET /vzekc_verlosung/packets/:post_id/erhaltungsbericht-draft
+    #
+    # Returns the data needed to open a prefilled Erhaltungsbericht composer for
+    # the current user's win on a packet. Backs the direct link in the
+    # Erhaltungsbericht reminder PM.
+    #
+    # @param post_id [Integer] Post ID of the packet
+    #
+    # @return [JSON] Composer payload, or the URL of the report already written
+    def erhaltungsbericht_draft
+      post = Post.find_by(id: params[:post_id])
+      unless post
+        return(
+          render_json_error(
+            I18n.t("vzekc_verlosung.errors.erhaltungsbericht_not_a_packet"),
+            status: :not_found,
+          )
+        )
+      end
+
+      packet =
+        LotteryPacket.includes(lottery_packet_winners: :erhaltungsbericht_topic).find_by(
+          post_id: post.id,
+        )
+      unless packet
+        return(
+          render_json_error(
+            I18n.t("vzekc_verlosung.errors.erhaltungsbericht_not_a_packet"),
+            status: :bad_request,
+          )
+        )
+      end
+
+      winner_entry = own_winner_entry(packet)
+      unless winner_entry
+        return(
+          render_json_error(
+            I18n.t("vzekc_verlosung.errors.erhaltungsbericht_not_winner"),
+            status: :forbidden,
+          )
+        )
+      end
+
+      if winner_entry.erhaltungsbericht_topic.present?
+        return(
+          render json:
+                   success_json.merge(
+                     existing_topic_url: winner_entry.erhaltungsbericht_topic.relative_url,
+                   )
+        )
+      end
+
+      unless winner_entry.collected?
+        return(
+          render_json_error(
+            I18n.t("vzekc_verlosung.errors.erhaltungsbericht_not_collected"),
+            status: :unprocessable_entity,
+          )
+        )
+      end
+
+      category_id = SiteSetting.vzekc_verlosung_erhaltungsberichte_category_id
+      unless category_id.present? && Category.exists?(id: category_id)
+        return(
+          render_json_error(
+            I18n.t("vzekc_verlosung.errors.erhaltungsbericht_category_missing"),
+            status: :unprocessable_entity,
+          )
+        )
+      end
+
+      render json:
+               success_json.merge(
+                 category_id: category_id.to_i,
+                 title: erhaltungsbericht_topic_title(packet, post),
+                 template: SiteSetting.vzekc_verlosung_erhaltungsbericht_template,
+                 packet_post_id: post.id,
+                 packet_topic_id: post.topic_id,
+                 packet_title: packet.title,
+                 lottery_title: post.topic.title,
+                 instance_number: winner_entry.instance_number,
+                 packet_url: "#{post.topic.relative_url}/#{post.post_number}",
+               )
+    end
+
     # POST /vzekc_verlosung/packets/:post_id/create-erhaltungsbericht
     #
     # Creates an Erhaltungsbericht topic for a collected packet
@@ -438,7 +532,7 @@ module VzekcVerlosung
       return render_json_error("Not a lottery packet", status: :bad_request) unless packet
 
       # Find the current user's winner entry
-      winner_entry = packet.lottery_packet_winners.find { |w| w.winner_user_id == current_user.id }
+      winner_entry = own_winner_entry(packet)
 
       # Check if user is a winner
       unless winner_entry
@@ -477,18 +571,7 @@ module VzekcVerlosung
         )
       end
 
-      lottery_title = post.topic.title
-
-      # Compose topic title: "<packet-title> aus <lottery-title>". A single packet
-      # carries the lottery title itself, so the lottery title stands alone.
-      topic_title =
-        (
-          if packet.single_packet_mode?
-            lottery_title
-          else
-            "#{packet.title} aus #{lottery_title}"
-          end
-        )
+      topic_title = erhaltungsbericht_topic_title(packet, post)
 
       # Get template (no placeholder replacement needed - links are stored as custom fields)
       template = SiteSetting.vzekc_verlosung_erhaltungsbericht_template
@@ -668,6 +751,28 @@ module VzekcVerlosung
     end
 
     private
+
+    # The current user's winner entry on a packet. A user wins at most one
+    # instance of a packet, so this is unambiguous.
+    #
+    # @param packet [LotteryPacket]
+    # @returns [LotteryPacketWinner, nil]
+    def own_winner_entry(packet)
+      packet.lottery_packet_winners.find { |w| w.winner_user_id == current_user.id }
+    end
+
+    # Title for the Erhaltungsbericht topic: "<packet title> aus <lottery title>".
+    # A single packet carries the lottery title itself, so that title stands alone.
+    #
+    # @param packet [LotteryPacket]
+    # @param post [Post] the post backing the packet
+    # @returns [String]
+    def erhaltungsbericht_topic_title(packet, post)
+      lottery_title = post.topic.title
+      return lottery_title if packet.single_packet_mode?
+
+      "#{packet.title} aus #{lottery_title}"
+    end
 
     def ticket_packet_status_response(post_or_id, user = nil)
       user ||= current_user

@@ -4080,3 +4080,19 @@
     }
   }
 }
+
+// Landing page for the direct Erhaltungsbericht link in reminder PMs
+.write-erhaltungsbericht-page {
+  max-width: 40em;
+
+  .packet-label {
+    margin-bottom: 0.5em;
+  }
+
+  .write-erhaltungsbericht-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5em;
+    margin-top: 1em;
+  }
+}

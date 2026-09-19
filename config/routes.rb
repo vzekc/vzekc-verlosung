@@ -29,6 +29,7 @@ VzekcVerlosung::Engine.routes.draw do
   post "/packets/:post_id/mark-handed-over" => "tickets#mark_handed_over"
   post "/packets/:post_id/mark-unclaimed" => "tickets#mark_unclaimed"
   post "/packets/:post_id/create-erhaltungsbericht" => "tickets#create_erhaltungsbericht"
+  get "/packets/:post_id/erhaltungsbericht-draft" => "tickets#erhaltungsbericht_draft"
   put "/packets/:post_id/note" => "tickets#update_note"
   put "/packets/:post_id/toggle-notifications" => "tickets#toggle_notifications"
   put "/packets/:post_id/erhaltungsbericht-required" => "tickets#set_erhaltungsbericht_required"
@@ -88,6 +89,7 @@ Discourse::Application.routes.draw do
   # loads and the engine mount would swallow unmatched paths.
   get "silence-reminders/:topic_id" => "vzekc_verlosung/lotteries#silence_reminders_page"
   get "my-lotteries" => "vzekc_verlosung/my_lotteries#page"
+  get "erhaltungsbericht-schreiben/:post_id" => "vzekc_verlosung/tickets#erhaltungsbericht_page"
 
   mount ::VzekcVerlosung::Engine, at: "vzekc-verlosung"
 end

@@ -691,6 +691,10 @@ de:
         mark_all_confirm: "Möchtest du alle %{count} Paket(e) als erhalten markieren?"
         write_bericht_button: "Erhaltungsbericht schreiben"
         marking_all: "Markiere..."
+      write_erhaltungsbericht:
+        title: "Erhaltungsbericht schreiben"
+        description: "Das Editorfenster ist mit einer Vorlage geöffnet. Beschreibe darin, was du erhalten hast, und veröffentliche den Bericht."
+        packet_button: "Zum Paket-Beitrag"
       silence_reminders:
         title: "Erinnerungen abschalten"
         description: "Du erhältst keine wöchentlichen Erinnerungen mehr über offene Pakete für diese Verlosung. Gewinner erhalten weiterhin ihre Erinnerungen."

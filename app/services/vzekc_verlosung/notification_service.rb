@@ -734,6 +734,7 @@ module VzekcVerlosung
 
       packet_url =
         "#{Discourse.base_url}/t/#{lottery_topic.slug}/#{lottery_topic.id}/#{packet_post.post_number}"
+      write_report_url = "#{Discourse.base_url}/erhaltungsbericht-schreiben/#{packet_post.id}"
 
       {
         sender: Discourse.system_user,
@@ -752,6 +753,7 @@ module VzekcVerlosung
             packet_title: packet_title,
             days_since_collected: days_since_collected,
             packet_url: packet_url,
+            write_report_url: write_report_url,
           ),
         subtype: TopicSubtype.system_message,
       }

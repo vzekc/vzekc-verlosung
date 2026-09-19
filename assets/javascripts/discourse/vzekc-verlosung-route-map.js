@@ -6,4 +6,7 @@ export default function () {
   this.route("merchPackets", { path: "/merch-packets" });
   this.route("myLotteries", { path: "/my-lotteries" });
   this.route("silenceReminders", { path: "/silence-reminders/:topic_id" });
+  this.route("writeErhaltungsbericht", {
+    path: "/erhaltungsbericht-schreiben/:post_id",
+  });
 }

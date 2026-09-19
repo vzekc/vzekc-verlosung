@@ -419,19 +419,45 @@ export default class PacketFulfillmentService extends Service {
 
     const title = packetTitle || `Paket #${post.post_number}`;
     const lotteryTitle = post.topic.title;
-    const topicTitle = `${title} aus ${lotteryTitle}`;
-    const template =
-      this.siteSettings.vzekc_verlosung_erhaltungsbericht_template || "";
 
+    this.openErhaltungsberichtComposer({
+      categoryId,
+      title: `${title} aus ${lotteryTitle}`,
+      template: this.siteSettings.vzekc_verlosung_erhaltungsbericht_template,
+      packetPostId: post.id,
+      packetTopicId: post.topic_id,
+      instanceNumber: entry.instance_number,
+    });
+  }
+
+  /**
+   * Open the composer prefilled for an Erhaltungsbericht
+   *
+   * @param {Object} opts
+   * @param {number} opts.categoryId - Erhaltungsberichte category
+   * @param {string} opts.title - Topic title
+   * @param {string} opts.template - Prefilled body
+   * @param {number} opts.packetPostId - Post ID of the packet
+   * @param {number} opts.packetTopicId - Topic ID of the lottery
+   * @param {number} opts.instanceNumber - Winner instance the report belongs to
+   */
+  openErhaltungsberichtComposer({
+    categoryId,
+    title,
+    template,
+    packetPostId,
+    packetTopicId,
+    instanceNumber,
+  }) {
     this.composer.open({
       action: Composer.CREATE_TOPIC,
       categoryId,
-      title: topicTitle,
-      reply: template,
-      draftKey: `new_topic_erhaltungsbericht_${post.id}_${entry.instance_number}_${Date.now()}`,
-      packet_post_id: post.id,
-      packet_topic_id: post.topic_id,
-      winner_instance_number: entry.instance_number,
+      title,
+      reply: template || "",
+      draftKey: `new_topic_erhaltungsbericht_${packetPostId}_${instanceNumber}_${Date.now()}`,
+      packet_post_id: packetPostId,
+      packet_topic_id: packetTopicId,
+      winner_instance_number: instanceNumber,
       skipSimilarTopics: true,
     });
   }

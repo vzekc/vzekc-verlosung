@@ -645,6 +645,10 @@ en:
         mark_all_confirm: "Do you want to mark all %{count} packet(s) as received?"
         write_bericht_button: "Write reception report"
         marking_all: "Marking..."
+      write_erhaltungsbericht:
+        title: "Write reception report"
+        description: "The composer is open with a template. Describe what you received and publish the report."
+        packet_button: "Go to packet post"
       silence_reminders:
         title: "Stop Lottery Reminders"
         description: "You will no longer receive weekly reminders about uncollected packets for this lottery. Winners will still receive their reminders."
