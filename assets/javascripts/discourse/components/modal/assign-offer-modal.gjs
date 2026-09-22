@@ -18,6 +18,7 @@ import { i18n } from "discourse-i18n";
  *
  * @param {Object} args.model.offer - The pickup offer to assign to the picker (manual mode only)
  * @param {number} args.model.donationId - The donation ID
+ * @param {Object} args.model.donorContact - The donor's name and email collected at donation creation, used to pre-fill the contact info
  * @param {boolean} args.model.auto - When true, the server auto-selects the picker on submit
  * @param {boolean} args.model.requireExplanation - When true, the choice diverges from the fair pick and an explanation is required
  * @param {Array<string>} args.model.systemChoice - Usernames the system would have picked
@@ -27,6 +28,28 @@ export default class AssignOfferModal extends Component {
   @tracked contactInfo = "";
   @tracked explanation = "";
   @tracked isSubmitting = false;
+
+  constructor() {
+    super(...arguments);
+    this.contactInfo = this.initialContactInfo;
+  }
+
+  /**
+   * The donor's name and email as collected at donation creation, one per
+   * line, followed by an empty line for the facilitator's additional text
+   *
+   * @type {string}
+   */
+  get initialContactInfo() {
+    const contact = this.args.model.donorContact;
+    if (!contact) {
+      return "";
+    }
+    const lines = [contact.name, contact.email].filter(
+      (value) => value && value.trim().length > 0
+    );
+    return lines.length > 0 ? `${lines.join("\n")}\n` : "";
+  }
 
   /**
    * Whether this is an automatic assignment (server selects the recipient)

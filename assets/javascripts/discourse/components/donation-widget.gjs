@@ -425,6 +425,7 @@ export default class DonationWidget extends Component {
       model: {
         offer,
         donationId: this.donationData.id,
+        donorContact: this.donationData.donor_contact,
         requireExplanation,
         systemChoice,
         onAssigned: () => {
@@ -445,6 +446,7 @@ export default class DonationWidget extends Component {
       model: {
         auto: true,
         donationId: this.donationData.id,
+        donorContact: this.donationData.donor_contact,
         onAssigned: () => {
           this.appEvents.trigger("donation:data-changed", this.post.id);
         },

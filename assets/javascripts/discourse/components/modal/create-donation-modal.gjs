@@ -49,18 +49,28 @@ export default class CreateDonationModal extends Component {
       return false;
     }
 
-    // If merch packet is NOT skipped, require address fields
+    // If merch packet is NOT skipped, require address fields and email
     if (!this.skipMerchPacket) {
       return (
         this.donorName.trim().length >= 2 &&
         this.donorStreet.trim().length >= 2 &&
         this.donorStreetNumber.trim().length >= 1 &&
         this.donorPostcode.trim().length >= 4 &&
-        this.donorCity.trim().length >= 2
+        this.donorCity.trim().length >= 2 &&
+        this.donorEmailValid
       );
     }
 
     return true;
+  }
+
+  /**
+   * Whether the donor email looks like an address (local part, @, domain)
+   *
+   * @type {boolean}
+   */
+  get donorEmailValid() {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.donorEmail.trim());
   }
 
   /**
@@ -151,7 +161,7 @@ export default class CreateDonationModal extends Component {
         requestData.donor_street_number = this.donorStreetNumber.trim();
         requestData.donor_postcode = this.donorPostcode.trim();
         requestData.donor_city = this.donorCity.trim();
-        requestData.donor_email = this.donorEmail.trim() || null;
+        requestData.donor_email = this.donorEmail.trim();
       }
 
       const result = await ajax("/vzekc-verlosung/donations", {
@@ -342,12 +352,13 @@ export default class CreateDonationModal extends Component {
 
               <div class="control-group">
                 <label>{{i18n
-                    "vzekc_verlosung.donation_modal.donor_email_label"
-                  }}</label>
+                    "vzekc_verlosung.donation_modal.donor_email_required_label"
+                  }}<span class="required">*</span></label>
                 <input
                   type="email"
                   name="email"
                   autocomplete="email"
+                  required
                   {{on "input" (fn this.updateField "donorEmail")}}
                   {{on "keydown" this.handleKeyDown}}
                   value={{this.donorEmail}}
@@ -357,7 +368,7 @@ export default class CreateDonationModal extends Component {
                   class="donor-email-input"
                 />
                 <p class="help-text">{{i18n
-                    "vzekc_verlosung.donation_modal.donor_email_help"
+                    "vzekc_verlosung.donation_modal.donor_email_required_help"
                   }}</p>
               </div>
             </fieldset>

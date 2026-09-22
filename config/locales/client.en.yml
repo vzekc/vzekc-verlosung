@@ -470,6 +470,8 @@ en:
         donor_email_label: "Email (optional)"
         donor_email_placeholder: "email@example.com"
         donor_email_help: "If provided, the donor will receive an email notification with tracking info when the packet is shipped."
+        donor_email_required_label: "Email"
+        donor_email_required_help: "The picker receives the donor's name and email address to arrange the pickup. The donor is also notified by email with tracking info when the merch packet is shipped."
       assign_offer_modal:
         title: "Assign Pickup Offer"
         assigning_to: "Assigning to"

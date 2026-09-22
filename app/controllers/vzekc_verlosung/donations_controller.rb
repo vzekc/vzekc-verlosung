@@ -19,7 +19,9 @@ module VzekcVerlosung
     #
     # @param id [Integer] Donation ID
     #
-    # @return [JSON] Donation details including current state and lottery link if created
+    # @return [JSON] Donation details including current state and lottery link if created.
+    #   Includes the donor's name and email (donor_contact) for the facilitator so the
+    #   picker-assignment form can be pre-filled.
     def show
       donation = Donation.find(params[:id])
 
@@ -58,6 +60,7 @@ module VzekcVerlosung
                  lottery: lottery_data,
                  erhaltungsbericht: erhaltungsbericht_data,
                  onsite_lottery_event: onsite_lottery_event_data,
+                 donor_contact: build_donor_contact(donation),
                },
              }
     end
@@ -73,10 +76,19 @@ module VzekcVerlosung
     # @param donor_street_number [String] Optional: Donor street number
     # @param donor_postcode [String] Optional: Donor postcode
     # @param donor_city [String] Optional: Donor city
-    # @param donor_email [String] Optional: Donor email for tracking notification
+    # @param donor_email [String] Donor email, required when a merch packet is created
     #
     # @return [JSON] donation_id for use in composer
     def create
+      if create_params[:donor_name].present? && create_params[:donor_email].blank?
+        return(
+          render_json_error(
+            I18n.t("vzekc_verlosung.errors.donor_email_required"),
+            status: :unprocessable_entity,
+          )
+        )
+      end
+
       donation =
         Donation.create!(postcode: create_params[:postcode], creator_user_id: current_user.id)
 
@@ -290,6 +302,21 @@ module VzekcVerlosung
         :donor_city,
         :donor_email,
       )
+    end
+
+    # The donor's name and email address for pre-filling the picker-assignment
+    # form. Only the facilitator receives it, and only while the merch packet
+    # still holds the donor's personal data.
+    #
+    # @param donation [Donation] The donation
+    # @return [Hash, nil] name and email, or nil
+    def build_donor_contact(donation)
+      return nil unless guardian.can_manage_donation?(donation)
+
+      packet = donation.merch_packet
+      return nil if packet.nil? || packet.archived?
+
+      { name: packet.donor_name, email: packet.donor_email }
     end
 
     # Create a merch packet if donor address fields are provided

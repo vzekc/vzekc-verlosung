@@ -299,3 +299,4 @@ de:
       erhaltungsbericht_not_winner: "Nur der Gewinner eines Pakets kann einen Erhaltungsbericht schreiben."
       erhaltungsbericht_not_collected: "Das Paket ist noch nicht als erhalten markiert. Markiere es beim Paket-Beitrag als erhalten, bevor du den Bericht schreibst."
       erhaltungsbericht_category_missing: "Die Kategorie für Erhaltungsberichte ist nicht konfiguriert. Bitte wende dich an den Vorstand."
+      donor_email_required: "Die E-Mail-Adresse des Spenders ist erforderlich."

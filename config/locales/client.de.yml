@@ -516,6 +516,8 @@ de:
         donor_email_label: "E-Mail (optional)"
         donor_email_placeholder: "email@beispiel.de"
         donor_email_help: "Falls angegeben, erhält der Spender eine E-Mail-Benachrichtigung mit Sendungsverfolgung, wenn das Paket versandt wird."
+        donor_email_required_label: "E-Mail"
+        donor_email_required_help: "Der Abholer erhält Name und E-Mail-Adresse des Spenders, um die Abholung zu vereinbaren. Der Spender wird außerdem per E-Mail mit Sendungsverfolgung benachrichtigt, wenn das Merch-Paket versandt wird."
       assign_offer_modal:
         title: "Abholangebot zuweisen"
         assigning_to: "Zuweisen an"

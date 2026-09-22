@@ -289,3 +289,4 @@ en:
       erhaltungsbericht_not_winner: "Only the winner of a packet can write a reception report."
       erhaltungsbericht_not_collected: "The packet is not marked as received yet. Mark it as received on the packet post before writing the report."
       erhaltungsbericht_category_missing: "The category for reception reports is not configured. Please contact the board."
+      donor_email_required: "The donor's email address is required."
