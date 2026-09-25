@@ -1,0 +1,6 @@
+[Unit]
+Description=Mail a failure report for %i
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/notify-systemd-failure.sh %i

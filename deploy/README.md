@@ -131,6 +131,36 @@ tail -f /var/log/discourse-rebuild.log
 #    Repo → Settings → Webhooks → Recent Deliveries
 ```
 
+## Failure Mail for systemd Timers
+
+`systemd/` holds a template unit that mails a report whenever a unit it is
+attached to fails. The nightly `woltlab-sync.service` (the Woltlab → Discourse
+user import) uses it, so a broken import is reported the same night.
+
+```bash
+cp systemd/notify-systemd-failure.sh /usr/local/bin/
+chmod +x /usr/local/bin/notify-systemd-failure.sh
+cp systemd/notify-failure@.service /etc/systemd/system/
+
+# SMTP account and recipient
+cp systemd/failure-mail.env.example /etc/failure-mail.env
+chmod 600 /etc/failure-mail.env
+$EDITOR /etc/failure-mail.env
+
+# Attach to a unit with a drop-in
+systemctl edit woltlab-sync.service
+#   [Unit]
+#   OnFailure=notify-failure@%p.service
+systemctl daemon-reload
+
+# Send a test report
+systemctl start notify-failure@woltlab-sync.service
+```
+
+The mail carries `systemctl status` and the last 80 journal lines of the failed
+unit. The sync script exits non-zero when either of its steps raises, which is
+what marks the service failed.
+
 ## Troubleshooting
 
 | Problem | Check |
