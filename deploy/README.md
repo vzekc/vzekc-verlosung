@@ -131,6 +131,19 @@ tail -f /var/log/discourse-rebuild.log
 #    Repo → Settings → Webhooks → Recent Deliveries
 ```
 
+## Woltlab User Sync Timer
+
+`systemd/woltlab-sync.service` runs the Woltlab → Discourse user sync inside
+the `migrate` container; `woltlab-sync.timer` starts it daily at 02:00. The
+WoltLab MySQL password lives in `/etc/woltlab-sync.env` (`DB_PASSWORD=...`,
+root-owned, mode 600).
+
+```bash
+cp systemd/woltlab-sync.service systemd/woltlab-sync.timer /etc/systemd/system/
+systemctl daemon-reload
+systemctl enable --now woltlab-sync.timer
+```
+
 ## Failure Mail for systemd Timers
 
 `systemd/` holds a template unit that mails a report whenever a unit it is

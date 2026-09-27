@@ -1,0 +1,18 @@
+[Unit]
+Description=Woltlab User Synchronization to Discourse
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+# Provides DB_PASSWORD, the WoltLab MySQL password. docker exec -e with a bare
+# name copies it from this environment, which keeps it off the command line
+# that systemctl status and ps show.
+EnvironmentFile=/etc/woltlab-sync.env
+ExecStart=/usr/bin/docker exec -e DB_PASSWORD migrate /var/www/discourse/script/import_scripts/woltlab/sync-woltlab-users.sh
+StandardOutput=journal
+StandardError=journal
+
+# Security settings
+PrivateTmp=yes
+NoNewPrivileges=yes

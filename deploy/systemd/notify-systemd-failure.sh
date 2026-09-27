@@ -27,7 +27,9 @@ trap 'rm -f "$body"' EXIT
     printf '\r\n'
     systemctl status --no-pager --lines=0 "$unit" 2>&1
     printf '\n---- journal (last 80 lines) ----\n'
-    journalctl --no-pager -n 80 -u "$unit" 2>&1
+    # -a prints lines with control characters instead of "[blob data]";
+    # sed keeps the text after the last carriage return of progress output.
+    journalctl --no-pager -a -n 80 -u "$unit" 2>&1 | sed 's/.*\r//'
 } | sed 's/$/\r/' > "$body"
 
 curl --silent --show-error \

@@ -1,0 +1,11 @@
+[Unit]
+Description=Daily Woltlab User Synchronization
+Requires=woltlab-sync.service
+
+[Timer]
+# Run daily at 2:00 AM (matching current cron schedule)
+OnCalendar=*-*-* 02:00:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target

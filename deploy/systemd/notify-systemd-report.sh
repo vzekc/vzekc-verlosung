@@ -22,7 +22,7 @@ host="$(hostname -f 2>/dev/null || hostname)"
 invocation="$(systemctl show --property=InvocationID --value "$unit")"
 [ -n "$invocation" ] || exit 0
 
-report="$(journalctl --no-pager -o cat "_SYSTEMD_INVOCATION_ID=$invocation" 2>&1 |
+report="$(journalctl --no-pager -a -o cat "_SYSTEMD_INVOCATION_ID=$invocation" 2>&1 |
     sed -n '/^---- SYNC REPORT BEGIN ----$/,/^---- SYNC REPORT END ----$/{//!p;}')"
 [ -n "$report" ] || exit 0
 
