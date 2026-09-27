@@ -161,6 +161,28 @@ The mail carries `systemctl status` and the last 80 journal lines of the failed
 unit. The sync script exits non-zero when either of its steps raises, which is
 what marks the service failed.
 
+### Sync Report Mail
+
+A successful sync can still have done something worth a look: renamed users,
+changed email addresses, deactivated accounts deleted on WoltLab, or skipped a
+change because of a conflict. The sync prints these between
+`---- SYNC REPORT BEGIN ----` and `---- SYNC REPORT END ----`, and
+`notify-report@.service` mails that block after the run. Runs without such
+events print no block and send no mail. It uses the same `/etc/failure-mail.env`.
+
+```bash
+cp systemd/notify-systemd-report.sh /usr/local/bin/
+chmod +x /usr/local/bin/notify-systemd-report.sh
+cp systemd/notify-report@.service /etc/systemd/system/
+
+# Add to the drop-in next to OnFailure=
+systemctl edit woltlab-sync.service
+#   [Unit]
+#   OnFailure=notify-failure@%p.service
+#   OnSuccess=notify-report@%p.service
+systemctl daemon-reload
+```
+
 ## Troubleshooting
 
 | Problem | Check |

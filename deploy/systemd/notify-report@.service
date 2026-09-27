@@ -1,0 +1,6 @@
+[Unit]
+Description=Mail the sync report of %i
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/notify-systemd-report.sh %i
