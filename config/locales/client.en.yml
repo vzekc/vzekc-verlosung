@@ -4,6 +4,10 @@ en:
       site_settings:
         categories:
           vzekc_verlosung: "Vzekc Verlosung"
+      logs:
+        staff_actions:
+          actions:
+            vzekc_verlosung_change_end_date: "Lottery end date changed"
   js:
     notifications:
       titles:
@@ -659,6 +663,12 @@ en:
         success: "Reminders have been stopped for this lottery."
         error_not_owner: "Only the lottery owner can stop reminders."
         error_not_found: "Lottery not found."
+      change_end_date:
+        button: "Change end date"
+        modal_title: "Change end date"
+        modal_body: "The lottery ends at the new date and time. The random seed of the drawing stays unchanged."
+        label: "New end date"
+        confirm_button: "Save end date"
       reset_lottery:
         button: "Relist lottery"
         description: "Nobody entered this lottery. You can relist it with a fresh deadline."

@@ -296,7 +296,7 @@ RSpec.describe VzekcVerlosung::LotteriesController do
       # Get actual results from JavaScriptLotteryDrawer
       drawing_data = {
         "title" => topic.title,
-        "timestamp" => (lottery.ends_at - 2.weeks).iso8601,
+        "timestamp" => lottery.drawing_timestamp.iso8601,
         "packets" => [
           {
             "id" => packet_post.id,
@@ -498,7 +498,7 @@ RSpec.describe VzekcVerlosung::LotteriesController do
         # Get actual results from JavaScriptLotteryDrawer
         drawing_data = {
           "title" => topic.title,
-          "timestamp" => (lottery.ends_at - 2.weeks).iso8601,
+          "timestamp" => lottery.drawing_timestamp.iso8601,
           "packets" => [
             {
               "id" => packet_post.id,
@@ -773,6 +773,124 @@ RSpec.describe VzekcVerlosung::LotteriesController do
 
       it "refuses to reset" do
         post "/vzekc-verlosung/lotteries/#{topic.id}/reset.json"
+
+        expect(response.status).to eq(403)
+      end
+    end
+  end
+
+  describe "#change_end_date" do
+    fab!(:admin)
+    let!(:lottery_result) do
+      VzekcVerlosung::CreateLottery.call(
+        params: {
+          title: "Movable Lottery",
+          raw: "Movable lottery content",
+          category_id: category.id,
+          duration_days: 14,
+          has_abholerpaket: false,
+          packets: [{ title: "Hardware Bundle", raw: "Hardware bundle content" }],
+        },
+        user: user,
+        guardian: Guardian.new(user),
+      )
+    end
+    let(:topic) { lottery_result.main_topic }
+    let(:lottery) { lottery_result.lottery }
+    let(:new_ends_at) { 20.days.from_now.change(usec: 0) }
+
+    context "when signed in as staff" do
+      before { sign_in(admin) }
+
+      it "moves the deadline and keeps the drawing seed" do
+        seed = lottery.drawing_timestamp
+
+        put "/vzekc-verlosung/lotteries/#{topic.id}/end-date.json",
+            params: {
+              ends_at: new_ends_at.iso8601,
+            }
+
+        expect(response.status).to eq(200)
+        lottery.reload
+        expect(lottery.ends_at).to eq_time(new_ends_at)
+        expect(lottery.drawing_timestamp).to eq_time(seed)
+      end
+
+      it "reschedules the end notification" do
+        freeze_time
+        expect_enqueued_with(
+          job: :vzekc_verlosung_notify_lottery_ended,
+          args: {
+            lottery_id: lottery.id,
+          },
+          at: new_ends_at,
+        ) do
+          put "/vzekc-verlosung/lotteries/#{topic.id}/end-date.json",
+              params: {
+                ends_at: new_ends_at.iso8601,
+              }
+        end
+      end
+
+      it "records a staff action log entry" do
+        put "/vzekc-verlosung/lotteries/#{topic.id}/end-date.json",
+            params: {
+              ends_at: new_ends_at.iso8601,
+            }
+
+        entry = UserHistory.last
+        expect(entry.custom_type).to eq("vzekc_verlosung_change_end_date")
+        expect(entry.acting_user_id).to eq(admin.id)
+        expect(entry.topic_id).to eq(topic.id)
+        expect(entry.new_value).to eq(new_ends_at.iso8601)
+      end
+
+      it "rejects a deadline in the past" do
+        put "/vzekc-verlosung/lotteries/#{topic.id}/end-date.json",
+            params: {
+              ends_at: 1.hour.ago.iso8601,
+            }
+
+        expect(response.status).to eq(422)
+      end
+
+      it "rejects an unparseable deadline" do
+        put "/vzekc-verlosung/lotteries/#{topic.id}/end-date.json", params: { ends_at: "soon" }
+
+        expect(response.status).to eq(422)
+      end
+
+      it "refuses to change a lottery whose deadline has passed" do
+        lottery.update!(ends_at: 1.hour.ago)
+
+        put "/vzekc-verlosung/lotteries/#{topic.id}/end-date.json",
+            params: {
+              ends_at: new_ends_at.iso8601,
+            }
+
+        expect(response.status).to eq(403)
+      end
+
+      it "refuses to change a finished lottery" do
+        lottery.update!(state: "finished", drawn_at: 1.hour.ago)
+
+        put "/vzekc-verlosung/lotteries/#{topic.id}/end-date.json",
+            params: {
+              ends_at: new_ends_at.iso8601,
+            }
+
+        expect(response.status).to eq(403)
+      end
+    end
+
+    context "when signed in as the lottery owner" do
+      before { sign_in(user) }
+
+      it "refuses the change" do
+        put "/vzekc-verlosung/lotteries/#{topic.id}/end-date.json",
+            params: {
+              ends_at: new_ends_at.iso8601,
+            }
 
         expect(response.status).to eq(403)
       end

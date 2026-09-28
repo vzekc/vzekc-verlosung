@@ -120,7 +120,8 @@ module VzekcVerlosung
 
       # Create lottery record for this topic in active state
       # Set ends_at based on duration_days from now
-      ends_at = params.duration_days.days.from_now
+      published_at = Time.zone.now
+      ends_at = published_at + params.duration_days.days
 
       lottery =
         Lottery.create!(
@@ -131,6 +132,7 @@ module VzekcVerlosung
           auto_draw: params.auto_draw,
           packet_mode: params.packet_mode || "mehrere",
           donation_id: params.donation_id,
+          published_at: published_at,
           ends_at: ends_at,
         )
 

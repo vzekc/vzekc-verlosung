@@ -4,6 +4,10 @@ de:
       site_settings:
         categories:
           vzekc_verlosung: "Vzekc Verlosung"
+      logs:
+        staff_actions:
+          actions:
+            vzekc_verlosung_change_end_date: "Enddatum einer Verlosung geändert"
   js:
     notifications:
       titles:
@@ -705,6 +709,12 @@ de:
         success: "Erinnerungen für diese Verlosung wurden abgeschaltet."
         error_not_owner: "Nur der Verlosungsersteller kann Erinnerungen abschalten."
         error_not_found: "Verlosung nicht gefunden."
+      change_end_date:
+        button: "Enddatum ändern"
+        modal_title: "Enddatum ändern"
+        modal_body: "Die Verlosung endet zum neuen Zeitpunkt. Der Zufallsstartwert der Ziehung bleibt unverändert."
+        label: "Neues Enddatum"
+        confirm_button: "Enddatum speichern"
       reset_lottery:
         button: "Verlosung neu einstellen"
         description: "An dieser Verlosung hat niemand teilgenommen. Du kannst sie mit einer neuen Frist erneut einstellen."

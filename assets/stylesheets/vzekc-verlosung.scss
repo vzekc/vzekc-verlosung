@@ -300,6 +300,10 @@
       margin-top: 1em;
       width: 100%;
     }
+
+    .lottery-change-end-date-button {
+      margin-top: 0.5em;
+    }
   }
 
   .lottery-draw-notice {
@@ -4094,5 +4098,11 @@
     flex-wrap: wrap;
     gap: 0.5em;
     margin-top: 1em;
+  }
+}
+
+.change-end-date-modal {
+  .change-end-date-field input {
+    width: auto;
   }
 }

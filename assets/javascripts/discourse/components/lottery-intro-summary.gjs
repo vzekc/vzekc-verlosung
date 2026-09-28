@@ -13,6 +13,7 @@ import { bind } from "discourse/lib/decorators";
 import DiscourseURL from "discourse/lib/url";
 import { and, gt, or } from "discourse/truth-helpers";
 import { i18n } from "discourse-i18n";
+import ChangeEndDateModal from "./modal/change-end-date-modal";
 import DrawLotteryModal from "./modal/draw-lottery-modal";
 import ResetLotteryModal from "./modal/reset-lottery-modal";
 
@@ -37,6 +38,7 @@ export default class LotteryIntroSummary extends Component {
   @tracked ending = false;
   @tracked openingDrawModal = false;
   @tracked openingResetModal = false;
+  @tracked openingEndDateModal = false;
   @tracked resultsCopied = false;
   @tracked now = new Date();
 
@@ -385,6 +387,13 @@ export default class LotteryIntroSummary extends Component {
   }
 
   /**
+   * @returns {Boolean} true if the current user may move the deadline
+   */
+  get canChangeEndDate() {
+    return !!this.currentUser?.staff && this.isRunning;
+  }
+
+  /**
    * @type {Array}
    */
   get regularPackets() {
@@ -513,6 +522,24 @@ export default class LotteryIntroSummary extends Component {
       });
     } finally {
       this.openingResetModal = false;
+    }
+  }
+
+  /**
+   * Opens the modal for moving the deadline
+   */
+  @action
+  async changeEndDate() {
+    this.openingEndDateModal = true;
+    try {
+      await this.modal.show(ChangeEndDateModal, {
+        model: {
+          topicId: this.args.data.post.topic_id,
+          endsAt: this.topic.lottery_ends_at,
+        },
+      });
+    } finally {
+      this.openingEndDateModal = false;
     }
   }
 
@@ -778,6 +805,18 @@ export default class LotteryIntroSummary extends Component {
                   @disabled={{this.ending}}
                   @isLoading={{this.ending}}
                   class="btn-danger btn-small lottery-end-early-button"
+                />
+              {{/if}}
+              {{#if this.canChangeEndDate}}
+                <DButton
+                  @action={{this.changeEndDate}}
+                  @translatedLabel={{i18n
+                    "vzekc_verlosung.change_end_date.button"
+                  }}
+                  @icon={{if this.openingEndDateModal "spinner" "calendar"}}
+                  @disabled={{this.openingEndDateModal}}
+                  @isLoading={{this.openingEndDateModal}}
+                  class="btn-default btn-small lottery-change-end-date-button"
                 />
               {{/if}}
             </div>

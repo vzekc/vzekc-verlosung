@@ -130,6 +130,15 @@ module VzekcVerlosung
       lottery.no_participants?
     end
 
+    # Check if user can move the deadline of a lottery
+    #
+    # @param lottery [VzekcVerlosung::Lottery] the lottery to change
+    # @return [Boolean] true for staff on a lottery that is still running
+    def can_change_lottery_end_date?(lottery)
+      return false unless lottery
+      is_staff? && lottery.active? && !lottery.ended?
+    end
+
     # Check if user can manage merch packets
     #
     # @return [Boolean] true if user is in merch handlers group

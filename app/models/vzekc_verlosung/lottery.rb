@@ -130,6 +130,25 @@ module VzekcVerlosung
       ends_at.present? && ends_at <= Time.zone.now
     end
 
+    # Timestamp that seeds the drawing RNG: the moment the lottery was published.
+    # Lotteries created before published_at was recorded derive it from the
+    # deadline.
+    #
+    # @return [ActiveSupport::TimeWithZone]
+    def drawing_timestamp
+      return published_at if published_at
+      return ends_at - (duration_days || 14).days if ends_at
+      topic.created_at
+    end
+
+    # Move the deadline of an active lottery. The drawing seed stays fixed, so
+    # the choice of deadline has no influence on the drawing result.
+    #
+    # @param new_ends_at [ActiveSupport::TimeWithZone]
+    def change_end_date!(new_ends_at)
+      update!(published_at: drawing_timestamp, ends_at: new_ends_at)
+    end
+
     # Finish lottery without drawing (no participants)
     # Sets drawn_at and results to indicate no drawing was needed
     def finish_without_participants!
@@ -160,6 +179,7 @@ module VzekcVerlosung
           results: nil,
           owner_reminders_silenced: false,
           duration_days: new_duration_days,
+          published_at: Time.zone.now,
           ends_at: new_ends_at,
         )
         lottery_packets
@@ -184,6 +204,7 @@ end
 #  ends_at                  :datetime
 #  owner_reminders_silenced :boolean          default(FALSE), not null
 #  packet_mode              :string           default("mehrere"), not null
+#  published_at             :datetime
 #  results                  :jsonb
 #  state                    :string           default("draft"), not null
 #  created_at               :datetime         not null

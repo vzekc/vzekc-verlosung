@@ -102,11 +102,8 @@ module VzekcVerlosung
           }
         end
 
-      # The RNG is seeded with the publication time, derived from the deadline
-      duration_days = lottery.duration_days || 14
-      published_at = lottery.ends_at ? lottery.ends_at - duration_days.days : topic.created_at
-
-      { title: topic.title, timestamp: published_at.iso8601, packets: packets }
+      # The RNG is seeded with the publication time
+      { title: topic.title, timestamp: lottery.drawing_timestamp.iso8601, packets: packets }
     end
 
     # Stores results, marks packets and winners, finishes the lottery, and

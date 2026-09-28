@@ -191,6 +191,54 @@ module VzekcVerlosung
       head :no_content
     end
 
+    # PUT /vzekc_verlosung/lotteries/:topic_id/end-date
+    #
+    # Staff only: moves the deadline of an active lottery and reschedules the
+    # end notification. The change is recorded in the staff action log.
+    #
+    # @param topic_id [Integer] Topic ID
+    # @param ends_at [String] New deadline as ISO 8601 timestamp, in the future
+    #
+    # @return [JSON] Success with new ends_at, or error
+    def change_end_date
+      topic = Topic.find_by(id: params[:topic_id])
+      return render_json_error("Topic not found", status: :not_found) unless topic
+
+      lottery = Lottery.find_by(topic_id: topic.id)
+      return render_json_error("Lottery not found", status: :not_found) unless lottery
+
+      unless guardian.can_change_lottery_end_date?(lottery)
+        return(
+          render_json_error("You don't have permission to change the end date", status: :forbidden)
+        )
+      end
+
+      new_ends_at =
+        begin
+          Time.zone.parse(params.require(:ends_at).to_s)
+        rescue ArgumentError
+          nil
+        end
+      if new_ends_at.nil? || new_ends_at <= Time.zone.now
+        return(render_json_error("End date must be in the future", status: :unprocessable_entity))
+      end
+
+      previous_ends_at = lottery.ends_at
+      lottery.change_end_date!(new_ends_at)
+
+      Jobs.cancel_scheduled_job(:vzekc_verlosung_notify_lottery_ended, lottery_id: lottery.id)
+      Jobs.enqueue_at(new_ends_at, :vzekc_verlosung_notify_lottery_ended, lottery_id: lottery.id)
+
+      StaffActionLogger.new(current_user).log_custom(
+        "vzekc_verlosung_change_end_date",
+        topic_id: topic.id,
+        previous_value: previous_ends_at&.iso8601,
+        new_value: new_ends_at.iso8601,
+      )
+
+      render json: success_json.merge(ends_at: new_ends_at.iso8601)
+    end
+
     # GET /vzekc_verlosung/lotteries/:topic_id/drawing-data
     #
     # Returns data needed for lottery drawing in the format expected by lottery.js
@@ -252,14 +300,10 @@ module VzekcVerlosung
           }
         end
 
-      # The timestamp should be when the lottery was published (went active)
-      # Use ends_at minus duration as published_at
-      duration_days = lottery.duration_days || 14
-      published_at = lottery.ends_at ? lottery.ends_at - duration_days.days : topic.created_at
-
+      # The timestamp is when the lottery was published (went active)
       render json: {
                title: topic.title,
-               timestamp: published_at.iso8601,
+               timestamp: lottery.drawing_timestamp.iso8601,
                packets: packets,
                drawing_mode: lottery.drawing_mode,
              }
