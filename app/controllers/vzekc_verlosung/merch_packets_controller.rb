@@ -126,6 +126,32 @@ module VzekcVerlosung
       head :no_content
     end
 
+    # DELETE /vzekc-verlosung/merch-packets/:id
+    #
+    # Deletes a merch packet that has not been shipped yet, e.g. when the donor
+    # declines it
+    #
+    # @param id [Integer] Merch packet ID
+    #
+    # @return [HTTP 204] No content on success
+    def destroy
+      packet = MerchPacket.find(params[:id])
+
+      unless packet.pending?
+        return render_json_error("Packet is not pending", status: :unprocessable_entity)
+      end
+
+      packet.destroy!
+
+      handler_ids = VzekcVerlosung.merch_handler_user_ids
+      if handler_ids.any?
+        has_new = VzekcVerlosung.has_pending_merch_packets?
+        VzekcVerlosung.notify_new_content("merch_packets", user_ids: handler_ids, has_new: has_new)
+      end
+
+      head :no_content
+    end
+
     # GET /vzekc-verlosung/merch-packets/stats
     #
     # Returns monthly shipping statistics (all time, including archived)

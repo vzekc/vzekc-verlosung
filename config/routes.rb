@@ -75,6 +75,7 @@ VzekcVerlosung::Engine.routes.draw do
   post "/merch-packets" => "merch_packets#create"
   put "/merch-packets/:id" => "merch_packets#update"
   put "/merch-packets/:id/ship" => "merch_packets#ship"
+  delete "/merch-packets/:id" => "merch_packets#destroy"
 
   # Notification logs routes
   get "/admin/notification-logs" => "notification_logs#admin_index"

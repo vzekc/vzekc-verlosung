@@ -214,4 +214,55 @@ describe VzekcVerlosung::MerchPacketsController do
       end
     end
   end
+
+  describe "#destroy" do
+    let!(:pending_packet) { Fabricate(:merch_packet, donation: Fabricate(:donation)) }
+
+    context "when not logged in" do
+      it "returns 403" do
+        delete "/vzekc-verlosung/merch-packets/#{pending_packet.id}.json"
+        expect(response.status).to eq(403)
+      end
+    end
+
+    context "when logged in as regular user" do
+      before { sign_in(user) }
+
+      it "returns 403" do
+        delete "/vzekc-verlosung/merch-packets/#{pending_packet.id}.json"
+
+        expect(response.status).to eq(403)
+        expect(VzekcVerlosung::MerchPacket.exists?(pending_packet.id)).to eq(true)
+      end
+    end
+
+    context "when logged in as merch handler" do
+      before { sign_in(merch_handler) }
+
+      it "deletes a pending packet" do
+        delete "/vzekc-verlosung/merch-packets/#{pending_packet.id}.json"
+
+        expect(response.status).to eq(204)
+        expect(VzekcVerlosung::MerchPacket.exists?(pending_packet.id)).to eq(false)
+      end
+
+      it "deletes a standalone packet" do
+        standalone = Fabricate(:merch_packet, donation: nil, title: "Standalone")
+
+        delete "/vzekc-verlosung/merch-packets/#{standalone.id}.json"
+
+        expect(response.status).to eq(204)
+        expect(VzekcVerlosung::MerchPacket.exists?(standalone.id)).to eq(false)
+      end
+
+      it "refuses to delete a shipped packet" do
+        pending_packet.update!(state: "shipped", shipped_at: Time.zone.now)
+
+        delete "/vzekc-verlosung/merch-packets/#{pending_packet.id}.json"
+
+        expect(response.status).to eq(422)
+        expect(VzekcVerlosung::MerchPacket.exists?(pending_packet.id)).to eq(true)
+      end
+    end
+  end
 end

@@ -509,6 +509,8 @@ en:
         mark_shipped: "Mark as shipped"
         edit: "Edit"
         ship: "Ship"
+        delete: "Delete merch packet"
+        delete_confirm: "Delete the merch packet \"%{title}\"? It will not be sent."
         shipped: "Shipped"
         tracking_link: "Tracking"
         no_pending: "No pending merch packets"

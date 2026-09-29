@@ -22,10 +22,11 @@ import MarkMerchShippedModal from "./modal/mark-merch-shipped-modal";
  *
  * @component MerchPacketsList
  * @param {Array} packets - Array of merch packet objects
- * @param {Function} onPacketShipped - Callback when a packet is marked as shipped
+ * @param {Function} onPacketShipped - Callback when a packet is marked as shipped, edited or deleted
  * @param {string} shipPacketId - Optional packet ID to auto-open shipping modal for
  */
 export default class MerchPacketsList extends Component {
+  @service dialog;
   @service modal;
 
   @tracked activeTab = "pending";
@@ -57,6 +58,30 @@ export default class MerchPacketsList extends Component {
       model: {
         packet,
         onSaved: this.args.onPacketShipped,
+      },
+    });
+  }
+
+  /**
+   * Ask for confirmation, then delete a pending packet
+   *
+   * @param {Object} packet - The packet to delete
+   */
+  @action
+  confirmDelete(packet) {
+    this.dialog.yesNoConfirm({
+      message: i18n("vzekc_verlosung.merch_packets.delete_confirm", {
+        title: packet.title,
+      }),
+      didConfirm: async () => {
+        try {
+          await ajax(`/vzekc-verlosung/merch-packets/${packet.id}`, {
+            type: "DELETE",
+          });
+          this.args.onPacketShipped?.();
+        } catch (error) {
+          popupAjaxError(error);
+        }
       },
     });
   }
@@ -297,6 +322,12 @@ export default class MerchPacketsList extends Component {
                       @label="vzekc_verlosung.merch_packets.ship"
                       @disabled={{eq this.shippingPacketId packet.id}}
                       class="btn-primary"
+                    />
+                    <DButton
+                      @action={{fn this.confirmDelete packet}}
+                      @icon="trash-can"
+                      @title="vzekc_verlosung.merch_packets.delete"
+                      class="btn-danger merch-packet-delete-button"
                     />
                   {{else}}
                     <span class="shipped-badge">

@@ -555,6 +555,8 @@ de:
         mark_shipped: "Als versandt markieren"
         edit: "Bearbeiten"
         ship: "Versenden"
+        delete: "Merch-Paket löschen"
+        delete_confirm: "Merch-Paket „%{title}“ löschen? Es wird dann nicht verschickt."
         shipped: "Versandt"
         tracking_link: "Tracking"
         no_pending: "Keine ausstehenden Merch-Pakete"
