@@ -1,5 +1,7 @@
 import Component from "@glimmer/component";
 import { tracked } from "@glimmer/tracking";
+import { action } from "@ember/object";
+import didUpdate from "@ember/render-modifiers/modifiers/did-update";
 import icon from "discourse/helpers/d-icon";
 import { ajax } from "discourse/lib/ajax";
 import { i18n } from "discourse-i18n";
@@ -8,6 +10,7 @@ import { i18n } from "discourse-i18n";
  * Displays packet leaderboards: most popular and packets without tickets
  *
  * @component LotteryPacketLeaderboard
+ * @param {string} @period - Look-back period ("3m", "6m", "1y" or "all")
  */
 export default class LotteryPacketLeaderboard extends Component {
   @tracked data = null;
@@ -18,17 +21,30 @@ export default class LotteryPacketLeaderboard extends Component {
     this.loadData();
   }
 
+  /**
+   * Loads the packet leaderboards for the current period. A response for a period that
+   * is no longer selected is discarded.
+   */
+  @action
   async loadData() {
+    const period = this.args.period;
+    this.isLoading = true;
     try {
-      const result = await ajax("/vzekc-verlosung/history/packets.json");
-      this.data = result;
+      const result = await ajax("/vzekc-verlosung/history/packets.json", {
+        data: { period },
+      });
+      if (period === this.args.period) {
+        this.data = result;
+      }
     } finally {
-      this.isLoading = false;
+      if (period === this.args.period) {
+        this.isLoading = false;
+      }
     }
   }
 
   <template>
-    <div class="lottery-packet-leaderboard">
+    <div class="lottery-packet-leaderboard" {{didUpdate this.loadData @period}}>
       {{#if this.isLoading}}
         <div class="packet-leaderboard-loading">
           {{icon "spinner" class="fa-spin"}}

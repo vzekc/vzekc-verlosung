@@ -23,6 +23,7 @@ register_svg_icon "pen"
 register_svg_icon "file"
 # file-lines is available in Discourse core by default (no registration needed)
 register_svg_icon "gift"
+register_svg_icon "box-open"
 register_svg_icon "hand-holding-heart"
 register_svg_icon "hand-point-up"
 register_svg_icon "hand-pointer"

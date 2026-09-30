@@ -1,5 +1,7 @@
 import Component from "@glimmer/component";
 import { tracked } from "@glimmer/tracking";
+import { action } from "@ember/object";
+import didUpdate from "@ember/render-modifiers/modifiers/did-update";
 import { service } from "@ember/service";
 import icon from "discourse/helpers/d-icon";
 import { ajax } from "discourse/lib/ajax";
@@ -11,6 +13,7 @@ const CACHE_KEY = "lottery-stats";
  * Displays statistics cards for lottery history
  *
  * @component LotteryStatsCards
+ * @param {string} @period - Look-back period ("3m", "6m", "1y" or "all")
  */
 export default class LotteryStatsCards extends Component {
   @service historyStore;
@@ -20,28 +23,54 @@ export default class LotteryStatsCards extends Component {
 
   constructor() {
     super(...arguments);
-    // Check cache first for instant restore on back navigation
-    const cached = this.historyStore.get(CACHE_KEY);
-    if (cached) {
-      this.stats = cached;
-      this.isLoading = false;
-    }
     this.loadStats();
   }
 
+  /**
+   * Cache key for the statistics of a period
+   *
+   * @param {string} period - Look-back period
+   * @returns {string}
+   */
+  cacheKey(period) {
+    return `${CACHE_KEY}-${period}`;
+  }
+
+  /**
+   * Loads the statistics for the current period. A response for a period that is no
+   * longer selected is discarded.
+   */
+  @action
   async loadStats() {
-    try {
-      const result = await ajax("/vzekc-verlosung/history/stats.json");
-      this.stats = result;
-      // Cache for back navigation
-      this.historyStore.set(CACHE_KEY, result);
-    } finally {
+    const period = this.args.period;
+
+    // Check cache first for instant restore on back navigation
+    const cached = this.historyStore.get(this.cacheKey(period));
+    if (cached) {
+      this.stats = cached;
       this.isLoading = false;
+    } else {
+      this.isLoading = true;
+    }
+
+    try {
+      const result = await ajax("/vzekc-verlosung/history/stats.json", {
+        data: { period },
+      });
+      // Cache for back navigation
+      this.historyStore.set(this.cacheKey(period), result);
+      if (period === this.args.period) {
+        this.stats = result;
+      }
+    } finally {
+      if (period === this.args.period) {
+        this.isLoading = false;
+      }
     }
   }
 
   <template>
-    <div class="lottery-stats-cards">
+    <div class="lottery-stats-cards" {{didUpdate this.loadStats @period}}>
       {{#if this.isLoading}}
         <div class="stats-loading">
           {{icon "spinner" class="fa-spin"}}

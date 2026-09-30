@@ -332,6 +332,31 @@ en:
         auto_draw: "Drawn automatically at the end"
       history:
         title: "Lottery History"
+        periods:
+          3m: "Last 3 months"
+          6m: "Last 6 months"
+          1y: "Last year"
+          all: "All time"
+        leaderboard:
+          uncollected: "Not collected"
+          uncollected_info: "Shows the users with the most wins that have been neither collected nor shipped more than 6 weeks after the drawing. Won packets should be collected promptly so that organizers do not have to store them for a long time."
+          no_uncollected: "All wins have been collected"
+          no_data: "No data yet"
+          details:
+            lotteries: "Lotteries by %{username} (%{number})"
+            tickets: "Tickets of %{username} (%{number})"
+            wins: "Wins of %{username} (%{number})"
+            uncollected: "Uncollected wins of %{username} (%{number})"
+            packets:
+              one: "1 packet"
+              other: "%{count} packets"
+            participants:
+              one: "1 participant"
+              other: "%{count} participants"
+            days_waiting:
+              one: "waiting for 1 day"
+              other: "waiting for %{count} days"
+            owner: "held by %{username}"
         description: "Overview of all completed lotteries with winners and reception reports"
         sidebar_link_title: "View lottery history"
         sidebar_link_text: "Lottery History"

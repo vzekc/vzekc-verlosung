@@ -3,18 +3,25 @@ import { tracked } from "@glimmer/tracking";
 import { fn } from "@ember/helper";
 import { on } from "@ember/modifier";
 import { action } from "@ember/object";
+import didUpdate from "@ember/render-modifiers/modifiers/did-update";
+import { service } from "@ember/service";
 import avatar from "discourse/helpers/avatar";
 import icon from "discourse/helpers/d-icon";
 import { ajax } from "discourse/lib/ajax";
 import { eq } from "discourse/truth-helpers";
 import { i18n } from "discourse-i18n";
+import LeaderboardDetailsModal from "./modal/leaderboard-details-modal";
 
 /**
- * Displays leaderboards for lottery creators, ticket participants, winners, and luck
+ * Displays leaderboards for lottery creators, ticket participants, winners, luck,
+ * and uncollected wins
  *
  * @component LotteryLeaderboard
+ * @param {string} @period - Look-back period ("3m", "6m", "1y" or "all")
  */
 export default class LotteryLeaderboard extends Component {
+  @service modal;
+
   @tracked leaderboard = null;
   @tracked isLoading = true;
   @tracked expandedInfo = null;
@@ -44,12 +51,25 @@ export default class LotteryLeaderboard extends Component {
     }
   }
 
+  /**
+   * Loads the leaderboards for the current period. A response for a period that is no
+   * longer selected is discarded.
+   */
+  @action
   async loadLeaderboard() {
+    const period = this.args.period;
+    this.isLoading = true;
     try {
-      const result = await ajax("/vzekc-verlosung/history/leaderboard.json");
-      this.leaderboard = result;
+      const result = await ajax("/vzekc-verlosung/history/leaderboard.json", {
+        data: { period },
+      });
+      if (period === this.args.period) {
+        this.leaderboard = result;
+      }
     } finally {
-      this.isLoading = false;
+      if (period === this.args.period) {
+        this.isLoading = false;
+      }
     }
   }
 
@@ -63,6 +83,24 @@ export default class LotteryLeaderboard extends Component {
     }
   }
 
+  /**
+   * Opens the entries behind a user's number in a leaderboard
+   *
+   * @param {string} kind - "lotteries", "tickets", "wins", or "uncollected"
+   * @param {Object} entry - Leaderboard entry with user and count
+   */
+  @action
+  showDetails(kind, entry) {
+    this.modal.show(LeaderboardDetailsModal, {
+      model: {
+        kind,
+        user: entry.user,
+        count: entry.count,
+        period: this.args.period,
+      },
+    });
+  }
+
   formatLuck(luck) {
     if (luck >= 0) {
       return `+${luck}`;
@@ -71,7 +109,7 @@ export default class LotteryLeaderboard extends Component {
   }
 
   <template>
-    <div class="lottery-leaderboard">
+    <div class="lottery-leaderboard" {{didUpdate this.loadLeaderboard @period}}>
       {{#if this.isLoading}}
         <div class="leaderboard-loading">
           {{icon "spinner" class="fa-spin"}}
@@ -99,15 +137,14 @@ export default class LotteryLeaderboard extends Component {
               <ul class="leaderboard-list">
                 {{#each this.leaderboard.lotteries as |entry|}}
                   <li class="leaderboard-entry">
-                    <span class="user-info">
+                    <button
+                      type="button"
+                      class="user-info btn-flat show-details"
+                      {{on "click" (fn this.showDetails "lotteries" entry)}}
+                    >
                       {{avatar entry.user imageSize="small"}}
-                      <a
-                        href="/u/{{entry.user.username}}/verlosungen"
-                        class="username"
-                      >
-                        {{entry.user.username}}
-                      </a>
-                    </span>
+                      <span class="username">{{entry.user.username}}</span>
+                    </button>
                     <span class="count">{{entry.count}}</span>
                   </li>
                 {{/each}}
@@ -139,15 +176,14 @@ export default class LotteryLeaderboard extends Component {
               <ul class="leaderboard-list">
                 {{#each this.leaderboard.tickets as |entry|}}
                   <li class="leaderboard-entry">
-                    <span class="user-info">
+                    <button
+                      type="button"
+                      class="user-info btn-flat show-details"
+                      {{on "click" (fn this.showDetails "tickets" entry)}}
+                    >
                       {{avatar entry.user imageSize="small"}}
-                      <a
-                        href="/u/{{entry.user.username}}/verlosungen"
-                        class="username"
-                      >
-                        {{entry.user.username}}
-                      </a>
-                    </span>
+                      <span class="username">{{entry.user.username}}</span>
+                    </button>
                     <span class="count">{{entry.count}}</span>
                   </li>
                 {{/each}}
@@ -179,15 +215,14 @@ export default class LotteryLeaderboard extends Component {
               <ul class="leaderboard-list">
                 {{#each this.leaderboard.wins as |entry|}}
                   <li class="leaderboard-entry">
-                    <span class="user-info">
+                    <button
+                      type="button"
+                      class="user-info btn-flat show-details"
+                      {{on "click" (fn this.showDetails "wins" entry)}}
+                    >
                       {{avatar entry.user imageSize="small"}}
-                      <a
-                        href="/u/{{entry.user.username}}/verlosungen"
-                        class="username"
-                      >
-                        {{entry.user.username}}
-                      </a>
-                    </span>
+                      <span class="username">{{entry.user.username}}</span>
+                    </button>
                     <span class="count">{{entry.count}}</span>
                   </li>
                 {{/each}}
@@ -293,6 +328,47 @@ export default class LotteryLeaderboard extends Component {
             {{else}}
               <p class="no-data">{{i18n
                   "vzekc_verlosung.history.leaderboard.no_data"
+                }}</p>
+            {{/if}}
+          </div>
+
+          {{! Uncollected }}
+          <div class="leaderboard-section">
+            <h3 class="leaderboard-title">
+              {{icon "box-open"}}
+              {{i18n "vzekc_verlosung.history.leaderboard.uncollected"}}
+              <button
+                type="button"
+                class="info-icon btn-flat"
+                {{on "click" (fn this.toggleInfo "uncollected")}}
+              >{{icon "circle-info"}}</button>
+              {{#if (eq this.expandedInfo "uncollected")}}
+                <div class="info-panel">
+                  {{i18n
+                    "vzekc_verlosung.history.leaderboard.uncollected_info"
+                  }}
+                </div>
+              {{/if}}
+            </h3>
+            {{#if this.leaderboard.uncollected.length}}
+              <ul class="leaderboard-list">
+                {{#each this.leaderboard.uncollected as |entry|}}
+                  <li class="leaderboard-entry">
+                    <button
+                      type="button"
+                      class="user-info btn-flat show-details"
+                      {{on "click" (fn this.showDetails "uncollected" entry)}}
+                    >
+                      {{avatar entry.user imageSize="small"}}
+                      <span class="username">{{entry.user.username}}</span>
+                    </button>
+                    <span class="count">{{entry.count}}</span>
+                  </li>
+                {{/each}}
+              </ul>
+            {{else}}
+              <p class="no-data">{{i18n
+                  "vzekc_verlosung.history.leaderboard.no_uncollected"
                 }}</p>
             {{/if}}
           </div>

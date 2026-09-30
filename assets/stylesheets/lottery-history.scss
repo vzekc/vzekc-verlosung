@@ -461,6 +461,35 @@
       }
     }
 
+    > button.user-info {
+      display: flex;
+      align-items: center;
+      gap: 0.5em;
+      min-width: 0;
+      margin: 0;
+      padding: 0;
+      color: var(--primary);
+      font-size: inherit;
+      text-align: left;
+
+      > img.avatar {
+        flex-shrink: 0;
+        margin: 0;
+      }
+
+      > .username {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      &:hover,
+      &:focus {
+        background: none;
+        color: var(--tertiary);
+      }
+    }
+
     > span.count {
       font-weight: bold;
       color: var(--tertiary);
@@ -656,5 +685,62 @@
       padding: 0.5em 0.4em;
       font-size: 0.9em;
     }
+  }
+}
+
+// Entries behind a leaderboard number
+.leaderboard-details-modal {
+  .leaderboard-details {
+    width: 100%;
+    border-collapse: collapse;
+
+    td {
+      padding: 0.5em;
+      border-top: 1px solid var(--primary-low);
+      vertical-align: top;
+    }
+
+    tr:first-child td {
+      border-top: none;
+    }
+
+    .date {
+      white-space: nowrap;
+      color: var(--primary-medium);
+    }
+
+    .title {
+      a {
+        display: block;
+      }
+
+      .lottery {
+        font-size: var(--font-down-1);
+        color: var(--primary-medium);
+      }
+    }
+
+    .detail {
+      white-space: nowrap;
+      text-align: right;
+      font-size: var(--font-down-1);
+      color: var(--primary-high);
+
+      .won {
+        display: block;
+        color: var(--success);
+      }
+
+      .waiting {
+        color: var(--danger);
+      }
+    }
+  }
+
+  .leaderboard-loading,
+  .no-data {
+    text-align: center;
+    padding: 2em;
+    color: var(--primary-medium);
   }
 }

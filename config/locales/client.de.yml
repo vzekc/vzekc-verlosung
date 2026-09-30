@@ -362,6 +362,11 @@ de:
         auto_draw: "Automatische Ziehung zum Ende"
       history:
         title: "Statistik"
+        periods:
+          3m: "Letzte 3 Monate"
+          6m: "Letzte 6 Monate"
+          1y: "Letztes Jahr"
+          all: "Gesamt"
         description: "Übersicht über alle abgeschlossenen Verlosungen mit Gewinnern und Erhaltungsberichten"
         sidebar_link_title: "Statistik ansehen"
         sidebar_link_text: "Statistik"
@@ -405,6 +410,24 @@ de:
           luckiest_info: "Zeigt Benutzer, die mehr gewonnen haben als statistisch erwartet. Der Glücksfaktor wird berechnet als: tatsächliche Gewinne minus erwartete Gewinne. Erwartete Gewinne = Summe der Gewinnwahrscheinlichkeiten (1 / Anzahl Teilnehmer) für jedes Paket, an dem teilgenommen wurde. Beispiel: Bei einem Paket mit 10 Teilnehmern ist die Gewinnchance 1/10 = 0,1. Wer bei 10 solchen Paketen teilnimmt, hat einen erwarteten Gewinn von 1,0. Gewinnt diese Person 3 Pakete, ist der Glücksfaktor +2,0."
           unluckiest: "Pechvögel"
           unluckiest_info: "Zeigt Benutzer, die weniger gewonnen haben als statistisch erwartet. Der Pechfaktor wird genauso berechnet wie der Glücksfaktor, zeigt aber negative Werte. Beispiel: Wer statistisch 2 Pakete hätte gewinnen sollen, aber keines gewonnen hat, hat einen Pechfaktor von -2,0."
+          uncollected: "Nicht abgeholt"
+          uncollected_info: "Zeigt die Benutzer mit den meisten Gewinnen, die mehr als 6 Wochen nach der Ziehung weder abgeholt noch verschickt wurden. Gewonnene Pakete sollten zeitnah abgeholt werden, damit die Veranstalter sie nicht lange aufbewahren müssen."
+          no_uncollected: "Alle Gewinne wurden abgeholt"
+          details:
+            lotteries: "Verlosungen von %{username} (%{number})"
+            tickets: "Lose von %{username} (%{number})"
+            wins: "Gewinne von %{username} (%{number})"
+            uncollected: "Nicht abgeholte Gewinne von %{username} (%{number})"
+            packets:
+              one: "1 Paket"
+              other: "%{count} Pakete"
+            participants:
+              one: "1 Teilnehmer"
+              other: "%{count} Teilnehmer"
+            days_waiting:
+              one: "wartet seit 1 Tag"
+              other: "wartet seit %{count} Tagen"
+            owner: "bei %{username}"
           luck_wins: "Gewinne"
           luck_expected: "erwartet"
           no_data: "Noch keine Daten"

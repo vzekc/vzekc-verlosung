@@ -7,6 +7,11 @@ VzekcVerlosung::Engine.routes.draw do
   get "/history" => "lottery_history#index"
   get "/history/stats" => "lottery_history#stats"
   get "/history/leaderboard" => "lottery_history#leaderboard"
+  get "/history/leaderboard/:kind/:username" => "lottery_history#details",
+      :constraints => {
+        kind: /lotteries|tickets|wins|uncollected/,
+        username: RouteFormat.username,
+      }
   get "/history/packets" => "lottery_history#packets"
   get "/history/lotteries" => "lottery_history#lotteries"
   get "/active" => "active_lotteries#index"
