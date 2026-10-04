@@ -8,6 +8,7 @@ en:
     vzekc_verlosung_reminder_hour: "Hour of day (0-23) in server local time when reminder notifications are sent"
     vzekc_verlosung_show_end_early_button: "Show 'End Early' button on active lotteries (for testing purposes)"
     vzekc_verlosung_merch_handlers_group_name: "Name of the group whose members can manage merch packets"
+    vzekc_verlosung_board_group_name: "Name of the board group; its members can create lotteries running for as little as one day"
   vzekc_verlosung:
     notifications:
       lottery_published: "The lottery '%{topic_title}' has been published and is now active"
@@ -284,6 +285,7 @@ en:
       packet_title_too_short: "Packet title must be at least %{minimum} non-whitespace characters long."
       cannot_delete_packet_post: "Cannot delete this post. It is Packet %{ordinal} (%{title}) in a lottery. To remove this packet, delete the entire lottery topic."
       cannot_change_lottery_category: "Cannot change the category of a lottery topic."
+      duration_out_of_range: "The duration must be between %{min} and %{max} days."
       auto_draw_requires_automatic: "Drawing the winners automatically when the lottery ends is only available with the automatic drawing mode."
       erhaltungsbericht_not_a_packet: "This post does not belong to a lottery packet."
       erhaltungsbericht_not_winner: "Only the winner of a packet can write a reception report."

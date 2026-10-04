@@ -90,7 +90,7 @@ en:
         title_placeholder: "Lottery Title"
         body_label: "Description"
         duration_label: "Duration"
-        duration_hint: "7-28 days"
+        duration_hint: "%{min}-28 days"
         drawing_mode_label: "Drawing Mode"
         drawing_mode_hint: "For manual selection, explain in description how you'll choose"
         drawing_mode_automatic: "Automatic (deterministic RNG)"

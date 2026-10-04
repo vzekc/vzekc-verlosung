@@ -40,8 +40,8 @@ module VzekcVerlosung
                 presence: true,
                 numericality: {
                   only_integer: true,
-                  greater_than_or_equal_to: 7,
-                  less_than_or_equal_to: 28,
+                  greater_than_or_equal_to: Lottery::BOARD_MIN_DURATION_DAYS,
+                  less_than_or_equal_to: Lottery::MAX_DURATION_DAYS,
                 }
       validates :category_id, presence: true
       validates :packet_mode, inclusion: { in: %w[ein mehrere] }, allow_nil: true
@@ -68,6 +68,7 @@ module VzekcVerlosung
 
     model :category
     policy :can_create_topics
+    step :validate_duration
 
     transaction do
       step :create_main_topic
@@ -86,6 +87,18 @@ module VzekcVerlosung
 
     def can_create_topics(guardian:, category:)
       guardian.can_create_lottery?(category)
+    end
+
+    def validate_duration(user:, params:)
+      min = Lottery.min_duration_days_for(user)
+      return if params.duration_days >= min
+      fail!(
+        I18n.t(
+          "vzekc_verlosung.errors.duration_out_of_range",
+          min: min,
+          max: Lottery::MAX_DURATION_DAYS,
+        ),
+      )
     end
 
     def create_main_topic(user:, params:, category:)

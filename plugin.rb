@@ -384,6 +384,10 @@ after_initialize do
   register_editable_user_custom_field("vzekc_lottery_list_sort_mode")
   DiscoursePluginRegistry.serialized_current_user_fields << "vzekc_lottery_list_sort_mode"
 
+  add_to_serializer(:current_user, :vzekc_verlosung_min_duration_days) do
+    VzekcVerlosung::Lottery.min_duration_days_for(object)
+  end
+
   # DEPRECATED: Custom fields registrations (replaced by normalized tables)
   # Register custom fields still used for Erhaltungsberichte (cross-plugin references)
   # packet_post_id: Post ID of the packet in the lottery (for Erhaltungsberichte)

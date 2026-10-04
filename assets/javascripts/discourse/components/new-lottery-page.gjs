@@ -779,13 +779,34 @@ export default class NewLotteryPage extends Component {
     this._scheduleDraftSave();
   }
 
+  /**
+   * Shortest duration the current user may choose; board members can run
+   * short lotteries
+   *
+   * @returns {number}
+   */
+  get minDurationDays() {
+    return this.currentUser?.vzekc_verlosung_min_duration_days || 7;
+  }
+
+  /**
+   * Hint text for the duration field
+   *
+   * @returns {string}
+   */
+  get durationHint() {
+    return i18n("vzekc_verlosung.composer.duration_hint", {
+      min: this.minDurationDays,
+    });
+  }
+
   @action
   validateDuration(name, value, { addError }) {
     const duration = parseInt(value, 10);
-    if (isNaN(duration) || duration < 7 || duration > 28) {
+    if (isNaN(duration) || duration < this.minDurationDays || duration > 28) {
       addError(name, {
         title: i18n("vzekc_verlosung.composer.duration_label"),
-        message: i18n("vzekc_verlosung.composer.duration_hint"),
+        message: this.durationHint,
       });
     }
   }
@@ -1468,7 +1489,7 @@ export default class NewLotteryPage extends Component {
                     }}</label>
                   <DTooltip
                     @icon="circle-question"
-                    @content={{i18n "vzekc_verlosung.composer.duration_hint"}}
+                    @content={{this.durationHint}}
                   />
                 </div>
                 <field.Input

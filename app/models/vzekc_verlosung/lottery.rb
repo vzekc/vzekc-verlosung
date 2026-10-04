@@ -4,6 +4,24 @@ module VzekcVerlosung
   class Lottery < ActiveRecord::Base
     self.table_name = "vzekc_verlosung_lotteries"
 
+    MIN_DURATION_DAYS = 7
+    BOARD_MIN_DURATION_DAYS = 1
+    MAX_DURATION_DAYS = 28
+
+    # Shortest lottery duration the user may choose. Members of the board
+    # group can run short lotteries.
+    #
+    # @param user [User, nil] the lottery owner
+    # @return [Integer] minimum duration in days
+    def self.min_duration_days_for(user)
+      group_name = SiteSetting.vzekc_verlosung_board_group_name
+      if user && group_name.present? && user.groups.exists?(name: group_name)
+        BOARD_MIN_DURATION_DAYS
+      else
+        MIN_DURATION_DAYS
+      end
+    end
+
     # Associations
     belongs_to :topic
     belongs_to :donation, class_name: "VzekcVerlosung::Donation", optional: true
@@ -19,8 +37,8 @@ module VzekcVerlosung
     validates :drawing_mode, presence: true, inclusion: { in: %w[automatic manual] }
     validates :duration_days,
               numericality: {
-                greater_than_or_equal_to: 7,
-                less_than_or_equal_to: 28,
+                greater_than_or_equal_to: BOARD_MIN_DURATION_DAYS,
+                less_than_or_equal_to: MAX_DURATION_DAYS,
               },
               allow_nil: true
 

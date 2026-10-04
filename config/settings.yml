@@ -94,3 +94,7 @@ vzekc_verlosung:
     default: ''
     type: string
     client: true
+  vzekc_verlosung_board_group_name:
+    default: 'vorstand'
+    type: string
+    client: false

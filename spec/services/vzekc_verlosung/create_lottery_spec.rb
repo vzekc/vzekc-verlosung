@@ -45,6 +45,28 @@ RSpec.describe VzekcVerlosung::CreateLottery do
   end
 
   describe "#call" do
+    context "with a duration shorter than seven days" do
+      before { valid_params[:params][:duration_days] = 2 }
+
+      it "fails for regular users" do
+        result = described_class.call(**valid_params)
+
+        expect(result).to be_failure
+        expect(result["result.step.validate_duration"]).to be_a_failure
+      end
+
+      it "succeeds for board members" do
+        Fabricate(:group, name: "vorstand").add(user)
+
+        result = described_class.call(**valid_params)
+
+        expect(result).to be_success
+        expect(VzekcVerlosung::Lottery.find_by(topic_id: result.main_topic.id).duration_days).to eq(
+          2,
+        )
+      end
+    end
+
     context "with mehrere pakete mode" do
       it "creates main topic and packet posts" do
         expect { described_class.call(**valid_params) }.to change { Topic.count }.by(1).and change {

@@ -21,7 +21,7 @@ module VzekcVerlosung
     # Creates a new lottery with main topic and packet topics
     #
     # @param title [String] Title of the main lottery topic
-    # @param duration_days [Integer] Duration in days (7-28)
+    # @param duration_days [Integer] Duration in days (7-28, from 1 for board members)
     # @param category_id [Integer] Category ID where topics should be created
     # @param packets [Array<Hash>] Array of packet data with title
     #
@@ -52,6 +52,8 @@ module VzekcVerlosung
           contract_errors = result["result.contract.default"][:errors]
           Rails.logger.error "Contract errors: #{contract_errors.full_messages.inspect}"
           errors = contract_errors.full_messages
+        elsif result["result.step.validate_duration"]&.failure?
+          errors = [result["result.step.validate_duration"][:error]]
           # Check for step errors (like create_main_topic)
         elsif result["result.step.create_main_topic"]&.failure?
           step_error = result["result.step.create_main_topic"][:error]

@@ -118,7 +118,7 @@ de:
         title_placeholder: "Titel der Verlosung"
         body_label: "Beschreibung"
         duration_label: "Dauer"
-        duration_hint: "7-28 Tage"
+        duration_hint: "%{min}-28 Tage"
         drawing_mode_label: "Ziehungsmodus"
         drawing_mode_hint: "Bei manueller Auswahl bitte in der Beschreibung erklären"
         drawing_mode_automatic: "Automatisch (deterministischer RNG)"

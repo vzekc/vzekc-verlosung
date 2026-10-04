@@ -22,7 +22,7 @@ RSpec.describe VzekcVerlosung::Lottery do
     context "with duration_days" do
       it "validates minimum value" do
         topic = Fabricate(:topic)
-        lottery = Fabricate.build(:lottery, topic: topic, duration_days: 6)
+        lottery = Fabricate.build(:lottery, topic: topic, duration_days: 0)
         expect(lottery).not_to be_valid
         expect(lottery.errors[:duration_days]).to be_present
       end

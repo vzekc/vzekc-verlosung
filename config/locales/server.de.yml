@@ -8,6 +8,7 @@ de:
     vzekc_verlosung_reminder_hour: "Uhrzeit (0-23) in Server-Lokalzeit, zu der Erinnerungs-Benachrichtigungen versendet werden"
     vzekc_verlosung_show_end_early_button: "'Vorzeitig beenden' Button bei aktiven Verlosungen anzeigen (für Testzwecke)"
     vzekc_verlosung_merch_handlers_group_name: "Name der Gruppe, deren Mitglieder Merch-Pakete verwalten können"
+    vzekc_verlosung_board_group_name: "Name der Vorstandsgruppe; ihre Mitglieder können Verlosungen mit einer Laufzeit ab einem Tag erstellen"
   vzekc_verlosung:
     notifications:
       lottery_published: "Die Verlosung '%{topic_title}' wurde veröffentlicht und ist jetzt aktiv"
@@ -294,6 +295,7 @@ de:
       packet_title_too_short: "Paket Titel muss mindestens %{minimum} Zeichen (ohne Leerzeichen) lang sein."
       cannot_delete_packet_post: "Dieser Beitrag kann nicht gelöscht werden. Es ist Paket %{ordinal} (%{title}) in einer Verlosung. Um dieses Paket zu entfernen, lösche das gesamte Verlosungs-Thema."
       cannot_change_lottery_category: "Die Kategorie eines Verlosungs-Themas kann nicht geändert werden."
+      duration_out_of_range: "Die Laufzeit muss zwischen %{min} und %{max} Tagen liegen."
       auto_draw_requires_automatic: "Die automatische Ziehung zum Ende der Verlosung ist nur im automatischen Ziehungsmodus möglich."
       erhaltungsbericht_not_a_packet: "Dieser Beitrag gehört zu keinem Verlosungspaket."
       erhaltungsbericht_not_winner: "Nur der Gewinner eines Pakets kann einen Erhaltungsbericht schreiben."
