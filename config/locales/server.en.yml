@@ -9,6 +9,8 @@ en:
     vzekc_verlosung_show_end_early_button: "Show 'End Early' button on active lotteries (for testing purposes)"
     vzekc_verlosung_merch_handlers_group_name: "Name of the group whose members can manage merch packets"
     vzekc_verlosung_board_group_name: "Name of the board group; its members can create lotteries running for as little as one day"
+    vzekc_verlosung_short_lotteries_starts_at: "Start of a period in which all users can create lotteries running for as little as one day (e.g. for an exhibition)"
+    vzekc_verlosung_short_lotteries_ends_at: "End of the period for short lotteries"
   vzekc_verlosung:
     notifications:
       lottery_published: "The lottery '%{topic_title}' has been published and is now active"

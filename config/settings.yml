@@ -98,3 +98,11 @@ vzekc_verlosung:
     default: 'vorstand'
     type: string
     client: false
+  vzekc_verlosung_short_lotteries_starts_at:
+    default: ''
+    type: datetime
+    client: false
+  vzekc_verlosung_short_lotteries_ends_at:
+    default: ''
+    type: datetime
+    client: false

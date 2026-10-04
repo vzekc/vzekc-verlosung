@@ -55,6 +55,20 @@ RSpec.describe VzekcVerlosung::CreateLottery do
         expect(result["result.step.validate_duration"]).to be_a_failure
       end
 
+      it "succeeds for regular users during the short lottery period" do
+        SiteSetting.vzekc_verlosung_short_lotteries_starts_at = 1.day.ago.iso8601
+        SiteSetting.vzekc_verlosung_short_lotteries_ends_at = 1.day.from_now.iso8601
+
+        expect(described_class.call(**valid_params)).to be_success
+      end
+
+      it "fails for regular users after the short lottery period" do
+        SiteSetting.vzekc_verlosung_short_lotteries_starts_at = 3.days.ago.iso8601
+        SiteSetting.vzekc_verlosung_short_lotteries_ends_at = 1.day.ago.iso8601
+
+        expect(described_class.call(**valid_params)).to be_failure
+      end
+
       it "succeeds for board members" do
         Fabricate(:group, name: "vorstand").add(user)
 

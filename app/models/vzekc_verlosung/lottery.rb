@@ -9,17 +9,31 @@ module VzekcVerlosung
     MAX_DURATION_DAYS = 28
 
     # Shortest lottery duration the user may choose. Members of the board
-    # group can run short lotteries.
+    # group can always run short lotteries, everyone else during the short
+    # lottery period configured in the site settings.
     #
     # @param user [User, nil] the lottery owner
     # @return [Integer] minimum duration in days
     def self.min_duration_days_for(user)
+      return BOARD_MIN_DURATION_DAYS if short_lottery_period_active?
+
       group_name = SiteSetting.vzekc_verlosung_board_group_name
       if user && group_name.present? && user.groups.exists?(name: group_name)
         BOARD_MIN_DURATION_DAYS
       else
         MIN_DURATION_DAYS
       end
+    end
+
+    # Whether the current time lies within the short lottery period
+    #
+    # @return [Boolean]
+    def self.short_lottery_period_active?
+      starts_at = SiteSetting.vzekc_verlosung_short_lotteries_starts_at.presence
+      ends_at = SiteSetting.vzekc_verlosung_short_lotteries_ends_at.presence
+      return false unless starts_at && ends_at
+
+      Time.zone.now.between?(Time.zone.parse(starts_at), Time.zone.parse(ends_at))
     end
 
     # Associations

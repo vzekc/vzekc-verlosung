@@ -9,6 +9,8 @@ de:
     vzekc_verlosung_show_end_early_button: "'Vorzeitig beenden' Button bei aktiven Verlosungen anzeigen (für Testzwecke)"
     vzekc_verlosung_merch_handlers_group_name: "Name der Gruppe, deren Mitglieder Merch-Pakete verwalten können"
     vzekc_verlosung_board_group_name: "Name der Vorstandsgruppe; ihre Mitglieder können Verlosungen mit einer Laufzeit ab einem Tag erstellen"
+    vzekc_verlosung_short_lotteries_starts_at: "Beginn eines Zeitraums, in dem alle Benutzer Verlosungen mit einer Laufzeit ab einem Tag erstellen können (z. B. für eine Ausstellung)"
+    vzekc_verlosung_short_lotteries_ends_at: "Ende des Zeitraums für kurze Verlosungen"
   vzekc_verlosung:
     notifications:
       lottery_published: "Die Verlosung '%{topic_title}' wurde veröffentlicht und ist jetzt aktiv"
