@@ -91,4 +91,67 @@ describe VzekcVerlosung::DonationsController do
       end
     end
   end
+
+  describe "#import_email" do
+    let(:eml) do
+      Mail
+        .new do
+          from "Erika Beispiel <erika@example.com>"
+          to "info@classic-computing.de"
+          subject "Alter Rechner"
+          body "Ein Rechner.\n\nLindenweg 1\n12345 Musterstadt"
+        end
+        .to_s
+    end
+
+    let(:eml_file) do
+      Rack::Test::UploadedFile.new(
+        StringIO.new(eml),
+        "message/rfc822",
+        original_filename: "offer.eml",
+      )
+    end
+
+    it "requires a logged in user" do
+      post "/vzekc-verlosung/donations/import-email.json", params: { files: [eml_file] }
+
+      expect(response.status).to eq(403)
+    end
+
+    context "when logged in" do
+      before { sign_in(facilitator) }
+
+      it "returns the pre-filled offer without creating a donation" do
+        expect {
+          post "/vzekc-verlosung/donations/import-email.json", params: { files: [eml_file] }
+        }.not_to change { VzekcVerlosung::Donation.count }
+
+        expect(response.status).to eq(200)
+        expect(response.parsed_body["title"]).to eq("Alter Rechner")
+        expect(response.parsed_body["donor"]).to include(
+          "email" => "erika@example.com",
+          "postcode" => "12345",
+        )
+      end
+
+      it "returns 422 when no file is an email message" do
+        junk =
+          Rack::Test::UploadedFile.new(
+            StringIO.new("just text"),
+            "text/plain",
+            original_filename: "notes.txt",
+          )
+
+        post "/vzekc-verlosung/donations/import-email.json", params: { files: [junk] }
+
+        expect(response.status).to eq(422)
+      end
+
+      it "returns 422 without files" do
+        post "/vzekc-verlosung/donations/import-email.json"
+
+        expect(response.status).to eq(422)
+      end
+    end
+  end
 end

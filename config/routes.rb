@@ -42,6 +42,7 @@ VzekcVerlosung::Engine.routes.draw do
 
   # Donation routes
   post "/donations" => "donations#create"
+  post "/donations/import-email" => "donations#import_email"
   get "/donations/pending" => "donations#pending"
   get "/donations/:id" => "donations#show"
   put "/donations/:id/publish" => "donations#publish"

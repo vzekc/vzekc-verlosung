@@ -11,6 +11,8 @@ module VzekcVerlosung
   class DonationsController < ::ApplicationController
     requires_plugin VzekcVerlosung::PLUGIN_NAME
 
+    EMAIL_IMPORT_MAX_FILES = 20
+
     before_action :ensure_logged_in
 
     # GET /vzekc-verlosung/donations/:id
@@ -99,6 +101,52 @@ module VzekcVerlosung
     rescue ActiveRecord::RecordInvalid => e
       render json: failed_json.merge(errors: e.record.errors.full_messages),
              status: :unprocessable_entity
+    end
+
+    # POST /vzekc-verlosung/donations/import-email
+    #
+    # Pre-fills a donation offer from the email thread with the donor. Uploads
+    # the donor's photos and returns the suggested form values and post body;
+    # nothing else is stored until the facilitator submits the form.
+    #
+    # @param files [Array<ActionDispatch::Http::UploadedFile>] The thread's messages as .eml files
+    #
+    # @return [JSON] title, pickup_location, donor, raw, skipped_images, messages
+    def import_email
+      files = Array.wrap(params[:files]).select { _1.respond_to?(:read) }
+      if files.empty?
+        return(
+          render_json_error(
+            I18n.t("vzekc_verlosung.errors.email_import_no_files"),
+            status: :unprocessable_entity,
+          )
+        )
+      end
+      if files.size > EMAIL_IMPORT_MAX_FILES
+        return(
+          render_json_error(
+            I18n.t(
+              "vzekc_verlosung.errors.email_import_too_many_files",
+              count: EMAIL_IMPORT_MAX_FILES,
+            ),
+            status: :unprocessable_entity,
+          )
+        )
+      end
+
+      RateLimiter.new(current_user, "vzekc-donation-email-import", 30, 1.hour).performed!
+
+      result = DonationEmailImport.new(files.map(&:read), current_user).call
+      if result.nil?
+        return(
+          render_json_error(
+            I18n.t("vzekc_verlosung.errors.email_import_no_messages"),
+            status: :unprocessable_entity,
+          )
+        )
+      end
+
+      render json: result
     end
 
     # PUT /vzekc-verlosung/donations/:id/publish

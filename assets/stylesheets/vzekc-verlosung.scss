@@ -3872,6 +3872,74 @@
         flex: 1;
       }
     }
+
+    .donation-email-import {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25em;
+      margin-bottom: 1em;
+      padding: 0.75em 1em;
+      border: 2px dashed var(--primary-low-mid);
+      border-radius: 8px;
+      cursor: pointer;
+
+      &.dragging {
+        border-color: var(--tertiary);
+        background: var(--tertiary-very-low);
+      }
+
+      .donation-email-import-input {
+        display: none;
+      }
+
+      .donation-email-import-label {
+        font-weight: 600;
+      }
+
+      .help-text {
+        font-weight: normal;
+        color: var(--primary-medium);
+      }
+    }
+
+    .donation-imported-messages {
+      margin-top: 1.5em;
+
+      h3 {
+        font-size: var(--font-up-1);
+      }
+
+      .donation-imported-message {
+        margin-bottom: 0.5em;
+        border: 1px solid var(--primary-low);
+        border-radius: 4px;
+
+        &.from-donor {
+          border-left: 4px solid var(--tertiary);
+        }
+
+        summary {
+          display: flex;
+          gap: 1em;
+          padding: 0.5em 0.75em;
+          cursor: pointer;
+        }
+
+        .message-date {
+          color: var(--primary-medium);
+        }
+
+        .message-text {
+          margin: 0;
+          padding: 0.5em 0.75em;
+          max-height: 20em;
+          overflow-y: auto;
+          white-space: pre-wrap;
+          overflow-wrap: anywhere;
+          font-family: inherit;
+        }
+      }
+    }
   }
 }
 

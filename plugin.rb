@@ -154,6 +154,7 @@ add_admin_route "vzekc_verlosung.admin.notification_logs.nav_title",
                 "vzekc-verlosung",
                 use_new_show_route: true
 
+require_relative "lib/vzekc_verlosung/donation_email_import"
 require_relative "lib/vzekc_verlosung/engine"
 require_relative "lib/vzekc_verlosung/guardian_extensions"
 require_relative "lib/vzekc_verlosung/member_checker"

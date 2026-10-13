@@ -8,6 +8,7 @@ import DButton from "discourse/components/d-button";
 import DModal from "discourse/components/d-modal";
 import { ajax } from "discourse/lib/ajax";
 import { popupAjaxError } from "discourse/lib/ajax-error";
+import { longDate } from "discourse/lib/formatter";
 import Composer from "discourse/models/composer";
 import autoFocus from "discourse/modifiers/auto-focus";
 import { not } from "discourse/truth-helpers";
@@ -17,7 +18,9 @@ import { i18n } from "discourse-i18n";
  * Modal component for creating a new donation offer
  *
  * @component CreateDonationModal
- * Two-step process: collect title and postcode, then open composer
+ * Two-step process: collect title and postcode, then open composer.
+ * The form can be pre-filled from the donor's email thread (.eml files);
+ * the imported messages are then shown below the form for review.
  */
 export default class CreateDonationModal extends Component {
   @service composer;
@@ -35,6 +38,11 @@ export default class CreateDonationModal extends Component {
   @tracked donorPostcode = "";
   @tracked donorCity = "";
   @tracked donorEmail = "";
+  @tracked isImporting = false;
+  @tracked isDraggingFiles = false;
+  @tracked importedRaw = null;
+  @tracked importedMessages = [];
+  @tracked skippedImages = [];
 
   /**
    * Check if user can submit
@@ -90,6 +98,122 @@ export default class CreateDonationModal extends Component {
   @action
   toggleSkipMerchPacket() {
     this.skipMerchPacket = !this.skipMerchPacket;
+  }
+
+  /**
+   * Comma-separated names of the photos that could not be uploaded
+   *
+   * @type {string}
+   */
+  get skippedImageNames() {
+    return this.skippedImages.join(", ");
+  }
+
+  /**
+   * Imports the .eml files picked in the file input
+   *
+   * @param {Event} event - Change event of the file input
+   */
+  @action
+  async importSelectedFiles(event) {
+    const files = [...event.target.files];
+    event.target.value = "";
+    await this.importEmails(files);
+  }
+
+  /**
+   * Marks the drop zone while files are dragged over it
+   *
+   * @param {DragEvent} event - Drag event
+   */
+  @action
+  dragOver(event) {
+    event.preventDefault();
+    this.isDraggingFiles = true;
+  }
+
+  /**
+   * Removes the drop zone marker
+   */
+  @action
+  dragLeave() {
+    this.isDraggingFiles = false;
+  }
+
+  /**
+   * Imports the .eml files dropped on the drop zone
+   *
+   * @param {DragEvent} event - Drop event
+   */
+  @action
+  async dropFiles(event) {
+    event.preventDefault();
+    this.isDraggingFiles = false;
+    await this.importEmails([...event.dataTransfer.files]);
+  }
+
+  /**
+   * Sends the messages of the donor's email thread to the server and fills
+   * the form with the extracted offer
+   *
+   * @param {File[]} files - The thread's messages as .eml files
+   */
+  @action
+  async importEmails(files) {
+    if (files.length === 0 || this.isImporting) {
+      return;
+    }
+
+    const formData = new FormData();
+    files.forEach((file) => formData.append("files[]", file));
+
+    this.isImporting = true;
+    try {
+      const result = await ajax("/vzekc-verlosung/donations/import-email", {
+        type: "POST",
+        data: formData,
+        processData: false,
+        contentType: false,
+      });
+      this.applyImport(result);
+    } catch (error) {
+      popupAjaxError(error);
+    } finally {
+      this.isImporting = false;
+    }
+  }
+
+  /**
+   * Fills the form from an import result, keeping fields the import found
+   * no value for
+   *
+   * @param {Object} result - Response of the import endpoint
+   */
+  applyImport(result) {
+    const donor = result.donor;
+    const values = {
+      title: result.title,
+      postcode: result.pickup_location,
+      donorName: donor.name,
+      donorCompany: donor.company,
+      donorStreet: donor.street,
+      donorStreetNumber: donor.street_number,
+      donorPostcode: donor.postcode,
+      donorCity: donor.city,
+      donorEmail: donor.email,
+    };
+    Object.entries(values).forEach(([field, value]) => {
+      if (value) {
+        this[field] = value;
+      }
+    });
+    this.skipMerchPacket = false;
+    this.importedRaw = result.raw;
+    this.skippedImages = result.skipped_images;
+    this.importedMessages = result.messages.map((message) => ({
+      ...message,
+      displayDate: message.date ? longDate(new Date(message.date)) : "",
+    }));
   }
 
   /**
@@ -172,7 +296,9 @@ export default class CreateDonationModal extends Component {
 
       const donationId = result.donation_id;
 
-      let template = this.siteSettings.vzekc_verlosung_donation_template || "";
+      let template =
+        this.importedRaw ??
+        (this.siteSettings.vzekc_verlosung_donation_template || "");
       template = template.replace(/\[POSTCODE\]/g, this.postcode.trim());
 
       this.args.closeModal();
@@ -203,6 +329,41 @@ export default class CreateDonationModal extends Component {
     >
       <:body>
         <form {{on "submit" this.preventSubmit}} class="donation-form">
+          <label
+            class="donation-email-import {{if this.isDraggingFiles 'dragging'}}"
+            {{on "dragover" this.dragOver}}
+            {{on "dragleave" this.dragLeave}}
+            {{on "drop" this.dropFiles}}
+          >
+            <input
+              type="file"
+              accept=".eml,message/rfc822"
+              multiple
+              disabled={{this.isImporting}}
+              {{on "change" this.importSelectedFiles}}
+              class="donation-email-import-input"
+            />
+            <span class="donation-email-import-label">
+              {{#if this.isImporting}}
+                {{i18n "vzekc_verlosung.donation_modal.email_importing"}}
+              {{else}}
+                {{i18n "vzekc_verlosung.donation_modal.email_import_label"}}
+              {{/if}}
+            </span>
+            <span class="help-text">{{i18n
+                "vzekc_verlosung.donation_modal.email_import_help"
+              }}</span>
+          </label>
+
+          {{#if this.skippedImages.length}}
+            <div class="alert alert-error donation-email-import-skipped">
+              {{i18n
+                "vzekc_verlosung.donation_modal.email_import_skipped_images"
+                names=this.skippedImageNames
+              }}
+            </div>
+          {{/if}}
+
           <div class="control-group">
             <label>{{i18n "vzekc_verlosung.donation_modal.title_label"}}</label>
             <input
@@ -373,6 +534,27 @@ export default class CreateDonationModal extends Component {
               </div>
             </fieldset>
           {{/unless}}
+
+          {{#if this.importedMessages.length}}
+            <section class="donation-imported-messages">
+              <h3>{{i18n
+                  "vzekc_verlosung.donation_modal.email_import_messages"
+                }}</h3>
+              {{#each this.importedMessages as |message|}}
+                <details
+                  open={{message.donor}}
+                  class="donation-imported-message
+                    {{if message.donor 'from-donor' 'from-facilitator'}}"
+                >
+                  <summary>
+                    <span class="message-from">{{message.from}}</span>
+                    <span class="message-date">{{message.displayDate}}</span>
+                  </summary>
+                  <pre class="message-text">{{message.text}}</pre>
+                </details>
+              {{/each}}
+            </section>
+          {{/if}}
         </form>
       </:body>
       <:footer>

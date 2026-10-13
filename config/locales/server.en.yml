@@ -1,5 +1,8 @@
 en:
   site_settings:
+    vzekc_verlosung_donation_email_template: "Post template for donation offers imported from email ([QUOTE]: the donor's first message, [IMAGES]: the photos from the donor's messages, [POSTCODE]: pickup location)"
+    vzekc_verlosung_email_import_club_domains: "Email domains of the club; when importing a donation offer from email, messages sent from them (or from the importing user) count as the facilitator's own"
+    vzekc_verlosung_email_import_generic_subjects: "Email subjects that say nothing about the offer (e.g. from the website contact form); they are not suggested as the donation title"
     vzekc_verlosung_enabled: "Enable the Vzekc Verlosung plugin"
     vzekc_verlosung_category_id: "Category for lottery topics"
     vzekc_verlosung_erhaltungsberichte_category_id: "Category for Erhaltungsberichte (reception reports)"
@@ -294,3 +297,6 @@ en:
       erhaltungsbericht_not_collected: "The packet is not marked as received yet. Mark it as received on the packet post before writing the report."
       erhaltungsbericht_category_missing: "The category for reception reports is not configured. Please contact the board."
       donor_email_required: "The donor's email address is required."
+      email_import_no_files: "Upload at least one .eml file."
+      email_import_too_many_files: "Upload at most %{count} .eml files."
+      email_import_no_messages: "None of the files is an email message."

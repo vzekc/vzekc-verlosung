@@ -86,6 +86,28 @@ vzekc_verlosung:
     type: string
     textarea: true
     client: true
+  vzekc_verlosung_donation_email_template:
+    default: |
+      Wir erhielten folgendes Angebot:
+
+      [QUOTE]
+
+      Wer kümmert sich?
+
+      [IMAGES]
+    type: string
+    textarea: true
+    client: false
+  vzekc_verlosung_email_import_club_domains:
+    default: "classic-computing.de|classic-computing.org"
+    type: list
+    list_type: simple
+    client: false
+  vzekc_verlosung_email_import_generic_subjects:
+    default: "VzEkC e.V. - Anfrage ueber die Website"
+    type: list
+    list_type: simple
+    client: false
   vzekc_verlosung_members_group_name:
     default: 'vereinsmitglieder'
     type: string
