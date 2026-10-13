@@ -1,6 +1,6 @@
 de:
   site_settings:
-    vzekc_verlosung_herold_app_secret: "Signier-Geheimnis, das Herold bei der Registrierung des Forums als App angezeigt hat. Solange es leer ist, veröffentlicht das Forum kein Herold-Manifest und nimmt keine Thread-Aktionen an."
+    vzekc_verlosung_herold_app_secret: "Signier-Geheimnis, das Herold bei der Registrierung des Forums als App angezeigt hat. Solange es leer ist, nimmt das Forum keine Thread-Aktionen an."
     vzekc_verlosung_donation_email_template: "Beitragsvorlage für aus E-Mails importierte Spendenangebote ([QUOTE]: erste Nachricht des Spenders, [IMAGES]: die Fotos aus den Nachrichten des Spenders, [POSTCODE]: Abholort)"
     vzekc_verlosung_email_import_club_domains: "E-Mail-Domains des Vereins; beim Import eines Spendenangebots gelten Nachrichten von diesen Absendern (oder vom importierenden Benutzer) als eigene Nachrichten des Vermittlers"
     vzekc_verlosung_email_import_generic_subjects: "E-Mail-Betreffs ohne Aussage über das Angebot (z. B. vom Kontaktformular der Website); sie werden nicht als Titel der Spende vorgeschlagen"

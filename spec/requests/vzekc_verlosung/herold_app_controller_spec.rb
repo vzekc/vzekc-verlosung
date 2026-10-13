@@ -69,12 +69,12 @@ describe VzekcVerlosung::HeroldAppController do
       expect(response.status).to eq(200)
     end
 
-    it "returns 404 while no secret is configured" do
+    it "is served before a secret is configured" do
       SiteSetting.vzekc_verlosung_herold_app_secret = ""
 
       get "/.well-known/herold-app.json"
 
-      expect(response.status).to eq(404)
+      expect(response.status).to eq(200)
     end
   end
 
@@ -96,6 +96,14 @@ describe VzekcVerlosung::HeroldAppController do
       invoke(multipart_body([eml]))
 
       expect(response.status).to eq(200)
+    end
+
+    it "returns 404 while no secret is configured" do
+      SiteSetting.vzekc_verlosung_herold_app_secret = ""
+
+      invoke(multipart_body([eml]))
+
+      expect(response.status).to eq(404)
     end
 
     it "rejects a wrong signature" do

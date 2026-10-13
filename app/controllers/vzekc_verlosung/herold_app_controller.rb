@@ -18,9 +18,12 @@ module VzekcVerlosung
     skip_before_action :redirect_to_login_if_required, only: %i[manifest donation_offer]
     skip_before_action :check_xhr, :preload_json
 
-    before_action :ensure_configured, except: :handoff_page
+    before_action :ensure_configured, only: :donation_offer
 
     # GET /.well-known/herold-app.json
+    #
+    # Served without a configured secret: Herold fetches the manifest when the
+    # forum is registered and only then issues the secret.
     #
     # @return [JSON] Herold app manifest (API version 1)
     def manifest

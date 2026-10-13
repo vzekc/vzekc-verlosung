@@ -1,6 +1,6 @@
 en:
   site_settings:
-    vzekc_verlosung_herold_app_secret: "Signing secret shown by Herold when the forum was registered as an app. While empty, the forum publishes no Herold manifest and accepts no thread actions."
+    vzekc_verlosung_herold_app_secret: "Signing secret shown by Herold when the forum was registered as an app. While empty, the forum accepts no thread actions."
     vzekc_verlosung_donation_email_template: "Post template for donation offers imported from email ([QUOTE]: the donor's first message, [IMAGES]: the photos from the donor's messages, [POSTCODE]: pickup location)"
     vzekc_verlosung_email_import_club_domains: "Email domains of the club; when importing a donation offer from email, messages sent from them (or from the importing user) count as the facilitator's own"
     vzekc_verlosung_email_import_generic_subjects: "Email subjects that say nothing about the offer (e.g. from the website contact form); they are not suggested as the donation title"
