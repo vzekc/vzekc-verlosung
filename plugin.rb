@@ -1169,15 +1169,13 @@ after_initialize do
   TopicQuery.add_custom_filter(:donation_state) do |results, topic_query|
     user = topic_query.user
 
-    # Filter out draft donations unless user is staff or owner
+    # Hide draft donation topics from everyone except the topic owner
     results =
       results.where(
-        "topics.id NOT IN (
-        SELECT topic_id FROM vzekc_verlosung_donations
-        WHERE state = 'draft'
-        AND topic_id NOT IN (
-          SELECT id FROM topics WHERE user_id = ?
-        )
+        "topics.user_id = ? OR NOT EXISTS (
+        SELECT 1 FROM vzekc_verlosung_donations
+        WHERE vzekc_verlosung_donations.topic_id = topics.id
+        AND vzekc_verlosung_donations.state = 'draft'
       )",
         user&.id || -1,
       )
