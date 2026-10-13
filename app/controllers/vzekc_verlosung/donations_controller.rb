@@ -12,6 +12,9 @@ module VzekcVerlosung
     requires_plugin VzekcVerlosung::PLUGIN_NAME
 
     EMAIL_IMPORT_MAX_FILES = 20
+    EMAIL_IMPORT_MAX_ZIP_ENTRIES = 100
+    EMAIL_IMPORT_MAX_ZIP_ENTRY_BYTES = 30.megabytes
+    EMAIL_IMPORT_MAX_TOTAL_BYTES = 60.megabytes
 
     before_action :ensure_logged_in
 
@@ -109,42 +112,25 @@ module VzekcVerlosung
     # the donor's photos and returns the suggested form values and post body;
     # nothing else is stored until the facilitator submits the form.
     #
-    # @param files [Array<ActionDispatch::Http::UploadedFile>] The thread's messages as .eml files
+    # @param files [Array<ActionDispatch::Http::UploadedFile>] The thread's messages as
+    #   .eml files, or zip files of .eml files
+    # @param handoff_token [String] Alternatively, the one-time token of a thread handed
+    #   over by Herold (EmailHandoff)
     #
     # @return [JSON] title, pickup_location, donor, raw, skipped_images, messages
     def import_email
-      files = Array.wrap(params[:files]).select { _1.respond_to?(:read) }
-      if files.empty?
-        return(
-          render_json_error(
-            I18n.t("vzekc_verlosung.errors.email_import_no_files"),
-            status: :unprocessable_entity,
-          )
-        )
-      end
-      if files.size > EMAIL_IMPORT_MAX_FILES
-        return(
-          render_json_error(
-            I18n.t(
-              "vzekc_verlosung.errors.email_import_too_many_files",
-              count: EMAIL_IMPORT_MAX_FILES,
-            ),
-            status: :unprocessable_entity,
-          )
-        )
-      end
-
       RateLimiter.new(current_user, "vzekc-donation-email-import", 30, 1.hour).performed!
 
-      result = DonationEmailImport.new(files.map(&:read), current_user).call
-      if result.nil?
-        return(
-          render_json_error(
-            I18n.t("vzekc_verlosung.errors.email_import_no_messages"),
-            status: :unprocessable_entity,
-          )
-        )
+      return import_from_handoff(params[:handoff_token]) if params[:handoff_token].present?
+
+      files = Array.wrap(params[:files]).select { _1.respond_to?(:read) }
+      return import_error("email_import_no_files") if files.empty?
+      if files.size > EMAIL_IMPORT_MAX_FILES
+        return import_error("email_import_too_many_files", count: EMAIL_IMPORT_MAX_FILES)
       end
+
+      result = DonationEmailImport.new(raw_messages_from_files(files), current_user).call
+      return import_error("email_import_no_messages") if result.nil?
 
       render json: result
     end
@@ -319,6 +305,66 @@ module VzekcVerlosung
     end
 
     private
+
+    # The handoff is deleted only once the import produced a result, so a
+    # failed import leaves the link usable until it expires.
+    def import_from_handoff(token)
+      found = false
+      result =
+        EmailHandoff.consume(token) do |raws|
+          found = true
+          DonationEmailImport.new(raws, current_user).call
+        end
+      return import_error("email_import_handoff_gone", status: :gone) unless found
+      return import_error("email_import_no_messages") if result.nil?
+
+      render json: result
+    end
+
+    def import_error(key, status: :unprocessable_entity, **args)
+      render_json_error(I18n.t("vzekc_verlosung.errors.#{key}", **args), status: status)
+    end
+
+    # Reads uploaded .eml files; zip files contribute each .eml entry they hold.
+    # Entries over EMAIL_IMPORT_MAX_ZIP_ENTRY_BYTES are skipped, and reading
+    # stops once EMAIL_IMPORT_MAX_TOTAL_BYTES have been collected.
+    #
+    # @param files [Array<ActionDispatch::Http::UploadedFile>]
+    # @return [Array<String>] Raw messages
+    def raw_messages_from_files(files)
+      require "zip"
+      budget = EMAIL_IMPORT_MAX_TOTAL_BYTES
+      raws = []
+
+      files.each do |file|
+        data = file.read
+        unless data.start_with?("PK\x03\x04".b)
+          break if data.bytesize > budget
+          budget -= data.bytesize
+          raws << data
+          next
+        end
+
+        Zip::File.open_buffer(StringIO.new(data)) do |zip|
+          zip
+            .entries
+            .first(EMAIL_IMPORT_MAX_ZIP_ENTRIES)
+            .each do |entry|
+              next unless entry.file? && entry.name.downcase.end_with?(".eml")
+              next if entry.size > EMAIL_IMPORT_MAX_ZIP_ENTRY_BYTES || entry.size > budget
+
+              content = entry.get_input_stream.read(EMAIL_IMPORT_MAX_ZIP_ENTRY_BYTES + 1).to_s
+              next if content.empty? || content.bytesize > EMAIL_IMPORT_MAX_ZIP_ENTRY_BYTES
+              budget -= content.bytesize
+              raws << content
+            end
+        end
+      rescue Zip::Error
+        next
+      end
+
+      raws
+    end
 
     def merch_packet_params
       params.permit(

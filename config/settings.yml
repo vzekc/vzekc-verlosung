@@ -98,6 +98,10 @@ vzekc_verlosung:
     type: string
     textarea: true
     client: false
+  vzekc_verlosung_herold_app_secret:
+    default: ""
+    secret: true
+    client: false
   vzekc_verlosung_email_import_club_domains:
     default: "classic-computing.de|classic-computing.org"
     type: list

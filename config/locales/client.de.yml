@@ -517,6 +517,8 @@ de:
         donations_count:
           one: "%{count} Spende bereits zugeordnet"
           other: "%{count} Spenden bereits zugeordnet"
+      donation_handoff:
+        opening: "Spendenangebot aus dem E-Mail-Verlauf wird vorbereitet…"
       donation_modal:
         title: "Neues Spendenangebot erstellen"
         title_label: "Titel"
@@ -545,7 +547,7 @@ de:
         donor_email_help: "Falls angegeben, erhält der Spender eine E-Mail-Benachrichtigung mit Sendungsverfolgung, wenn das Paket versandt wird."
         donor_email_required_label: "E-Mail"
         donor_email_required_help: "Der Abholer erhält Name und E-Mail-Adresse des Spenders, um die Abholung zu vereinbaren. Der Spender wird außerdem per E-Mail mit Sendungsverfolgung benachrichtigt, wenn das Merch-Paket versandt wird."
-        email_import_label: "Aus E-Mail übernehmen (.eml)"
+        email_import_label: "Aus E-Mail übernehmen (.eml oder .zip)"
         email_import_help: "Die Nachrichten des E-Mail-Verlaufs mit dem Spender hierher ziehen oder zum Auswählen klicken. Formular und Beitrag werden daraus ausgefüllt."
         email_importing: "Wird übernommen…"
         email_import_skipped_images: "Diese Fotos konnten nicht hochgeladen werden: %{names}"

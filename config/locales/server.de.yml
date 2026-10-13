@@ -1,5 +1,6 @@
 de:
   site_settings:
+    vzekc_verlosung_herold_app_secret: "Signier-Geheimnis, das Herold bei der Registrierung des Forums als App angezeigt hat. Solange es leer ist, veröffentlicht das Forum kein Herold-Manifest und nimmt keine Thread-Aktionen an."
     vzekc_verlosung_donation_email_template: "Beitragsvorlage für aus E-Mails importierte Spendenangebote ([QUOTE]: erste Nachricht des Spenders, [IMAGES]: die Fotos aus den Nachrichten des Spenders, [POSTCODE]: Abholort)"
     vzekc_verlosung_email_import_club_domains: "E-Mail-Domains des Vereins; beim Import eines Spendenangebots gelten Nachrichten von diesen Absendern (oder vom importierenden Benutzer) als eigene Nachrichten des Vermittlers"
     vzekc_verlosung_email_import_generic_subjects: "E-Mail-Betreffs ohne Aussage über das Angebot (z. B. vom Kontaktformular der Website); sie werden nicht als Titel der Spende vorgeschlagen"
@@ -15,6 +16,15 @@ de:
     vzekc_verlosung_short_lotteries_starts_at: "Beginn eines Zeitraums, in dem alle Benutzer Verlosungen mit einer Laufzeit ab einem Tag erstellen können (z. B. für eine Ausstellung)"
     vzekc_verlosung_short_lotteries_ends_at: "Ende des Zeitraums für kurze Verlosungen"
   vzekc_verlosung:
+    herold_app:
+      name: "VzEkC-Spendenangebote"
+      donation_offer_label: "Spendenangebot erstellen"
+      errors:
+        signature_invalid: "Die Signatur der Anfrage ist ungültig oder abgelaufen."
+        invalid_context: "Der Kontext der Anfrage fehlt oder hat eine nicht unterstützte Version."
+        no_messages: "Die Anfrage enthält keine Nachrichten."
+        too_many_messages: "Der Verlauf enthält zu viele Nachrichten."
+        duplicate_invocation: "Dieser Verlauf wurde bereits übergeben."
     notifications:
       lottery_published: "Die Verlosung '%{topic_title}' wurde veröffentlicht und ist jetzt aktiv"
       lottery_drawn: "Die Gewinner für die Verlosung '%{topic_title}' wurden gezogen"
@@ -307,6 +317,7 @@ de:
       erhaltungsbericht_not_collected: "Das Paket ist noch nicht als erhalten markiert. Markiere es beim Paket-Beitrag als erhalten, bevor du den Bericht schreibst."
       erhaltungsbericht_category_missing: "Die Kategorie für Erhaltungsberichte ist nicht konfiguriert. Bitte wende dich an den Vorstand."
       donor_email_required: "Die E-Mail-Adresse des Spenders ist erforderlich."
-      email_import_no_files: "Bitte mindestens eine .eml-Datei hochladen."
-      email_import_too_many_files: "Bitte höchstens %{count} .eml-Dateien hochladen."
+      email_import_no_files: "Bitte mindestens eine .eml- oder .zip-Datei hochladen."
+      email_import_too_many_files: "Bitte höchstens %{count} .eml- oder .zip-Dateien hochladen."
       email_import_no_messages: "Keine der Dateien ist eine E-Mail-Nachricht."
+      email_import_handoff_gone: "Dieser Link ist abgelaufen oder wurde bereits verwendet. Bitte den Verlauf erneut aus Herold übergeben."

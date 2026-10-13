@@ -43,6 +43,7 @@ VzekcVerlosung::Engine.routes.draw do
   # Donation routes
   post "/donations" => "donations#create"
   post "/donations/import-email" => "donations#import_email"
+  post "/herold/actions/donation-offer" => "herold_app#donation_offer"
   get "/donations/pending" => "donations#pending"
   get "/donations/:id" => "donations#show"
   put "/donations/:id/publish" => "donations#publish"
@@ -98,6 +99,11 @@ Discourse::Application.routes.draw do
   get "silence-reminders/:topic_id" => "vzekc_verlosung/lotteries#silence_reminders_page"
   get "my-lotteries" => "vzekc_verlosung/my_lotteries#page"
   get "erhaltungsbericht-schreiben/:post_id" => "vzekc_verlosung/tickets#erhaltungsbericht_page"
+  get "spende-aus-email/:token" => "vzekc_verlosung/herold_app#handoff_page"
+  get ".well-known/herold-app.json" => "vzekc_verlosung/herold_app#manifest",
+      :defaults => {
+        format: :json,
+      }
 
   mount ::VzekcVerlosung::Engine, at: "vzekc-verlosung"
 end

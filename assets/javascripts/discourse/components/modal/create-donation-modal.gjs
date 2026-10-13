@@ -3,6 +3,7 @@ import { tracked } from "@glimmer/tracking";
 import { fn } from "@ember/helper";
 import { on } from "@ember/modifier";
 import { action } from "@ember/object";
+import { cancel, next } from "@ember/runloop";
 import { service } from "@ember/service";
 import DButton from "discourse/components/d-button";
 import DModal from "discourse/components/d-modal";
@@ -43,6 +44,28 @@ export default class CreateDonationModal extends Component {
   @tracked importedRaw = null;
   @tracked importedMessages = [];
   @tracked skippedImages = [];
+
+  /**
+   * Run-loop timer of the deferred handoff import
+   *
+   * @type {Object}
+   */
+  handoffTimer = null;
+
+  constructor() {
+    super(...arguments);
+
+    // The import updates tracked state, so it starts after this render.
+    const token = this.args.model?.handoffToken;
+    if (token) {
+      this.handoffTimer = next(this, this.importHandoff, token);
+    }
+  }
+
+  willDestroy() {
+    super.willDestroy(...arguments);
+    cancel(this.handoffTimer);
+  }
 
   /**
    * Check if user can submit
@@ -156,24 +179,47 @@ export default class CreateDonationModal extends Component {
    * Sends the messages of the donor's email thread to the server and fills
    * the form with the extracted offer
    *
-   * @param {File[]} files - The thread's messages as .eml files
+   * @param {File[]} files - The thread's messages as .eml files or zips of them
    */
   @action
   async importEmails(files) {
-    if (files.length === 0 || this.isImporting) {
+    if (files.length === 0) {
       return;
     }
 
     const formData = new FormData();
     files.forEach((file) => formData.append("files[]", file));
+    await this.requestImport({
+      data: formData,
+      processData: false,
+      contentType: false,
+    });
+  }
+
+  /**
+   * Fills the form from an email thread handed over by Herold
+   *
+   * @param {string} token - One-time handoff token
+   */
+  async importHandoff(token) {
+    await this.requestImport({ data: { handoff_token: token } });
+  }
+
+  /**
+   * Posts to the import endpoint and applies the result
+   *
+   * @param {Object} options - ajax options carrying the request data
+   */
+  async requestImport(options) {
+    if (this.isImporting) {
+      return;
+    }
 
     this.isImporting = true;
     try {
       const result = await ajax("/vzekc-verlosung/donations/import-email", {
         type: "POST",
-        data: formData,
-        processData: false,
-        contentType: false,
+        ...options,
       });
       this.applyImport(result);
     } catch (error) {
@@ -337,7 +383,7 @@ export default class CreateDonationModal extends Component {
           >
             <input
               type="file"
-              accept=".eml,message/rfc822"
+              accept=".eml,.zip,message/rfc822,application/zip"
               multiple
               disabled={{this.isImporting}}
               {{on "change" this.importSelectedFiles}}

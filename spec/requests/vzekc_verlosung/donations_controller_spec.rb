@@ -147,6 +147,41 @@ describe VzekcVerlosung::DonationsController do
         expect(response.status).to eq(422)
       end
 
+      it "imports the .eml entries of a zip file" do
+        require "zip"
+        zip =
+          Zip::OutputStream.write_buffer do |out|
+            out.put_next_entry("01-offer.eml")
+            out.write(eml)
+            out.put_next_entry("notes.txt")
+            out.write("ignored")
+          end
+        zip_file =
+          Rack::Test::UploadedFile.new(
+            StringIO.new(zip.string),
+            "application/zip",
+            original_filename: "thread.zip",
+          )
+
+        post "/vzekc-verlosung/donations/import-email.json", params: { files: [zip_file] }
+
+        expect(response.status).to eq(200)
+        expect(response.parsed_body["messages"].size).to eq(1)
+      end
+
+      it "imports a zip whose entries use data descriptors" do
+        zip_file =
+          Rack::Test::UploadedFile.new(
+            File.expand_path("../../fixtures/files/thread-with-data-descriptors.zip", __dir__),
+            "application/zip",
+          )
+
+        post "/vzekc-verlosung/donations/import-email.json", params: { files: [zip_file] }
+
+        expect(response.status).to eq(200)
+        expect(response.parsed_body["messages"].size).to eq(2)
+      end
+
       it "returns 422 without files" do
         post "/vzekc-verlosung/donations/import-email.json"
 

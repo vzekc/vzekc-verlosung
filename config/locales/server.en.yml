@@ -1,5 +1,6 @@
 en:
   site_settings:
+    vzekc_verlosung_herold_app_secret: "Signing secret shown by Herold when the forum was registered as an app. While empty, the forum publishes no Herold manifest and accepts no thread actions."
     vzekc_verlosung_donation_email_template: "Post template for donation offers imported from email ([QUOTE]: the donor's first message, [IMAGES]: the photos from the donor's messages, [POSTCODE]: pickup location)"
     vzekc_verlosung_email_import_club_domains: "Email domains of the club; when importing a donation offer from email, messages sent from them (or from the importing user) count as the facilitator's own"
     vzekc_verlosung_email_import_generic_subjects: "Email subjects that say nothing about the offer (e.g. from the website contact form); they are not suggested as the donation title"
@@ -15,6 +16,15 @@ en:
     vzekc_verlosung_short_lotteries_starts_at: "Start of a period in which all users can create lotteries running for as little as one day (e.g. for an exhibition)"
     vzekc_verlosung_short_lotteries_ends_at: "End of the period for short lotteries"
   vzekc_verlosung:
+    herold_app:
+      name: "VzEkC donation offers"
+      donation_offer_label: "Create donation offer"
+      errors:
+        signature_invalid: "The request signature is invalid or expired."
+        invalid_context: "The request context is missing or has an unsupported version."
+        no_messages: "The request contains no messages."
+        too_many_messages: "The conversation has too many messages."
+        duplicate_invocation: "This conversation was already handed over."
     notifications:
       lottery_published: "The lottery '%{topic_title}' has been published and is now active"
       lottery_drawn: "Winners have been drawn for the lottery '%{topic_title}'"
@@ -297,6 +307,7 @@ en:
       erhaltungsbericht_not_collected: "The packet is not marked as received yet. Mark it as received on the packet post before writing the report."
       erhaltungsbericht_category_missing: "The category for reception reports is not configured. Please contact the board."
       donor_email_required: "The donor's email address is required."
-      email_import_no_files: "Upload at least one .eml file."
-      email_import_too_many_files: "Upload at most %{count} .eml files."
+      email_import_no_files: "Upload at least one .eml or .zip file."
+      email_import_too_many_files: "Upload at most %{count} .eml or .zip files."
       email_import_no_messages: "None of the files is an email message."
+      email_import_handoff_gone: "This link has expired or was already used. Hand the conversation over from Herold again."
