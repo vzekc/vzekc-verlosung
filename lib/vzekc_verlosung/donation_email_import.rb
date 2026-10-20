@@ -140,7 +140,7 @@ module VzekcVerlosung
       body =
         if mail.html_part || (!mail.multipart? && mail.content_type.to_s.include?("text/html"))
           html = receiver.fix_charset(mail.html_part || mail)
-          HtmlToMarkdown.new(html.to_s).to_markdown
+          HtmlToMarkdown.new(unwrap_preformatted(html.to_s)).to_markdown
         else
           part = mail.multipart? ? mail.text_part : mail
           unflow(receiver.fix_charset(part).to_s, part&.content_type.to_s)
@@ -156,6 +156,28 @@ module VzekcVerlosung
           lines << line.rstrip
         end
       lines.join("\n").gsub(/\n{3,}/, "\n\n").strip
+    end
+
+    # Some mail clients send the whole message body as a <pre> block. Its lines
+    # become <br>-separated text so the message reads as prose in the post.
+    def unwrap_preformatted(html)
+      document = Nokogiri.HTML5(html)
+      return html if document.at_css("pre").nil?
+
+      document
+        .css("pre")
+        .each do |pre|
+          div = document.create_element("div")
+          pre
+            .text
+            .split("\n", -1)
+            .each_with_index do |line, index|
+              div.add_child(document.create_element("br")) if index > 0
+              div.add_child(document.create_text_node(line))
+            end
+          pre.replace(div)
+        end
+      document.to_html
     end
 
     # Joins the soft line breaks of format=flowed text (RFC 3676): a line ending

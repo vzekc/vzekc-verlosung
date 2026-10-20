@@ -126,6 +126,37 @@ describe VzekcVerlosung::DonationEmailImport do
     expect(result[:messages].last[:text]).not_to include("Vereinsweg")
   end
 
+  it "quotes an HTML message sent as a preformatted block line by line" do
+    html = <<~HTML
+      <html><body><pre>Guten Tag,
+
+      ich habe folgende Geräte gefunden:
+
+      1 PC XP 1050
+      1 Drucker DM 600-S &amp; Kabel
+
+      Mit freundlichen Grüßen
+      Erika Beispiel</pre></body></html>
+    HTML
+    mail =
+      Mail.new do
+        from "erika@example.com"
+        subject "Olivetti Hardware"
+        date Time.zone.parse("2026-09-10 12:00")
+        html_part do
+          content_type "text/html; charset=UTF-8"
+          body html
+        end
+      end
+
+    result = import(mail.to_s)
+
+    expect(result[:raw]).not_to include("```")
+    expect(result[:raw]).to include(
+      "> ich habe folgende Geräte gefunden:\n>\n> 1 PC XP 1050\n> 1 Drucker DM 600-S & Kabel",
+    )
+  end
+
   it "keeps contact details of a signature without closing out of the quote" do
     body = <<~TEXT
       Ich habe einen LG Monitor 24 Zoll und einen Drucker, abholbar in 12345 Musterstadt.
