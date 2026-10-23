@@ -25,6 +25,7 @@ import { clipboardHelpers } from "discourse/lib/utilities";
 import Draft from "discourse/models/draft";
 import { eq, gt } from "discourse/truth-helpers";
 import { i18n } from "discourse-i18n";
+import reportClientError from "../lib/report-client-error";
 
 /**
  * Full-page lottery creation form
@@ -40,6 +41,7 @@ export default class NewLotteryPage extends Component {
   // Auto-save delay in milliseconds
   static DRAFT_SAVE_DELAY = 2000;
 
+  @service composer;
   @service router;
   @service siteSettings;
   @service currentUser;
@@ -245,11 +247,40 @@ export default class NewLotteryPage extends Component {
     }
 
     uppy.on("file-added", (file) => {
-      this._bodyUppyFiles.set(file.name, file);
-      if (this._bodyTextManipulation?.placeholder) {
-        this._bodyTextManipulation.placeholder.insert(file);
+      if (this._insertUploadPlaceholder(this._bodyTextManipulation, file)) {
+        this._bodyUppyFiles.set(file.name, file);
       }
     });
+  }
+
+  /**
+   * Insert an upload placeholder into an editor at the cursor position.
+   * Without a placeholder, the upload markdown is appended to the end of the
+   * text once the upload is done.
+   *
+   * The Markdown editor's placeholder handler reads the open composer's reply,
+   * so it is skipped while no composer is open. An exception from a file-added
+   * listener aborts the upload and Discourse discards it silently, so other
+   * failures are reported and the upload proceeds without a placeholder.
+   *
+   * @param {Object} textManipulation - the editor's text manipulation
+   * @param {Object} file - the Uppy file being added
+   * @returns {boolean} whether the placeholder was inserted
+   */
+  _insertUploadPlaceholder(textManipulation, file) {
+    if (!textManipulation?.placeholder) {
+      return false;
+    }
+    if (textManipulation.textarea && !this.composer.model) {
+      return false;
+    }
+    try {
+      textManipulation.placeholder.insert(file);
+      return true;
+    } catch (error) {
+      reportClientError("Inserting upload placeholder failed", error);
+      return false;
+    }
   }
 
   /**
@@ -502,10 +533,9 @@ export default class NewLotteryPage extends Component {
     }
 
     uppy.on("file-added", (file) => {
-      this._packetUppyFiles[ordinal].set(file.name, file);
       const textManipulation = this._packetTextManipulations[ordinal];
-      if (textManipulation?.placeholder) {
-        textManipulation.placeholder.insert(file);
+      if (this._insertUploadPlaceholder(textManipulation, file)) {
+        this._packetUppyFiles[ordinal].set(file.name, file);
       }
     });
   }
@@ -973,9 +1003,7 @@ export default class NewLotteryPage extends Component {
       const response = await ajax("/vzekc-verlosung/donations/pending");
       this.pendingDonations = response.donations || [];
     } catch (error) {
-      // Silently fail - not critical
-      // eslint-disable-next-line no-console
-      console.warn("Failed to load pending donations:", error);
+      reportClientError("Loading pending donations failed", error);
       this.pendingDonations = [];
     } finally {
       this.pendingDonationsLoaded = true;
@@ -1116,9 +1144,7 @@ export default class NewLotteryPage extends Component {
         }
       }
     } catch (error) {
-      // Silently fail if draft loading fails
-      // eslint-disable-next-line no-console
-      console.warn("Failed to load lottery draft:", error);
+      reportClientError("Loading lottery draft failed", error);
     } finally {
       this.draftLoaded = true;
     }
