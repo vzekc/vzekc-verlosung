@@ -140,7 +140,11 @@ RSpec.describe VzekcVerlosung::Donation do
     it "records when the donation was closed" do
       donation = Fabricate(:donation, creator_user_id: facilitator.id, state: "open")
 
-      freeze_time { expect { donation.close! }.to change { donation.closed_at }.to(Time.zone.now) }
+      freeze_time do
+        donation.close!
+
+        expect(donation.reload.closed_at).to eq_time(Time.zone.now)
+      end
     end
   end
 end
