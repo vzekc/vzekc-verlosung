@@ -135,4 +135,12 @@ RSpec.describe VzekcVerlosung::Donation do
       expect(result[:raw]).to include("die beide bisher 1 Spende abgeholt haben")
     end
   end
+
+  describe "#close!" do
+    it "records when the donation was closed" do
+      donation = Fabricate(:donation, creator_user_id: facilitator.id, state: "open")
+
+      freeze_time { expect { donation.close! }.to change { donation.closed_at }.to(Time.zone.now) }
+    end
+  end
 end

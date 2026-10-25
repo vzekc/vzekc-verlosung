@@ -80,19 +80,29 @@ export default class CreateDonationModal extends Component {
       return false;
     }
 
-    // If merch packet is NOT skipped, require address fields and email
-    if (!this.skipMerchPacket) {
-      return (
-        this.donorName.trim().length >= 2 &&
-        this.donorStreet.trim().length >= 2 &&
-        this.donorStreetNumber.trim().length >= 1 &&
-        this.donorPostcode.trim().length >= 4 &&
-        this.donorCity.trim().length >= 2 &&
-        this.donorEmailValid
-      );
+    // Without a merch packet the donor's contact is optional
+    if (this.skipMerchPacket) {
+      return this.donorEmail.trim().length === 0 || this.donorEmailValid;
     }
 
-    return true;
+    // A merch packet requires the address fields and email
+    return (
+      this.donorName.trim().length >= 2 &&
+      this.donorStreet.trim().length >= 2 &&
+      this.donorStreetNumber.trim().length >= 1 &&
+      this.donorPostcode.trim().length >= 4 &&
+      this.donorCity.trim().length >= 2 &&
+      this.donorEmailValid
+    );
+  }
+
+  /**
+   * Whether a merch packet is created for the donor
+   *
+   * @returns {boolean}
+   */
+  get wantsMerchPacket() {
+    return !this.skipMerchPacket;
   }
 
   /**
@@ -253,7 +263,8 @@ export default class CreateDonationModal extends Component {
         this[field] = value;
       }
     });
-    this.skipMerchPacket = false;
+    // A donor without a postal address receives no merch packet
+    this.skipMerchPacket = !donor.street;
     this.importedRaw = result.raw;
     this.skippedImages = result.skipped_images;
     this.importedMessages = result.messages.map((message) => ({
@@ -323,15 +334,16 @@ export default class CreateDonationModal extends Component {
         postcode: this.postcode.trim(),
       };
 
-      // Send merch packet data unless explicitly skipped
+      requestData.donor_name = this.donorName.trim();
+      requestData.donor_company = this.donorCompany.trim() || null;
+      requestData.donor_email = this.donorEmail.trim();
+
+      // Send the address for the merch packet unless explicitly skipped
       if (!this.skipMerchPacket) {
-        requestData.donor_name = this.donorName.trim();
-        requestData.donor_company = this.donorCompany.trim() || null;
         requestData.donor_street = this.donorStreet.trim();
         requestData.donor_street_number = this.donorStreetNumber.trim();
         requestData.donor_postcode = this.donorPostcode.trim();
         requestData.donor_city = this.donorCity.trim();
-        requestData.donor_email = this.donorEmail.trim();
       }
 
       const result = await ajax("/vzekc-verlosung/donations", {
@@ -457,40 +469,42 @@ export default class CreateDonationModal extends Component {
             {{/unless}}
           </div>
 
-          {{#unless this.skipMerchPacket}}
-            <fieldset class="donor-address-section">
-              <div class="control-group">
-                <label>{{i18n
-                    "vzekc_verlosung.donation_modal.donor_name_label"
-                  }}<span class="required">*</span></label>
-                <input
-                  type="text"
-                  {{on "input" (fn this.updateField "donorName")}}
-                  {{on "keydown" this.handleKeyDown}}
-                  value={{this.donorName}}
-                  placeholder={{i18n
-                    "vzekc_verlosung.donation_modal.donor_name_placeholder"
-                  }}
-                  class="donor-name-input"
-                />
-              </div>
+          <fieldset class="donor-address-section">
+            <div class="control-group">
+              <label>{{i18n
+                  "vzekc_verlosung.donation_modal.donor_name_label"
+                }}{{#unless this.skipMerchPacket}}<span
+                    class="required"
+                  >*</span>{{/unless}}</label>
+              <input
+                type="text"
+                {{on "input" (fn this.updateField "donorName")}}
+                {{on "keydown" this.handleKeyDown}}
+                value={{this.donorName}}
+                placeholder={{i18n
+                  "vzekc_verlosung.donation_modal.donor_name_placeholder"
+                }}
+                class="donor-name-input"
+              />
+            </div>
 
-              <div class="control-group">
-                <label>{{i18n
-                    "vzekc_verlosung.donation_modal.donor_company_label"
-                  }}</label>
-                <input
-                  type="text"
-                  {{on "input" (fn this.updateField "donorCompany")}}
-                  {{on "keydown" this.handleKeyDown}}
-                  value={{this.donorCompany}}
-                  placeholder={{i18n
-                    "vzekc_verlosung.donation_modal.donor_company_placeholder"
-                  }}
-                  class="donor-company-input"
-                />
-              </div>
+            <div class="control-group">
+              <label>{{i18n
+                  "vzekc_verlosung.donation_modal.donor_company_label"
+                }}</label>
+              <input
+                type="text"
+                {{on "input" (fn this.updateField "donorCompany")}}
+                {{on "keydown" this.handleKeyDown}}
+                value={{this.donorCompany}}
+                placeholder={{i18n
+                  "vzekc_verlosung.donation_modal.donor_company_placeholder"
+                }}
+                class="donor-company-input"
+              />
+            </div>
 
+            {{#unless this.skipMerchPacket}}
               <div class="control-group street-row">
                 <div class="street-field">
                   <label>{{i18n
@@ -556,30 +570,36 @@ export default class CreateDonationModal extends Component {
                   />
                 </div>
               </div>
+            {{/unless}}
 
-              <div class="control-group">
-                <label>{{i18n
-                    "vzekc_verlosung.donation_modal.donor_email_required_label"
-                  }}<span class="required">*</span></label>
-                <input
-                  type="email"
-                  name="email"
-                  autocomplete="email"
-                  required
-                  {{on "input" (fn this.updateField "donorEmail")}}
-                  {{on "keydown" this.handleKeyDown}}
-                  value={{this.donorEmail}}
-                  placeholder={{i18n
-                    "vzekc_verlosung.donation_modal.donor_email_placeholder"
-                  }}
-                  class="donor-email-input"
-                />
-                <p class="help-text">{{i18n
+            <div class="control-group">
+              <label>{{i18n
+                  "vzekc_verlosung.donation_modal.donor_email_required_label"
+                }}{{#unless this.skipMerchPacket}}<span
+                    class="required"
+                  >*</span>{{/unless}}</label>
+              <input
+                type="email"
+                name="email"
+                autocomplete="email"
+                required={{this.wantsMerchPacket}}
+                {{on "input" (fn this.updateField "donorEmail")}}
+                {{on "keydown" this.handleKeyDown}}
+                value={{this.donorEmail}}
+                placeholder={{i18n
+                  "vzekc_verlosung.donation_modal.donor_email_placeholder"
+                }}
+                class="donor-email-input"
+              />
+              <p class="help-text">{{if
+                  this.skipMerchPacket
+                  (i18n "vzekc_verlosung.donation_modal.donor_contact_help")
+                  (i18n
                     "vzekc_verlosung.donation_modal.donor_email_required_help"
-                  }}</p>
-              </div>
-            </fieldset>
-          {{/unless}}
+                  )
+                }}</p>
+            </div>
+          </fieldset>
 
           {{#if this.importedMessages.length}}
             <section class="donation-imported-messages">

@@ -13,9 +13,17 @@ module VzekcVerlosung
   # @attr postcode [String] Location postcode for pickup
   # @attr creator_user_id [Integer] The facilitator who created the donation offer
   # @attr published_at [DateTime] When the donation was published (changed to 'open')
+  # @attr closed_at [DateTime] When the donation was closed
+  # @attr donor_name [String] Donor's name for the picker to arrange the pickup
+  # @attr donor_company [String] Donor's company/zusatz
+  # @attr donor_email [String] Donor's email for the picker to arrange the pickup
+  #
+  # The donor's contact data is purged DONOR_CONTACT_RETENTION after closing.
   #
   class Donation < ActiveRecord::Base
     self.table_name = "vzekc_verlosung_donations"
+
+    DONOR_CONTACT_RETENTION = 4.weeks
 
     belongs_to :topic, optional: true
     belongs_to :facilitator, class_name: "User", foreign_key: :creator_user_id
@@ -61,6 +69,12 @@ module VzekcVerlosung
     scope :assigned, -> { where(state: "assigned") }
     scope :picked_up, -> { where(state: "picked_up") }
     scope :closed, -> { where(state: "closed") }
+    scope :needs_donor_contact_purge,
+          lambda {
+            closed.where("closed_at < ?", DONOR_CONTACT_RETENTION.ago).where(
+              "donor_name IS NOT NULL OR donor_company IS NOT NULL OR donor_email IS NOT NULL",
+            )
+          }
     scope :needs_reminder,
           lambda {
             open.where("published_at IS NOT NULL").where(
@@ -221,7 +235,36 @@ module VzekcVerlosung
     #
     # @return [Boolean] true if successful
     def close!
-      update!(state: "closed")
+      update!(state: "closed", closed_at: Time.zone.now)
+    end
+
+    # The donor's name, company and email, or nil when none is recorded
+    #
+    # @return [Hash, nil]
+    def donor_contact
+      return nil if donor_name.blank? && donor_company.blank? && donor_email.blank?
+
+      { name: donor_name, company: donor_company, email: donor_email }
+    end
+
+    # Take over the donor's name, company and email from the merch packet,
+    # which the merch packet forms edit
+    #
+    # @param packet [MerchPacket] The donation's merch packet
+    # @return [Boolean] true if successful
+    def take_donor_contact_from!(packet)
+      update!(
+        donor_name: packet.donor_name,
+        donor_company: packet.donor_company,
+        donor_email: packet.donor_email,
+      )
+    end
+
+    # Clear the donor's personal data
+    #
+    # @return [Boolean] true if successful
+    def purge_donor_contact!
+      update!(donor_name: nil, donor_company: nil, donor_email: nil)
     end
 
     # Check if the picker has completed required action after pickup
@@ -388,6 +431,10 @@ end
 # Table name: vzekc_verlosung_donations
 #
 #  id                         :bigint           not null, primary key
+#  closed_at                  :datetime
+#  donor_company              :string
+#  donor_email                :string
+#  donor_name                 :string
 #  last_reminded_at           :datetime
 #  postcode                   :string           not null
 #  published_at               :datetime

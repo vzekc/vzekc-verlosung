@@ -46,6 +46,7 @@ describe VzekcVerlosung::DonationsController do
         json = response.parsed_body
         expect(json["merch_packet"]["donor_name"]).to eq("Max Mustermann")
         expect(json["merch_packet"]["state"]).to eq("pending")
+        expect(donation.reload.donor_name).to eq("Max Mustermann")
       end
 
       it "returns 422 when donation already has a merch packet" do
@@ -77,8 +78,8 @@ describe VzekcVerlosung::DonationsController do
             }
         expect(response.status).to eq(204)
 
-        merch_packet.reload
-        expect(merch_packet.donor_name).to eq("New Name")
+        expect(merch_packet.reload.donor_name).to eq("New Name")
+        expect(donation.reload.donor_contact).to include(name: "New Name")
       end
 
       it "returns 422 when packet is already shipped" do

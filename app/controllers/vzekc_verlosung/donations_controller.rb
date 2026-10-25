@@ -74,10 +74,13 @@ module VzekcVerlosung
     #
     # Creates a new donation in draft state (no topic yet)
     #
+    # The donor's name, company and email are stored on the donation. A merch
+    # packet is created when the donor's street address is given.
+    #
     # @param postcode [String] Location postcode for pickup
-    # @param donor_name [String] Optional: Donor name for merch packet
+    # @param donor_name [String] Optional: Donor name
     # @param donor_company [String] Optional: Donor company/zusatz
-    # @param donor_street [String] Optional: Donor street
+    # @param donor_street [String] Optional: Donor street for the merch packet
     # @param donor_street_number [String] Optional: Donor street number
     # @param donor_postcode [String] Optional: Donor postcode
     # @param donor_city [String] Optional: Donor city
@@ -85,7 +88,7 @@ module VzekcVerlosung
     #
     # @return [JSON] donation_id for use in composer
     def create
-      if create_params[:donor_name].present? && create_params[:donor_email].blank?
+      if create_params[:donor_street].present? && create_params[:donor_email].blank?
         return(
           render_json_error(
             I18n.t("vzekc_verlosung.errors.donor_email_required"),
@@ -95,10 +98,17 @@ module VzekcVerlosung
       end
 
       donation =
-        Donation.create!(postcode: create_params[:postcode], creator_user_id: current_user.id)
-
-      # Create merch packet if donor address is provided
-      create_merch_packet_if_provided(donation)
+        Donation.transaction do
+          Donation
+            .create!(
+              postcode: create_params[:postcode],
+              creator_user_id: current_user.id,
+              donor_name: create_params[:donor_name].presence,
+              donor_company: create_params[:donor_company].presence,
+              donor_email: create_params[:donor_email].presence,
+            )
+            .tap { |created| create_merch_packet_if_provided(created) }
+        end
 
       render json: success_json.merge(donation_id: donation.id)
     rescue ActiveRecord::RecordInvalid => e
@@ -235,6 +245,7 @@ module VzekcVerlosung
       end
 
       if packet.update(merch_packet_params)
+        donation.take_donor_contact_from!(packet)
         head :no_content
       else
         render_json_error(packet)
@@ -264,6 +275,7 @@ module VzekcVerlosung
       packet = MerchPacket.new(merch_packet_params.merge(donation: donation, state: "pending"))
 
       if packet.save
+        donation.take_donor_contact_from!(packet)
         render json: { merch_packet: serialize_donation_merch_packet(packet) }, status: :created
       else
         render_json_error(packet)
@@ -406,25 +418,21 @@ module VzekcVerlosung
     end
 
     # The donor's name and email address for pre-filling the picker-assignment
-    # form. Only the facilitator receives it, and only while the merch packet
-    # still holds the donor's personal data.
+    # form. Only the facilitator receives it.
     #
     # @param donation [Donation] The donation
     # @return [Hash, nil] name and email, or nil
     def build_donor_contact(donation)
       return nil unless guardian.can_manage_donation?(donation)
 
-      packet = donation.merch_packet
-      return nil if packet.nil? || packet.archived?
-
-      { name: packet.donor_name, email: packet.donor_email }
+      donation.donor_contact
     end
 
     # Create a merch packet if donor address fields are provided
     #
     # @param donation [Donation] The donation to create the merch packet for
     def create_merch_packet_if_provided(donation)
-      return if create_params[:donor_name].blank?
+      return if create_params[:donor_street].blank?
 
       MerchPacket.create!(
         donation: donation,

@@ -42,6 +42,47 @@ describe VzekcVerlosung::DonationsController do
       )
     end
 
+    it "returns 422 when an address is given without the donor's email" do
+      post "/vzekc-verlosung/donations.json",
+           params: {
+             postcode: "10115",
+             donor_street: "Musterstraße",
+           }
+
+      expect(response.status).to eq(422)
+    end
+
+    it "stores the donor's contact on the donation without a merch packet" do
+      post "/vzekc-verlosung/donations.json",
+           params: {
+             postcode: "10115",
+             donor_name: "Max Mustermann",
+             donor_email: "max@example.com",
+           }
+
+      expect(response.status).to eq(200)
+      donation = VzekcVerlosung::Donation.find(response.parsed_body["donation_id"])
+      expect(donation.merch_packet).to be_nil
+      expect(donation.donor_contact).to eq(
+        name: "Max Mustermann",
+        company: nil,
+        email: "max@example.com",
+      )
+    end
+
+    it "stores the donor's name without an email address" do
+      post "/vzekc-verlosung/donations.json",
+           params: {
+             postcode: "10115",
+             donor_name: "Max Mustermann",
+           }
+
+      expect(response.status).to eq(200)
+      donation = VzekcVerlosung::Donation.find(response.parsed_body["donation_id"])
+      expect(donation.donor_name).to eq("Max Mustermann")
+      expect(donation.donor_email).to be_nil
+    end
+
     it "creates a donation without a merch packet when no donor data is given" do
       post "/vzekc-verlosung/donations.json", params: { postcode: "10115" }
 
@@ -52,9 +93,14 @@ describe VzekcVerlosung::DonationsController do
   end
 
   describe "#show" do
-    fab!(:donation) { Fabricate(:donation, creator_user_id: facilitator.id, state: "open") }
-    fab!(:merch_packet) do
-      Fabricate(:merch_packet, donation: donation, donor_email: "max@example.com")
+    fab!(:donation) do
+      Fabricate(
+        :donation,
+        creator_user_id: facilitator.id,
+        state: "open",
+        donor_name: "Max Mustermann",
+        donor_email: "max@example.com",
+      )
     end
 
     context "as the facilitator" do
@@ -66,13 +112,13 @@ describe VzekcVerlosung::DonationsController do
         expect(response.status).to eq(200)
         expect(response.parsed_body["donation"]["donor_contact"]).to eq(
           "name" => "Max Mustermann",
+          "company" => nil,
           "email" => "max@example.com",
         )
       end
 
-      it "omits the donor contact once the merch packet is archived" do
-        merch_packet.update!(state: "shipped", shipped_at: 5.weeks.ago)
-        merch_packet.archive!
+      it "omits the donor contact once it is purged" do
+        donation.purge_donor_contact!
 
         get "/vzekc-verlosung/donations/#{donation.id}.json"
 
