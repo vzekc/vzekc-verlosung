@@ -9,7 +9,7 @@ module VzekcVerlosung
     #
     # @return [Boolean] true if user may take part in lotteries
     def can_participate_in_lotteries?
-      return false unless @user
+      return false unless authenticated?
       return @can_participate_in_lotteries if defined?(@can_participate_in_lotteries)
 
       @can_participate_in_lotteries =

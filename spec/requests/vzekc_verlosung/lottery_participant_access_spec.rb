@@ -70,6 +70,12 @@ describe VzekcVerlosung::RequiresLotteryParticipant do
     end
   end
 
+  context "when not logged in" do
+    it "is not a participant" do
+      expect(Guardian.new.can_participate_in_lotteries?).to eq(false)
+    end
+  end
+
   context "as staff outside the configured groups" do
     before { sign_in(admin) }
 
