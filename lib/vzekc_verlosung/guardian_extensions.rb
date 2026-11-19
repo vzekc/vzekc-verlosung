@@ -2,6 +2,20 @@
 
 module VzekcVerlosung
   module GuardianExtensions
+    # Check if user may take part in lotteries and donations: draw tickets,
+    # offer pickups, create lotteries and see the lottery and donation pages.
+    # Granted to staff and to members of the groups in
+    # vzekc_verlosung_members_group_names.
+    #
+    # @return [Boolean] true if user may take part in lotteries
+    def can_participate_in_lotteries?
+      return false unless @user
+      return @can_participate_in_lotteries if defined?(@can_participate_in_lotteries)
+
+      @can_participate_in_lotteries =
+        @user.staff? || VzekcVerlosung::MemberChecker.active_member?(@user)
+    end
+
     # Check if user can create a lottery in the given category
     # This bypasses the normal category topic creation block
     #

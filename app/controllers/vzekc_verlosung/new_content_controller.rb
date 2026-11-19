@@ -9,6 +9,8 @@ module VzekcVerlosung
   class NewContentController < ::ApplicationController
     requires_plugin VzekcVerlosung::PLUGIN_NAME
 
+    include VzekcVerlosung::RequiresLotteryParticipant
+
     before_action :ensure_logged_in
 
     # GET /vzekc-verlosung/has-new-content.json

@@ -4,6 +4,8 @@ module VzekcVerlosung
   class OnsiteLotteryEventsController < ::ApplicationController
     requires_plugin VzekcVerlosung::PLUGIN_NAME
 
+    include VzekcVerlosung::RequiresLotteryParticipant
+
     before_action :ensure_logged_in
 
     # GET /vzekc-verlosung/onsite-lottery-events/current

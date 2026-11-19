@@ -3,6 +3,8 @@
 module VzekcVerlosung
   class LotteryHistoryController < ::ApplicationController
     requires_plugin VzekcVerlosung::PLUGIN_NAME
+
+    include VzekcVerlosung::RequiresLotteryParticipant
     requires_login
 
     # Look-back periods for the statistics, selected with the `period` parameter.

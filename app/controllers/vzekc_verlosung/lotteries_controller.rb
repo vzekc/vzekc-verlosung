@@ -5,6 +5,9 @@ module VzekcVerlosung
   class LotteriesController < ::ApplicationController
     requires_plugin VzekcVerlosung::PLUGIN_NAME
 
+    include VzekcVerlosung::RequiresLotteryParticipant
+    skip_before_action :ensure_lottery_participant, only: :silence_reminders_page
+
     before_action :ensure_logged_in, except: [:silence_reminders_page]
 
     # GET /vzekc_verlosung/silence-reminders/:topic_id

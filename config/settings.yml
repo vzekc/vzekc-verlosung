@@ -113,7 +113,7 @@ vzekc_verlosung:
     list_type: simple
     client: false
   vzekc_verlosung_members_group_names:
-    default: "vereinsmitglieder|foerdermitglieder"
+    default: "vereinsmitglieder"
     type: list
     list_type: simple
     client: false

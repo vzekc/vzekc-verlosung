@@ -9,6 +9,8 @@ module VzekcVerlosung
   class LotteryInterestsController < ::ApplicationController
     requires_plugin VzekcVerlosung::PLUGIN_NAME
 
+    include VzekcVerlosung::RequiresLotteryParticipant
+
     before_action :ensure_logged_in
 
     # POST /vzekc-verlosung/donations/:donation_id/lottery-interests

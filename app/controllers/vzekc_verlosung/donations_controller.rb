@@ -11,6 +11,8 @@ module VzekcVerlosung
   class DonationsController < ::ApplicationController
     requires_plugin VzekcVerlosung::PLUGIN_NAME
 
+    include VzekcVerlosung::RequiresLotteryParticipant
+
     EMAIL_IMPORT_MAX_FILES = 20
     EMAIL_IMPORT_MAX_ZIP_ENTRIES = 100
     EMAIL_IMPORT_MAX_ZIP_ENTRY_BYTES = 30.megabytes

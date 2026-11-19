@@ -4,6 +4,8 @@ module VzekcVerlosung
   class ActiveLotteriesController < ::ApplicationController
     requires_plugin VzekcVerlosung::PLUGIN_NAME
 
+    include VzekcVerlosung::RequiresLotteryParticipant
+
     # GET /vzekc-verlosung/active.json
     #
     # Returns a list of all active lotteries ordered by ending soonest first

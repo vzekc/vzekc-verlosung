@@ -4,6 +4,9 @@ module VzekcVerlosung
   class MyLotteriesController < ::ApplicationController
     requires_plugin VzekcVerlosung::PLUGIN_NAME
 
+    include VzekcVerlosung::RequiresLotteryParticipant
+    skip_before_action :ensure_lottery_participant, only: :page
+
     before_action :ensure_logged_in, only: %i[index active]
 
     # Serves the Ember app shell for direct page loads at /my-lotteries

@@ -78,7 +78,10 @@ export default {
     const site = container.lookup("service:site");
     const currentUser = container.lookup("service:current-user");
 
-    if (!siteSettings.vzekc_verlosung_enabled) {
+    if (
+      !siteSettings.vzekc_verlosung_enabled ||
+      !currentUser?.vzekc_verlosung_can_participate
+    ) {
       return;
     }
 

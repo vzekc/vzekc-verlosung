@@ -159,6 +159,7 @@ require_relative "lib/vzekc_verlosung/engine"
 require_relative "lib/vzekc_verlosung/guardian_extensions"
 require_relative "lib/vzekc_verlosung/member_checker"
 require_relative "lib/vzekc_verlosung/orphan_cleanup"
+require_relative "lib/vzekc_verlosung/requires_lottery_participant"
 
 after_initialize do
   # Detect first topic visits to clear new-content sidebar indicators
@@ -384,6 +385,10 @@ after_initialize do
   register_user_custom_field_type("vzekc_lottery_list_sort_mode", :string, max_length: 10)
   register_editable_user_custom_field("vzekc_lottery_list_sort_mode")
   DiscoursePluginRegistry.serialized_current_user_fields << "vzekc_lottery_list_sort_mode"
+
+  add_to_serializer(:current_user, :vzekc_verlosung_can_participate) do
+    scope.can_participate_in_lotteries?
+  end
 
   add_to_serializer(:current_user, :vzekc_verlosung_min_duration_days) do
     VzekcVerlosung::Lottery.min_duration_days_for(object)

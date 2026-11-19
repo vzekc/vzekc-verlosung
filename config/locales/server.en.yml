@@ -12,7 +12,7 @@ en:
     vzekc_verlosung_reminder_hour: "Hour of day (0-23) in server local time when reminder notifications are sent"
     vzekc_verlosung_show_end_early_button: "Show 'End Early' button on active lotteries (for testing purposes)"
     vzekc_verlosung_merch_handlers_group_name: "Name of the group whose members can manage merch packets"
-    vzekc_verlosung_members_group_names: "Names of the member groups (e.g. full and supporting members); only their members receive lottery notifications and reminders. Empty means everyone."
+    vzekc_verlosung_members_group_names: "Names of the groups whose members take part in lotteries and donations (draw tickets, offer pickups, create lotteries, see the lottery pages) and receive their notifications. Staff always take part. Empty means everyone."
     vzekc_verlosung_board_group_name: "Name of the board group; its members can create lotteries running for as little as one day"
     vzekc_verlosung_short_lotteries_starts_at: "Start of a period in which all users can create lotteries running for as little as one day (e.g. for an exhibition)"
     vzekc_verlosung_short_lotteries_ends_at: "End of the period for short lotteries"

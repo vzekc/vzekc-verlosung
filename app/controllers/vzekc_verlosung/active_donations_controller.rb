@@ -4,6 +4,8 @@ module VzekcVerlosung
   class ActiveDonationsController < ::ApplicationController
     requires_plugin VzekcVerlosung::PLUGIN_NAME
 
+    include VzekcVerlosung::RequiresLotteryParticipant
+
     # GET /vzekc-verlosung/active-donations.json
     #
     # Returns a list of all donations (excluding drafts) ordered by published date

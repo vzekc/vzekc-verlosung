@@ -5,6 +5,9 @@ module VzekcVerlosung
   class TicketsController < ::ApplicationController
     requires_plugin VzekcVerlosung::PLUGIN_NAME
 
+    include VzekcVerlosung::RequiresLotteryParticipant
+    skip_before_action :ensure_lottery_participant, only: :erhaltungsbericht_page
+
     before_action :ensure_logged_in, except: [:erhaltungsbericht_page]
 
     # GET /erhaltungsbericht-schreiben/:post_id

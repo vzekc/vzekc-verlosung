@@ -13,6 +13,19 @@ import { i18n } from "discourse-i18n";
 @tagName("li")
 @classNames("user-nav__verlosungen")
 export default class Verlosungen extends Component {
+  /**
+   * Shows the tab only to users who take part in lotteries
+   *
+   * @param {Object} args - Outlet arguments
+   * @param {Object} context - Helper context
+   * @param {Object} owner - Application owner
+   * @returns {boolean} true if the current user may take part in lotteries
+   */
+  static shouldRender(args, context, owner) {
+    return !!owner.lookup("service:current-user")
+      ?.vzekc_verlosung_can_participate;
+  }
+
   <template>
     <LinkTo @route="user.verlosungen" @model={{this.model}}>
       {{icon "gift"}}
