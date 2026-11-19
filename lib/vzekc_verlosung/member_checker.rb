@@ -2,21 +2,20 @@
 
 module VzekcVerlosung
   module MemberChecker
-    # Check if user is an active member of the configured group
-    # Returns true if no group is configured (allows all)
+    # Check if user belongs to one of the configured member groups
+    # (e.g. full and supporting members). Returns true when no configured
+    # group exists, so an unconfigured site treats everyone as a member.
     #
     # @param user [User] The user to check
-    # @return [Boolean] true if user is a member of the configured group
+    # @return [Boolean] true if user is in any of the configured member groups
     def self.active_member?(user)
       return false unless user
 
-      group_name = SiteSetting.vzekc_verlosung_members_group_name
-      return true if group_name.blank?
+      group_names = SiteSetting.vzekc_verlosung_members_group_names.split("|").map(&:strip)
+      group_ids = Group.where(name: group_names.compact_blank).pluck(:id)
+      return true if group_ids.empty?
 
-      group = Group.find_by(name: group_name)
-      return true unless group
-
-      group.users.exists?(user.id)
+      GroupUser.exists?(group_id: group_ids, user_id: user.id)
     end
   end
 end
