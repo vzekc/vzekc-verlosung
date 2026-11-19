@@ -62,6 +62,8 @@ export default apiInitializer((api) => {
       } else if (packetSource) {
         helper.renderGlimmer(container, ErhaltungsberichtSourceLink, {
           packetUrl: packetSource.packet_url,
+          packetTitle: packetSource.packet_title,
+          lotteryUrl: packetSource.lottery_url,
           lotteryTitle: packetSource.lottery_title,
         });
       }

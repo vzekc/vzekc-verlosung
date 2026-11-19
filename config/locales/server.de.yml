@@ -226,6 +226,10 @@ de:
           **[Erhaltungsbericht jetzt schreiben](%{write_report_url})** — der Link öffnet das Editorfenster mit einer Vorlage.
 
           [Paket-Beitrag öffnen](%{packet_url})
+
+          %{silence_hint}
+        silence_hint: "Du brauchst mehr Zeit, z. B. für eine Restaurierung? [Erinnerungen bis %{deadline} pausieren](%{silence_url})"
+        overdue_hint: "Du hast das Paket vor mehr als sechs Monaten erhalten. Die Erinnerungen kommen jetzt wöchentlich, bis der Erhaltungsbericht geschrieben ist."
       donation:
         title: "Erinnerung: Spendenangebot wartet auf Zuweisung"
         body: |
@@ -316,6 +320,7 @@ de:
       erhaltungsbericht_not_a_packet: "Dieser Beitrag gehört zu keinem Verlosungspaket."
       erhaltungsbericht_not_winner: "Nur der Gewinner eines Pakets kann einen Erhaltungsbericht schreiben."
       erhaltungsbericht_not_collected: "Das Paket ist noch nicht als erhalten markiert. Markiere es beim Paket-Beitrag als erhalten, bevor du den Bericht schreibst."
+      erhaltungsbericht_reminders_cannot_silence: "Die Erinnerungen lassen sich nur bis sechs Monate nach Erhalt des Pakets pausieren, und nur solange der Erhaltungsbericht noch aussteht."
       erhaltungsbericht_category_missing: "Die Kategorie für Erhaltungsberichte ist nicht konfiguriert. Bitte wende dich an den Vorstand."
       donor_email_required: "Die E-Mail-Adresse des Spenders ist erforderlich."
       email_import_no_files: "Bitte mindestens eine .eml- oder .zip-Datei hochladen."

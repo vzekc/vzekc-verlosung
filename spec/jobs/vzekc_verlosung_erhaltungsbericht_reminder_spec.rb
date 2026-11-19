@@ -52,4 +52,33 @@ describe Jobs::VzekcVerlosungErhaltungsberichtReminder do
     )
     expect(raw).not_to include("%{")
   end
+
+  it "offers pausing the reminders within six months after receipt" do
+    described_class.new.execute({})
+
+    raw = Topic.private_messages.order(:id).last.first_post.raw
+    expect(raw).to include("#{Discourse.base_url}/erhaltungsbericht-pausieren/#{packet_post.id}")
+  end
+
+  it "skips winners who paused the reminders" do
+    winner_entry.silence_report_reminders!
+
+    expect { described_class.new.execute({}) }.not_to change { Topic.private_messages.count }
+  end
+
+  context "when the packet was received more than six months ago" do
+    before do
+      winner_entry.update!(
+        collected_at: 189.days.ago,
+        report_reminders_silenced_until: 189.days.ago + 6.months,
+      )
+    end
+
+    it "reminds weekly without offering a pause" do
+      expect { described_class.new.execute({}) }.to change { Topic.private_messages.count }.by(1)
+
+      raw = Topic.private_messages.order(:id).last.first_post.raw
+      expect(raw).not_to include("erhaltungsbericht-pausieren")
+    end
+  end
 end

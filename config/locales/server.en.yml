@@ -216,6 +216,10 @@ en:
           **[Write your reception report now](%{write_report_url})** — the link opens the composer with a template.
 
           [Open packet post](%{packet_url})
+
+          %{silence_hint}
+        silence_hint: "Need more time, e.g. for a restoration? [Pause reminders until %{deadline}](%{silence_url})"
+        overdue_hint: "You received the packet more than six months ago. Reminders now arrive weekly until the reception report is written."
       donation:
         title: "Reminder: Donation offer is waiting for assignment"
         body: |
@@ -306,6 +310,7 @@ en:
       erhaltungsbericht_not_a_packet: "This post does not belong to a lottery packet."
       erhaltungsbericht_not_winner: "Only the winner of a packet can write a reception report."
       erhaltungsbericht_not_collected: "The packet is not marked as received yet. Mark it as received on the packet post before writing the report."
+      erhaltungsbericht_reminders_cannot_silence: "Reminders can only be paused until six months after the packet was received, and only while the reception report is still outstanding."
       erhaltungsbericht_category_missing: "The category for reception reports is not configured. Please contact the board."
       donor_email_required: "The donor's email address is required."
       email_import_no_files: "Upload at least one .eml or .zip file."

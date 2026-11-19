@@ -2407,6 +2407,20 @@
       }
     }
 
+    .reminders-paused {
+      margin-left: 0.35em;
+      color: var(--primary-medium);
+    }
+
+    .optional-bericht-btn {
+      padding: 0.15em 0.4em;
+      color: var(--primary-medium);
+
+      &:hover {
+        color: var(--tertiary);
+      }
+    }
+
     .packet-participants {
       .participants-avatars {
         display: flex;
@@ -4154,14 +4168,16 @@
 }
 
 // Landing page for the direct Erhaltungsbericht link in reminder PMs
-.write-erhaltungsbericht-page {
+.write-erhaltungsbericht-page,
+.pause-erhaltungsbericht-reminders-page {
   max-width: 40em;
 
   .packet-label {
     margin-bottom: 0.5em;
   }
 
-  .write-erhaltungsbericht-actions {
+  .write-erhaltungsbericht-actions,
+  .pause-erhaltungsbericht-reminders-actions {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5em;

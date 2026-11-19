@@ -10,4 +10,7 @@ export default function () {
   this.route("writeErhaltungsbericht", {
     path: "/erhaltungsbericht-schreiben/:post_id",
   });
+  this.route("pauseErhaltungsberichtReminders", {
+    path: "/erhaltungsbericht-pausieren/:post_id",
+  });
 }

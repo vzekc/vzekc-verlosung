@@ -39,6 +39,9 @@ VzekcVerlosung::Engine.routes.draw do
   put "/packets/:post_id/note" => "tickets#update_note"
   put "/packets/:post_id/toggle-notifications" => "tickets#toggle_notifications"
   put "/packets/:post_id/erhaltungsbericht-required" => "tickets#set_erhaltungsbericht_required"
+  get "/packets/:post_id/erhaltungsbericht-reminders" => "tickets#erhaltungsbericht_reminders"
+  put "/packets/:post_id/erhaltungsbericht-reminders" =>
+        "tickets#update_erhaltungsbericht_reminders"
 
   # Donation routes
   post "/donations" => "donations#create"
@@ -99,6 +102,7 @@ Discourse::Application.routes.draw do
   get "silence-reminders/:topic_id" => "vzekc_verlosung/lotteries#silence_reminders_page"
   get "my-lotteries" => "vzekc_verlosung/my_lotteries#page"
   get "erhaltungsbericht-schreiben/:post_id" => "vzekc_verlosung/tickets#erhaltungsbericht_page"
+  get "erhaltungsbericht-pausieren/:post_id" => "vzekc_verlosung/tickets#erhaltungsbericht_page"
   get "spende-aus-email/:token" => "vzekc_verlosung/herold_app#handoff_page"
   get ".well-known/herold-app.json" => "vzekc_verlosung/herold_app#manifest",
       :defaults => {

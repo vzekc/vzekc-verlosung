@@ -354,6 +354,112 @@ export default class UserVerlosungenStats extends Component {
   }
 
   /**
+   * Check if the user can write a voluntary Erhaltungsbericht for a packet
+   * whose lottery owner did not ask for one
+   *
+   * @param {Object} packet
+   * @returns {Boolean}
+   */
+  @action
+  canWriteOptionalBericht(packet) {
+    return (
+      this.isOwnProfile &&
+      !packet.erhaltungsbericht_required &&
+      !packet.erhaltungsbericht &&
+      (packet.fulfillment_state === "received" ||
+        packet.fulfillment_state === "completed")
+    );
+  }
+
+  /**
+   * Check if the user can pause the Erhaltungsbericht reminders for a packet
+   *
+   * @param {Object} packet
+   * @returns {Boolean}
+   */
+  @action
+  canPauseReminders(packet) {
+    return (
+      this.isOwnProfile &&
+      packet.can_silence_report_reminders &&
+      !packet.report_reminders_silenced_until
+    );
+  }
+
+  /**
+   * Check if the user can resume paused Erhaltungsbericht reminders
+   *
+   * @param {Object} packet
+   * @returns {Boolean}
+   */
+  @action
+  canResumeReminders(packet) {
+    return (
+      this.isOwnProfile &&
+      packet.erhaltungsbericht_required &&
+      !!packet.report_reminders_silenced_until &&
+      !packet.erhaltungsbericht
+    );
+  }
+
+  /**
+   * Pause Erhaltungsbericht reminders for a packet after confirmation
+   *
+   * @param {Object} packet
+   */
+  @action
+  async pauseReminders(packet) {
+    const confirmed = await this.dialog.confirm({
+      message: i18n("vzekc_verlosung.user_stats.pause_reminders_confirm", {
+        date: this.formatDate(packet.report_reminder_silence_deadline),
+      }),
+      didConfirm: () => true,
+      didCancel: () => false,
+    });
+
+    if (confirmed) {
+      await this.setRemindersSilenced(packet, true);
+    }
+  }
+
+  /**
+   * Resume paused Erhaltungsbericht reminders for a packet
+   *
+   * @param {Object} packet
+   */
+  @action
+  async resumeReminders(packet) {
+    await this.setRemindersSilenced(packet, false);
+  }
+
+  /**
+   * Store the reminder pause state of a packet on the server
+   *
+   * @param {Object} packet
+   * @param {Boolean} silenced
+   */
+  async setRemindersSilenced(packet, silenced) {
+    try {
+      const result = await ajax(
+        `/vzekc-verlosung/packets/${packet.post_id}/erhaltungsbericht-reminders`,
+        { type: "PUT", data: { silenced } }
+      );
+
+      this.wonPackets = this.wonPackets.map((p) =>
+        p === packet
+          ? {
+              ...p,
+              report_reminders_silenced_until: result.silenced_until,
+              can_silence_report_reminders: result.can_silence,
+            }
+          : p
+      );
+    } catch (error) {
+      popupAjaxError(error);
+    }
+  }
+
+  /**
    * Mark a single packet as received
    *
    * @param {Object} packet
@@ -659,17 +765,40 @@ export default class UserVerlosungenStats extends Component {
                         </span>
                       </td>
                       <td class="status-cell">
-                        {{#if packet.erhaltungsbericht_required}}
-                          {{#if packet.erhaltungsbericht}}
-                            <a
-                              href={{packet.erhaltungsbericht.url}}
-                              class="bericht-link"
-                            >
-                              {{icon "file-lines"}}
-                            </a>
-                          {{else}}
-                            <span class="status-pending">{{icon "minus"}}</span>
+                        {{#if packet.erhaltungsbericht}}
+                          <a
+                            href={{packet.erhaltungsbericht.url}}
+                            class="bericht-link"
+                          >
+                            {{icon "file-lines"}}
+                          </a>
+                        {{else if packet.erhaltungsbericht_required}}
+                          <span class="status-pending">{{icon "minus"}}</span>
+                          {{#if packet.report_reminders_silenced_until}}
+                            <span
+                              class="reminders-paused"
+                              title={{i18n
+                                "vzekc_verlosung.user_stats.reminders_paused_until"
+                                date=(this.formatDate
+                                  packet.report_reminders_silenced_until
+                                )
+                              }}
+                            >{{icon "pause"}}</span>
                           {{/if}}
+                        {{else if (this.canWriteOptionalBericht packet)}}
+                          <button
+                            type="button"
+                            class="btn btn-flat btn-small optional-bericht-btn"
+                            title={{i18n
+                              "vzekc_verlosung.user_stats.write_optional_bericht"
+                            }}
+                            {{on
+                              "click"
+                              (fn this.writeErhaltungsbericht packet)
+                            }}
+                          >
+                            {{icon "plus"}}
+                          </button>
                         {{else}}
                           <span class="status-na">-</span>
                         {{/if}}
@@ -700,6 +829,35 @@ export default class UserVerlosungenStats extends Component {
                               {{icon "file-lines"}}
                               {{i18n
                                 "vzekc_verlosung.user_stats.write_bericht_button"
+                              }}
+                            </button>
+                          {{/if}}
+                          {{#if (this.canResumeReminders packet)}}
+                            <button
+                              type="button"
+                              class="btn btn-small btn-default resume-reminders-btn"
+                              title={{i18n
+                                "vzekc_verlosung.user_stats.reminders_paused_until"
+                                date=(this.formatDate
+                                  packet.report_reminders_silenced_until
+                                )
+                              }}
+                              {{on "click" (fn this.resumeReminders packet)}}
+                            >
+                              {{icon "play"}}
+                              {{i18n
+                                "vzekc_verlosung.user_stats.resume_reminders_button"
+                              }}
+                            </button>
+                          {{else if (this.canPauseReminders packet)}}
+                            <button
+                              type="button"
+                              class="btn btn-small btn-default pause-reminders-btn"
+                              {{on "click" (fn this.pauseReminders packet)}}
+                            >
+                              {{icon "pause"}}
+                              {{i18n
+                                "vzekc_verlosung.user_stats.pause_reminders_button"
                               }}
                             </button>
                           {{/if}}

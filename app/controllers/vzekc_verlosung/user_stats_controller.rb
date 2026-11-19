@@ -157,10 +157,12 @@ module VzekcVerlosung
           .order("vzekc_verlosung_lottery_packet_winners.won_at DESC")
           .limit(50)
 
+      own_profile = current_user&.id == @user.id
+
       winner_entries.map do |winner_entry|
         packet = winner_entry.lottery_packet
         topic = packet.lottery.topic
-        {
+        entry = {
           id: packet.id,
           instance_number: winner_entry.instance_number,
           title: packet.title,
@@ -193,7 +195,22 @@ module VzekcVerlosung
               }
             end,
         }
+        entry.merge!(report_reminder_state(winner_entry)) if own_profile
+        entry
       end
+    end
+
+    # Erhaltungsbericht reminder pause state of a win, shown to the winner only
+    #
+    # @param winner_entry [LotteryPacketWinner]
+    # @return [Hash]
+    def report_reminder_state(winner_entry)
+      {
+        report_reminders_silenced_until:
+          (winner_entry.report_reminders_silenced_until if winner_entry.report_reminders_silenced?),
+        can_silence_report_reminders: winner_entry.can_silence_report_reminders?,
+        report_reminder_silence_deadline: winner_entry.report_reminder_silence_deadline,
+      }
     end
 
     # Build list of lotteries the user has created

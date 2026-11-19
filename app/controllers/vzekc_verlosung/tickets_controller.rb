@@ -703,6 +703,51 @@ module VzekcVerlosung
       render json: success_json.merge(notifications_silenced: packet.notifications_silenced)
     end
 
+    # GET /vzekc_verlosung/packets/:post_id/erhaltungsbericht-reminders
+    #
+    # Returns the Erhaltungsbericht reminder state of the current user's win on
+    # a packet. Backs the pause link in the reminder PM.
+    #
+    # @param post_id [Integer] Post ID of the packet
+    #
+    # @return [JSON] Reminder state
+    def erhaltungsbericht_reminders
+      packet, winner_entry = find_own_win_for_reminders
+      return unless winner_entry
+
+      render json: success_json.merge(report_reminders_json(packet, winner_entry))
+    end
+
+    # PUT /vzekc_verlosung/packets/:post_id/erhaltungsbericht-reminders
+    #
+    # Pauses or resumes Erhaltungsbericht reminders for the current user's win.
+    # Reminders can be paused until six months after the packet was received.
+    #
+    # @param post_id [Integer] Post ID of the packet
+    # @param silenced [Boolean] true pauses, false resumes the reminders
+    #
+    # @return [JSON] Updated reminder state
+    def update_erhaltungsbericht_reminders
+      packet, winner_entry = find_own_win_for_reminders
+      return unless winner_entry
+
+      if ActiveModel::Type::Boolean.new.cast(params[:silenced])
+        unless winner_entry.can_silence_report_reminders?
+          return(
+            render_json_error(
+              I18n.t("vzekc_verlosung.errors.erhaltungsbericht_reminders_cannot_silence"),
+              status: :unprocessable_entity,
+            )
+          )
+        end
+        winner_entry.silence_report_reminders!
+      else
+        winner_entry.resume_report_reminders!
+      end
+
+      render json: success_json.merge(report_reminders_json(packet, winner_entry))
+    end
+
     # PUT /vzekc_verlosung/packets/:post_id/erhaltungsbericht-required
     #
     # Sets the erhaltungsbericht_required flag on a lottery packet.
@@ -762,6 +807,58 @@ module VzekcVerlosung
     # @returns [LotteryPacketWinner, nil]
     def own_winner_entry(packet)
       packet.lottery_packet_winners.find { |w| w.winner_user_id == current_user.id }
+    end
+
+    # Looks up the packet and the current user's win on it, rendering an error
+    # when either is missing.
+    #
+    # @returns [Array(LotteryPacket, LotteryPacketWinner), nil]
+    def find_own_win_for_reminders
+      packet =
+        LotteryPacket.includes(:lottery_packet_winners, post: :topic).find_by(
+          post_id: params[:post_id],
+        )
+      unless packet&.post&.topic
+        render_json_error(
+          I18n.t("vzekc_verlosung.errors.erhaltungsbericht_not_a_packet"),
+          status: :not_found,
+        )
+        return
+      end
+
+      winner_entry = own_winner_entry(packet)
+      unless winner_entry
+        render_json_error(
+          I18n.t("vzekc_verlosung.errors.erhaltungsbericht_not_winner"),
+          status: :forbidden,
+        )
+        return
+      end
+
+      [packet, winner_entry]
+    end
+
+    # @param packet [LotteryPacket]
+    # @param winner_entry [LotteryPacketWinner]
+    # @returns [Hash] Erhaltungsbericht reminder state of a win
+    def report_reminders_json(packet, winner_entry)
+      post = packet.post
+      {
+        packet_title: packet.title,
+        lottery_title: post.topic.title,
+        packet_url: "#{post.topic.relative_url}/#{post.post_number}",
+        has_report: winner_entry.has_report?,
+        silenced_until:
+          (
+            if winner_entry.report_reminders_silenced?
+              winner_entry.report_reminders_silenced_until
+            else
+              nil
+            end
+          ),
+        silence_deadline: winner_entry.report_reminder_silence_deadline,
+        can_silence: winner_entry.can_silence_report_reminders?,
+      }
     end
 
     # Title for the Erhaltungsbericht topic: "<packet title> aus <lottery title>".

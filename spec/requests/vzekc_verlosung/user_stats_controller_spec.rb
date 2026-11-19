@@ -93,6 +93,17 @@ RSpec.describe VzekcVerlosung::UserStatsController do
         expect(json["won_packets"][0]["title"]).to eq("Test Packet")
       end
 
+      it "shows the reminder pause state to the winner only" do
+        get "/vzekc-verlosung/users/#{another_user.username}.json"
+        expect(response.parsed_body["won_packets"][0]).not_to have_key(
+          "can_silence_report_reminders",
+        )
+
+        sign_in(another_user)
+        get "/vzekc-verlosung/users/#{another_user.username}.json"
+        expect(response.parsed_body["won_packets"][0]).to have_key("can_silence_report_reminders")
+      end
+
       it "calculates luck factor correctly" do
         get "/vzekc-verlosung/users/#{another_user.username}.json"
         expect(response.status).to eq(200)

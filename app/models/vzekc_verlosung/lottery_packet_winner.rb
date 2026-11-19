@@ -7,6 +7,11 @@ module VzekcVerlosung
     # Fulfillment state constants
     FULFILLMENT_STATES = %w[won shipped received completed unclaimed].freeze
 
+    # Winners may pause Erhaltungsbericht reminders until this long after
+    # receiving the packet; past that point reminders go out weekly and can no
+    # longer be paused.
+    REPORT_REMINDER_SILENCE_PERIOD = 6.months
+
     # Associations
     belongs_to :lottery_packet, class_name: "VzekcVerlosung::LotteryPacket"
     belongs_to :winner, class_name: "User", foreign_key: :winner_user_id
@@ -95,6 +100,24 @@ module VzekcVerlosung
       erhaltungsbericht_topic_id.present?
     end
 
+    # Latest point in time Erhaltungsbericht reminders can be paused until.
+    #
+    # @returns [ActiveSupport::TimeWithZone, nil] nil before the packet was received
+    def report_reminder_silence_deadline
+      collected_at && collected_at + REPORT_REMINDER_SILENCE_PERIOD
+    end
+
+    # @returns [Boolean] whether the winner can still pause Erhaltungsbericht reminders
+    def can_silence_report_reminders?(now = Time.zone.now)
+      collected? && !has_report? && lottery_packet.erhaltungsbericht_required &&
+        report_reminder_silence_deadline.present? && now < report_reminder_silence_deadline
+    end
+
+    # @returns [Boolean] whether Erhaltungsbericht reminders are currently paused
+    def report_reminders_silenced?(now = Time.zone.now)
+      report_reminders_silenced_until.present? && now < report_reminders_silenced_until
+    end
+
     # State transition methods
     def mark_shipped!(timestamp = Time.zone.now, tracking_info: nil)
       update!(shipped_at: timestamp, tracking_info: tracking_info, fulfillment_state: "shipped")
@@ -112,6 +135,15 @@ module VzekcVerlosung
 
     def link_report!(topic)
       update!(erhaltungsbericht_topic_id: topic.id, fulfillment_state: "completed")
+    end
+
+    # Pauses Erhaltungsbericht reminders until the end of the silence period.
+    def silence_report_reminders!
+      update!(report_reminders_silenced_until: report_reminder_silence_deadline)
+    end
+
+    def resume_report_reminders!
+      update!(report_reminders_silenced_until: nil)
     end
 
     def mark_complete!
@@ -138,21 +170,22 @@ end
 #
 # Table name: vzekc_verlosung_lottery_packet_winners
 #
-#  id                         :bigint           not null, primary key
-#  collected_at               :datetime
-#  fulfillment_state          :string           default("won"), not null
-#  instance_number            :integer          not null
-#  note                       :text
-#  shipped_at                 :datetime
-#  tracking_info              :text
-#  unclaimed_at               :datetime
-#  won_at                     :datetime
-#  created_at                 :datetime         not null
-#  updated_at                 :datetime         not null
-#  erhaltungsbericht_topic_id :bigint
-#  lottery_packet_id          :bigint           not null
-#  winner_pm_topic_id         :bigint
-#  winner_user_id             :bigint           not null
+#  id                              :bigint           not null, primary key
+#  collected_at                    :datetime
+#  fulfillment_state               :string           default("won"), not null
+#  instance_number                 :integer          not null
+#  note                            :text
+#  report_reminders_silenced_until :datetime
+#  shipped_at                      :datetime
+#  tracking_info                   :text
+#  unclaimed_at                    :datetime
+#  won_at                          :datetime
+#  created_at                      :datetime         not null
+#  updated_at                      :datetime         not null
+#  erhaltungsbericht_topic_id      :bigint
+#  lottery_packet_id               :bigint           not null
+#  winner_pm_topic_id              :bigint
+#  winner_user_id                  :bigint           not null
 #
 # Indexes
 #

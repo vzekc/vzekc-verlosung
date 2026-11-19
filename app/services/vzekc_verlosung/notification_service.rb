@@ -735,6 +735,24 @@ module VzekcVerlosung
       packet_url =
         "#{Discourse.base_url}/t/#{lottery_topic.slug}/#{lottery_topic.id}/#{packet_post.post_number}"
       write_report_url = "#{Discourse.base_url}/erhaltungsbericht-schreiben/#{packet_post.id}"
+      locale = @recipient.effective_locale
+      winner_entry = @context[:winner_entry]
+
+      silence_hint =
+        if winner_entry&.can_silence_report_reminders?
+          I18n.t(
+            "vzekc_verlosung.reminders.erhaltungsbericht.silence_hint",
+            locale: locale,
+            deadline:
+              winner_entry
+                .report_reminder_silence_deadline
+                .in_time_zone(@recipient.user_option&.timezone.presence || Time.zone)
+                .strftime("%d.%m.%Y"),
+            silence_url: "#{Discourse.base_url}/erhaltungsbericht-pausieren/#{packet_post.id}",
+          )
+        else
+          I18n.t("vzekc_verlosung.reminders.erhaltungsbericht.overdue_hint", locale: locale)
+        end
 
       {
         sender: Discourse.system_user,
@@ -754,6 +772,7 @@ module VzekcVerlosung
             days_since_collected: days_since_collected,
             packet_url: packet_url,
             write_report_url: write_report_url,
+            silence_hint: silence_hint,
           ),
         subtype: TopicSubtype.system_message,
       }

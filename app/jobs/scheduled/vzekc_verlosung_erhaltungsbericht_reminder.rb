@@ -25,6 +25,7 @@ module Jobs
 
           # Only send reminder every 7 days (on days 7, 14, 21, etc.)
           next if (days_since_collected % 7).nonzero? || days_since_collected <= 0
+          next if winner_entry.report_reminders_silenced?
 
           # Get winner and packet info
           winner = winner_entry.winner
@@ -46,6 +47,7 @@ module Jobs
               packet_post: packet_post,
               packet_title: packet_title,
               days_since_collected: days_since_collected,
+              winner_entry: winner_entry,
             },
           )
         end

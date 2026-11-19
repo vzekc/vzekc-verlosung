@@ -92,6 +92,13 @@ module ::VzekcVerlosung
       .exists?
   end
 
+  # @param category_id [Integer, nil]
+  # @return [Boolean] whether the category is the Erhaltungsberichte category
+  def self.erhaltungsbericht_category?(category_id)
+    report_category_id = SiteSetting.vzekc_verlosung_erhaltungsberichte_category_id.to_i
+    report_category_id.positive? && category_id == report_category_id
+  end
+
   # Check if user has unread Erhaltungsbericht topics (< 4 weeks old)
   #
   # @param user_id [Integer]
@@ -822,18 +829,64 @@ after_initialize do
       TopicCustomField.where(topic_id: id, name: "donation_id").pick(:value)&.to_i
   end
 
+  # The lottery win an Erhaltungsbericht topic reports on, with the packet and
+  # lottery topic loaded for building the source link. Only topics in the
+  # Erhaltungsberichte category can be reports, so other topics cost no query.
+  add_to_class(:topic, :erhaltungsbericht_source_winner_entry) do
+    if defined?(@erhaltungsbericht_source_winner_entry)
+      return @erhaltungsbericht_source_winner_entry
+    end
+    @erhaltungsbericht_source_winner_entry =
+      if VzekcVerlosung.erhaltungsbericht_category?(category_id)
+        VzekcVerlosung::LotteryPacketWinner.includes(
+          lottery_packet: [:post, { lottery: :topic }],
+        ).find_by(erhaltungsbericht_topic_id: id)
+      end
+  end
+
+  add_to_class(:topic, :erhaltungsbericht_source_winner_entry=) do |winner_entry|
+    @erhaltungsbericht_source_winner_entry = winner_entry
+  end
+
+  # Link data pointing an Erhaltungsbericht back to the lottery packet it
+  # reports on, for viewers who can see the lottery.
+  #
+  # @param guardian [Guardian]
+  add_to_class(:topic, :erhaltungsbericht_source_packet) do |guardian|
+    packet = erhaltungsbericht_source_winner_entry&.lottery_packet
+    lottery_topic = packet&.lottery&.topic
+    return nil unless lottery_topic && packet.post && guardian.can_see?(lottery_topic)
+
+    {
+      lottery_title: lottery_topic.title,
+      lottery_url: lottery_topic.relative_url,
+      packet_title: packet.title,
+      packet_url: "#{lottery_topic.relative_url}/#{packet.post.post_number}",
+    }
+  end
+
+  # Loads the source wins of all Erhaltungsberichte in a topic list in one query.
+  TopicList.on_preload do |topics, _topic_list|
+    next unless SiteSetting.vzekc_verlosung_enabled
+
+    reports = topics.select { |t| VzekcVerlosung.erhaltungsbericht_category?(t.category_id) }
+    next if reports.empty?
+
+    winner_entries =
+      VzekcVerlosung::LotteryPacketWinner
+        .includes(lottery_packet: [:post, { lottery: :topic }])
+        .where(erhaltungsbericht_topic_id: reports.map(&:id))
+        .index_by(&:erhaltungsbericht_topic_id)
+    reports.each { |t| t.erhaltungsbericht_source_winner_entry = winner_entries[t.id] }
+  end
+
   # Include packet reference fields for Erhaltungsberichte
-  # These store which packet an Erhaltungsbericht is about
   add_to_serializer(:topic_view, :packet_post_id) do
-    # Check if this topic IS an Erhaltungsbericht by looking for a packet that references it
-    packet = VzekcVerlosung::LotteryPacket.find_by(erhaltungsbericht_topic_id: object.topic.id)
-    packet&.post_id
+    object.topic.erhaltungsbericht_source_winner_entry&.lottery_packet&.post_id
   end
 
   add_to_serializer(:topic_view, :packet_topic_id) do
-    # Check if this topic IS an Erhaltungsbericht by looking for a packet that references it
-    packet = VzekcVerlosung::LotteryPacket.find_by(erhaltungsbericht_topic_id: object.topic.id)
-    packet&.lottery&.topic_id
+    object.topic.erhaltungsbericht_source_winner_entry&.lottery_packet&.lottery&.topic_id
   end
 
   # Include donation source link for Erhaltungsberichte from donations
@@ -868,39 +921,18 @@ after_initialize do
   end
 
   # Include lottery packet source link for Erhaltungsberichte from lottery packets
-  # Returns complete link data to avoid additional HTTP requests in JavaScript
   # Add to both basic_topic (for lists) and topic_view (for full page)
   add_to_serializer(
     :basic_topic,
     :erhaltungsbericht_source_packet,
-    include_condition: -> do
-      VzekcVerlosung::LotteryPacket.exists?(erhaltungsbericht_topic_id: object.id)
-    end,
-  ) do
-    packet = VzekcVerlosung::LotteryPacket.find_by(erhaltungsbericht_topic_id: object.id)
-    return nil unless packet&.lottery&.topic
-
-    {
-      lottery_title: packet.lottery.topic.title,
-      packet_url: "/t/#{packet.lottery.topic.slug}/#{packet.lottery.topic.id}/#{packet.post_id}",
-    }
-  end
+    include_condition: -> { object.erhaltungsbericht_source_packet(scope).present? },
+  ) { object.erhaltungsbericht_source_packet(scope) }
 
   add_to_serializer(
     :topic_view,
     :erhaltungsbericht_source_packet,
-    include_condition: -> do
-      VzekcVerlosung::LotteryPacket.exists?(erhaltungsbericht_topic_id: object.topic.id)
-    end,
-  ) do
-    packet = VzekcVerlosung::LotteryPacket.find_by(erhaltungsbericht_topic_id: object.topic.id)
-    return nil unless packet&.lottery&.topic
-
-    {
-      lottery_title: packet.lottery.topic.title,
-      packet_url: "/t/#{packet.lottery.topic.slug}/#{packet.lottery.topic.id}/#{packet.post_id}",
-    }
-  end
+    include_condition: -> { object.topic.erhaltungsbericht_source_packet(scope).present? },
+  ) { object.topic.erhaltungsbericht_source_packet(scope) }
 
   # Legacy fields for backward compatibility (kept for existing code)
   add_to_serializer(:basic_topic, :erhaltungsbericht_donation_id) do
@@ -908,13 +940,11 @@ after_initialize do
   end
 
   add_to_serializer(:basic_topic, :packet_post_id) do
-    packet = VzekcVerlosung::LotteryPacket.find_by(erhaltungsbericht_topic_id: object.id)
-    packet&.post_id
+    object.erhaltungsbericht_source_winner_entry&.lottery_packet&.post_id
   end
 
   add_to_serializer(:basic_topic, :packet_topic_id) do
-    packet = VzekcVerlosung::LotteryPacket.find_by(erhaltungsbericht_topic_id: object.id)
-    packet&.lottery&.topic_id
+    object.erhaltungsbericht_source_winner_entry&.lottery_packet&.lottery&.topic_id
   end
 
   # Whitelist packet reference parameters for topic creation

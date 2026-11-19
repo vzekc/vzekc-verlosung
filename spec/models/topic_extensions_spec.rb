@@ -40,4 +40,66 @@ RSpec.describe Topic do
       end
     end
   end
+
+  describe "#erhaltungsbericht_source_packet" do
+    fab!(:lottery_topic) { Fabricate(:topic, category: category, user: user) }
+    fab!(:lottery) do
+      VzekcVerlosung::Lottery.create!(
+        topic_id: lottery_topic.id,
+        state: "finished",
+        duration_days: 14,
+      )
+    end
+    fab!(:packet_post) { Fabricate(:post, topic: lottery_topic, user: user) }
+    fab!(:packet) do
+      VzekcVerlosung::LotteryPacket.create!(
+        lottery_id: lottery.id,
+        post_id: packet_post.id,
+        ordinal: 1,
+        title: "Amiga 2000",
+      )
+    end
+    fab!(:report) { Fabricate(:topic, category: other_category) }
+    let(:guardian) { Guardian.new(report.user) }
+
+    before do
+      SiteSetting.vzekc_verlosung_enabled = true
+      SiteSetting.vzekc_verlosung_erhaltungsberichte_category_id = other_category.id.to_s
+    end
+
+    it "links the report to the packet and lottery of the win it reports on" do
+      VzekcVerlosung::LotteryPacketWinner.create!(
+        lottery_packet: packet,
+        winner_user_id: report.user_id,
+        instance_number: 1,
+        fulfillment_state: "completed",
+        erhaltungsbericht_topic_id: report.id,
+      )
+
+      expect(Topic.find(report.id).erhaltungsbericht_source_packet(guardian)).to eq(
+        lottery_title: lottery_topic.title,
+        lottery_url: lottery_topic.relative_url,
+        packet_title: "Amiga 2000",
+        packet_url: "#{lottery_topic.relative_url}/#{packet_post.post_number}",
+      )
+    end
+
+    it "is nil for a topic that is no report" do
+      expect(report.erhaltungsbericht_source_packet(guardian)).to be_nil
+    end
+
+    it "is nil for viewers who cannot see the lottery" do
+      VzekcVerlosung::LotteryPacketWinner.create!(
+        lottery_packet: packet,
+        winner_user_id: report.user_id,
+        instance_number: 1,
+        fulfillment_state: "completed",
+        erhaltungsbericht_topic_id: report.id,
+      )
+      category.set_permissions(staff: :full)
+      category.save!
+
+      expect(Topic.find(report.id).erhaltungsbericht_source_packet(guardian)).to be_nil
+    end
+  end
 end

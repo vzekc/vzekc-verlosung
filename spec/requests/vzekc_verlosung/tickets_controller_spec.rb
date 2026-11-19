@@ -498,4 +498,98 @@ describe VzekcVerlosung::TicketsController do
       end
     end
   end
+
+  describe "#update_erhaltungsbericht_reminders" do
+    fab!(:other_user, :user)
+    let!(:lottery_post) { Fabricate(:post, topic: topic, user: admin) }
+    let!(:lottery_packet) do
+      VzekcVerlosung::LotteryPacket.create!(
+        lottery_id: lottery.id,
+        post_id: lottery_post.id,
+        ordinal: 1,
+        title: "Test Packet",
+        erhaltungsbericht_required: true,
+        abholerpaket: false,
+      )
+    end
+    let!(:winner_entry) do
+      VzekcVerlosung::LotteryPacketWinner.create!(
+        lottery_packet: lottery_packet,
+        winner_user_id: user.id,
+        instance_number: 1,
+        won_at: 40.days.ago,
+        collected_at: 30.days.ago,
+        fulfillment_state: "received",
+      )
+    end
+    let(:url) { "/vzekc-verlosung/packets/#{lottery_post.id}/erhaltungsbericht-reminders.json" }
+
+    context "when the winner pauses the reminders" do
+      before { sign_in(user) }
+
+      it "returns the reminder state" do
+        get url
+
+        expect(response.status).to eq(200)
+        json = response.parsed_body
+        expect(json["packet_title"]).to eq("Test Packet")
+        expect(json["can_silence"]).to eq(true)
+        expect(json["silenced_until"]).to be_nil
+        expect(Time.zone.parse(json["silence_deadline"])).to be_within(1.second).of(
+          winner_entry.collected_at + 6.months,
+        )
+      end
+
+      it "pauses them until six months after receipt" do
+        put url, params: { silenced: true }
+
+        expect(response.status).to eq(200)
+        deadline = winner_entry.collected_at + 6.months
+        expect(winner_entry.reload.report_reminders_silenced_until).to be_within(1.second).of(
+          deadline,
+        )
+        expect(Time.zone.parse(response.parsed_body["silenced_until"])).to be_within(1.second).of(
+          deadline,
+        )
+      end
+
+      it "resumes them" do
+        winner_entry.silence_report_reminders!
+
+        put url, params: { silenced: false }
+
+        expect(response.status).to eq(200)
+        expect(winner_entry.reload.report_reminders_silenced_until).to be_nil
+        expect(response.parsed_body["can_silence"]).to eq(true)
+      end
+
+      it "refuses to pause more than six months after receipt" do
+        winner_entry.update!(collected_at: 7.months.ago)
+
+        put url, params: { silenced: true }
+
+        expect(response.status).to eq(422)
+        expect(winner_entry.reload.report_reminders_silenced_until).to be_nil
+      end
+
+      it "refuses to pause once the report is written" do
+        winner_entry.link_report!(Fabricate(:topic, user: user))
+
+        put url, params: { silenced: true }
+
+        expect(response.status).to eq(422)
+      end
+    end
+
+    context "when another user tries to pause the reminders" do
+      before { sign_in(other_user) }
+
+      it "returns 403" do
+        put url, params: { silenced: true }
+
+        expect(response.status).to eq(403)
+        expect(winner_entry.reload.report_reminders_silenced_until).to be_nil
+      end
+    end
+  end
 end
