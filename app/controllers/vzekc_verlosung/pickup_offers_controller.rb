@@ -89,7 +89,8 @@ module VzekcVerlosung
           donation.pickup_offers.includes(:user).active.order(created_at: :asc)
         end
 
-      render json: { offers: offers.map { |o| serialize_offer(o) } }
+      stats = PickupOffer.pickup_stats(offers.map(&:user_id))
+      render json: { offers: offers.map { |o| serialize_offer(o, stats[o.user_id]) } }
     end
 
     # PUT /vzekc-verlosung/pickup-offers/:id/assign
@@ -143,9 +144,8 @@ module VzekcVerlosung
 
     # PUT /vzekc-verlosung/donations/:donation_id/auto-assign
     #
-    # Automatically assigns the donation to the pending picker who has
-    # collected the fewest donations so far (ties broken randomly with a
-    # donation-seeded RNG). Facilitator provides the donor's contact
+    # Automatically assigns the donation to the pending picker with the
+    # lowest pickup balance (ties broken randomly with a donation-seeded RNG). Facilitator provides the donor's contact
     # information which is sent to the selected picker via PM.
     #
     # @param donation_id [Integer] Donation ID
@@ -181,7 +181,7 @@ module VzekcVerlosung
         actor: current_user,
         method: selection[:method],
         tied_offers: selection[:tied_offers],
-        collected_count: selection[:min_count],
+        balance: selection[:min_balance],
       )
 
       head :no_content
@@ -232,9 +232,10 @@ module VzekcVerlosung
     # Serialize a pickup offer for JSON response
     #
     # @param offer [PickupOffer] The offer to serialize
+    # @param stats [Hash] the offerer's pickup statistics, see PickupOffer.pickup_stats
     #
     # @return [Hash] Serialized offer data
-    def serialize_offer(offer)
+    def serialize_offer(offer, stats = PickupOffer.pickup_stats_for(offer.user_id))
       {
         id: offer.id,
         user: {
@@ -242,7 +243,7 @@ module VzekcVerlosung
           username: offer.user.username,
           name: offer.user.name,
           avatar_template: offer.user.avatar_template,
-          collected_count: PickupOffer.collected_count(offer.user_id),
+          pickup_stats: stats,
         },
         state: offer.state,
         notes: offer.notes,

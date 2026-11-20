@@ -12,7 +12,7 @@ RSpec.describe VzekcVerlosung::PickupOffersController do
   before { SiteSetting.vzekc_verlosung_enabled = true }
 
   describe "#index" do
-    it "includes the collected_count for each offerer" do
+    it "includes the pickup statistics for each offerer" do
       Fabricate(:pickup_offer, donation: donation, user: picker1)
       previous = Fabricate(:donation, creator_user_id: facilitator.id)
       Fabricate(:pickup_offer, donation: previous, user: picker1, state: "picked_up")
@@ -22,7 +22,7 @@ RSpec.describe VzekcVerlosung::PickupOffersController do
 
       expect(response.status).to eq(200)
       offer = response.parsed_body["offers"].first
-      expect(offer["user"]["collected_count"]).to eq(1)
+      expect(offer["user"]["pickup_stats"]).to include("pending" => 1, "balance" => 1)
     end
   end
 
@@ -44,7 +44,7 @@ RSpec.describe VzekcVerlosung::PickupOffersController do
       expect(post.raw).to include("@#{picker1.username}")
     end
 
-    context "when the choice diverges from the fewest-collections rule" do
+    context "when the choice diverges from the lowest-balance rule" do
       before do
         previous = Fabricate(:donation, creator_user_id: facilitator.id)
         Fabricate(:pickup_offer, donation: previous, user: picker1, state: "picked_up")
@@ -85,7 +85,7 @@ RSpec.describe VzekcVerlosung::PickupOffersController do
   end
 
   describe "#auto_assign" do
-    it "assigns to the picker with the fewest collections and posts a response" do
+    it "assigns to the picker with the lowest balance and posts a response" do
       previous = Fabricate(:donation, creator_user_id: facilitator.id)
       Fabricate(:pickup_offer, donation: previous, user: picker2, state: "picked_up")
       Fabricate(:pickup_offer, donation: donation, user: picker1)

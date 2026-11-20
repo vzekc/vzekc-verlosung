@@ -143,24 +143,25 @@
     }
 
     .offer-avatar {
-      position: relative;
       display: inline-flex;
+    }
 
-      .collected-badge {
-        position: absolute;
-        top: -4px;
-        right: -6px;
-        min-width: 16px;
-        height: 16px;
-        padding: 0 4px;
-        border-radius: 8px;
-        background: var(--tertiary);
-        color: var(--secondary);
-        font-size: 0.7em;
+    .pickup-balance-rule {
+      margin: 0 0 8px;
+      color: var(--primary-medium);
+      font-size: var(--font-down-1);
+    }
+
+    .pickup-stats {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 6px;
+      color: var(--primary-medium);
+      font-size: var(--font-down-1);
+
+      .pickup-stats-balance {
         font-weight: 700;
-        line-height: 16px;
-        text-align: center;
-        box-sizing: border-box;
+        color: var(--primary-high);
       }
     }
 
@@ -231,6 +232,7 @@
       .other-offer-item {
         display: flex;
         align-items: center;
+        gap: 8px;
         padding: 6px 10px;
         margin: 3px 0;
         background: var(--primary-very-low);

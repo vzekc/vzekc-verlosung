@@ -3,11 +3,22 @@
 RSpec.describe VzekcVerlosung::Donation do
   fab!(:facilitator, :user)
 
-  # Give a user a history of +n+ collected (picked up) donations.
+  # Give a user a history of +count+ picked-up donations without an outcome
+  # yet, each adding +1 to the user's pickup balance.
   def collected!(user, count)
     count.times do
       other = Fabricate(:donation, creator_user_id: facilitator.id)
       Fabricate(:pickup_offer, donation: other, user: user, state: "picked_up")
+    end
+  end
+
+  # Give a user a history of +count+ donations passed on through a lottery,
+  # each subtracting 1 from the user's pickup balance.
+  def passed_on!(user, count)
+    count.times do
+      other = Fabricate(:donation, creator_user_id: facilitator.id)
+      Fabricate(:pickup_offer, donation: other, user: user, state: "picked_up")
+      Fabricate(:lottery, donation: other)
     end
   end
 
@@ -18,7 +29,7 @@ RSpec.describe VzekcVerlosung::Donation do
       expect(donation.auto_assign_selection).to be_nil
     end
 
-    it "selects the picker with the fewest collected donations" do
+    it "selects the picker with the lowest pickup balance" do
       low = Fabricate(:user)
       high = Fabricate(:user)
       collected!(low, 1)
@@ -28,12 +39,26 @@ RSpec.describe VzekcVerlosung::Donation do
 
       selection = donation.auto_assign_selection
 
-      expect(selection[:method]).to eq("least_collected")
+      expect(selection[:method]).to eq("lowest_balance")
       expect(selection[:offer].user_id).to eq(low.id)
-      expect(selection[:min_count]).to eq(1)
+      expect(selection[:min_balance]).to eq(1)
     end
 
-    it "breaks ties randomly between the lowest-count pickers" do
+    it "prefers a picker who passed donations on over one without pickups" do
+      newcomer = Fabricate(:user)
+      raffler = Fabricate(:user)
+      passed_on!(raffler, 2)
+      collected!(raffler, 1)
+      Fabricate(:pickup_offer, donation: donation, user: newcomer)
+      Fabricate(:pickup_offer, donation: donation, user: raffler)
+
+      selection = donation.auto_assign_selection
+
+      expect(selection[:offer].user_id).to eq(raffler.id)
+      expect(selection[:min_balance]).to eq(-1)
+    end
+
+    it "breaks ties randomly between the lowest-balance pickers" do
       pickers = Array.new(3) { Fabricate(:user) }
       pickers.each { |picker| collected!(picker, 2) }
       pickers.each { |picker| Fabricate(:pickup_offer, donation: donation, user: picker) }
@@ -42,7 +67,7 @@ RSpec.describe VzekcVerlosung::Donation do
 
       expect(selection[:method]).to eq("random")
       expect(selection[:tied_offers].size).to eq(3)
-      expect(selection[:min_count]).to eq(2)
+      expect(selection[:min_balance]).to eq(2)
       expect(pickers.map(&:id)).to include(selection[:offer].user_id)
     end
 
@@ -63,7 +88,7 @@ RSpec.describe VzekcVerlosung::Donation do
       expect(donation.assignment_diverges?(offer)).to be false
     end
 
-    it "is false when the chosen picker has the fewest collections" do
+    it "is false when the chosen picker has the lowest balance" do
       low = Fabricate(:user)
       high = Fabricate(:user)
       collected!(high, 2)
@@ -73,7 +98,7 @@ RSpec.describe VzekcVerlosung::Donation do
       expect(donation.assignment_diverges?(low_offer)).to be false
     end
 
-    it "is true when the chosen picker has collected more than the lowest offerer" do
+    it "is true when the chosen picker has a higher balance than the lowest offerer" do
       low = Fabricate(:user)
       high = Fabricate(:user)
       collected!(high, 2)
@@ -105,7 +130,7 @@ RSpec.describe VzekcVerlosung::Donation do
           actor: facilitator,
           method: selection[:method],
           tied_offers: selection[:tied_offers],
-          collected_count: selection[:min_count],
+          balance: selection[:min_balance],
         )
       end
 
@@ -116,7 +141,7 @@ RSpec.describe VzekcVerlosung::Donation do
       result = assign_random!(2)
 
       expect(result[:raw]).to include("zufällig")
-      expect(result[:raw]).to include("die beide bisher noch keine Spende abgeholt haben")
+      expect(result[:raw]).to include("die beide den niedrigsten Abholsaldo haben (0)")
       a, b = result[:pickers].map { |picker| "@#{picker.username}" }
       expect(result[:raw]).to match(/zwischen (#{a} und #{b}|#{b} und #{a}),/)
     end
@@ -124,15 +149,15 @@ RSpec.describe VzekcVerlosung::Donation do
     it "posts a German response for a three-way tie using 'die alle'" do
       result = assign_random!(3)
 
-      expect(result[:raw]).to include("die alle bisher noch keine Spende abgeholt haben")
+      expect(result[:raw]).to include("die alle den niedrigsten Abholsaldo haben (0)")
       result[:pickers].each { |picker| expect(result[:raw]).to include("@#{picker.username}") }
       expect(result[:raw]).to match(/, @\S+ und @\S+,/)
     end
 
-    it "pluralizes the collected count when the tied pickers have a history" do
+    it "shows the shared balance with its sign when the tied pickers have a history" do
       result = assign_random!(2, collected_each: 1)
 
-      expect(result[:raw]).to include("die beide bisher 1 Spende abgeholt haben")
+      expect(result[:raw]).to include("niedrigsten Abholsaldo haben (+1)")
     end
   end
 

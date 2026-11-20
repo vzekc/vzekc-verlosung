@@ -16,6 +16,7 @@ import { i18n } from "discourse-i18n";
 import LocationMapLink from "./location-map-link";
 import AssignOfferModal from "./modal/assign-offer-modal";
 import OnsiteLotteryModal from "./modal/onsite-lottery-modal";
+import PickupStats from "./pickup-stats";
 
 /**
  * Donation widget component for managing pickup offers
@@ -413,12 +414,12 @@ export default class DonationWidget extends Component {
   @action
   assignOffer(offer) {
     const pending = this.pickupOffers.filter((o) => o.state === "pending");
-    const counts = pending.map((o) => o.user.collected_count || 0);
-    const min = counts.length ? Math.min(...counts) : 0;
-    const requireExplanation =
-      pending.length > 1 && (offer.user.collected_count || 0) > min;
+    const balanceOf = (o) => o.user.pickup_stats?.balance || 0;
+    const balances = pending.map(balanceOf);
+    const min = balances.length ? Math.min(...balances) : 0;
+    const requireExplanation = pending.length > 1 && balanceOf(offer) > min;
     const systemChoice = pending
-      .filter((o) => (o.user.collected_count || 0) === min)
+      .filter((o) => balanceOf(o) === min)
       .map((o) => o.user.username);
 
     this.modal.show(AssignOfferModal, {
@@ -436,7 +437,7 @@ export default class DonationWidget extends Component {
   }
 
   /**
-   * Auto-assign the donation to the picker with the fewest collections.
+   * Auto-assign the donation to the picker with the lowest pickup balance.
    * Opens the assignment modal in automatic mode; the server selects the
    * recipient when the contact-info form is submitted.
    */
@@ -648,22 +649,14 @@ export default class DonationWidget extends Component {
                   >
                     <span class="offer-avatar">
                       {{avatar this.assignedOffer.user imageSize="medium"}}
-                      {{#if (gt this.assignedOffer.user.collected_count 0)}}
-                        <span
-                          class="collected-badge"
-                          title={{i18n
-                            "vzekc_verlosung.donation.collected_badge_title"
-                            count=this.assignedOffer.user.collected_count
-                          }}
-                        >
-                          {{this.assignedOffer.user.collected_count}}
-                        </span>
-                      {{/if}}
                     </span>
                     <span class="offer-username">
                       {{formatUsername this.assignedOffer.user.username}}
                     </span>
                   </a>
+                  <PickupStats
+                    @stats={{this.assignedOffer.user.pickup_stats}}
+                  />
                   {{! Only show "Zugewiesen am <datum> um <uhrzeit>" badge when donation is in assigned state }}
                   {{#if (eq this.donationData.state "assigned")}}
                     <span class="offer-state-badge assigned">
@@ -686,22 +679,12 @@ export default class DonationWidget extends Component {
                     >
                       <span class="offer-avatar">
                         {{avatar offer.user imageSize="medium"}}
-                        {{#if (gt offer.user.collected_count 0)}}
-                          <span
-                            class="collected-badge"
-                            title={{i18n
-                              "vzekc_verlosung.donation.collected_badge_title"
-                              count=offer.user.collected_count
-                            }}
-                          >
-                            {{offer.user.collected_count}}
-                          </span>
-                        {{/if}}
                       </span>
                       <span class="offer-username">
                         {{formatUsername offer.user.username}}
                       </span>
                     </a>
+                    <PickupStats @stats={{offer.user.pickup_stats}} />
                   </div>
                 {{/each}}
               </div>
@@ -711,6 +694,9 @@ export default class DonationWidget extends Component {
             {{#if (gt this.pickupOffers.length 0)}}
               <div class="pickup-offers-list">
                 <h4>{{i18n "vzekc_verlosung.donation.pickup_offers"}}</h4>
+                <p class="pickup-balance-rule">
+                  {{i18n "vzekc_verlosung.donation.pickup_balance_rule"}}
+                </p>
                 {{#each this.pickupOffers as |offer|}}
                   <div class="pickup-offer-item">
                     <div class="offer-user-line">
@@ -721,22 +707,12 @@ export default class DonationWidget extends Component {
                       >
                         <span class="offer-avatar">
                           {{avatar offer.user imageSize="medium"}}
-                          {{#if (gt offer.user.collected_count 0)}}
-                            <span
-                              class="collected-badge"
-                              title={{i18n
-                                "vzekc_verlosung.donation.collected_badge_title"
-                                count=offer.user.collected_count
-                              }}
-                            >
-                              {{offer.user.collected_count}}
-                            </span>
-                          {{/if}}
                         </span>
                         <span class="offer-username">
                           {{formatUsername offer.user.username}}
                         </span>
                       </a>
+                      <PickupStats @stats={{offer.user.pickup_stats}} />
                       {{#if (eq offer.state "assigned")}}
                         <span class="offer-state-badge assigned">
                           ({{i18n "vzekc_verlosung.donation.state.assigned"}})

@@ -27,13 +27,74 @@ module VzekcVerlosung
     scope :picked_up, -> { where(state: "picked_up") }
     scope :active, -> { where(state: %w[pending assigned]) }
 
-    # Total number of donations a user has collected (picked up).
+    # Pickups older than this do not count towards the pickup balance.
+    BALANCE_WINDOW = 24.months
+
+    # Points each pickup outcome contributes to the pickup balance. Passing a
+    # donation on through a lottery lowers the balance, which makes the picker
+    # preferred by auto-assignment; keeping it raises the balance. A pickup
+    # without an outcome yet counts as kept until the picker decides.
+    BALANCE_POINTS = { kept: 1, pending: 1, partial: 0, passed_on: -1 }.freeze
+
+    # Pickup statistics for the given users over the last BALANCE_WINDOW.
     #
-    # @param user_id [Integer] the user to count for
-    # @return [Integer] number of donations the user has picked up
-    def self.collected_count(user_id)
-      picked_up.where(user_id: user_id).count
+    # Each picked-up donation falls into one outcome:
+    # - :kept — the picker wrote an Erhaltungsbericht
+    # - :passed_on — raffled in a lottery without Abholerpaket or at an onsite lottery event
+    # - :partial — raffled in a lottery in which the picker kept an Abholerpaket
+    # - :pending — no outcome yet
+    #
+    # @param user_ids [Array<Integer>] the users to compute statistics for
+    # @return [Hash{Integer => Hash}] per user id: counts for each outcome
+    #   (:kept, :passed_on, :partial, :pending) and the resulting :balance
+    def self.pickup_stats(user_ids)
+      user_ids = Array(user_ids).uniq
+      stats = user_ids.index_with { BALANCE_POINTS.keys.index_with(0).merge(balance: 0) }
+      return stats if user_ids.empty?
+
+      offers =
+        picked_up
+          .where(user_id: user_ids)
+          .where("COALESCE(picked_up_at, assigned_at, created_at) >= ?", BALANCE_WINDOW.ago)
+          .includes(donation: :lottery)
+          .to_a
+
+      lottery_ids = offers.filter_map { |offer| offer.donation&.lottery&.id }
+      lotteries_with_abholerpaket =
+        LotteryPacket.where(lottery_id: lottery_ids, abholerpaket: true).distinct.pluck(:lottery_id)
+
+      offers.each do |offer|
+        outcome = pickup_outcome(offer.donation, lotteries_with_abholerpaket)
+        entry = stats[offer.user_id]
+        entry[outcome] += 1
+        entry[:balance] += BALANCE_POINTS[outcome]
+      end
+
+      stats
     end
+
+    # Pickup statistics for a single user, see .pickup_stats
+    #
+    # @param user_id [Integer]
+    # @return [Hash]
+    def self.pickup_stats_for(user_id)
+      pickup_stats([user_id])[user_id]
+    end
+
+    # @param donation [Donation, nil]
+    # @param lotteries_with_abholerpaket [Array<Integer>] ids of lotteries with an Abholerpaket
+    # @return [Symbol] one of BALANCE_POINTS' keys
+    def self.pickup_outcome(donation, lotteries_with_abholerpaket)
+      return :pending unless donation
+      return :kept if donation.erhaltungsbericht_topic_id.present?
+      return :passed_on if donation.onsite_lottery_event_id.present?
+
+      lottery = donation.lottery
+      return :pending unless lottery
+
+      lotteries_with_abholerpaket.include?(lottery.id) ? :partial : :passed_on
+    end
+    private_class_method :pickup_outcome
 
     # State helper methods
     #

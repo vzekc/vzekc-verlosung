@@ -125,50 +125,51 @@ module VzekcVerlosung
     end
 
     # Select the pickup offer that should receive the donation when
-    # auto-assigning. The offer whose picker has collected the fewest
-    # donations so far wins. Ties are broken with a deterministic,
-    # donation-seeded RNG so that repeated calls (e.g. cancelling and
-    # re-submitting the auto-assign form) always yield the same picker.
+    # auto-assigning. The offer whose picker has the lowest pickup balance
+    # (see PickupOffer.pickup_stats) wins. Ties are broken with a
+    # deterministic, donation-seeded RNG so that repeated calls (e.g.
+    # cancelling and re-submitting the auto-assign form) always yield the
+    # same picker.
     #
     # @return [Hash, nil] selection details or nil when there are no pending
     #   offers. Keys:
     #   - :offer [PickupOffer] the chosen offer
-    #   - :method [String] "least_collected" or "random"
-    #   - :min_count [Integer] the (lowest) collected count of the candidates
-    #   - :tied_offers [Array<PickupOffer>] candidates sharing the lowest count
+    #   - :method [String] "lowest_balance" or "random"
+    #   - :min_balance [Integer] the (lowest) pickup balance of the candidates
+    #   - :tied_offers [Array<PickupOffer>] candidates sharing the lowest balance
     def auto_assign_selection
       candidates = pickup_offers.pending.includes(:user).to_a
       return nil if candidates.empty?
 
-      counts = candidates.index_with { |offer| PickupOffer.collected_count(offer.user_id) }
-      min_count = counts.values.min
-      tied = candidates.select { |offer| counts[offer] == min_count }.sort_by(&:user_id)
+      balances = pending_balances(candidates)
+      min_balance = balances.values.min
+      tied = candidates.select { |offer| balances[offer.user_id] == min_balance }.sort_by(&:user_id)
 
       if tied.size == 1
-        { offer: tied.first, method: "least_collected", min_count: min_count, tied_offers: tied }
+        { offer: tied.first, method: "lowest_balance", min_balance: min_balance, tied_offers: tied }
       else
         rng = Random.new(auto_assign_seed)
         {
           offer: tied[rng.rand(tied.size)],
           method: "random",
-          min_count: min_count,
+          min_balance: min_balance,
           tied_offers: tied,
         }
       end
     end
 
     # Whether manually assigning to +offer+ deviates from the fair-distribution
-    # rule: there is more than one pending offer and the chosen picker has
-    # collected more donations than the lowest count among the offerers.
+    # rule: there is more than one pending offer and the chosen picker has a
+    # higher pickup balance than the lowest balance among the offerers.
     #
     # @param offer [PickupOffer] the offer the facilitator wants to assign
     # @return [Boolean]
     def assignment_diverges?(offer)
-      pending = pickup_offers.pending.includes(:user).to_a
+      pending = pickup_offers.pending.to_a
       return false if pending.size <= 1
 
-      min_count = pending.map { |o| PickupOffer.collected_count(o.user_id) }.min
-      PickupOffer.collected_count(offer.user_id) > min_count
+      balances = pending_balances(pending)
+      balances[offer.user_id] > balances.values.min
     end
 
     # Assign donation to a specific pickup offer
@@ -176,9 +177,10 @@ module VzekcVerlosung
     # @param pickup_offer [PickupOffer] The offer to assign
     # @param contact_info [String] Contact information from donation creator
     # @param actor [User] The user who triggered the assignment
-    # @param method [String] "manual", "least_collected" or "random"
+    # @param method [String] "manual", "lowest_balance" or "random"
     # @param tied_offers [Array<PickupOffer>] candidates for a random assignment
-    # @param collected_count [Integer] shared collected count for a random assignment
+    # @param balance [Integer] the chosen picker's pickup balance for an
+    #   automatic assignment
     # @param explanation [String] facilitator's justification for a manual
     #   assignment that diverges from the fair-distribution rule
     # @return [Boolean] true if successful
@@ -188,7 +190,7 @@ module VzekcVerlosung
       actor: nil,
       method: "manual",
       tied_offers: [],
-      collected_count: nil,
+      balance: nil,
       explanation: nil
     )
       transaction do
@@ -206,7 +208,7 @@ module VzekcVerlosung
         actor: actor,
         method: method,
         tied_offers: tied_offers,
-        collected_count: collected_count,
+        balance: balance,
         explanation: explanation,
       )
     end
@@ -306,6 +308,24 @@ module VzekcVerlosung
       )
     end
 
+    # Pickup balances of the users behind +offers+
+    #
+    # @param offers [Array<PickupOffer>]
+    # @return [Hash{Integer => Integer}] balance per user id
+    def pending_balances(offers)
+      PickupOffer.pickup_stats(offers.map(&:user_id)).transform_values { |stats| stats[:balance] }
+    end
+
+    # A pickup balance with an explicit sign, e.g. "+2", "−1" or "0"
+    #
+    # @param balance [Integer]
+    # @return [String]
+    def format_balance(balance)
+      return "0" if balance.to_i.zero?
+
+      balance.positive? ? "+#{balance}" : "−#{balance.abs}"
+    end
+
     # Deterministic RNG seed for tie-breaking during auto-assignment.
     # Derived from the donation id so the random pick is stable across
     # repeated calls for the same donation.
@@ -329,13 +349,13 @@ module VzekcVerlosung
 
     # Post a public German reply to the donation topic documenting who
     # assigned the donation, to whom, and how (manually, automatically by
-    # fewest collections, or randomly between tied pickers).
+    # lowest pickup balance, or randomly between tied pickers).
     #
     # @param pickup_offer [PickupOffer] the assigned offer
     # @param actor [User] the user who triggered the assignment
-    # @param method [String] "manual", "least_collected" or "random"
+    # @param method [String] "manual", "lowest_balance" or "random"
     # @param tied_offers [Array<PickupOffer>] candidates for a random assignment
-    # @param collected_count [Integer] shared collected count for a random assignment
+    # @param balance [Integer] the chosen picker's pickup balance
     # @param explanation [String] facilitator's justification for a diverging
     #   manual assignment
     def post_assignment_response!(
@@ -343,7 +363,7 @@ module VzekcVerlosung
       actor:,
       method:,
       tied_offers:,
-      collected_count:,
+      balance:,
       explanation:
     )
       return unless topic
@@ -358,12 +378,12 @@ module VzekcVerlosung
 
       raw =
         case method
-        when "least_collected"
+        when "lowest_balance"
           I18n.t(
-            "vzekc_verlosung.assignment_post.least_collected",
+            "vzekc_verlosung.assignment_post.lowest_balance",
             actor: "@#{actor.username}",
             picker: "@#{picker.username}",
-            count: collected_count,
+            balance: format_balance(balance),
           )
         when "random"
           candidates = join_mentions(tied_offers.map { |offer| "@#{offer.user.username}" })
@@ -373,7 +393,7 @@ module VzekcVerlosung
             actor: "@#{actor.username}",
             picker: "@#{picker.username}",
             candidates: candidates,
-            count: collected_count,
+            balance: format_balance(balance),
           )
         else
           key = explanation.present? ? "assignment_post.manual_override" : "assignment_post.manual"
