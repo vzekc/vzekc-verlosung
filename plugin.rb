@@ -43,7 +43,7 @@ module ::VzekcVerlosung
 
   # Broadcast new content notification via MessageBus
   #
-  # @param section [String] one of: "donations", "lotteries", "erhaltungsberichte", "merch_packets"
+  # @param section [String] one of: "donations", "lotteries", "merch_packets"
   # @param user_ids [Array<Integer>] optional: restrict notification to specific users
   # @param has_new [Boolean] true when new content exists, false when section is clear
   def self.notify_new_content(section, user_ids: nil, has_new: true)
@@ -64,16 +64,14 @@ module ::VzekcVerlosung
     Group.find_by(name: group_name)&.users&.pluck(:id) || []
   end
 
-  # Check if user has unread donation topics (non-draft, < 4 weeks old)
+  # Check if user has open donation offers they have not opened yet
   #
   # @param user_id [Integer]
   # @return [Boolean]
   def self.has_unread_donations?(user_id)
     Donation
-      .where.not(state: "draft")
-      .where.not(topic_id: nil)
+      .where(state: "open")
       .joins(:topic)
-      .where("topics.created_at > ?", 4.weeks.ago)
       .joins(left_join_topic_users_sql(user_id))
       .where("topic_users.first_visited_at IS NULL")
       .exists?
@@ -99,22 +97,6 @@ module ::VzekcVerlosung
     report_category_id.positive? && category_id == report_category_id
   end
 
-  # Check if user has unread Erhaltungsbericht topics (< 4 weeks old)
-  #
-  # @param user_id [Integer]
-  # @return [Boolean]
-  def self.has_unread_erhaltungsberichte?(user_id)
-    category_id = SiteSetting.vzekc_verlosung_erhaltungsberichte_category_id.to_i
-    return false if category_id <= 0
-
-    Topic
-      .where(category_id: category_id, deleted_at: nil)
-      .where("topics.created_at > ?", 4.weeks.ago)
-      .joins(left_join_topic_users_sql(user_id))
-      .where("topic_users.first_visited_at IS NULL")
-      .exists?
-  end
-
   # Check if pending merch packets exist for picked-up/closed donations
   #
   # @return [Boolean]
@@ -138,12 +120,6 @@ module ::VzekcVerlosung
 
     if Lottery.exists?(topic_id: topic_id) && !has_unread_lotteries?(user_id)
       notify_new_content("lotteries", user_ids: [user_id], has_new: false)
-    end
-
-    category_id = SiteSetting.vzekc_verlosung_erhaltungsberichte_category_id.to_i
-    if category_id > 0 && Topic.exists?(id: topic_id, category_id: category_id) &&
-         !has_unread_erhaltungsberichte?(user_id)
-      notify_new_content("erhaltungsberichte", user_ids: [user_id], has_new: false)
     end
   end
 
@@ -995,7 +971,6 @@ after_initialize do
             if winner_entry
               # Establish reverse link from winner entry to Erhaltungsbericht
               winner_entry.link_report!(topic)
-              VzekcVerlosung.notify_new_content("erhaltungsberichte")
             end
           end
         end
@@ -1023,7 +998,6 @@ after_initialize do
         donation = VzekcVerlosung::Donation.find_by(id: erhaltungsbericht_donation_id)
         if donation
           donation.update!(erhaltungsbericht_topic_id: topic.id)
-          VzekcVerlosung.notify_new_content("erhaltungsberichte")
           Rails.logger.info("Linked Erhaltungsbericht topic #{topic.id} to donation #{donation.id}")
         else
           Rails.logger.warn(

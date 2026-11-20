@@ -5,12 +5,8 @@ require "rails_helper"
 describe VzekcVerlosung::NewContentController do
   fab!(:user)
   fab!(:other_user, :user)
-  fab!(:category)
 
-  before do
-    SiteSetting.vzekc_verlosung_enabled = true
-    SiteSetting.vzekc_verlosung_erhaltungsberichte_category_id = category.id.to_s
-  end
+  before { SiteSetting.vzekc_verlosung_enabled = true }
 
   describe "#index" do
     context "when not logged in" do
@@ -30,7 +26,6 @@ describe VzekcVerlosung::NewContentController do
         json = response.parsed_body
         expect(json["donations"]).to eq(false)
         expect(json["lotteries"]).to eq(false)
-        expect(json["erhaltungsberichte"]).to eq(false)
         expect(json["merch_packets"]).to eq(false)
       end
 
@@ -69,8 +64,17 @@ describe VzekcVerlosung::NewContentController do
           expect(json["donations"]).to eq(false)
         end
 
-        it "ignores donations older than 4 weeks" do
+        it "reports open donations regardless of their age" do
           donation_topic.update!(created_at: 5.weeks.ago)
+
+          get "/vzekc-verlosung/has-new-content.json"
+
+          json = response.parsed_body
+          expect(json["donations"]).to eq(true)
+        end
+
+        it "ignores donations that are no longer open" do
+          donation.update!(state: "assigned")
 
           get "/vzekc-verlosung/has-new-content.json"
 
@@ -110,48 +114,6 @@ describe VzekcVerlosung::NewContentController do
 
           json = response.parsed_body
           expect(json["lotteries"]).to eq(false)
-        end
-      end
-
-      context "with unread erhaltungsberichte" do
-        fab!(:eb_topic) { Fabricate(:topic, category: category, created_at: 1.day.ago) }
-
-        it "returns true when user has not opened the topic" do
-          get "/vzekc-verlosung/has-new-content.json"
-
-          json = response.parsed_body
-          expect(json["erhaltungsberichte"]).to eq(true)
-        end
-
-        it "returns false when user has opened the topic" do
-          TopicUser.create!(
-            user_id: user.id,
-            topic_id: eb_topic.id,
-            first_visited_at: Time.zone.now,
-          )
-
-          get "/vzekc-verlosung/has-new-content.json"
-
-          json = response.parsed_body
-          expect(json["erhaltungsberichte"]).to eq(false)
-        end
-
-        it "ignores topics older than 4 weeks" do
-          eb_topic.update!(created_at: 5.weeks.ago)
-
-          get "/vzekc-verlosung/has-new-content.json"
-
-          json = response.parsed_body
-          expect(json["erhaltungsberichte"]).to eq(false)
-        end
-
-        it "returns false when category is not configured" do
-          SiteSetting.vzekc_verlosung_erhaltungsberichte_category_id = ""
-
-          get "/vzekc-verlosung/has-new-content.json"
-
-          json = response.parsed_body
-          expect(json["erhaltungsberichte"]).to eq(false)
         end
       end
 

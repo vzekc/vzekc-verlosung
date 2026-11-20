@@ -7,6 +7,12 @@ class NewContentState {
   @tracked donations = false;
   @tracked lotteries = false;
   @tracked erhaltungsberichte = false;
+  /**
+   * "new" or "unread" while the Erhaltungsberichte category has such topics
+   *
+   * @type {string|null}
+   */
+  @tracked erhaltungsberichteFilter = null;
   @tracked merch_packets = false;
   @tracked has_won_packets = false;
   @tracked has_open_lotteries = false;
@@ -56,12 +62,39 @@ function updateIndicatorStyles() {
   indicatorStyleEl.textContent = rules.join("\n");
 }
 
+/**
+ * Marks the Erhaltungsberichte link when Discourse counts new or unread topics
+ * in the category, the same count that drives the category's "Neu" and
+ * "Ungelesen" lists and that dismissing them clears. The link then leads to
+ * that list.
+ *
+ * @param {Object} topicTrackingState
+ * @param {number} categoryId
+ */
+function trackErhaltungsberichte(topicTrackingState, categoryId) {
+  const refresh = () => {
+    const filter = { categoryId };
+    if (topicTrackingState.countNew(filter) > 0) {
+      newContentState.erhaltungsberichteFilter = "new";
+    } else if (topicTrackingState.countUnread(filter) > 0) {
+      newContentState.erhaltungsberichteFilter = "unread";
+    } else {
+      newContentState.erhaltungsberichteFilter = null;
+    }
+    newContentState.erhaltungsberichte =
+      !!newContentState.erhaltungsberichteFilter;
+    updateIndicatorStyles();
+  };
+
+  topicTrackingState.onStateChange(refresh);
+  refresh();
+}
+
 function fetchNewContentStatus() {
   return ajax("/vzekc-verlosung/has-new-content.json")
     .then((result) => {
       newContentState.donations = result.donations;
       newContentState.lotteries = result.lotteries;
-      newContentState.erhaltungsberichte = result.erhaltungsberichte;
       newContentState.merch_packets = result.merch_packets;
       newContentState.has_won_packets = result.has_won_packets;
       newContentState.has_open_lotteries = result.has_open_lotteries;
@@ -105,6 +138,13 @@ export default {
       const messageBus = container.lookup("service:message-bus");
 
       fetchNewContentStatus();
+
+      if (erhaltungsberichteCategory) {
+        trackErhaltungsberichte(
+          container.lookup("service:topic-tracking-state"),
+          erhaltungsberichteCategoryId
+        );
+      }
 
       messageBus.subscribe("/vzekc-verlosung/new-content", (data) => {
         if (data.type && data.type in newContentState) {
@@ -175,7 +215,10 @@ export default {
             }
 
             get href() {
-              return erhaltungsberichteCategoryUrl;
+              const listFilter = newContentState.erhaltungsberichteFilter;
+              return listFilter
+                ? `${erhaltungsberichteCategoryUrl}/l/${listFilter}`
+                : erhaltungsberichteCategoryUrl;
             }
 
             get text() {
