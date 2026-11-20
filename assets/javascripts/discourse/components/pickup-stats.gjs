@@ -1,47 +1,58 @@
 import Component from "@glimmer/component";
 import { i18n } from "discourse-i18n";
 
-const OUTCOMES = ["kept", "passed_on", "partial", "pending"];
+// Points per outcome, matching PickupOffer::BALANCE_POINTS on the server
+const POINTS = { passed_on: -1, partial: 0, kept: 1, pending: 1 };
 
 /**
- * Shows a picker's pickup balance and the outcomes it is made of
+ * Format a number with an explicit sign, e.g. "+2", "−1" or "0"
+ *
+ * @param {number} value
+ * @returns {string}
+ */
+function signed(value) {
+  if (value > 0) {
+    return `+${value}`;
+  }
+  if (value < 0) {
+    return `−${Math.abs(value)}`;
+  }
+  return "0";
+}
+
+/**
+ * Shows a picker's pickup balance and how each outcome contributes to it,
+ * e.g. "Abholsaldo −1: 2× weiterverlost (−2) · 1× noch offen (+1)"
  *
  * @component PickupStats
  * @param {Object} @stats - Pickup statistics from the server: counts for kept, passed_on, partial and pending, and the resulting balance
  */
 export default class PickupStats extends Component {
   /**
-   * The balance with an explicit sign, e.g. "+2", "−1" or "0"
+   * The balance with an explicit sign
    *
    * @returns {string}
    */
   get formattedBalance() {
-    const balance = this.args.stats?.balance || 0;
-    if (balance > 0) {
-      return `+${balance}`;
-    }
-    if (balance < 0) {
-      return `−${Math.abs(balance)}`;
-    }
-    return "0";
+    return signed(this.args.stats?.balance || 0);
   }
 
   /**
-   * Localized description of each non-zero outcome, e.g. "1 behalten"
+   * One entry per non-zero outcome, each naming its count and its
+   * contribution to the balance
    *
-   * @returns {string}
+   * @returns {Array<string>}
    */
-  get breakdown() {
+  get parts() {
     const stats = this.args.stats || {};
-    const parts = OUTCOMES.filter((outcome) => stats[outcome] > 0).map(
-      (outcome) =>
+    return Object.keys(POINTS)
+      .filter((outcome) => stats[outcome] > 0)
+      .map((outcome) =>
         i18n(`vzekc_verlosung.donation.pickup_stats.${outcome}`, {
           count: stats[outcome],
+          points: signed(stats[outcome] * POINTS[outcome]),
         })
-    );
-    return parts.length > 0
-      ? parts.join(" · ")
-      : i18n("vzekc_verlosung.donation.pickup_stats.none");
+      );
   }
 
   <template>
@@ -54,9 +65,17 @@ export default class PickupStats extends Component {
           {{i18n
             "vzekc_verlosung.donation.pickup_stats.balance"
             balance=this.formattedBalance
-          }}
-        </span>
-        <span class="pickup-stats-breakdown">{{this.breakdown}}</span>
+          }}</span>{{#if this.parts.length}}:
+          {{#each this.parts as |part index|}}
+            {{#if index}}
+              ·
+            {{/if}}
+            <span class="pickup-stats-part">{{part}}</span>
+          {{/each}}
+        {{else}}
+          <span class="pickup-stats-none">–
+            {{i18n "vzekc_verlosung.donation.pickup_stats.none"}}</span>
+        {{/if}}
       </span>
     {{/if}}
   </template>

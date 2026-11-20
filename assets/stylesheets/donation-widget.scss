@@ -108,18 +108,15 @@
             align-items: center;
             gap: 8px;
             text-decoration: none;
-            cursor: pointer;
 
             .offer-username {
               color: var(--primary-high);
               font-weight: 500;
             }
 
-            &:hover {
-              .offer-username {
-                color: var(--tertiary);
-                text-decoration: underline;
-              }
+            .offer-username:hover {
+              color: var(--tertiary);
+              text-decoration: underline;
             }
           }
 
@@ -144,6 +141,17 @@
 
     .offer-avatar {
       display: inline-flex;
+      flex-shrink: 0;
+    }
+
+    .offer-identity {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .offer-username {
+      text-decoration: none;
     }
 
     .pickup-balance-rule {
@@ -153,15 +161,19 @@
     }
 
     .pickup-stats {
-      display: inline-flex;
-      align-items: baseline;
-      gap: 6px;
       color: var(--primary-medium);
       font-size: var(--font-down-1);
+      line-height: 1.4;
 
       .pickup-stats-balance {
-        font-weight: 700;
+        font-weight: 600;
         color: var(--primary-high);
+        white-space: nowrap;
+      }
+
+      .pickup-stats-part,
+      .pickup-stats-none {
+        white-space: nowrap;
       }
     }
 
@@ -194,28 +206,28 @@
 
         .offer-user-info {
           display: flex;
+          flex-shrink: 0;
           align-items: center;
           gap: 8px;
           text-decoration: none;
-          cursor: pointer;
 
           .offer-username {
             color: var(--primary-high);
             font-weight: 600;
           }
 
-          &:hover {
-            .offer-username {
-              color: var(--tertiary);
-              text-decoration: underline;
-            }
+          .offer-username:hover {
+            color: var(--tertiary);
+            text-decoration: underline;
           }
         }
 
         .offer-state-badge {
+          margin-left: auto;
           color: var(--tertiary);
           font-size: 0.9em;
           font-style: italic;
+          text-align: right;
         }
       }
     }
@@ -243,18 +255,15 @@
           align-items: center;
           gap: 8px;
           text-decoration: none;
-          cursor: pointer;
 
           .offer-username {
             color: var(--primary-high);
             font-weight: 500;
           }
 
-          &:hover {
-            .offer-username {
-              color: var(--tertiary);
-              text-decoration: underline;
-            }
+          .offer-username:hover {
+            color: var(--tertiary);
+            text-decoration: underline;
           }
         }
       }

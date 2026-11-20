@@ -233,7 +233,7 @@ export default class DonationWidget extends Component {
   }
 
   /**
-   * Format the assigned_at date as "Zugewiesen am <datum> um <uhrzeit>"
+   * Format the assigned_at date as "Zugewiesen am <datum>"
    *
    * @type {string}
    */
@@ -249,14 +249,9 @@ export default class DonationWidget extends Component {
       month: "short",
       year: "numeric",
     });
-    const timeStr = date.toLocaleTimeString("de-DE", {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
 
-    return i18n("vzekc_verlosung.donation.assigned_at_datetime", {
+    return i18n("vzekc_verlosung.donation.assigned_at_date", {
       date: dateStr,
-      time: timeStr,
     });
   }
 
@@ -642,22 +637,27 @@ export default class DonationWidget extends Component {
               <div class="assigned-offer-section">
                 <h4>{{i18n "vzekc_verlosung.donation.assigned_to"}}</h4>
                 <div class="assigned-offer-item">
-                  <a
-                    class="trigger-user-card offer-user-info"
-                    data-user-card={{this.assignedOffer.user.username}}
-                    title={{this.assignedOffer.user.username}}
-                  >
-                    <span class="offer-avatar">
+                  <div class="offer-user-info">
+                    <a
+                      class="trigger-user-card offer-avatar"
+                      data-user-card={{this.assignedOffer.user.username}}
+                      title={{this.assignedOffer.user.username}}
+                    >
                       {{avatar this.assignedOffer.user imageSize="medium"}}
-                    </span>
-                    <span class="offer-username">
-                      {{formatUsername this.assignedOffer.user.username}}
-                    </span>
-                  </a>
-                  <PickupStats
-                    @stats={{this.assignedOffer.user.pickup_stats}}
-                  />
-                  {{! Only show "Zugewiesen am <datum> um <uhrzeit>" badge when donation is in assigned state }}
+                    </a>
+                    <div class="offer-identity">
+                      <a
+                        class="trigger-user-card offer-username"
+                        data-user-card={{this.assignedOffer.user.username}}
+                      >
+                        {{formatUsername this.assignedOffer.user.username}}
+                      </a>
+                      <PickupStats
+                        @stats={{this.assignedOffer.user.pickup_stats}}
+                      />
+                    </div>
+                  </div>
+                  {{! Only show "Zugewiesen am <datum>" badge when donation is in assigned state }}
                   {{#if (eq this.donationData.state "assigned")}}
                     <span class="offer-state-badge assigned">
                       ({{this.formattedAssignedAt}})
@@ -672,19 +672,24 @@ export default class DonationWidget extends Component {
                 <h4>{{i18n "vzekc_verlosung.donation.other_offers"}}</h4>
                 {{#each this.otherOffers as |offer|}}
                   <div class="other-offer-item">
-                    <a
-                      class="trigger-user-card offer-user-info"
-                      data-user-card={{offer.user.username}}
-                      title={{offer.user.username}}
-                    >
-                      <span class="offer-avatar">
+                    <div class="offer-user-info">
+                      <a
+                        class="trigger-user-card offer-avatar"
+                        data-user-card={{offer.user.username}}
+                        title={{offer.user.username}}
+                      >
                         {{avatar offer.user imageSize="medium"}}
-                      </span>
-                      <span class="offer-username">
-                        {{formatUsername offer.user.username}}
-                      </span>
-                    </a>
-                    <PickupStats @stats={{offer.user.pickup_stats}} />
+                      </a>
+                      <div class="offer-identity">
+                        <a
+                          class="trigger-user-card offer-username"
+                          data-user-card={{offer.user.username}}
+                        >
+                          {{formatUsername offer.user.username}}
+                        </a>
+                        <PickupStats @stats={{offer.user.pickup_stats}} />
+                      </div>
+                    </div>
                   </div>
                 {{/each}}
               </div>
@@ -700,19 +705,24 @@ export default class DonationWidget extends Component {
                 {{#each this.pickupOffers as |offer|}}
                   <div class="pickup-offer-item">
                     <div class="offer-user-line">
-                      <a
-                        class="trigger-user-card offer-user-info"
-                        data-user-card={{offer.user.username}}
-                        title={{offer.user.username}}
-                      >
-                        <span class="offer-avatar">
+                      <div class="offer-user-info">
+                        <a
+                          class="trigger-user-card offer-avatar"
+                          data-user-card={{offer.user.username}}
+                          title={{offer.user.username}}
+                        >
                           {{avatar offer.user imageSize="medium"}}
-                        </span>
-                        <span class="offer-username">
-                          {{formatUsername offer.user.username}}
-                        </span>
-                      </a>
-                      <PickupStats @stats={{offer.user.pickup_stats}} />
+                        </a>
+                        <div class="offer-identity">
+                          <a
+                            class="trigger-user-card offer-username"
+                            data-user-card={{offer.user.username}}
+                          >
+                            {{formatUsername offer.user.username}}
+                          </a>
+                          <PickupStats @stats={{offer.user.pickup_stats}} />
+                        </div>
+                      </div>
                       {{#if (eq offer.state "assigned")}}
                         <span class="offer-state-badge assigned">
                           ({{i18n "vzekc_verlosung.donation.state.assigned"}})
