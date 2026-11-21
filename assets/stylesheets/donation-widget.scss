@@ -108,15 +108,18 @@
             align-items: center;
             gap: 8px;
             text-decoration: none;
+            cursor: pointer;
 
             .offer-username {
               color: var(--primary-high);
               font-weight: 500;
             }
 
-            .offer-username:hover {
-              color: var(--tertiary);
-              text-decoration: underline;
+            &:hover {
+              .offer-username {
+                color: var(--tertiary);
+                text-decoration: underline;
+              }
             }
           }
 
@@ -140,41 +143,31 @@
     }
 
     .offer-avatar {
+      position: relative;
       display: inline-flex;
-      flex-shrink: 0;
-    }
 
-    .offer-identity {
-      display: flex;
-      flex-direction: column;
-      min-width: 0;
-    }
-
-    .offer-username {
-      text-decoration: none;
+      .pickup-balance-badge {
+        position: absolute;
+        top: -4px;
+        right: -6px;
+        min-width: 16px;
+        height: 16px;
+        padding: 0 4px;
+        border-radius: 8px;
+        background: var(--tertiary);
+        color: var(--secondary);
+        font-size: 0.7em;
+        font-weight: 700;
+        line-height: 16px;
+        text-align: center;
+        box-sizing: border-box;
+      }
     }
 
     .pickup-balance-rule {
       margin: 0 0 8px;
       color: var(--primary-medium);
       font-size: var(--font-down-1);
-    }
-
-    .pickup-stats {
-      color: var(--primary-medium);
-      font-size: var(--font-down-1);
-      line-height: 1.4;
-
-      .pickup-stats-balance {
-        font-weight: 600;
-        color: var(--primary-high);
-        white-space: nowrap;
-      }
-
-      .pickup-stats-part,
-      .pickup-stats-none {
-        white-space: nowrap;
-      }
     }
 
     .no-offers {
@@ -206,19 +199,21 @@
 
         .offer-user-info {
           display: flex;
-          flex-shrink: 0;
           align-items: center;
           gap: 8px;
           text-decoration: none;
+          cursor: pointer;
 
           .offer-username {
             color: var(--primary-high);
             font-weight: 600;
           }
 
-          .offer-username:hover {
-            color: var(--tertiary);
-            text-decoration: underline;
+          &:hover {
+            .offer-username {
+              color: var(--tertiary);
+              text-decoration: underline;
+            }
           }
         }
 
@@ -244,7 +239,6 @@
       .other-offer-item {
         display: flex;
         align-items: center;
-        gap: 8px;
         padding: 6px 10px;
         margin: 3px 0;
         background: var(--primary-very-low);
@@ -255,15 +249,18 @@
           align-items: center;
           gap: 8px;
           text-decoration: none;
+          cursor: pointer;
 
           .offer-username {
             color: var(--primary-high);
             font-weight: 500;
           }
 
-          .offer-username:hover {
-            color: var(--tertiary);
-            text-decoration: underline;
+          &:hover {
+            .offer-username {
+              color: var(--tertiary);
+              text-decoration: underline;
+            }
           }
         }
       }

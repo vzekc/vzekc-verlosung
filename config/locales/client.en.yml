@@ -435,9 +435,8 @@ en:
         auto_assign: "Auto-assign"
         pickup_balance_rule: "Auto-assignment prefers whoever passes donations on: over the last 24 months, every donation kept counts +1, every donation raffled off −1, a lottery with a pickup packet 0. The lowest balance wins; ties are drawn by lot."
         pickup_stats:
-          title: "Pickup balance over the last 24 months: kept +1, raffled off −1, raffled with pickup packet 0, undecided +1. Auto-assignment prefers the lowest balance."
           balance: "Pickup balance %{balance}"
-          none: "no pickups"
+          rule: "Last 24 months: kept +1, raffled off −1, raffled with pickup packet 0, undecided +1. Auto-assignment prefers the lowest balance."
           kept: "%{count}× kept (%{points})"
           passed_on: "%{count}× raffled off (%{points})"
           partial: "%{count}× raffled with pickup packet (%{points})"

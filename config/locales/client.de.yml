@@ -479,9 +479,8 @@ de:
         auto_assign: "Automatisch zuweisen"
         pickup_balance_rule: "Wer abgeholte Spenden weitergibt, wird bei der automatischen Zuweisung bevorzugt: In den letzten 24 Monaten zählt jede behaltene Spende +1, jede weiterverloste −1, eine Verlosung mit Abholerpaket 0. Der niedrigste Saldo gewinnt, bei Gleichstand entscheidet das Los."
         pickup_stats:
-          title: "Abholsaldo der letzten 24 Monate: behalten +1, weiterverlost −1, mit Abholerpaket verlost 0, noch offen +1. Die automatische Zuweisung bevorzugt den niedrigsten Saldo."
           balance: "Abholsaldo %{balance}"
-          none: "keine Abholungen"
+          rule: "Letzte 24 Monate: behalten +1, weiterverlost −1, mit Abholerpaket verlost 0, noch offen +1. Die automatische Zuweisung bevorzugt den niedrigsten Saldo."
           kept: "%{count}× behalten (%{points})"
           passed_on: "%{count}× weiterverlost (%{points})"
           partial: "%{count}× mit Abholerpaket verlost (%{points})"

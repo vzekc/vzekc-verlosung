@@ -21,13 +21,24 @@ function signed(value) {
 }
 
 /**
- * Shows a picker's pickup balance and how each outcome contributes to it,
- * e.g. "Abholsaldo −1: 2× weiterverlost (−2) · 1× noch offen (+1)"
+ * Avatar badge with a picker's pickup balance. Its tooltip lists how each
+ * outcome contributes, e.g. "2× weiterverlost (−2)", followed by the rule.
+ * Pickers without pickups in the balance window get no badge.
  *
  * @component PickupStats
  * @param {Object} @stats - Pickup statistics from the server: counts for kept, passed_on, partial and pending, and the resulting balance
  */
 export default class PickupStats extends Component {
+  /**
+   * Outcomes with a non-zero count
+   *
+   * @returns {Array<string>}
+   */
+  get outcomes() {
+    const stats = this.args.stats || {};
+    return Object.keys(POINTS).filter((outcome) => stats[outcome] > 0);
+  }
+
   /**
    * The balance with an explicit sign
    *
@@ -38,44 +49,33 @@ export default class PickupStats extends Component {
   }
 
   /**
-   * One entry per non-zero outcome, each naming its count and its
-   * contribution to the balance
+   * Tooltip: the balance, one line per outcome with its contribution, and
+   * the rule behind the points
    *
-   * @returns {Array<string>}
+   * @returns {string}
    */
-  get parts() {
-    const stats = this.args.stats || {};
-    return Object.keys(POINTS)
-      .filter((outcome) => stats[outcome] > 0)
-      .map((outcome) =>
-        i18n(`vzekc_verlosung.donation.pickup_stats.${outcome}`, {
-          count: stats[outcome],
-          points: signed(stats[outcome] * POINTS[outcome]),
-        })
-      );
+  get tooltip() {
+    const stats = this.args.stats;
+    const lines = this.outcomes.map((outcome) =>
+      i18n(`vzekc_verlosung.donation.pickup_stats.${outcome}`, {
+        count: stats[outcome],
+        points: signed(stats[outcome] * POINTS[outcome]),
+      })
+    );
+    return [
+      i18n("vzekc_verlosung.donation.pickup_stats.balance", {
+        balance: this.formattedBalance,
+      }),
+      ...lines,
+      "",
+      i18n("vzekc_verlosung.donation.pickup_stats.rule"),
+    ].join("\n");
   }
 
   <template>
-    {{#if @stats}}
-      <span
-        class="pickup-stats"
-        title={{i18n "vzekc_verlosung.donation.pickup_stats.title"}}
-      >
-        <span class="pickup-stats-balance">
-          {{i18n
-            "vzekc_verlosung.donation.pickup_stats.balance"
-            balance=this.formattedBalance
-          }}</span>{{#if this.parts.length}}:
-          {{#each this.parts as |part index|}}
-            {{#if index}}
-              ·
-            {{/if}}
-            <span class="pickup-stats-part">{{part}}</span>
-          {{/each}}
-        {{else}}
-          <span class="pickup-stats-none">–
-            {{i18n "vzekc_verlosung.donation.pickup_stats.none"}}</span>
-        {{/if}}
+    {{#if this.outcomes.length}}
+      <span class="pickup-balance-badge" title={{this.tooltip}}>
+        {{this.formattedBalance}}
       </span>
     {{/if}}
   </template>
